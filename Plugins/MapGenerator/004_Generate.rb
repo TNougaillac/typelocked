@@ -71,7 +71,7 @@ module MapGenerator
         pbMessage(_INTL("Erreur : {1}", e.message))
       end
     end
-    pbMessage(_INTL("Ferme RPG Maker XP sans enregistrer, puis rouvre-le pour voir les cartes.")) if generated > 0
+    offer_editor_restart if generated > 0
   end
 end
 
@@ -80,4 +80,17 @@ MenuHandlers.add(:debug_menu, :map_generator, {
   "parent"      => :editors_menu,
   "description" => _INTL("Crée ou met à jour des cartes à partir des plans du dossier MapGen."),
   "effect"      => proc { MapGenerator.debug_menu }
+})
+
+MenuHandlers.add(:debug_menu, :map_generator_restart, {
+  "name"        => _INTL("Rouvrir RPG Maker XP (MapGen)"),
+  "parent"      => :editors_menu,
+  "description" => _INTL("Ferme RPG Maker XP sans enregistrer et rouvre le projet pour charger les cartes générées."),
+  "effect"      => proc {
+    next pbMessage(_INTL("RPG Maker XP n'est pas ouvert.")) if !MapGenerator.editor_running?
+    if pbConfirmMessage(_INTL("Fermer RPG Maker XP sans enregistrer et rouvrir le projet ?")) &&
+       !MapGenerator.restart_editor
+      pbMessage(_INTL("Impossible de relancer RPG Maker XP."))
+    end
+  }
 })

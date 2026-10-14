@@ -1,7 +1,7 @@
 # Fonctionnalités
 
 ## F01. Mode Nuzlocke
-**Statut :** v1.1.0, écrit, **non testé**.
+**Statut :** v1.2.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Nuzlocke/`
 
@@ -47,7 +47,7 @@
 - Les cadeaux ne consomment pas la zone.
 
 ## F02. Générateur de cartes (MapGen)
-**Statut :** v1.1.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
+**Statut :** v1.2.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemples : `MapGen/exemple.txt`, `MapGen/place_ville.txt`).
 
@@ -57,7 +57,7 @@
 - Objets multi-cases (section `[Objects]`) : `H = T400 3x4` pose un bloc de 3×4 tuiles à partir de la tuile 400, ancré sur la case du symbole (en haut à gauche). Options : `L1` à `L3` pour le calque (`L2` par défaut), `@<symbole>` pour le sol sous l'ancre (sinon la clé `Ground`). Les autres cases couvertes gardent leur propre symbole de sol.
 - Lancement : menu debug > Autres éditeurs > « Générer des cartes (MapGen) ». Écrit `Data/MapXXX.rxdata` et l'ajoute à `MapInfos.rxdata`.
 - Sans `MapID` : nouvelle carte (ID suivant). Avec `MapID` : la carte est remplacée, ses événements sont conservés (ceux qui sortent de la nouvelle taille sont supprimés).
-- Fermer RPG Maker XP sans enregistrer avant de générer, sinon l'éditeur écrase les fichiers.
+- Après la génération, si RPG Maker XP est ouvert, le jeu propose de le rouvrir : il le ferme sans enregistrer (`taskkill /F`, sinon il écraserait les cartes) puis rouvre `Game.rxproj`. Même action seule : menu debug > Autres éditeurs > « Rouvrir RPG Maker XP (MapGen) ». Windows uniquement.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -66,7 +66,8 @@
 | `001_Settings.rb` | `FOLDER`, `EMPTY_TOKEN`. |
 | `002_Parser.rb` | Lecture et validation des plans. |
 | `003_Builder.rb` | Construction des calques, motifs d'autotiles, vérification des tuiles. |
-| `004_Generate.rb` | Écriture des fichiers de carte, commande du menu debug. |
+| `004_Generate.rb` | Écriture des fichiers de carte, commandes du menu debug. |
+| `005_Editor.rb` | Fermeture et réouverture de RPG Maker XP. |
 
 ### Points d'accroche Essentials
 Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même table que le rendu d'Essentials) et `MenuHandlers.add(:debug_menu, ...)`.
@@ -82,3 +83,4 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 | 14/10/2026 | Nuzlocke v1.1.0 : shiny consomme une zone libre, morts verrouillés au PC, poison non mortel, équipe K.O. | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
 | 14/10/2026 | Plugin MapGenerator v1.0.0 : cartes générées depuis un plan texte | `Plugins/MapGenerator/*`, `MapGen/exemple.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | MapGenerator v1.1.0 : objets multi-cases `[Objects]`, plan `place_ville.txt` (place de ville d'après une illustration) | `Plugins/MapGenerator/*`, `MapGen/place_ville.txt`, `docs/FEATURES.md` |
+| 14/10/2026 | MapGenerator v1.2.0 : réouverture automatique de RPG Maker XP après génération | `Plugins/MapGenerator/*`, `docs/FEATURES.md` |
