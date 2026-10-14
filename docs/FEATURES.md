@@ -47,13 +47,14 @@
 - Les cadeaux ne consomment pas la zone.
 
 ## F02. Générateur de cartes (MapGen)
-**Statut :** v1.0.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
+**Statut :** v1.1.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
 **Version cible :** Essentials v21.1.
-**Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemple : `MapGen/exemple.txt`).
+**Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemples : `MapGen/exemple.txt`, `MapGen/place_ville.txt`).
 
 ### Fonctionnement
 - Un plan texte décrit la carte : un caractère par case, une légende qui associe chaque caractère à 1 à 3 calques.
 - Calques : `T<n>` = tuile n du tileset (n = ligne × 8 + colonne), `A1` à `A7` = autotile (raccords calculés automatiquement), `-` = vide, `T1|T2|T3` = variante au hasard (`Seed` pour un résultat reproductible).
+- Objets multi-cases (section `[Objects]`) : `H = T400 3x4` pose un bloc de 3×4 tuiles à partir de la tuile 400, ancré sur la case du symbole (en haut à gauche). Options : `L1` à `L3` pour le calque (`L2` par défaut), `@<symbole>` pour le sol sous l'ancre (sinon la clé `Ground`). Les autres cases couvertes gardent leur propre symbole de sol.
 - Lancement : menu debug > Autres éditeurs > « Générer des cartes (MapGen) ». Écrit `Data/MapXXX.rxdata` et l'ajoute à `MapInfos.rxdata`.
 - Sans `MapID` : nouvelle carte (ID suivant). Avec `MapID` : la carte est remplacée, ses événements sont conservés (ceux qui sortent de la nouvelle taille sont supprimés).
 - Fermer RPG Maker XP sans enregistrer avant de générer, sinon l'éditeur écrase les fichiers.
@@ -72,7 +73,7 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 
 ### Limites connues
 - Pas encore d'import PNG (1 pixel = 1 case) ni de génération procédurale.
-- Les objets de plusieurs cases (arbres 2×2...) se placent case par case dans la légende.
+- Les bordures de pavés (bords, coins, angles rentrants) s'écrivent tuile par tuile dans la légende : pas encore de raccord automatique pour les tuiles qui ne sont pas des autotiles.
 
 ## Journal
 | Date | Ajout | Fichiers |
@@ -80,3 +81,4 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 | 08/10/2026 | Plugin Nuzlocke v1.0.0 | `Plugins/Nuzlocke/*` |
 | 14/10/2026 | Nuzlocke v1.1.0 : shiny consomme une zone libre, morts verrouillés au PC, poison non mortel, équipe K.O. | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
 | 14/10/2026 | Plugin MapGenerator v1.0.0 : cartes générées depuis un plan texte | `Plugins/MapGenerator/*`, `MapGen/exemple.txt`, `docs/FEATURES.md` |
+| 14/10/2026 | MapGenerator v1.1.0 : objets multi-cases `[Objects]`, plan `place_ville.txt` (place de ville d'après une illustration) | `Plugins/MapGenerator/*`, `MapGen/place_ville.txt`, `docs/FEATURES.md` |
