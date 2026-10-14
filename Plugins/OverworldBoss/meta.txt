@@ -1,0 +1,5 @@
+Name       = OverworldBoss
+Version    = 1.0.0
+Essentials = 21.1
+Requires   = Deluxe Battle Kit,1.3.1
+Credits    = TypeLocked

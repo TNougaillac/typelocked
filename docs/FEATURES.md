@@ -139,6 +139,39 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène ni à la Ligue).
 - Si le PC est plein, un Pokémon inutilisable reste dans l'équipe.
 
+## F05. Pokémon boss (OverworldBoss)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1, Deluxe Battle Kit 1.3.1 (requis).
+**Dossier :** `Plugins/OverworldBoss/`
+
+### Règles
+- **Boss :** Pokémon sauvage fort, visible sur la carte (événement), placé plutôt au bout des zones. Les Pokémon normaux restent dans les hautes herbes (`encounters.txt`).
+- **Stats :** multiplicateurs par stat (`stats: { HP: 3, ATTACK: 1.5 }`). Les PV passent par le `hp_level` du Deluxe Battle Kit (barre de vie et dégâts gérés par le kit), les autres stats sont multipliées après le calcul normal.
+- **Talent :** n'importe quel talent, même hors de ceux de l'espèce (`ability: :LEVITATE`).
+- **Immunités (kit) :** `:FLINCH`, `:OHKO`, `:SELFKO`, `:ESCAPE`. Par défaut : peur, K.O. en un coup, fuite.
+- **Combat :** fuite impossible. Battu ou capturé : l'interrupteur local A de l'événement s'active et le boss disparaît définitivement (effacé, sans page 2). Perdu : le boss reste.
+- **Capture :** le boss garde son talent de boss, mais perd ses multiplicateurs et ses immunités (`KEEP_ABILITY_ON_CAPTURE = false` pour lui rendre aussi son talent normal). IVs, nature et capacités restent.
+- **Avec le Nuzlocke :** règle normale, capturable seulement s'il est la première rencontre de la zone.
+- **Avec le Monotype :** règle normale, capturable seulement s'il a le type.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin (requiert le Deluxe Battle Kit). |
+| `001_Settings.rb` | `DEFAULT_IVS`, `DEFAULT_IMMUNITIES`, `KEEP_ABILITY_ON_CAPTURE`, `SELF_SWITCH`. |
+| `002_Boss.rb` | Création du boss, multiplicateurs de stats, retour à la normale à la capture, `boss_battle` pour les événements. |
+
+### Intégration
+- Événement page 1 : graphisme du Pokémon, déclenchement « Touche action » ou « Contact avec le joueur », commande Script :
+  `boss_battle(:GYARADOS, 30, stats: { HP: 3, ATTACK: 1.5 }, ability: :INTIMIDATE, moves: [:DRAGONDANCE, :WATERFALL])`
+- Options : `stats`, `ability`, `moves`, `immunities`, `ivs`, `item`, `nature`, `shiny` (faux par défaut).
+
+### Points d'accroche Essentials (prepend, aucun script de base modifié)
+`Pokemon#calc_stats`, `Battle#pbStorePokemon`, `Game_Event#refresh`, nouvelle méthode `Interpreter#boss_battle`.
+
+### À vérifier au premier lancement
+- Les PV affichés du boss et ses PV après capture (doivent revenir à la normale).
+
 ## Journal
 | Date | Ajout | Fichiers |
 |---|---|---|
@@ -157,3 +190,4 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 | 14/10/2026 | Monotype v1.2.0 : la règle d'arène s'applique à tous les dresseurs des cartes d'arène | `Plugins/Monotype/*`, `docs/FEATURES.md` |
 | 14/10/2026 | Monotype v1.3.0 : la règle d'arène s'applique aussi à la Ligue (Conseil 4, Maître) | `Plugins/Monotype/*`, `docs/FEATURES.md` |
 | 14/10/2026 | MapGenerator v1.7.0 : plans du monde (lieux, raccords entre cartes, carte de région et son image) | `Plugins/MapGenerator/*`, `MapGen/exemple_monde.txt`, `docs/FEATURES.md` |
+| 14/10/2026 | Plugin OverworldBoss v1.0.0 : Pokémon boss sur la carte (multiplicateurs de stats, talent imposé, immunités) | `Plugins/OverworldBoss/*`, `docs/FEATURES.md` |
