@@ -12,7 +12,10 @@ module MapGenerator
     data = Table.new(width, height, 3)
     plan.rows.each_with_index do |row, y|
       row.each_char.with_index do |c, x|
-        layers = plan.legend[plan.objects[c] ? plan.objects[c].ground : c]
+        ground = c
+        ground = plan.objects[c].ground if plan.objects[c]
+        ground = (plan.terrains[c].layer > 0 ? plan.terrains[c].ground : nil) if plan.terrains[c]
+        next if !(layers = plan.legend[ground])
         layers.each_with_index do |variants, z|
           data[x, y, z] = variants[rng.rand(variants.length)]
         end
@@ -21,13 +24,15 @@ module MapGenerator
     plan.overlays.each do |z, rows|
       rows.each_with_index do |row, y|
         row.each_char.with_index do |c, x|
-          next if !(layers = plan.legend[c])
+          next if c == OVERLAY_EMPTY || !(layers = plan.legend[c])
           layers.each_with_index do |variants, i|
             data[x, y, z + i] = variants[rng.rand(variants.length)]
           end
         end
       end
     end
+    apply_terrains(plan, plan.rows, data, nil)
+    plan.overlays.each { |z, rows| apply_terrains(plan, rows, data, z) }
     apply_autotile_patterns(data)
     # Objects go last so autotile neighbours only see the ground
     plan.anchors.each do |x, y, symbol, z|
@@ -39,6 +44,37 @@ module MapGenerator
       end
     end
     return data
+  end
+
+  # Picks each terrain cell's tile from which neighbours belong to the same
+  # terrain (or to one it joins with). Map edges count as inside.
+  def apply_terrains(plan, rows, data, z)
+    return if plan.terrains.empty?
+    rows.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if (z && c == OVERLAY_EMPTY) || !(terrain = plan.terrains[c])
+        inside = lambda do |dx, dy|
+          nx, ny = x + dx, y + dy
+          next true if ny < 0 || ny >= rows.length || nx < 0 || nx >= row.length
+          next terrain.with.include?(rows[ny][nx])
+        end
+        n, s, e, w = !inside.call(0, -1), !inside.call(0, 1), !inside.call(1, 0), !inside.call(-1, 0)
+        role = if n && w then "NW"
+               elsif n && e then "NE"
+               elsif s && w then "SW"
+               elsif s && e then "SE"
+               elsif n then "N"
+               elsif s then "S"
+               elsif w then "W"
+               elsif e then "E"
+               elsif !inside.call(-1, -1) then "iNW"
+               elsif !inside.call(1, -1) then "iNE"
+               elsif !inside.call(-1, 1) then "iSW"
+               elsif !inside.call(1, 1) then "iSE"
+               end
+        data[x, y, z || terrain.layer] = terrain.roles[role] || terrain.center
+      end
+    end
   end
 
   # Autotile IDs are 48 * slot + pattern. Cells were filled with the base ID;
@@ -80,6 +116,12 @@ module MapGenerator
         elsif id >= 384 && id >= tileset.passages.xsize
           raise Error, "#{plan.file} : « #{symbol} » utilise T#{id - 384}, absent du tileset « #{tileset.name} » (#{tileset.passages.xsize - 384} tuiles)"
         end
+      end
+    end
+    plan.terrains.each do |symbol, terrain|
+      ([terrain.center] + terrain.roles.values).each do |id|
+        next if id < tileset.passages.xsize
+        raise Error, "#{plan.file} : le terrain « #{symbol} » utilise T#{id - 384}, absent du tileset « #{tileset.name} »"
       end
     end
     plan.objects.each do |symbol, object|

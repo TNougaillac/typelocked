@@ -2,8 +2,9 @@
 # Plan pour le plugin MapGenerator, tileset Outside (1).
 # Lancer : menu debug > Autres éditeurs > Générer des cartes (MapGen).
 # Les bâtiments et le décor sont des objets multi-cases ([Objects]) : leur symbole
-# couvre toute leur surface (CCCCC sur 5 lignes = un Centre de 5x5). Une zone plus
-# grande contient plusieurs copies, découpées depuis le coin haut-gauche.
+# couvre toute leur surface (CCCCC sur 5 lignes = un Centre de 5x5).
+# Les pavés sont des terrains ([Terrains]) : P et D suffisent, le plugin choisit
+# les bords et les angles. Fontaine et bancs sont dans [Layer2], sur les dalles.
 Name    = Place de la ville
 Tileset = 1
 Seed    = 3
@@ -17,31 +18,12 @@ Ground  = .
 ] = T1 T1018
 { = T1 T1019         # pieds du stand jaune
 } = T1 T1021
-A = T265             # pavé, coin haut-gauche
-D = T266             # pavé, bord haut
-E = T267             # pavé, coin haut-droite
-V = T268             # pavé, angle rentrant bas-droite
-U = T270             # pavé, angle rentrant bas-gauche
-H = T273             # pavé, bord gauche
-I = T274             # pavé, plein
-J = T275             # pavé, bord droite
-R = T281             # pavé, coin bas-gauche
-S = T282             # pavé, bord bas
-W = T283             # pavé, coin bas-droite
-L = T284             # pavé, angle rentrant haut-droite
-K = T286             # pavé, angle rentrant haut-gauche
-Z = T392             # dalles, coin haut-gauche
-0 = T394             # dalles, coin haut-droite
-N = T395             # dalles, angle rentrant haut-gauche
-Q = T396             # dalles, angle rentrant haut-droite
-X = T400             # dalles, bord gauche
-O = T401             # dalles, plein
-Y = T402             # dalles, bord droite
-2 = T403             # dalles, angle rentrant bas-gauche
-3 = T404             # dalles, angle rentrant bas-droite
-1 = T408             # dalles, coin bas-gauche
-5 = T409             # dalles, bord bas
-4 = T410             # dalles, coin bas-droite
+
+[Terrains]
+# Pavé clair de l'allée et des rues : les bords et les angles sont choisis tout seuls.
+P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=D
+# Dalles de la place ronde, raccordées au pavé.
+D = T401 N=T393 S=T409 W=T400 E=T402 NW=T392 NE=T394 SW=T408 SE=T410 iNW=T395 iNE=T396 iSW=T403 iSE=T404 with=P
 
 [Objects]
 G = T2800 7x5        # arène (bâtiment-scène au fond), porte en bas au centre
@@ -51,10 +33,10 @@ C = T2608 5x5        # Centre Pokémon
 M = T2648 4x4        # Boutique
 s = T1000 3x2        # stand à auvent rayé (fête foraine)
 y = T1003 3x2        # stand jaune (fête foraine)
-F = T1125 3x3 @O     # fontaine, posée sur les dalles de la place
+F = T1125 3x3        # fontaine (dans [Layer2], par-dessus les dalles)
 t = T441 2x3         # arbre
 l = T1029 1x2        # lampadaire
-b = T1045 3x1 @O # banc, sur les dalles
+b = T1045 3x1        # banc (dans [Layer2])
 p = T984 2x1         # jardinière
 
 [Map]
@@ -66,35 +48,77 @@ tt..BBBBB.......GGGGGGG.......BBBBB..tt
 tt..BBBBB.......GGGGGGG.......BBBBB..tt
 tt..BBBBB.......GGGGGGG.......BBBBB..tt
 tt..BBBBB.......GGGGGGG.......BBBBB..tt
-tt...............ADDDE...............tt
-ttsss......hhhh.lHIIIJl.hhhh......yyytt
-ttsss......hhhh.lHIIIJl.hhhh......yyytt
-tt[.]......hhhh..HIIIJ..hhhh......{.}tt
-tt...ADE...hhhh..HIIIJ..hhhh...ADE...tt
-tt...HIJ........lHIIIJl........HIJ...tt
-tt...HIJ...hhhh.lHIIIJl.hhhh...HIJ...tt
-ttyyyHIJ...hhhh..HIIIJ..hhhh...HIJssstt
-ttyyyHIJ...hhhh..HIIIJ..hhhh...HIJssstt
-tt{.}HIJ...hhhh.lHIIIJl.hhhh...HIJ[.]tt
-tt...HIJ........lHIIIJl........HIJ...tt
-tt...HIJ..CCCCC..HIIIJ.........HIJ...tt
-tt...HIJ..CCCCC..HIIIJ..MMMM...HIJ...tt
-tt...HIJ..CCCCC.lHIIIJl.MMMM...HIJ...tt
-tt...HIJ..CCCCC.lHIIIJl.MMMM...HIJ...tt
-tt...HIJ..CCCCC..HIIIJ..MMMM...HIJ...tt
-tt...HIJ.pp.HIJ..HIIIJ..HIJ.pp.HIJ...tt
-ttADDKILDDDDKILDDNOOOQDDKILDDDDKILDDEtt
-ttRSSSSSSSSSSSUOOOOOOOOOVSSSSSSSSSSSWtt
-tt............lOOOOOOOOOl............tt
-tt""""""""....lOOOOOOOOOl.....*******tt
-tt""""""""...ZNOOOOOOOOOQ0....*******tt
-tt""""""""...XOOOOFFFOOOOY...........tt
-tt""""""""...XOOOOFFFOOOOY...........tt
-tt""""""""...XOOOOFFFOOOOY....*******tt
-tt""""""""...12OOOOOOOOO34....*******tt
-tt............XObbbObbbOY............tt
-tt............12OOOOOOO34............tt
-tt.............152OOO354.............tt
-tttttttttttttt...15554....tttttttttt.tt
+tt...............PPPPP...............tt
+ttsss......hhhh.lPPPPPl.hhhh......yyytt
+ttsss......hhhh.lPPPPPl.hhhh......yyytt
+tt[.]......hhhh..PPPPP..hhhh......{.}tt
+tt...PPP...hhhh..PPPPP..hhhh...PPP...tt
+tt...PPP........lPPPPPl........PPP...tt
+tt...PPP...hhhh.lPPPPPl.hhhh...PPP...tt
+ttyyyPPP...hhhh..PPPPP..hhhh...PPPssstt
+ttyyyPPP...hhhh..PPPPP..hhhh...PPPssstt
+tt{.}PPP...hhhh.lPPPPPl.hhhh...PPP[.]tt
+tt...PPP........lPPPPPl........PPP...tt
+tt...PPP..CCCCC..PPPPP.........PPP...tt
+tt...PPP..CCCCC..PPPPP..MMMM...PPP...tt
+tt...PPP..CCCCC.lPPPPPl.MMMM...PPP...tt
+tt...PPP..CCCCC.lPPPPPl.MMMM...PPP...tt
+tt...PPP..CCCCC..PPPPP..MMMM...PPP...tt
+tt...PPP.pp.PPP..PPPPP..PPP.pp.PPP...tt
+ttPPPPPPPPPPPPPPPDDDDDPPPPPPPPPPPPPPPtt
+ttPPPPPPPPPPPPPDDDDDDDDDPPPPPPPPPPPPPtt
+tt............lDDDDDDDDDl............tt
+tt""""""""....lDDDDDDDDDl.....*******tt
+tt""""""""...DDDDDDDDDDDDD....*******tt
+tt""""""""...DDDDDDDDDDDDD...........tt
+tt""""""""...DDDDDDDDDDDDD...........tt
+tt""""""""...DDDDDDDDDDDDD....*******tt
+tt""""""""...DDDDDDDDDDDDD....*******tt
+tt............DDDDDDDDDDD............tt
+tt............DDDDDDDDDDD............tt
+tt.............DDDDDDDDD.............tt
+tttttttttttttt...DDDDD....tttttttttt.tt
 tttttttttttttt............tttttttttt.tt
 ..tttttttttttt............tttttttttt...
+
+[Layer2]
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................
+..................FFF..................
+..................FFF..................
+..................FFF..................
+.......................................
+................bbb.bbb................
+.......................................
+.......................................
+.......................................
+.......................................
+.......................................

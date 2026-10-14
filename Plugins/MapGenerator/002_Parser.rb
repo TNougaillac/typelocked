@@ -16,6 +16,15 @@
 #   H = T400 3x4               (block of 3x4 tiles from tileset tile 400;
 #   F = T600 2x2 L3 @,          L1..L3 = layer, L2 by default; @<symbol> =
 #                               ground under it, Ground by default)
+#   [Terrains]                 (edge-aware tiles: one symbol, borders picked
+#   P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283
+#       iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=D L1 @.
+#                               from the neighbours. T<n> = inside tile; N..SE
+#                               = outer edges/corners, iNW..iSE = inner corners
+#                               (missing ones fall back to the inside tile);
+#                               with=<symbols> = other terrains that join it;
+#                               L1..L3 = layer in [Map], L1 by default; @<symbol>
+#                               = ground under it when not on L1)
 #   [Map]
 #   ....~~~~                   (one char per tile, all rows the same width)
 #   ..HHH...
@@ -31,7 +40,9 @@ module MapGenerator
   class Error < StandardError; end
 
   Plan = Struct.new(:file, :name, :tileset_id, :map_id, :parent_id, :seed,
-                    :ground, :legend, :objects, :rows, :anchors, :overlays)
+                    :ground, :legend, :objects, :rows, :anchors, :overlays, :terrains)
+  Terrain = Struct.new(:center, :roles, :with, :layer, :ground)
+  TERRAIN_ROLES = %w[N S E W NW NE SW SE iNW iNE iSW iSE]
   # Multi-tile block: first tileset tile, size in tiles, layer index (0-2)
   MapObject = Struct.new(:tile, :width, :height, :layer, :ground)
 
@@ -43,14 +54,14 @@ module MapGenerator
   end
 
   def parse(text, file = "plan")
-    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [], {})
+    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [], {}, {})
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       line = raw.chomp
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       if line.strip =~ /\A\[(\w+)\]\z/
         section = $1.downcase.to_sym
-        fail_at.call("section inconnue [#{$1}]") unless [:legend, :objects, :map, :layer2, :layer3].include?(section)
+        fail_at.call("section inconnue [#{$1}]") unless [:legend, :objects, :terrains, :map, :layer2, :layer3].include?(section)
         next
       end
       case section
@@ -79,6 +90,24 @@ module MapGenerator
           fail_at.call("« #{$1} » dépasse le bord droit du tileset (8 tuiles de large)")
         end
         plan.objects[$1] = object
+      when :terrains
+        content = line.sub(/#.*\z/, "").strip
+        next if content.empty?
+        fail_at.call("attendu « symbole = T<n> N=T<n> ... »") unless content =~ /\A(\S)\s*=\s*T(\d+)(.*)\z/
+        symbol = $1
+        terrain = Terrain.new(384 + $2.to_i, {}, symbol, 0, nil)
+        $3.split.each do |option|
+          case option
+          when /\A(\w+)=T(\d+)\z/
+            fail_at.call("bord « #{$1} » inconnu (#{TERRAIN_ROLES.join(', ')})") unless TERRAIN_ROLES.include?($1)
+            terrain.roles[$1] = 384 + $2.to_i
+          when /\Awith=(\S+)\z/ then terrain.with += $1
+          when /\AL([1-3])\z/    then terrain.layer = $1.to_i - 1
+          when /\A@(\S)\z/      then terrain.ground = $1
+          else fail_at.call("option « #{option} » invalide pour « #{symbol} »")
+          end
+        end
+        plan.terrains[symbol] = terrain
       else
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?
@@ -121,11 +150,12 @@ module MapGenerator
     raise Error, "#{plan.file} : « Name » manquant" if !plan.name
     raise Error, "#{plan.file} : « Tileset » manquant" if !plan.tileset_id
     raise Error, "#{plan.file} : section [Map] vide" if plan.rows.empty?
-    plan.objects.each_key do |symbol|
-      next if !plan.legend[symbol]
-      raise Error, "#{plan.file} : « #{symbol} » est à la fois dans [Legend] et [Objects]"
+    (plan.objects.keys + plan.terrains.keys).tally.each do |symbol, count|
+      next if count == 1 && !plan.legend[symbol]
+      raise Error, "#{plan.file} : « #{symbol} » est défini dans plusieurs sections ([Legend], [Objects], [Terrains])"
     end
     plan.objects.each_value { |object| object.ground ||= plan.ground }
+    plan.terrains.each_value { |terrain| terrain.ground ||= plan.ground }
     width = plan.rows[0].length
     plan.rows.each_with_index do |row, y|
       next if row.length == width
@@ -157,11 +187,15 @@ module MapGenerator
           claim_object(plan, rows, claimed, c, object, x, y, where, z)
           next
         end
+        if (terrain = plan.terrains[c])
+          next if z || terrain.layer == 0 || plan.legend[terrain.ground]
+          raise Error, "#{plan.file} : le terrain « #{c} » n'a pas de sol valide (« Ground » ou @symbole de [Legend])"
+        end
         if (layers = plan.legend[c])
           next if !z || z + layers.length <= 3
           raise Error, "#{plan.file} : « #{c} » #{where} a #{layers.length} calques, trop pour partir du calque #{z + 1}"
         end
-        raise Error, "#{plan.file} : symbole « #{c} » #{where} absent de [Legend] et [Objects]"
+        raise Error, "#{plan.file} : symbole « #{c} » #{where} absent de [Legend], [Objects] et [Terrains]"
       end
     end
   end
