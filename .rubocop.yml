@@ -1,0 +1,23 @@
+# Lint only: catches likely bugs (unused variables, ambiguous conditions...)
+# without imposing a style on the Essentials-like code.
+AllCops:
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  SuggestExtensions: false
+  DisabledByDefault: true
+  Include:
+    - "Plugins/**/*.rb"
+    - "tools/**/*.rb"
+  Exclude:
+    # Third-party plugins, not maintained here
+    - "Plugins/*Deluxe Battle Kit/**/*"
+    - "Plugins/v21.1 Hotfixes/**/*"
+
+Lint:
+  Enabled: true
+
+# Style-only rules: explicit sorts and "a % 8 + b" read fine here.
+Lint/RedundantDirGlobSort:
+  Enabled: false
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: false
