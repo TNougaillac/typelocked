@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Plugins/**"
+      - "PBS/**"
+      - "MapGen/**"
+      - "Data/**"
+      - "tools/ci/**"
+      - ".rubocop.yml"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "Plugins/**"
+      - "PBS/**"
+      - "MapGen/**"
+      - "Data/**"
+      - "tools/ci/**"
+      - ".rubocop.yml"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"   # same Ruby as the game (x64-msvcrt-ruby310.dll)
+      # Every check runs even if an earlier one fails, to report everything at once.
+      - name: Syntaxe Ruby des plugins
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_ruby_syntax.rb
+      - name: Références des PBS et des cartes
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_pbs.rb
+      - name: Plans MapGen
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_mapgen.rb
+      - name: meta.txt et encodage
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_plugins.rb
+      - name: RuboCop (Lint)
+        if: ${{ !cancelled() }}
+        run: |
+          gem install rubocop -v 1.69.2 --no-document
+          rubocop --format github
