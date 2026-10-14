@@ -179,7 +179,13 @@ module MapGenerator
       end
       map = load_data(sprintf("Data/Map%03d.rxdata", place.map_id))
       want_w, want_h = place.width * plan.cell, place.height * plan.cell
-      if map.width != want_w || map.height != want_h
+      # Each place covers as many squares as its map holds cells, at its scale
+      cells_w = [(map.width + (plan.cell / 2)) / plan.cell, 1].max
+      cells_h = [(map.height + (plan.cell / 2)) / plan.cell, 1].max
+      if cells_w != place.width || cells_h != place.height
+        notes.push(_INTL("« {1} » ({2}x{3} tuiles) doit couvrir {4}x{5} cases dans [World], pas {6}x{7}.",
+                         place.name, map.width, map.height, cells_w, cells_h, place.width, place.height))
+      elsif map.width != want_w || map.height != want_h
         notes.push(_INTL("« {1} » mesure {2}x{3}, le plan du monde attend {4}x{5} : les raccords peuvent être décalés.",
                          place.name, map.width, map.height, want_w, want_h))
       end
