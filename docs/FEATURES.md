@@ -140,7 +140,7 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 - **Stats :** multiplicateurs par stat (`stats: { HP: 3, ATTACK: 1.5 }`). Les PV passent par le `hp_level` du Deluxe Battle Kit (barre de vie et dégâts gérés par le kit), les autres stats sont multipliées après le calcul normal.
 - **Talent :** n'importe quel talent, même hors de ceux de l'espèce (`ability: :LEVITATE`).
 - **Immunités (kit) :** `:FLINCH`, `:OHKO`, `:SELFKO`, `:ESCAPE`. Par défaut : peur, K.O. en un coup, fuite.
-- **Combat :** fuite impossible. Battu ou capturé : l'interrupteur local A de l'événement s'active. Perdu : le boss reste.
+- **Combat :** fuite impossible. Battu ou capturé : l'interrupteur local A de l'événement s'active et le boss disparaît définitivement (effacé, sans page 2). Perdu : le boss reste.
 - **Capture :** le boss garde son talent de boss, mais perd ses multiplicateurs et ses immunités (`KEEP_ABILITY_ON_CAPTURE = false` pour lui rendre aussi son talent normal). IVs, nature et capacités restent.
 - **Avec le Nuzlocke :** règle normale, capturable seulement s'il est la première rencontre de la zone.
 - **Avec le Monotype :** règle normale, capturable seulement s'il a le type.
@@ -155,11 +155,10 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 ### Intégration
 - Événement page 1 : graphisme du Pokémon, déclenchement « Touche action » ou « Contact avec le joueur », commande Script :
   `boss_battle(:GYARADOS, 30, stats: { HP: 3, ATTACK: 1.5 }, ability: :INTIMIDATE, moves: [:DRAGONDANCE, :WATERFALL])`
-- Page 2 : vide, condition interrupteur local A (le boss disparaît).
 - Options : `stats`, `ability`, `moves`, `immunities`, `ivs`, `item`, `nature`, `shiny` (faux par défaut).
 
 ### Points d'accroche Essentials (prepend, aucun script de base modifié)
-`Pokemon#calc_stats`, `Battle#pbStorePokemon`, nouvelle méthode `Interpreter#boss_battle`.
+`Pokemon#calc_stats`, `Battle#pbStorePokemon`, `Game_Event#refresh`, nouvelle méthode `Interpreter#boss_battle`.
 
 ### À vérifier au premier lancement
 - Les PV affichés du boss et ses PV après capture (doivent revenir à la normale).

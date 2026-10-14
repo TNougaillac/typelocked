@@ -68,7 +68,7 @@ Battle.prepend(OverworldBoss::BattleHooks)
 
 class Interpreter
   # The boss can't be fled from. Defeated or caught: sets the event's self
-  # switch, so a second page (blank, condition on that switch) hides it.
+  # switch, which erases the event for good (see Game_Event below).
   # Returns the battle outcome (1 = defeated, 4 = caught).
   def boss_battle(species, level, **options)
     pkmn = OverworldBoss.create(species, level, **options)
@@ -80,3 +80,23 @@ class Interpreter
     outcome
   end
 end
+
+# An event whose script calls boss_battle is erased (no sprite, no collision)
+# once its self switch is on. The switch is saved, so it stays erased.
+module OverworldBoss::EventHooks
+  def boss_event?
+    if @boss_event.nil?
+      @boss_event = @event.pages.any? do |page|
+        page.list.any? { |cmd| [355, 655].include?(cmd.code) && cmd.parameters[0].to_s.include?("boss_battle") }
+      end
+    end
+    @boss_event
+  end
+
+  def refresh
+    @erased = true if !@erased && boss_event? && $game_self_switches[[@map_id, @event.id, OverworldBoss::SELF_SWITCH]]
+    super
+  end
+end
+
+Game_Event.prepend(OverworldBoss::EventHooks)
