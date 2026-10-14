@@ -12,12 +12,24 @@ module MapGenerator
     data = Table.new(width, height, 3)
     plan.rows.each_with_index do |row, y|
       row.each_char.with_index do |c, x|
-        plan.legend[c].each_with_index do |variants, z|
+        layers = plan.legend[plan.objects[c] ? plan.objects[c].ground : c]
+        layers.each_with_index do |variants, z|
           data[x, y, z] = variants[rng.rand(variants.length)]
         end
       end
     end
     apply_autotile_patterns(data)
+    # Objects go last so autotile neighbours only see the ground
+    plan.rows.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if !(object = plan.objects[c])
+        object.height.times do |dy|
+          object.width.times do |dx|
+            data[x + dx, y + dy, object.layer] = 384 + object.tile + (dy * 8) + dx
+          end
+        end
+      end
+    end
     return data
   end
 
@@ -61,6 +73,11 @@ module MapGenerator
           raise Error, "#{plan.file} : « #{symbol} » utilise T#{id - 384}, absent du tileset « #{tileset.name} » (#{tileset.passages.xsize - 384} tuiles)"
         end
       end
+    end
+    plan.objects.each do |symbol, object|
+      last = 384 + object.tile + ((object.height - 1) * 8) + object.width - 1
+      next if last < tileset.passages.xsize
+      raise Error, "#{plan.file} : l'objet « #{symbol} » sort du tileset « #{tileset.name} »"
     end
   end
 end
