@@ -31,7 +31,13 @@
 #   [Layer2]                   (optional grids drawn over [Map], same size:
 #   ....f...                    "." = nothing, a [Legend] symbol is drawn from
 #   [Layer3]                    this layer up, an object goes on this layer)
-#   ........                   (an object's symbol covers its whole footprint;
+#   ........
+#   [Warps]                    (doors and stairs: a symbol, then the target map
+#   1 = Maison 1 4,7 haut       by its Name or its ID, the x,y cell there
+#   2 = 12 10,3                 (from 0) and the facing: haut, bas, gauche,
+#                               droite, or kept when omitted)
+#   [Events]                   (optional grid, same size as [Map]: "." =
+#   ..1.....                    nothing, a [Warps] symbol = a transfer event)                   (an object's symbol covers its whole footprint;
 #   ..HHH...                    a wider or taller area holds several copies,
 #   ..HHH...                    split from the top-left: HHHHHH = two houses)
 #   ..HHH...
@@ -40,7 +46,9 @@ module MapGenerator
   class Error < StandardError; end
 
   Plan = Struct.new(:file, :name, :tileset_id, :map_id, :parent_id, :seed,
-                    :ground, :legend, :objects, :rows, :anchors, :overlays, :terrains)
+                    :ground, :legend, :objects, :rows, :anchors, :overlays, :terrains, :warps, :events)
+  Warp = Struct.new(:target, :x, :y, :direction)
+  WARP_DIRECTIONS = { "bas" => 2, "gauche" => 4, "droite" => 6, "haut" => 8 }
   Terrain = Struct.new(:center, :roles, :with, :layer, :ground)
   TERRAIN_ROLES = %w[N S E W NW NE SW SE iNW iNE iSW iSE]
   # Multi-tile block: first tileset tile, size in tiles, layer index (0-2)
@@ -54,20 +62,35 @@ module MapGenerator
   end
 
   def parse(text, file = "plan")
-    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [], {}, {})
+    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [], {}, {}, {}, [])
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       line = raw.chomp
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       if line.strip =~ /\A\[(\w+)\]\z/
         section = $1.downcase.to_sym
-        fail_at.call("section inconnue [#{$1}]") unless [:legend, :objects, :terrains, :map, :layer2, :layer3].include?(section)
+        fail_at.call("section inconnue [#{$1}]") unless [:legend, :objects, :terrains, :warps, :map, :layer2, :layer3, :events].include?(section)
         next
       end
       case section
       when :map
         next if line.strip.empty?
         plan.rows.push(line.rstrip)
+      when :events
+        next if line.strip.empty?
+        plan.events.push(line.rstrip)
+      when :warps
+        content = line.sub(/#.*\z/, "").strip
+        next if content.empty?
+        unless content =~ /\A(\S)\s*=\s*(.+?)\s+(\d+),(\d+)(?:\s+(\S+))?\z/
+          fail_at.call("attendu « symbole = carte x,y [haut|bas|gauche|droite] »")
+        end
+        symbol, target, x, y, facing = $1, $2, $3.to_i, $4.to_i, $5
+        if facing && !WARP_DIRECTIONS[facing]
+          fail_at.call("direction « #{facing} » inconnue (haut, bas, gauche, droite)")
+        end
+        target = target.to_i if target =~ /\A\d+\z/
+        plan.warps[symbol] = Warp.new(target, x, y, WARP_DIRECTIONS[facing] || 0)
       when :layer2, :layer3
         next if line.strip.empty?
         (plan.overlays[section == :layer2 ? 1 : 2] ||= []).push(line.rstrip)
@@ -168,6 +191,16 @@ module MapGenerator
         raise Error, "#{plan.file} : #{name} doit faire la même taille que [Map] (#{width}x#{plan.rows.length})"
       end
       scan_grid(plan, rows, name, z)
+    end
+    return if plan.events.empty?
+    if plan.events.length != plan.rows.length || plan.events.any? { |row| row.length != width }
+      raise Error, "#{plan.file} : [Events] doit faire la même taille que [Map] (#{width}x#{plan.rows.length})"
+    end
+    plan.events.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if c == OVERLAY_EMPTY || plan.warps[c]
+        raise Error, "#{plan.file} : symbole « #{c} » (colonne #{x + 1}, ligne #{y + 1} de [Events]) absent de [Warps]"
+      end
     end
   end
 
