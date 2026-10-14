@@ -18,7 +18,11 @@
 #                               ground under it, Ground by default)
 #   [Map]
 #   ....~~~~                   (one char per tile, all rows the same width)
-#   ..HHH...                   (an object's symbol covers its whole footprint;
+#   ..HHH...
+#   [Layer2]                   (optional grids drawn over [Map], same size:
+#   ....f...                    "." = nothing, a [Legend] symbol is drawn from
+#   [Layer3]                    this layer up, an object goes on this layer)
+#   ........                   (an object's symbol covers its whole footprint;
 #   ..HHH...                    a wider or taller area holds several copies,
 #   ..HHH...                    split from the top-left: HHHHHH = two houses)
 #   ..HHH...
@@ -27,7 +31,7 @@ module MapGenerator
   class Error < StandardError; end
 
   Plan = Struct.new(:file, :name, :tileset_id, :map_id, :parent_id, :seed,
-                    :ground, :legend, :objects, :rows, :anchors)
+                    :ground, :legend, :objects, :rows, :anchors, :overlays)
   # Multi-tile block: first tileset tile, size in tiles, layer index (0-2)
   MapObject = Struct.new(:tile, :width, :height, :layer, :ground)
 
@@ -39,20 +43,23 @@ module MapGenerator
   end
 
   def parse(text, file = "plan")
-    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [])
+    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [], {})
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       line = raw.chomp
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       if line.strip =~ /\A\[(\w+)\]\z/
         section = $1.downcase.to_sym
-        fail_at.call("section inconnue [#{$1}]") unless [:legend, :objects, :map].include?(section)
+        fail_at.call("section inconnue [#{$1}]") unless [:legend, :objects, :map, :layer2, :layer3].include?(section)
         next
       end
       case section
       when :map
         next if line.strip.empty?
         plan.rows.push(line.rstrip)
+      when :layer2, :layer3
+        next if line.strip.empty?
+        (plan.overlays[section == :layer2 ? 1 : 2] ||= []).push(line.rstrip)
       when :legend
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?
@@ -118,26 +125,42 @@ module MapGenerator
       next if !plan.legend[symbol]
       raise Error, "#{plan.file} : « #{symbol} » est à la fois dans [Legend] et [Objects]"
     end
-    plan.objects.each do |symbol, object|
-      object.ground ||= plan.ground
-      next if plan.legend[object.ground]
-      raise Error, "#{plan.file} : l'objet « #{symbol} » n'a pas de sol valide (« Ground » ou @symbole de [Legend])"
-    end
+    plan.objects.each_value { |object| object.ground ||= plan.ground }
     width = plan.rows[0].length
     plan.rows.each_with_index do |row, y|
       next if row.length == width
       raise Error, "#{plan.file} : la ligne #{y + 1} de [Map] fait #{row.length} cases au lieu de #{width}"
     end
-    claimed = Array.new(plan.rows.length) { Array.new(width, false) }
-    plan.rows.each_with_index do |row, y|
+    scan_grid(plan, plan.rows, "[Map]", nil)
+    plan.overlays.each do |z, rows|
+      name = "[Layer#{z + 1}]"
+      if rows.length != plan.rows.length || rows.any? { |row| row.length != width }
+        raise Error, "#{plan.file} : #{name} doit faire la même taille que [Map] (#{width}x#{plan.rows.length})"
+      end
+      scan_grid(plan, rows, name, z)
+    end
+  end
+
+  # Checks every symbol of one grid and records the objects it places.
+  # z = layer forced by an overlay grid (nil for [Map]).
+  def scan_grid(plan, rows, name, z)
+    claimed = Array.new(rows.length) { Array.new(rows[0].length, false) }
+    rows.each_with_index do |row, y|
       row.each_char.with_index do |c, x|
-        where = "(colonne #{x + 1}, ligne #{y + 1} de [Map])"
+        where = "(colonne #{x + 1}, ligne #{y + 1} de #{name})"
+        next if z && c == OVERLAY_EMPTY
         if (object = plan.objects[c])
           next if claimed[y][x]
-          claim_object(plan, claimed, c, object, x, y, where)
+          if !z && !plan.legend[object.ground]
+            raise Error, "#{plan.file} : l'objet « #{c} » n'a pas de sol valide (« Ground » ou @symbole de [Legend])"
+          end
+          claim_object(plan, rows, claimed, c, object, x, y, where, z)
           next
         end
-        next if plan.legend[c]
+        if (layers = plan.legend[c])
+          next if !z || z + layers.length <= 3
+          raise Error, "#{plan.file} : « #{c} » #{where} a #{layers.length} calques, trop pour partir du calque #{z + 1}"
+        end
         raise Error, "#{plan.file} : symbole « #{c} » #{where} absent de [Legend] et [Objects]"
       end
     end
@@ -145,16 +168,16 @@ module MapGenerator
 
   # The first unclaimed cell of an object symbol (reading order) is the
   # top-left corner of one copy; its whole footprint must use that symbol.
-  def claim_object(plan, claimed, symbol, object, x, y, where)
+  def claim_object(plan, rows, claimed, symbol, object, x, y, where, z)
     object.height.times do |dy|
       object.width.times do |dx|
         cx, cy = x + dx, y + dy
-        next if cy < plan.rows.length && plan.rows[cy][cx] == symbol && !claimed[cy][cx]
+        next if cy < rows.length && rows[cy][cx] == symbol && !claimed[cy][cx]
         raise Error, "#{plan.file} : l'objet « #{symbol} » commencé #{where} doit couvrir " \
                      "#{object.width}x#{object.height} cases ; la case colonne #{cx + 1}, ligne #{cy + 1} ne convient pas"
       end
     end
     object.height.times { |dy| object.width.times { |dx| claimed[y + dy][x + dx] = true } }
-    plan.anchors.push([x, y, symbol])
+    plan.anchors.push([x, y, symbol, z || object.layer])
   end
 end

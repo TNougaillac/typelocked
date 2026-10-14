@@ -18,13 +18,23 @@ module MapGenerator
         end
       end
     end
+    plan.overlays.each do |z, rows|
+      rows.each_with_index do |row, y|
+        row.each_char.with_index do |c, x|
+          next if !(layers = plan.legend[c])
+          layers.each_with_index do |variants, i|
+            data[x, y, z + i] = variants[rng.rand(variants.length)]
+          end
+        end
+      end
+    end
     apply_autotile_patterns(data)
     # Objects go last so autotile neighbours only see the ground
-    plan.anchors.each do |x, y, symbol|
+    plan.anchors.each do |x, y, symbol, z|
       object = plan.objects[symbol]
       object.height.times do |dy|
         object.width.times do |dx|
-          data[x + dx, y + dy, object.layer] = 384 + object.tile + (dy * 8) + dx
+          data[x + dx, y + dy, z] = 384 + object.tile + (dy * 8) + dx
         end
       end
     end

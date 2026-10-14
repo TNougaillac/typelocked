@@ -1,0 +1,33 @@
+# Exemple des grilles de calques [Layer2] et [Layer3] (plugin MapGenerator).
+# [Map] dessine le sol, [Layer2] pose le décor par-dessus sans symbole combiné.
+# Dans [Layer2]/[Layer3] : "." = rien ; un symbole de [Legend] est posé à partir
+# de ce calque ; un objet de [Objects] est posé sur ce calque.
+Name    = Exemple calques
+Tileset = 1
+Seed    = 1
+
+[Legend]
+, = T1|T2|T3         # herbe
+~ = A1               # mer
+b = T475             # buisson
+f = A5               # fleurs
+r = T944             # rocher
+
+[Objects]
+t = T441 2x3         # arbre
+
+[Map]
+,,,,,,,,,,,,
+,,,,,,,~~~~,
+,,,,,,,~~~~,
+,,,,,,,,,,,,
+,,,,,,,,,,,,
+,,,,,,,,,,,,
+
+[Layer2]
+tt.b.ff.....
+tt..ff......
+tt...f..r...
+....b..tt...
+.......tt...
+.......tt...

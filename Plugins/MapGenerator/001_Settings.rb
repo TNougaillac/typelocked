@@ -7,4 +7,7 @@ module MapGenerator
 
   # Symbol used in [Legend] for "no tile on this layer".
   EMPTY_TOKEN = "-"
+
+  # Symbol used in [Layer2] / [Layer3] grids for "nothing on this layer".
+  OVERLAY_EMPTY = "."
 end
