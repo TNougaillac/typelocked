@@ -3,12 +3,11 @@
 #===============================================================================
 module Nuzlocke
   class Data
-    attr_accessor :active, :hardcore, :chosen
+    attr_accessor :active, :chosen
     attr_reader   :used_zones, :graveyard_boxes
 
     def initialize
       @active          = false
-      @hardcore        = false
       @chosen          = false
       @used_zones      = []
       @graveyard_boxes = []
@@ -31,10 +30,6 @@ module Nuzlocke
 
   def active?
     data.active
-  end
-
-  def hardcore?
-    active? && data.hardcore
   end
 
   def current_zone

@@ -18,7 +18,6 @@ module Nuzlocke
   def setup_dialog
     return if data.chosen
     commands = [_INTL("Nuzlocke"), _INTL("Normal"), _INTL("Voir les règles")]
-    commands.insert(1, _INTL("Nuzlocke hardcore")) if HARDCORE_AVAILABLE
     loop do
       index = pbMessage(_INTL("Quel mode de jeu veux-tu ?"), commands, -1)
       next if index < 0
@@ -31,10 +30,9 @@ module Nuzlocke
         data.chosen = true
         return
       else
-        next if !pbConfirmMessage(_INTL("Activer le mode {1} ? Ce choix est définitif.", choice))
-        data.active   = true
-        data.hardcore = (choice == _INTL("Nuzlocke hardcore"))
-        data.chosen   = true
+        next if !pbConfirmMessage(_INTL("Activer le mode Nuzlocke ? Ce choix est définitif."))
+        data.active = true
+        data.chosen = true
         create_graveyard_box if data.graveyard_boxes.empty?
         return
       end

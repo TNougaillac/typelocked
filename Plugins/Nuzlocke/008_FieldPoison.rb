@@ -1,13 +1,13 @@
 #===============================================================================
 # Nuzlocke - Poison in the field
-# Replaces the base :poison_party handler (same key). Poison leaves the Pokémon
-# at 1 HP, except in hardcore mode where it kills.
+# Replaces the base :poison_party handler (same key). In Nuzlocke mode, poison
+# leaves the Pokémon at 1 HP instead of killing it.
 #===============================================================================
 EventHandlers.add(:on_player_step_taken_can_transfer, :poison_party,
   proc { |handled|
     next if handled[0]
     next if !Settings::POISON_IN_FIELD || $PokemonGlobal.stepcount % 4 != 0
-    can_faint = Nuzlocke.active? ? Nuzlocke.hardcore? : Settings::POISON_FAINT_IN_FIELD
+    can_faint = !Nuzlocke.active? && Settings::POISON_FAINT_IN_FIELD
     flashed = false
     $player.able_party.each do |pkmn|
       next if pkmn.status != :POISON || pkmn.hasAbility?(:IMMUNITY)
@@ -24,15 +24,10 @@ EventHandlers.add(:on_player_step_taken_can_transfer, :poison_party,
         pkmn.changeHappiness("faint")
         pkmn.status = :NONE
         pbMessage(_INTL("{1} est K.O. !", pkmn.name))
-        if Nuzlocke.active?
-          pkmn.nuzlocke_dead = true
-          $player.party.delete(pkmn)
-          Nuzlocke.bury(pkmn)
-        end
       end
       if $player.able_pokemon_count == 0
         handled[0] = true
-        Nuzlocke.hardcore? ? Nuzlocke.game_over : pbCheckAllFainted
+        pbCheckAllFainted
       end
     end
   }

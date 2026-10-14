@@ -15,8 +15,4 @@ module Nuzlocke
 
   # Name of the graveyard boxes ("Cimetière 1", "Cimetière 2"...).
   GRAVEYARD_NAME = "Cimetière"
-
-  # Hardcore mode (poison kills in the field, team wipe = game over).
-  # Not offered yet: set to true to add it to the start-of-game dialog.
-  HARDCORE_AVAILABLE = false
 end

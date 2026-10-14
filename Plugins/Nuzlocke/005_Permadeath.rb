@@ -57,22 +57,13 @@ module Nuzlocke
     all.any? { |pkmn| pkmn && !pkmn.egg? && !pkmn.nuzlocke_dead? }
   end
 
-  # Normal mode: no living Pokémon left anywhere ends the run; the mode turns
-  # off so the adventure can go on. Hardcore: any team wipe is a game over.
+  # No living Pokémon left anywhere ends the run; the mode turns off so the
+  # adventure can go on.
   def check_run_lost
-    return if $player.able_pokemon_count > 0
-    if hardcore?
-      game_over
-    elsif !living_pokemon?
-      pbMessage(_INTL("Plus aucun Pokémon en vie : le run Nuzlocke est perdu."))
-      pbMessage(_INTL("Le mode Nuzlocke est désactivé. L'aventure continue normalement."))
-      data.active = false
-    end
-  end
-
-  def game_over
-    pbMessage(_INTL("Toute votre équipe est morte. Fin de la partie."))
-    $game_temp.to_title = true
+    return if $player.able_pokemon_count > 0 || living_pokemon?
+    pbMessage(_INTL("Plus aucun Pokémon en vie : le run Nuzlocke est perdu."))
+    pbMessage(_INTL("Le mode Nuzlocke est désactivé. L'aventure continue normalement."))
+    data.active = false
   end
 end
 
