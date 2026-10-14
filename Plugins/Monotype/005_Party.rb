@@ -40,8 +40,8 @@ module Monotype
     end
   end
 
-  # Called before each gym leader battle: ends the starter's grace and returns
-  # false if no usable Pokémon is in the party.
+  # Called before each gym battle: ends the starter's grace and returns false if
+  # no usable Pokémon is in the party.
   def gym_check
     return true if !active?
     data.grace = false
@@ -52,6 +52,7 @@ module Monotype
   end
 
   def gym_battle?(args)
+    return true if GYM_MAP_PATTERN.match?(pbGetBasicMapNameFromId($game_map.map_id))
     args.any? do |arg|
       type = case arg
              when NPCTrainer then arg.trainer_type
@@ -63,8 +64,8 @@ module Monotype
   end
 end
 
-# Gym leaders: the starter's grace ends, and the battle doesn't take place
-# without a Pokémon of the type in the party (the leader isn't beaten).
+# Gym trainers and leaders: the starter's grace ends, and the battle doesn't take
+# place without a Pokémon of the type in the party (the trainer isn't beaten).
 class << TrainerBattle
   alias_method :__monotype_start_core, :start_core
   def start_core(*args)

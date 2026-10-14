@@ -91,7 +91,7 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.1.0, écrit, **non testé**.
+**Statut :** v1.2.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -101,7 +101,7 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 - **Évolutions :** le sens inverse ne compte pas. Un Pokémon qui perd le type en évoluant (Évoli → Pyroli en Eau) devient inutilisable et part au PC.
 - **Dons et échanges hors du type :** envoyés directement au PC, présents mais inutilisables.
 - **Inutilisable :** ne peut pas quitter le PC pour l'équipe. Un Pokémon inutilisable dans l'équipe (évolution, échange, Pension) est envoyé au PC à la fin du combat ou au pas suivant.
-- **Starter :** le premier Pokémon reçu reste utilisable jusqu'à la première capture (Concours de Capture compris). Il n'est jamais utilisable contre un champion d'arène : avant ce combat, sa période de grâce prend fin et il retourne au PC. Sans Pokémon du type dans l'équipe, le combat n'a pas lieu et le champion n'est pas battu.
+- **Starter :** le premier Pokémon reçu reste utilisable jusqu'à la première capture (Concours de Capture compris). Il n'est jamais utilisable dans une arène : avant le combat contre un dresseur de l'arène ou un champion, sa période de grâce prend fin et il retourne au PC. Sans Pokémon du type dans l'équipe, le message « Seuls les Pokémon de type X peuvent combattre dans l'arène » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
 
@@ -109,14 +109,14 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | `EXCLUDED_TYPES` (types impossibles à tirer ou choisir), `GYM_LEADER_PATTERN` (types de dresseur des champions). |
+| `001_Settings.rb` | `EXCLUDED_TYPES` (types impossibles à tirer ou choisir), `GYM_MAP_PATTERN` (nom des cartes d'arène dans l'éditeur), `GYM_LEADER_PATTERN` (types de dresseur des champions). |
 | `002_Data.rb` | Données de sauvegarde (`$monotype`), test du type avec les évolutions. |
 | `003_Setup.rb` | Fenêtres de choix du début de partie (Nuzlocke puis Monotype), déclenchées automatiquement. |
 | `004_Capture.rb` | Blocage des captures, fin de la grâce du starter. |
-| `005_Party.rb` | Starter, combats de champion, dons au PC, Pokémon inutilisables, verrous du PC. |
+| `005_Party.rb` | Starter, combats d'arène, dons au PC, Pokémon inutilisables, verrous du PC. |
 
 ### Intégration
-- Rien à placer dans l'éditeur : les choix de mode s'affichent seuls en début de partie, et les champions sont reconnus par leur type de dresseur (`LEADER_…`, réglable avec `GYM_LEADER_PATTERN`).
+- Rien à placer dans l'éditeur : les choix de mode s'affichent seuls en début de partie, les dresseurs d'arène sont reconnus par le nom de la carte dans l'éditeur (« Gym » ou « Arène », réglable avec `GYM_MAP_PATTERN`) et les champions par leur type de dresseur (`LEADER_…`, réglable avec `GYM_LEADER_PATTERN`).
 - Facultatif : `Monotype.setup_dialog` ou `Nuzlocke.setup_dialog` dans un événement pour choisir le moment exact.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
@@ -127,7 +127,7 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 - Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
 
 ### Limites connues
-- L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas affronter un champion).
+- L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène).
 - Si le PC est plein, un Pokémon inutilisable reste dans l'équipe.
 
 ## Journal
@@ -145,3 +145,4 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 | 14/10/2026 | MapGenerator v1.6.0 : portes et étages `[Warps]` / `[Events]` | `Plugins/MapGenerator/*`, `MapGen/exemple_porte_*.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | Plugin Monotype v1.0.0 ; Nuzlocke v1.1.2 : une rencontre hors du type ne consomme pas la zone | `Plugins/Monotype/*`, `Plugins/Nuzlocke/003_Encounters.rb`, `docs/FEATURES.md` |
 | 14/10/2026 | Monotype v1.1.0 : choix de mode automatiques en début de partie, starter bloqué contre les champions sans événement, Concours de Capture compté comme capture | `Plugins/Monotype/*`, `docs/FEATURES.md` |
+| 14/10/2026 | Monotype v1.2.0 : la règle d'arène s'applique à tous les dresseurs des cartes d'arène | `Plugins/Monotype/*`, `docs/FEATURES.md` |
