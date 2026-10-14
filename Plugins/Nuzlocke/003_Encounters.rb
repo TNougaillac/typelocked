@@ -53,27 +53,30 @@ module Nuzlocke
   end
 end
 
-class Battle
-  alias_method :__nuzlocke_pbStartBattle, :pbStartBattle
+# Applied to Battle (and its subclasses, e.g. the Bug Catching Contest) and to
+# SafariBattle, which doesn't inherit from Battle.
+module Nuzlocke::BattleEncounterHooks
   def pbStartBattle
     Nuzlocke.evaluate_wild_battle(pbParty(1)) if wildBattle?
-    __nuzlocke_pbStartBattle
+    super
   end
 
-  # Double battles: refuse the throw at a blocked target and give the ball back.
-  alias_method :__nuzlocke_pbThrowPokeBall, :pbThrowPokeBall
+  # Double battles / Safari: refuse the throw at a blocked target, give the ball back.
   def pbThrowPokeBall(idxBattler, ball, *args)
     battler = opposes?(idxBattler) ? @battlers[idxBattler] : @battlers[idxBattler].pbDirectOpposing(true)
     battler = battler.allAllies[0] if battler.fainted?
     reason = Nuzlocke.catch_blocked_reason(battler.pokemon) if battler
     if reason
       pbDisplay(Nuzlocke.blocked_message(reason))
-      $bag.add(ball)
+      respond_to?(:ballCount) ? @ballCount += 1 : $bag.add(ball)
       return
     end
-    __nuzlocke_pbThrowPokeBall(idxBattler, ball, *args)
+    super
   end
 end
+
+Battle.prepend(Nuzlocke::BattleEncounterHooks)
+SafariBattle.prepend(Nuzlocke::BattleEncounterHooks)
 
 # Grey out Poké Balls when no foe can be caught.
 # Args: item, pkmn, battler, move, firstAction, battle, scene, showMessages

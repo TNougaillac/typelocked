@@ -18,21 +18,24 @@ module Nuzlocke
   end
 end
 
-# Captures
-class Battle
-  alias_method :__nuzlocke_pbStorePokemon, :pbStorePokemon
+# Captures (Bug Catching Contest: forced when the kept Pokémon is given, through
+# pbNicknameAndStore => pbNickname)
+module Nuzlocke::BattleNicknameHooks
   def pbStorePokemon(pkmn)
-    return __nuzlocke_pbStorePokemon(pkmn) if !Nuzlocke.active? || pkmn.shadowPokemon?
+    return super if !Nuzlocke.active? || pkmn.shadowPokemon?
     Nuzlocke.force_nickname(pkmn) { |text| @scene.pbNameEntry(text, pkmn) }
     old_setting = $PokemonSystem.givenicknames
     $PokemonSystem.givenicknames = 1   # Skip the base "nickname?" prompt
     begin
-      __nuzlocke_pbStorePokemon(pkmn)
+      super
     ensure
       $PokemonSystem.givenicknames = old_setting
     end
   end
 end
+
+Battle.prepend(Nuzlocke::BattleNicknameHooks)
+SafariBattle.prepend(Nuzlocke::BattleNicknameHooks)
 
 # Gifts and events (pbAddPokemon, pbAddToParty...)
 alias __nuzlocke_pbNickname pbNickname
