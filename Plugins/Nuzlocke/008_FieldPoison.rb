@@ -12,13 +12,14 @@ EventHandlers.add(:on_player_step_taken_can_transfer, :poison_party,
     $player.able_party.each do |pkmn|
       next if pkmn.status != :POISON || pkmn.hasAbility?(:IMMUNITY)
       if !flashed
+        pbSEPlay("Poison step")
         pbFlash(Color.new(255, 0, 0, 128), 8)
         flashed = true
       end
       pkmn.hp -= 1 if pkmn.hp > 1 || can_faint
       if pkmn.hp == 1 && !can_faint
         pkmn.status = :NONE
-        pbMessage(_INTL("{1} a survécu au poison.\\nLe poison a disparu !\\1", pkmn.name))
+        pbMessage(_INTL("{1} a survécu au poison.\\nLe poison a disparu !", pkmn.name))
         next
       elsif pkmn.hp == 0
         pkmn.changeHappiness("faint")

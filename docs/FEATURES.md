@@ -37,7 +37,7 @@
 `Battle#pbStartBattle`, `Battle#pbThrowPokeBall`, `Battle#pbStorePokemon`, `Battle::Battler#pbFaint`, `ItemHandlers.triggerCanUseInBattle`, `pbNickname`, `Pokemon#hp=`, `Pokemon#heal_HP`, `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap/pbRelease`, handlers `:on_end_battle` et `:poison_party` (remplacé).
 
 ### À vérifier au premier lancement
-- Les noms de méthodes ci-dessus (une `NameError` au chargement nomme la méthode fautive).
+- Les points d'accroche ont été vérifiés contre les scripts v21.1 du dépôt (`Data/Scripts.rxdata`), mais le plugin n'a pas encore tourné en jeu.
 - Combat double avec une cible non capturable : la Poké Ball est rendue mais le tour est perdu.
 
 ### Limites connues
