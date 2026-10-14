@@ -37,10 +37,10 @@
 #   2 = 12 10,3                 (from 0) and the facing: haut, bas, gauche,
 #                               droite, or kept when omitted)
 #   [Events]                   (optional grid, same size as [Map]: "." =
-#   ..1.....                    nothing, a [Warps] symbol = a transfer event)                   (an object's symbol covers its whole footprint;
-#   ..HHH...                    a wider or taller area holds several copies,
-#   ..HHH...                    split from the top-left: HHHHHH = two houses)
-#   ..HHH...
+#   ..1.....                    nothing, a [Warps] symbol = a transfer event)
+# In [Map], an object's symbol covers its whole footprint; a wider or taller
+# area holds several copies, split from the top-left (HHHHHH = two houses).
+# A plan with a World key is a world plan instead, see 006_World.rb.
 #===============================================================================
 module MapGenerator
   class Error < StandardError; end

@@ -105,13 +105,15 @@ module MapGenerator
       pbMessage(_INTL("Aucun plan trouvé dans le dossier {1}/.", FOLDER))
       return
     end
-    commands = files.map { |f| File.basename(f) } + [_INTL("Tous")]
+    worlds = files.select { |f| world_file?(f) }
+    commands = files.map { |f| (worlds.include?(f) ? "[Monde] " : "") + File.basename(f) } + [_INTL("Tous")]
     index = pbShowCommands(nil, commands, -1)
     return if index < 0
     chosen = (index == files.length) ? files : [files[index]]
     generated = 0
     unlinked = []
-    chosen.each do |path|
+    # Maps first, so the worlds find them by name
+    (chosen - worlds).each do |path|
       begin
         plan = parse_file(path)
         map_id, notes, missing = generate(plan)
@@ -127,6 +129,14 @@ module MapGenerator
     unlinked.each do |plan, map_id|
       relink_warps(plan, map_id).each do |target|
         pbMessage(_INTL("{1} : porte vers « {2} » ignorée, cette carte n'existe pas.", plan.file, target))
+      end
+    end
+    (chosen & worlds).each do |path|
+      begin
+        run_world(path)
+        generated += 1
+      rescue Error => e
+        pbMessage(_INTL("Erreur : {1}", e.message))
       end
     end
     offer_editor_restart if generated > 0
