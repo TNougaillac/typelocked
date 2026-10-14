@@ -1,22 +1,31 @@
 #===============================================================================
 # MapGenerator - Draws the Town Map image of a world plan
-# Sea, land around the places, routes as white paths that follow the
-# connections, towns as red blocks and other places as orange blocks. The image
-# is a plain PNG written with Zlib, and an existing image is only replaced if
-# MapGen drew it (it carries a "MapGen" text chunk).
+# Same colours and shapes as Essentials' mapRegion0.png: round coast with sand
+# and shallow sea, routes as white paths in a dark band that follow the
+# connections, towns as red blocks, other places as dark squares with a spot.
+# The image is a plain PNG written with Zlib, and an existing image is only
+# replaced if MapGen drew it (it carries a "MapGen" text chunk).
 #===============================================================================
 module MapGenerator
   REGION_SQUARE = 16            # Town Map square size in pixels (UI_RegionMap)
   REGION_SIZE = [30, 20]        # Default image size in squares (480x320)
+  # Colours and shapes taken from Essentials' mapRegion0.png (2-pixel art)
   REGION_COLORS = {
-    sea:     [80, 184, 216],
-    shore:   [56, 160, 184],
-    land:    [96, 192, 144],
-    outline: [80, 80, 80],
-    route:   [248, 248, 248],
-    town:    [248, 80, 96],
-    place:   [240, 176, 128]
+    sea:       [80, 184, 216],
+    sea_light: [64, 176, 200],
+    sea_dark:  [56, 160, 184],
+    sand:      [192, 144, 104],
+    land:      [96, 192, 144],
+    outline:   [80, 80, 80],
+    route:     [248, 248, 248],
+    town:      [248, 80, 96],
+    town_mid:  [200, 56, 72],
+    town_low:  [160, 48, 72],
+    spot:      [112, 200, 144],
+    dot:       [144, 144, 144]
   }
+  # Distance from a place (pixels) where the land, sand and shallow sea end
+  REGION_COAST = [[14, :land], [18, :sand], [22, :sea_dark], [26, :sea_light]]
 
   module_function
 
@@ -55,21 +64,10 @@ module MapGenerator
     box = proc do |place|
       [(plan.origin[0] + place.x) * sq, (plan.origin[1] + place.y) * sq, place.width * sq, place.height * sq]
     end
-    # Land: one square around every place, with a shore line
-    plan.places.each_value do |place|
-      x, y, w, h = box.call(place)
-      canvas.fill(x - sq - 2, y - sq - 2, w + (sq * 2) + 4, h + (sq * 2) + 4, REGION_COLORS[:shore])
-    end
-    plan.places.each_value do |place|
-      x, y, w, h = box.call(place)
-      canvas.fill(x - sq, y - sq, w + (sq * 2), h + (sq * 2), REGION_COLORS[:land])
-    end
-    # Paths: along each route, and from each connection to the places it joins
+    paint_coast(canvas, plan.places.values.map { |place| box.call(place) })
+    # Routes: a dark 16-pixel band with a white 8-pixel core, along each route
+    # and from each connection to the places it joins
     segments = []
-    center = proc do |place|
-      x, y, w, h = box.call(place)
-      [x + (w / 2), y + (h / 2)]
-    end
     plan.places.each_value do |place|
       next if place_kind(place) != "route"
       x, y, w, h = box.call(place)
@@ -83,29 +81,69 @@ module MapGenerator
       ax, ay, aw, ah = box.call(a)
       bx, by, bw, bh = box.call(b)
       if edge == "E"
-        top = [ay, by].max
-        point = [ax + aw, (top + [ay + ah, by + bh].min) / 2]
+        point = [ax + aw, ([ay, by].max + [ay + ah, by + bh].min) / 2]
       else
-        left = [ax, bx].max
-        point = [(left + [ax + aw, bx + bw].min) / 2, ay + ah]
+        point = [([ax, bx].max + [ax + aw, bx + bw].min) / 2, ay + ah]
       end
       [a, b].each do |place|
         # To the route's middle line (or the block's centre), in two straight
         # pieces that leave the edge at a right angle
-        target = (place_kind(place) == "route") ? route_point(box.call(place), point) : center.call(place)
+        x, y, w, h = box.call(place)
+        target = (place_kind(place) == "route") ? route_point([x, y, w, h], point) : [x + (w / 2), y + (h / 2)]
         corner = (edge == "E") ? [target[0], point[1]] : [point[0], target[1]]
         segments.push(point + corner, corner + target)
       end
     end
-    segments.each { |s| canvas.segment(*s, 4, REGION_COLORS[:outline]) }
-    segments.each { |s| canvas.segment(*s, 2, REGION_COLORS[:route]) }
-    # Towns and other places on top
-    plan.places.each_value do |place|
-      kind = place_kind(place)
-      next if kind == "route"
-      x, y, w, h = box.call(place)
-      canvas.fill(x + 1, y + 1, w - 2, h - 2, REGION_COLORS[:outline])
-      canvas.fill(x + 3, y + 3, w - 6, h - 6, REGION_COLORS[(kind == "ville") ? :town : :place])
+    segments.each { |s| canvas.segment(*s, sq / 2, REGION_COLORS[:outline]) }
+    segments.each { |s| canvas.segment(*s, sq / 4, REGION_COLORS[:route]) }
+    # Other places: dark squares with a green spot, towns: red blocks
+    plan.places.each_value { |place| paint_spots(canvas, *box.call(place)) if place_kind(place) == "lieu" }
+    plan.places.each_value { |place| paint_town(canvas, *box.call(place)) if place_kind(place) == "ville" }
+  end
+
+  # Land, sand and shallow sea by distance to the nearest place, in 2-pixel
+  # blocks so the coast is round and pixelated like the base map.
+  def paint_coast(canvas, boxes)
+    (0...canvas.height).step(2) do |py|
+      (0...canvas.width).step(2) do |px|
+        cx, cy = px + 1, py + 1
+        dist = boxes.map do |x, y, w, h|
+          dx = [x - cx, 0, cx - (x + w)].max
+          dy = [y - cy, 0, cy - (y + h)].max
+          Math.sqrt((dx * dx) + (dy * dy))
+        end.min
+        band = REGION_COAST.find { |limit, _| dist <= limit }
+        canvas.fill(px, py, 2, 2, REGION_COLORS[band[1]]) if band
+      end
+    end
+  end
+
+  # One dark square per cell, grey dots in the corners, green spot in the middle.
+  def paint_spots(canvas, x, y, w, h)
+    c = REGION_COLORS
+    canvas.fill(x, y, w, h, c[:outline])
+    (0...h).step(REGION_SQUARE) do |oy|
+      (0...w).step(REGION_SQUARE) do |ox|
+        [[2, 2], [12, 2], [2, 12], [12, 12]].each { |dx, dy| canvas.fill(x + ox + dx, y + oy + dy, 2, 2, c[:dot]) }
+        canvas.fill(x + ox + 6, y + oy + 4, 4, 8, c[:spot])
+        canvas.fill(x + ox + 4, y + oy + 6, 8, 4, c[:spot])
+      end
+    end
+  end
+
+  # Red block with a 4-pixel dark rounded frame, shaded per row of cells.
+  def paint_town(canvas, x, y, w, h)
+    c = REGION_COLORS
+    canvas.fill(x - 4, y - 2, w + 8, h + 4, c[:outline])
+    canvas.fill(x - 2, y - 4, w + 4, h + 8, c[:outline])
+    (0...h).step(REGION_SQUARE) do |oy|
+      canvas.fill(x, y + oy, w, 8, c[:town])
+      canvas.fill(x, y + oy + 8, w, 2, c[:town_mid])
+      canvas.fill(x, y + oy + 10, w, 6, c[:town_low])
+    end
+    # Rounded inner corners
+    [[x, y], [x + w - 2, y], [x, y + h - 2], [x + w - 2, y + h - 2]].each do |cx, cy|
+      canvas.fill(cx, cy, 2, 2, c[:outline])
     end
   end
 
@@ -121,6 +159,8 @@ module MapGenerator
   # Minimal RGB canvas saved as PNG
   #-----------------------------------------------------------------------------
   class RegionCanvas
+    attr_reader :width, :height
+
     def initialize(width, height, color)
       @width = width
       @height = height

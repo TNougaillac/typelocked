@@ -6,7 +6,7 @@
 # bord à bord (map_connections). Une carte qui n'existe pas encore est générée
 # depuis le plan MapGen de même Name, sinon créée vide.
 # L'image de la carte de région (Image) est dessinée depuis ce plan : routes en
-# blanc, villes en rouge, autres lieux en orange (type=ville|route|lieu pour choisir).
+# blanc, villes en rouge, autres lieux en cases sombres (type=ville|route|lieu).
 World   = Exemple monde
 Region  = 2
 Image   = exemple_monde.png
