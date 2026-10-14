@@ -12,7 +12,7 @@ Seed    = 7
 . = T1|T1|T1|T2|T3   # herbe (tileset Outside)
 " = T7               # hautes herbes
 * = T1 A5            # herbe + fleurs (autotile Flowers1) sur le 2e calque
-~ = A1               # mer (autotile Sea)
+~ = T1 A1            # mer (autotile Sea) sur de l'herbe : ses coins sont transparents
 o = T1 T475          # herbe + buisson sur le 2e calque
 
 [Map]
