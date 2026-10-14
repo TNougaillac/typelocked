@@ -5,13 +5,21 @@
 require_relative "lib/ci"
 
 PLUGIN = File.join(ROOT, "Plugins", "MapGenerator")
-%w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(PLUGIN, f) }
+%w[001_Settings 002_Parser 003_Builder 006_World].each { |f| require File.join(PLUGIN, f) }
 
 tilesets = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
 infos = load_rxdata(File.join(ROOT, "Data", "MapInfos.rxdata"))
 paths = Dir.glob(File.join(ROOT, MapGenerator::FOLDER, "*.txt")).sort
+worlds, maps = paths.partition { |path| MapGenerator.world_file?(path) }
 
-plans = paths.filter_map do |path|
+# World plans: places missing from Data/ are generated or created empty in game.
+worlds.each do |path|
+  MapGenerator.parse_world_file(path)
+rescue MapGenerator::Error => e
+  CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
+end
+
+plans = maps.filter_map do |path|
   plan = MapGenerator.parse_file(path)
   MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
   plan
