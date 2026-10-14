@@ -20,13 +20,11 @@ module MapGenerator
     end
     apply_autotile_patterns(data)
     # Objects go last so autotile neighbours only see the ground
-    plan.rows.each_with_index do |row, y|
-      row.each_char.with_index do |c, x|
-        next if !(object = plan.objects[c])
-        object.height.times do |dy|
-          object.width.times do |dx|
-            data[x + dx, y + dy, object.layer] = 384 + object.tile + (dy * 8) + dx
-          end
+    plan.anchors.each do |x, y, symbol|
+      object = plan.objects[symbol]
+      object.height.times do |dy|
+        object.width.times do |dx|
+          data[x + dx, y + dy, object.layer] = 384 + object.tile + (dy * 8) + dx
         end
       end
     end

@@ -7,24 +7,27 @@
 #   Parent  = 3                (optional: parent map in the map tree, 0 = root)
 #   Seed    = 42               (optional: makes random variants reproducible)
 #   Ground  = .                (required with [Objects]: legend symbol drawn
-#                               under an object's anchor cell)
+#                               under objects)
 #   [Legend]
 #   . = T8                     (one char = up to 3 layer tokens)
 #   ~ = A1                     (A1..A7 = autotile slot, T<n> = tileset tile n)
 #   , = T8|T9|T10              (| = random variant)
 #   [Objects]
-#   H = T400 3x4               (block of 3x4 tiles from tileset tile 400,
-#   F = T600 2x2 L3 @,          anchored at its top-left cell; L1..L3 = layer,
-#                               L2 by default; @<symbol> = ground under the
-#                               anchor cell, Ground by default)
+#   H = T400 3x4               (block of 3x4 tiles from tileset tile 400;
+#   F = T600 2x2 L3 @,          L1..L3 = layer, L2 by default; @<symbol> =
+#                               ground under it, Ground by default)
 #   [Map]
 #   ....~~~~                   (one char per tile, all rows the same width)
+#   ..HHH...                   (an object's symbol covers its whole footprint;
+#   ..HHH...                    a wider or taller area holds several copies,
+#   ..HHH...                    split from the top-left: HHHHHH = two houses)
+#   ..HHH...
 #===============================================================================
 module MapGenerator
   class Error < StandardError; end
 
   Plan = Struct.new(:file, :name, :tileset_id, :map_id, :parent_id, :seed,
-                    :ground, :legend, :objects, :rows)
+                    :ground, :legend, :objects, :rows, :anchors)
   # Multi-tile block: first tileset tile, size in tiles, layer index (0-2)
   MapObject = Struct.new(:tile, :width, :height, :layer, :ground)
 
@@ -36,7 +39,7 @@ module MapGenerator
   end
 
   def parse(text, file = "plan")
-    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [])
+    plan = Plan.new(file, nil, nil, nil, nil, nil, nil, {}, {}, [], [])
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       line = raw.chomp
@@ -122,17 +125,36 @@ module MapGenerator
     end
     width = plan.rows[0].length
     plan.rows.each_with_index do |row, y|
-      if row.length != width
-        raise Error, "#{plan.file} : la ligne #{y + 1} de [Map] fait #{row.length} cases au lieu de #{width}"
-      end
+      next if row.length == width
+      raise Error, "#{plan.file} : la ligne #{y + 1} de [Map] fait #{row.length} cases au lieu de #{width}"
+    end
+    claimed = Array.new(plan.rows.length) { Array.new(width, false) }
+    plan.rows.each_with_index do |row, y|
       row.each_char.with_index do |c, x|
+        where = "(colonne #{x + 1}, ligne #{y + 1} de [Map])"
         if (object = plan.objects[c])
-          next if x + object.width <= width && y + object.height <= plan.rows.length
-          raise Error, "#{plan.file} : l'objet « #{c} » (colonne #{x + 1}, ligne #{y + 1} de [Map]) dépasse de la carte"
+          next if claimed[y][x]
+          claim_object(plan, claimed, c, object, x, y, where)
+          next
         end
         next if plan.legend[c]
-        raise Error, "#{plan.file} : symbole « #{c} » (colonne #{x + 1}, ligne #{y + 1} de [Map]) absent de [Legend] et [Objects]"
+        raise Error, "#{plan.file} : symbole « #{c} » #{where} absent de [Legend] et [Objects]"
       end
     end
+  end
+
+  # The first unclaimed cell of an object symbol (reading order) is the
+  # top-left corner of one copy; its whole footprint must use that symbol.
+  def claim_object(plan, claimed, symbol, object, x, y, where)
+    object.height.times do |dy|
+      object.width.times do |dx|
+        cx, cy = x + dx, y + dy
+        next if cy < plan.rows.length && plan.rows[cy][cx] == symbol && !claimed[cy][cx]
+        raise Error, "#{plan.file} : l'objet « #{symbol} » commencé #{where} doit couvrir " \
+                     "#{object.width}x#{object.height} cases ; la case colonne #{cx + 1}, ligne #{cy + 1} ne convient pas"
+      end
+    end
+    object.height.times { |dy| object.width.times { |dx| claimed[y + dy][x + dx] = true } }
+    plan.anchors.push([x, y, symbol])
   end
 end

@@ -1,9 +1,9 @@
 # Place de ville d'après l'illustration (allée centrale, Centre, Boutique, fontaine).
 # Plan pour le plugin MapGenerator, tileset Outside (1).
 # Lancer : menu debug > Autres éditeurs > Générer des cartes (MapGen).
-# Les bâtiments et le décor sont des objets multi-cases ([Objects]) : un seul
-# caractère pose le bloc entier, ancré sur sa case en haut à gauche. Les autres
-# cases sous l'objet gardent leur sol (« . » = herbe).
+# Les bâtiments et le décor sont des objets multi-cases ([Objects]) : leur symbole
+# couvre toute leur surface (CCCCC sur 5 lignes = un Centre de 5x5). Une zone plus
+# grande contient plusieurs copies, découpées depuis le coin haut-gauche.
 Name    = Place de la ville
 Tileset = 1
 Seed    = 3
@@ -54,47 +54,47 @@ y = T1003 3x2        # stand jaune (fête foraine)
 F = T1125 3x3 @O     # fontaine, posée sur les dalles de la place
 t = T441 2x3         # arbre
 l = T1029 1x2        # lampadaire
-b = T1045 3x1        # banc
+b = T1045 3x1 @O # banc, sur les dalles
 p = T984 2x1         # jardinière
 
 [Map]
-t.t.t.t.t.t.t.t.t.t.t.t.t.t.t.t.t.t.t..
-.......................................
-.......................................
-t...B...........G.............B......t.
-.......................................
-.......................................
-t....................................t.
-.......................................
-.................ADDDE.................
-t.s........h....lHIIIJl.h.........y..t.
-.................HIIIJ.................
-..[.]............HIIIJ............{.}..
-t....ADE.........HIIIJ.........ADE...t.
-.....HIJ........lHIIIJl........HIJ.....
-.....HIJ...h.....HIIIJ..h......HIJ.....
-t.y..HIJ.........HIIIJ.........HIJs..t.
-.....HIJ.........HIIIJ.........HIJ.....
-..{.}HIJ........lHIIIJl........HIJ[.]..
-t....HIJ.........HIIIJ.........HIJ...t.
-.....HIJ..C......HIIIJ.........HIJ.....
-.....HIJ.........HIIIJ..M......HIJ.....
-t....HIJ........lHIIIJl........HIJ...t.
-.....HIJ.........HIIIJ.........HIJ.....
-.....HIJ....ADE..HIIIJ..ADE....HIJ.....
-t....HIJ.p..HIJ..HIIIJ..HIJ.p..HIJ...t.
-..ADDKILDDDDKILDDNOOOQDDKILDDDDKILDDE..
-..RSSSSSSSSSSSUOOOOOOOOOVSSSSSSSSSSSW..
-t.............lOOOOOOOOOl............t.
-..""""""""....XOOOOOOOOOY.....*******..
-..""""""""...ZNOOOOOOOOOQ0....*******..
-t.""""""""...XOOOOFOOOOOOY...........t.
-..""""""""...XOOOOOOOOOOOY.............
-..""""""""...XOOOOOOOOOOOY....*******..
-t.""""""""...12OOOOOOOOO34....*******t.
-..............XObOOObOOOY..............
-..............12OOOOOOO34..............
-t..............152OOO354.............t.
-..t.t.t.t.t.t....15554....t.t.t.t.t....
-.......................................
-.......................................
+tttttttttttttttttttttttttttttttttttttt.
+tttttttttttttttttttttttttttttttttttttt.
+tttttttttttttttttttttttttttttttttttttt.
+tt..BBBBB.......GGGGGGG.......BBBBB..tt
+tt..BBBBB.......GGGGGGG.......BBBBB..tt
+tt..BBBBB.......GGGGGGG.......BBBBB..tt
+tt..BBBBB.......GGGGGGG.......BBBBB..tt
+tt..BBBBB.......GGGGGGG.......BBBBB..tt
+tt...............ADDDE...............tt
+ttsss......hhhh.lHIIIJl.hhhh......yyytt
+ttsss......hhhh.lHIIIJl.hhhh......yyytt
+tt[.]......hhhh..HIIIJ..hhhh......{.}tt
+tt...ADE...hhhh..HIIIJ..hhhh...ADE...tt
+tt...HIJ........lHIIIJl........HIJ...tt
+tt...HIJ...hhhh.lHIIIJl.hhhh...HIJ...tt
+ttyyyHIJ...hhhh..HIIIJ..hhhh...HIJssstt
+ttyyyHIJ...hhhh..HIIIJ..hhhh...HIJssstt
+tt{.}HIJ...hhhh.lHIIIJl.hhhh...HIJ[.]tt
+tt...HIJ........lHIIIJl........HIJ...tt
+tt...HIJ..CCCCC..HIIIJ.........HIJ...tt
+tt...HIJ..CCCCC..HIIIJ..MMMM...HIJ...tt
+tt...HIJ..CCCCC.lHIIIJl.MMMM...HIJ...tt
+tt...HIJ..CCCCC.lHIIIJl.MMMM...HIJ...tt
+tt...HIJ..CCCCC..HIIIJ..MMMM...HIJ...tt
+tt...HIJ.pp.HIJ..HIIIJ..HIJ.pp.HIJ...tt
+ttADDKILDDDDKILDDNOOOQDDKILDDDDKILDDEtt
+ttRSSSSSSSSSSSUOOOOOOOOOVSSSSSSSSSSSWtt
+tt............lOOOOOOOOOl............tt
+tt""""""""....lOOOOOOOOOl.....*******tt
+tt""""""""...ZNOOOOOOOOOQ0....*******tt
+tt""""""""...XOOOOFFFOOOOY...........tt
+tt""""""""...XOOOOFFFOOOOY...........tt
+tt""""""""...XOOOOFFFOOOOY....*******tt
+tt""""""""...12OOOOOOOOO34....*******tt
+tt............XObbbObbbOY............tt
+tt............12OOOOOOO34............tt
+tt.............152OOO354.............tt
+tttttttttttttt...15554....tttttttttt.tt
+tttttttttttttt............tttttttttt.tt
+..tttttttttttt............tttttttttt...
