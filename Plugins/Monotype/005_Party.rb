@@ -52,7 +52,8 @@ module Monotype
   end
 
   def gym_battle?(args)
-    return true if GYM_MAP_PATTERN.match?(pbGetBasicMapNameFromId($game_map.map_id))
+    map_name = pbGetBasicMapNameFromId($game_map.map_id).dup.force_encoding(Encoding::UTF_8)
+    return true if GYM_MAP_PATTERN.match?(map_name)
     args.any? do |arg|
       type = case arg
              when NPCTrainer then arg.trainer_type
