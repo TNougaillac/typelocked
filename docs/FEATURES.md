@@ -141,7 +141,7 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 - **Talent :** n'importe quel talent, même hors de ceux de l'espèce (`ability: :LEVITATE`).
 - **Immunités (kit) :** `:FLINCH`, `:OHKO`, `:SELFKO`, `:ESCAPE`. Par défaut : peur, K.O. en un coup, fuite.
 - **Combat :** fuite impossible. Battu ou capturé : l'interrupteur local A de l'événement s'active. Perdu : le boss reste.
-- **Capture :** le boss perd ses multiplicateurs, ses immunités et (par défaut) son talent de boss. IVs, nature et capacités restent.
+- **Capture :** le boss garde son talent de boss, mais perd ses multiplicateurs et ses immunités (`KEEP_ABILITY_ON_CAPTURE = false` pour lui rendre aussi son talent normal). IVs, nature et capacités restent.
 - **Avec le Nuzlocke :** règle normale, capturable seulement s'il est la première rencontre de la zone.
 - **Avec le Monotype :** règle normale, capturable seulement s'il a le type.
 
