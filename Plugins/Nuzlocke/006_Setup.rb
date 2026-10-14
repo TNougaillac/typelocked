@@ -1,6 +1,6 @@
 #===============================================================================
 # Nuzlocke - Start-of-game dialog
-# Event script command: Nuzlocke.setup_dialog
+# Shown automatically by the Monotype plugin; also usable as an event script.
 #===============================================================================
 module Nuzlocke
   module_function

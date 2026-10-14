@@ -20,6 +20,7 @@ module Nuzlocke
     consume   = false
     foes.each do |pkmn|
       next if !pkmn
+      next if defined?(Monotype) && !Monotype.catchable?(pkmn)   # Off-type: zone stays free
       if pkmn.shiny?
         consume = true if zone_free && SHINY_CONSUMES_FREE_ZONE
       elsif !zone_free
