@@ -12,7 +12,7 @@ module Monotype
       _INTL("Capture : seulement les Pokémon du type, ou qui l'obtiennent en évoluant."),
       _INTL("Un Pokémon qui perd le type en évoluant devient inutilisable et part au PC."),
       _INTL("Dons et échanges hors du type : envoyés au PC, inutilisables."),
-      _INTL("Le starter reste utilisable jusqu'à ta première capture, et jamais dans une arène.")
+      _INTL("Le starter reste utilisable jusqu'à ta première capture, et jamais dans une arène ni à la Ligue.")
     ]
   end
 

@@ -40,14 +40,14 @@ module Monotype
     end
   end
 
-  # Called before each gym battle: ends the starter's grace and returns false if
+  # Called before each gym or League battle: ends the starter's grace and returns false if
   # no usable Pokémon is in the party.
   def gym_check
     return true if !active?
     data.grace = false
     enforce_party
     return true if $player.party.any? { |pkmn| !pkmn.egg? && usable?(pkmn) }
-    pbMessage(_INTL("Seuls les Pokémon de type {1} peuvent combattre dans l'arène. Reviens avec l'un d'eux dans ton équipe.", type_name))
+    pbMessage(_INTL("Seuls les Pokémon de type {1} peuvent combattre dans les arènes et à la Ligue. Reviens avec l'un d'eux dans ton équipe.", type_name))
     false
   end
 
@@ -65,7 +65,7 @@ module Monotype
   end
 end
 
-# Gym trainers and leaders: the starter's grace ends, and the battle doesn't take
+# Gym and League trainers: the starter's grace ends, and the battle doesn't take
 # place without a Pokémon of the type in the party (the trainer isn't beaten).
 class << TrainerBattle
   alias_method :__monotype_start_core, :start_core
