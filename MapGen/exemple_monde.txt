@@ -1,0 +1,34 @@
+# Plan du monde : villes, routes et lieux de la région, et leurs raccords.
+# Plan pour le plugin MapGenerator. Un plan est un plan « monde » s'il contient World.
+# Lancer : menu debug > Autres éditeurs > Générer des cartes (MapGen) > [Monde] exemple_monde.txt.
+# Une case de [World] = une case de la carte de région = Cell x Cell tuiles.
+# Comme un bâtiment dans un plan de ville, un lieu couvre autant de cases que sa
+# carte : une ville de 40x20 tuiles (Cell = 20) s'écrit VV, une de 40x40 s'écrit VV/VV.
+# Chaque lieu est un rectangle plein ; deux lieux qui se touchent sont raccordés
+# bord à bord (map_connections). Une carte qui n'existe pas encore est générée
+# depuis le plan MapGen de même Name, sinon créée vide.
+# L'image de la carte de région (Image) est dessinée depuis ce plan : routes en
+# blanc, villes en rouge, autres lieux en cases sombres (type=ville|route|lieu).
+World   = Exemple monde
+Region  = 2
+Image   = exemple_monde.png
+Cell    = 20
+Origin  = 10,8
+Tileset = 1
+Ground  = T1
+
+[Places]
+V = Place de la ville   vol=19,22
+1 = Route Exemple 1
+2 = Route Exemple 2
+B = Bourg Exemple       vol=10,10
+L = Lac Exemple         type=lieu
+
+[World]
+..222L
+VV1...
+VV1...
+.BB...
+
+[NoLinks]
+V B
