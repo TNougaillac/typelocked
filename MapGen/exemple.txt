@@ -1,0 +1,28 @@
+# Plan de carte pour le plugin MapGenerator.
+# Lancer : menu debug > Autres éditeurs > Générer des cartes (MapGen).
+# Tuiles : T<n> = tuile n du tileset (n = ligne * 8 + colonne, en partant de 0)
+#          A1 à A7 = autotile de l'emplacement 1 à 7 du tileset (raccords automatiques)
+#          - = rien sur ce calque. Jusqu'à 3 calques par symbole, séparés par des espaces.
+#          T1|T2|T3 = une des variantes au hasard.
+Name    = Exemple MapGen
+Tileset = 1
+Seed    = 7
+
+[Legend]
+. = T1|T1|T1|T2|T3   # herbe (tileset Outside)
+" = T7               # hautes herbes
+* = T1 A5            # herbe + fleurs (autotile Flowers1) sur le 2e calque
+~ = A1               # mer (autotile Sea)
+o = T1 T475          # herbe + buisson sur le 2e calque
+
+[Map]
+oooooooooooooooooooo
+o..................o
+o..""""".....~~~...o
+o..""""".....~~~~..o
+o..""""....~~~~~~..o
+o.........~~~~~~~..o
+o...***.....~~~~...o
+o...***............o
+o..................o
+oooooooooooooooooooo

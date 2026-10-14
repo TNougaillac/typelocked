@@ -46,8 +46,37 @@
 - Les œufs qui éclosent ne forcent pas de surnom.
 - Les cadeaux ne consomment pas la zone.
 
+## F02. Générateur de cartes (MapGen)
+**Statut :** v1.0.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemple : `MapGen/exemple.txt`).
+
+### Fonctionnement
+- Un plan texte décrit la carte : un caractère par case, une légende qui associe chaque caractère à 1 à 3 calques.
+- Calques : `T<n>` = tuile n du tileset (n = ligne × 8 + colonne), `A1` à `A7` = autotile (raccords calculés automatiquement), `-` = vide, `T1|T2|T3` = variante au hasard (`Seed` pour un résultat reproductible).
+- Lancement : menu debug > Autres éditeurs > « Générer des cartes (MapGen) ». Écrit `Data/MapXXX.rxdata` et l'ajoute à `MapInfos.rxdata`.
+- Sans `MapID` : nouvelle carte (ID suivant). Avec `MapID` : la carte est remplacée, ses événements sont conservés (ceux qui sortent de la nouvelle taille sont supprimés).
+- Fermer RPG Maker XP sans enregistrer avant de générer, sinon l'éditeur écrase les fichiers.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | `FOLDER`, `EMPTY_TOKEN`. |
+| `002_Parser.rb` | Lecture et validation des plans. |
+| `003_Builder.rb` | Construction des calques, motifs d'autotiles, vérification des tuiles. |
+| `004_Generate.rb` | Écriture des fichiers de carte, commande du menu debug. |
+
+### Points d'accroche Essentials
+Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même table que le rendu d'Essentials) et `MenuHandlers.add(:debug_menu, ...)`.
+
+### Limites connues
+- Pas encore d'import PNG (1 pixel = 1 case) ni de génération procédurale.
+- Les objets de plusieurs cases (arbres 2×2...) se placent case par case dans la légende.
+
 ## Journal
 | Date | Ajout | Fichiers |
 |---|---|---|
 | 08/10/2026 | Plugin Nuzlocke v1.0.0 | `Plugins/Nuzlocke/*` |
 | 14/10/2026 | Nuzlocke v1.1.0 : shiny consomme une zone libre, morts verrouillés au PC, poison non mortel, équipe K.O. | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
+| 14/10/2026 | Plugin MapGenerator v1.0.0 : cartes générées depuis un plan texte | `Plugins/MapGenerator/*`, `MapGen/exemple.txt`, `docs/FEATURES.md` |
