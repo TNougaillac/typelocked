@@ -6,7 +6,7 @@
 **Dossier :** `Plugins/Nuzlocke/`
 
 ### Règles
-- **Activation :** choix unique et définitif au début de la partie (`Nuzlocke.setup_dialog`).
+- **Activation :** choix unique et définitif, proposé automatiquement au début de la partie par le plugin Monotype (ou `Nuzlocke.setup_dialog` dans un événement).
 - **Une capture par zone :** une zone = une carte (fusion possible avec `ZONE_GROUPS`). La première rencontre sauvage consomme la zone, capturée ou non. Les rencontres scriptées (légendaires, statiques) consomment aussi la zone.
 - **Zone Safari et Concours de Capture :** mêmes règles de zone, doublons et shiny. Au Concours, le surnom est demandé quand le Pokémon gardé est remis à la fin.
 - **Combat double :** dans une zone libre, les deux Pokémon sont capturables.
@@ -32,7 +32,7 @@
 | `008_FieldPoison.rb` | Poison hors combat. |
 
 ### Intégration
-- Événement d'intro : commande script `Nuzlocke.setup_dialog`.
+- Début de partie : la fenêtre s'affiche seule (déclenchée par le plugin Monotype). `Nuzlocke.setup_dialog` reste utilisable dans un événement.
 - Regrouper des cartes : `Nuzlocke::ZONE_GROUPS = { id_secondaire => id_principal }`.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
@@ -91,17 +91,17 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.0.0, écrit, **non testé**.
+**Statut :** v1.1.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
 ### Règles
-- **Activation :** choix unique et définitif au début de la partie (`Monotype.setup_dialog`). **Normal** : le type est tiré au hasard. **Facile** : le joueur choisit parmi les 18 types.
+- **Activation :** choix unique et définitif, proposé automatiquement en début de partie (après le choix Nuzlocke), au premier pas du joueur ou juste avant le premier Pokémon reçu. **Normal** : le type est tiré au hasard. **Facile** : le joueur choisit parmi les 18 types.
 - **Capture :** seuls les Pokémon qui ont le type imposé (simple ou double type), ou dont une évolution l'a, sont capturables (ex. Eau : Azurill grâce à Marill, Évoli grâce à Aquali). Les Poké Balls sont grisées, ou rendues en combat double si la cible n'est pas capturable. Le type compte pour la forme (Motisma Lavage = Électrik/Eau).
 - **Évolutions :** le sens inverse ne compte pas. Un Pokémon qui perd le type en évoluant (Évoli → Pyroli en Eau) devient inutilisable et part au PC.
 - **Dons et échanges hors du type :** envoyés directement au PC, présents mais inutilisables.
 - **Inutilisable :** ne peut pas quitter le PC pour l'équipe. Un Pokémon inutilisable dans l'équipe (évolution, échange, Pension) est envoyé au PC à la fin du combat ou au pas suivant.
-- **Starter :** le premier Pokémon reçu reste utilisable jusqu'à la première capture. Il n'est jamais utilisable dans une arène : `Monotype.gym_check` à l'entrée de la première arène met fin à sa période de grâce.
+- **Starter :** le premier Pokémon reçu reste utilisable jusqu'à la première capture (Concours de Capture compris). Il n'est jamais utilisable contre un champion d'arène : avant ce combat, sa période de grâce prend fin et il retourne au PC. Sans Pokémon du type dans l'équipe, le combat n'a pas lieu et le champion n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
 
@@ -109,25 +109,25 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | `EXCLUDED_TYPES` (types impossibles à tirer ou choisir). |
+| `001_Settings.rb` | `EXCLUDED_TYPES` (types impossibles à tirer ou choisir), `GYM_LEADER_PATTERN` (types de dresseur des champions). |
 | `002_Data.rb` | Données de sauvegarde (`$monotype`), test du type avec les évolutions. |
-| `003_Setup.rb` | Fenêtre de choix du début de partie. |
+| `003_Setup.rb` | Fenêtres de choix du début de partie (Nuzlocke puis Monotype), déclenchées automatiquement. |
 | `004_Capture.rb` | Blocage des captures, fin de la grâce du starter. |
-| `005_Party.rb` | Starter, dons au PC, Pokémon inutilisables, `gym_check`, verrous du PC. |
+| `005_Party.rb` | Starter, combats de champion, dons au PC, Pokémon inutilisables, verrous du PC. |
 
 ### Intégration
-- Événement d'intro : commande script `Monotype.setup_dialog`, avant de donner le starter (s'il est donné avant, le premier Pokémon de l'équipe devient le starter).
-- Entrée de la première arène : condition « Script » `Monotype.gym_check`. Si elle est fausse (aucun Pokémon du type dans l'équipe), repousser le joueur.
+- Rien à placer dans l'éditeur : les choix de mode s'affichent seuls en début de partie, et les champions sont reconnus par leur type de dresseur (`LEADER_…`, réglable avec `GYM_LEADER_PATTERN`).
+- Facultatif : `Monotype.setup_dialog` ou `Nuzlocke.setup_dialog` dans un événement pour choisir le moment exact.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
-`pbThrowPokeBall`, `pbStorePokemon` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
+`pbThrowPokeBall`, `pbStorePokemon` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `TrainerBattle.start_core`, `BugContestState#pbEnd`, `pbStorePokemon` global (dons), `pbAddPokemon/pbAddPokemonSilent/pbAddToParty/pbAddToPartySilent/pbAddForeignPokemon`, `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
 
 ### À vérifier au premier lancement
 - La liste des 18 types tient à l'écran (la fenêtre défile normalement).
+- Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
 
 ### Limites connues
-- L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (seul `gym_check` bloque l'arène).
-- Une capture au Concours de Capture ne met pas fin à la grâce du starter.
+- L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas affronter un champion).
 - Si le PC est plein, un Pokémon inutilisable reste dans l'équipe.
 
 ## Journal
@@ -144,3 +144,4 @@ Aucun alias. Utilise `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même tab
 | 14/10/2026 | MapGenerator v1.5.0 : terrains à raccords automatiques `[Terrains]`, place de ville réécrite avec | `Plugins/MapGenerator/*`, `MapGen/place_ville.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | MapGenerator v1.6.0 : portes et étages `[Warps]` / `[Events]` | `Plugins/MapGenerator/*`, `MapGen/exemple_porte_*.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | Plugin Monotype v1.0.0 ; Nuzlocke v1.1.2 : une rencontre hors du type ne consomme pas la zone | `Plugins/Monotype/*`, `Plugins/Nuzlocke/003_Encounters.rb`, `docs/FEATURES.md` |
+| 14/10/2026 | Monotype v1.1.0 : choix de mode automatiques en début de partie, starter bloqué contre les champions sans événement, Concours de Capture compté comme capture | `Plugins/Monotype/*`, `docs/FEATURES.md` |

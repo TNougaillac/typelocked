@@ -1,6 +1,7 @@
 #===============================================================================
 # Monotype - Start-of-game dialog
-# Event script command: Monotype.setup_dialog
+# Shown automatically at the start of a new game, with the Nuzlocke choice
+# first. Can also be called from an event: Monotype.setup_dialog
 #===============================================================================
 module Monotype
   module_function
@@ -51,5 +52,29 @@ module Monotype
         rules_text.each { |line| pbMessage(line) }
       end
     end
+  end
+
+  # Nuzlocke then Monotype, once, before the first Pokémon.
+  def new_game_dialogs
+    return if data.chosen || !$player.party.empty?
+    Nuzlocke.setup_dialog if defined?(Nuzlocke)
+    setup_dialog
+  end
+end
+
+# At the first step once the player has control (no event running)...
+EventHandlers.add(:on_player_step_taken, :monotype_setup,
+  proc { Monotype.new_game_dialogs if !pbMapInterpreterRunning? }
+)
+
+# ...or just before the first Pokémon is given, if that comes first.
+%i[pbAddPokemon pbAddPokemonSilent pbAddToParty pbAddToPartySilent pbAddForeignPokemon].each do |name|
+  Object.class_eval do
+    alias_method :"__monotype_#{name}", name
+    define_method(name) do |*args|
+      Monotype.new_game_dialogs
+      send(:"__monotype_#{name}", *args)
+    end
+    private name
   end
 end

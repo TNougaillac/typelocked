@@ -40,15 +40,49 @@ module Monotype
     end
   end
 
-  # Event script at the first gym's entrance (conditional branch):
-  # ends the starter's grace and returns false if no usable Pokémon is in the party.
+  # Called before each gym leader battle: ends the starter's grace and returns
+  # false if no usable Pokémon is in the party.
   def gym_check
     return true if !active?
     data.grace = false
     enforce_party
     return true if $player.party.any? { |pkmn| !pkmn.egg? && usable?(pkmn) }
-    pbMessage(_INTL("Seuls les Pokémon de type {1} peuvent combattre dans l'arène.", type_name))
+    pbMessage(_INTL("Seuls les Pokémon de type {1} peuvent combattre dans l'arène. Reviens avec l'un d'eux dans ton équipe.", type_name))
     false
+  end
+
+  def gym_battle?(args)
+    args.any? do |arg|
+      type = case arg
+             when NPCTrainer then arg.trainer_type
+             when Array      then arg[0]
+             when Symbol     then arg
+             end
+      type && GYM_LEADER_PATTERN.match?(type.to_s)
+    end
+  end
+end
+
+# Gym leaders: the starter's grace ends, and the battle doesn't take place
+# without a Pokémon of the type in the party (the leader isn't beaten).
+class << TrainerBattle
+  alias_method :__monotype_start_core, :start_core
+  def start_core(*args)
+    return __monotype_start_core(*args) if !Monotype.active? || !Monotype.gym_battle?(args) || Monotype.gym_check
+    outcome_variable = $game_temp.battle_rules["outcomeVar"] || 1
+    $game_temp.clear_battle_rules
+    pbSet(outcome_variable, 0)   # Undecided
+    0
+  end
+end
+
+# Bug Catching Contest: the Pokémon kept at the end counts as the first capture.
+class BugContestState
+  alias_method :__monotype_pbEnd, :pbEnd
+  def pbEnd(interrupted = false)
+    kept = @lastPokemon if @inProgress && !interrupted
+    __monotype_pbEnd(interrupted)
+    Monotype.data.grace = false if kept && Monotype.active?
   end
 end
 
