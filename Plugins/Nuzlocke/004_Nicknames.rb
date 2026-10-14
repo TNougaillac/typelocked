@@ -24,6 +24,7 @@ module Nuzlocke::BattleNicknameHooks
   def pbStorePokemon(pkmn)
     return super if !Nuzlocke.active? || pkmn.shadowPokemon?
     Nuzlocke.force_nickname(pkmn) { |text| @scene.pbNameEntry(text, pkmn) }
+    nickname = pkmn.name
     old_setting = $PokemonSystem.givenicknames
     $PokemonSystem.givenicknames = 1   # Skip the base "nickname?" prompt
     begin
@@ -31,6 +32,7 @@ module Nuzlocke::BattleNicknameHooks
     ensure
       $PokemonSystem.givenicknames = old_setting
     end
+    pkmn.name = nickname   # Deluxe Battle Kit clears nicknames while storing
   end
 end
 
