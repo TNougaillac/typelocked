@@ -6,12 +6,15 @@
 #   Cell    = 20               (map tiles per world cell, 20 by default)
 #   Origin  = 2,3              (Town Map square of the plan's top-left cell,
 #                               0,0 by default)
-#   Image   = mapRegion0.png   (optional: Town Map image in Graphics/UI/Town Map)
+#   Image   = monde.png        (Town Map image in Graphics/UI/Town Map, drawn
+#                               from the plan; mapRegion<Region>.png by default)
 #   Tileset = 1                (tileset and ground of the maps created empty,
 #   Ground  = T1                1 and T1 by default)
 #   [Places]
 #   A = Bourg Typelock  vol=12,8   (one symbol = one map, found by its name;
-#   1 = Route 1                     vol=x,y = fly destination on that map)
+#   1 = Route 1                     vol=x,y = fly destination on that map;
+#   L = Lac  type=lieu              type=ville|route|lieu = drawing on the
+#                                   Town Map, guessed from the name and vol)
 #   [World]
 #   ..1..                      (one char per Town Map square, "." = nothing;
 #   AAB..                       each place is one solid rectangle, places that
@@ -25,8 +28,9 @@ module MapGenerator
   WorldPlan = Struct.new(:file, :name, :region, :cell, :origin, :image, :tileset_id,
                          :ground, :places, :rows, :no_links)
   # x, y, width, height in world cells
-  Place = Struct.new(:symbol, :name, :fly, :x, :y, :width, :height, :map_id)
+  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id)
   WORLD_EMPTY = "."
+  PLACE_KINDS = %w[ville route lieu]
 
   module_function
 
@@ -61,12 +65,20 @@ module MapGenerator
         fail_at.call("attendu « symbole = nom de la carte [vol=x,y] »") unless content =~ /\A(\S)\s*=\s*(.+)\z/
         symbol, rest = $1, $2
         fail_at.call("« #{WORLD_EMPTY} » est réservé aux cases vides") if symbol == WORLD_EMPTY
-        fly = nil
-        if rest =~ /\s+vol=(\d+),(\d+)\z/
-          fly = [$1.to_i, $2.to_i]
-          rest = rest.sub(/\s+vol=\S+\z/, "")
+        fly = kind = nil
+        while rest =~ /\A(.+?)\s+(\w+)=(\S+)\z/
+          rest, key, value = $1, $2, $3
+          case key
+          when "vol"
+            fail_at.call("attendu « vol=x,y »") unless value =~ /\A(\d+),(\d+)\z/
+            fly = [$1.to_i, $2.to_i]
+          when "type"
+            fail_at.call("type « #{value} » inconnu (#{PLACE_KINDS.join(', ')})") unless PLACE_KINDS.include?(value)
+            kind = value
+          else fail_at.call("option « #{key} » inconnue (vol, type)")
+          end
         end
-        plan.places[symbol] = Place.new(symbol, rest.strip, fly)
+        plan.places[symbol] = Place.new(symbol, rest.strip, fly, kind)
       when :nolinks
         fail_at.call("attendu deux symboles, par exemple « A B »") unless content =~ /\A(\S)\s+(\S)\z/
         plan.no_links.push([$1, $2].sort)
@@ -301,10 +313,7 @@ module MapGenerator
     write_pbs(CONNECTIONS_PBS, update_connections(read_pbs(CONNECTIONS_PBS), plan, links))
     write_pbs(MAP_METADATA_PBS, update_map_metadata(read_pbs(MAP_METADATA_PBS), plan))
     write_pbs(TOWN_MAP_PBS, update_town_map(read_pbs(TOWN_MAP_PBS), plan))
-    image = plan.image || "mapRegion#{plan.region}.png"
-    if !File.exist?(File.join("Graphics/UI/Town Map", image))
-      notes.push(_INTL("Image de la carte de région introuvable : Graphics/UI/Town Map/{1}.", image))
-    end
+    notes.push(draw_region_image(plan, links))
     return links, notes
   end
 

@@ -5,9 +5,11 @@
 # Chaque lieu est un rectangle plein ; deux lieux qui se touchent sont raccordés
 # bord à bord (map_connections). Une carte qui n'existe pas encore est générée
 # depuis le plan MapGen de même Name, sinon créée vide.
+# L'image de la carte de région (Image) est dessinée depuis ce plan : routes en
+# blanc, villes en rouge, autres lieux en orange (type=ville|route|lieu pour choisir).
 World   = Exemple monde
 Region  = 2
-Image   = mapRegion0.png
+Image   = exemple_monde.png
 Cell    = 20
 Origin  = 10,8
 Tileset = 1
@@ -18,7 +20,7 @@ V = Place de la ville   vol=19,22
 1 = Route Exemple 1
 2 = Route Exemple 2
 B = Bourg Exemple       vol=10,10
-L = Lac Exemple
+L = Lac Exemple         type=lieu
 
 [World]
 ..222L

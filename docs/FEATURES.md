@@ -68,10 +68,11 @@
 - Grilles de calques (sections `[Layer2]` et `[Layer3]`, facultatives, même taille que `[Map]`) : dessinées par-dessus `[Map]`. `.` = rien ; un symbole de `[Legend]` est posé à partir de ce calque (un symbole à 2 calques dans `[Layer2]` remplit les calques 2 et 3) ; un objet de `[Objects]` est posé sur ce calque, quel que soit son `L`.
 - Terrains à raccords automatiques (section `[Terrains]`) : `P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268` déclare la tuile intérieure, les bords, les coins et les angles rentrants (`i…`). Dans la grille, on écrit seulement `P` : chaque case reçoit la tuile qui correspond à ses voisines. Un rôle absent prend la tuile intérieure. Options : `with=D` (terrains qui se raccordent sans bord), `L1` à `L3` (calque dans `[Map]`, `L1` par défaut), `@<symbole>` (sol dessous si le calque n'est pas `L1`). Un terrain marche aussi dans `[Layer2]` / `[Layer3]`.
 - Portes et étages (sections `[Warps]` et `[Events]`) : `1 = Maison 1 4,7 haut` déclare une téléportation vers la carte nommée « Maison 1 » (ou son ID), case 4,7 (comptée depuis 0), regard vers le haut (`haut`, `bas`, `gauche`, `droite`, ou direction conservée). La grille `[Events]` (même taille que `[Map]`, `.` = rien) place ces symboles. Chaque porte devient un événement « MapGen warp » (contact du joueur, commande « Téléporter le joueur ») ; Essentials le transforme en porte animée à la compilation si la case ressemble à une entrée. À chaque génération, les anciens « MapGen warp » de la carte sont remplacés. Avec « Tous », une porte vers une carte générée plus tard dans la même série est reliée après coup.
-- Plan du monde (un plan qui contient la clé `World`) : décrit la région entière. `World = nom de la région`, `Region = n°` (carte de région de `town_map.txt`, 0 par défaut), `Cell = 20` (tuiles par case), `Origin = x,y` (case de la carte de région où commence le plan), `Image = mapRegion0.png` (facultatif), `Tileset` / `Ground` (cartes créées vides). Section `[Places]` : `A = Bourg Typelock vol=12,8` associe un symbole à une carte, trouvée par son nom (`vol=x,y` = point d'arrivée de Vol). Section `[World]` : un caractère par case de la carte de région, `.` = rien, chaque lieu forme un rectangle plein. Section `[NoLinks]` (facultative) : `A B` = deux lieux qui se touchent sans être reliés.
+- Plan du monde (un plan qui contient la clé `World`) : décrit la région entière. `World = nom de la région`, `Region = n°` (carte de région de `town_map.txt`, 0 par défaut), `Cell = 20` (tuiles par case), `Origin = x,y` (case de la carte de région où commence le plan), `Image = monde.png` (image de la carte de région, `mapRegion<Region>.png` par défaut), `Tileset` / `Ground` (cartes créées vides). Section `[Places]` : `A = Bourg Typelock vol=12,8` associe un symbole à une carte, trouvée par son nom (`vol=x,y` = point d'arrivée de Vol, `type=ville|route|lieu` = dessin sur la carte de région, deviné sinon : « Route… » = route, avec `vol` = ville, sinon lieu). Section `[World]` : un caractère par case de la carte de région, `.` = rien, chaque lieu forme un rectangle plein. Section `[NoLinks]` (facultative) : `A B` = deux lieux qui se touchent sans être reliés.
   - Une carte absente est générée depuis le plan MapGen de même `Name`, sinon créée vide (taille du rectangle × `Cell`). Une carte dont la taille ne correspond pas au rectangle déclenche un avertissement.
   - Deux lieux qui se touchent sont raccordés bord à bord (`PBS/map_connections.txt`), avec le décalage calculé depuis la grille.
   - Chaque lieu reçoit `Name`, `Outdoor`, `ShowArea`, `MapPosition` et `MapSize` dans `PBS/map_metadata.txt` (les autres clés de la section sont gardées), et ses cases dans la région de `PBS/town_map.txt` (`Point`, avec la destination de Vol).
+  - L'image de la carte de région est dessinée dans `Graphics/UI/Town Map/` (480x320 au minimum, cases de 16 px) : mer, terre autour des lieux, routes en blanc qui suivent les raccords, villes en rouge, autres lieux en orange. Une image existante n'est remplacée que si MapGen l'a dessinée (les images faites à la main, comme `mapRegion0.png`, sont gardées).
   - Seules les lignes qui concernent les cartes du monde sont réécrites ; les trois fichiers PBS sont recompilés tout de suite.
 - Lancement : menu debug > Autres éditeurs > « Générer des cartes (MapGen) ». Écrit `Data/MapXXX.rxdata` et l'ajoute à `MapInfos.rxdata`.
 - Sans `MapID` : nouvelle carte (ID suivant). Avec `MapID` : la carte est remplacée, ses événements sont conservés (ceux qui sortent de la nouvelle taille sont supprimés).
@@ -87,13 +88,14 @@
 | `004_Generate.rb` | Écriture des fichiers de carte, commandes du menu debug. |
 | `005_Editor.rb` | Fermeture et réouverture de RPG Maker XP. |
 | `006_World.rb` | Plans du monde : lieux, raccords, métadonnées et carte de région. |
+| `007_RegionImage.rb` | Dessin de l'image de la carte de région (PNG écrit avec Zlib). |
 
 ### Points d'accroche Essentials
 Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `compile_town_map` (plans du monde), `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même table que le rendu d'Essentials) et `MenuHandlers.add(:debug_menu, ...)`.
 
 ### Limites connues
 - Pas encore d'import PNG (1 pixel = 1 case) ni de génération procédurale.
-- Plan du monde : chaque lieu est un rectangle (pas de lieu en L), et l'image de la carte de région n'est pas dessinée (à faire dans `Graphics/UI/Town Map/`).
+- Plan du monde : chaque lieu est un rectangle (pas de lieu en L), et l'image de la carte de région est schématique (aplats de couleur, sans relief ni décor).
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## Journal
@@ -109,4 +111,4 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 | 14/10/2026 | MapGenerator v1.4.0 : grilles de calques `[Layer2]` / `[Layer3]` | `Plugins/MapGenerator/*`, `MapGen/exemple_calques.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | MapGenerator v1.5.0 : terrains à raccords automatiques `[Terrains]`, place de ville réécrite avec | `Plugins/MapGenerator/*`, `MapGen/place_ville.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | MapGenerator v1.6.0 : portes et étages `[Warps]` / `[Events]` | `Plugins/MapGenerator/*`, `MapGen/exemple_porte_*.txt`, `docs/FEATURES.md` |
-| 14/10/2026 | MapGenerator v1.7.0 : plans du monde (lieux, raccords entre cartes, carte de région) | `Plugins/MapGenerator/*`, `MapGen/exemple_monde.txt`, `docs/FEATURES.md` |
+| 14/10/2026 | MapGenerator v1.7.0 : plans du monde (lieux, raccords entre cartes, carte de région et son image) | `Plugins/MapGenerator/*`, `MapGen/exemple_monde.txt`, `docs/FEATURES.md` |
