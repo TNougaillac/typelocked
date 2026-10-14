@@ -1,7 +1,7 @@
 # Fonctionnalités
 
 ## F01. Mode Nuzlocke
-**Statut :** v1.1.0, écrit, **non testé**.
+**Statut :** v1.1.1, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Nuzlocke/`
 
@@ -46,8 +46,19 @@
 - Les œufs qui éclosent ne forcent pas de surnom.
 - Les cadeaux ne consomment pas la zone.
 
+## F02. Deluxe Battle Kit (plugin externe)
+**Statut :** v1.3.1 installé (Lucidious89), avec son prérequis v21.1 Hotfixes 1.0.9 (Maruno). **Non testé.**
+**Dossiers :** `Plugins/[DBK_000] Deluxe Battle Kit/`, `Plugins/v21.1 Hotfixes/`, `Graphics/Plugins/Deluxe Battle Kit/`, plus quelques fichiers dans `Audio/` et `Graphics/UI/`.
+**Doc :** https://lucidious89-tutorials.gitbook.io/deluxe-battle-kit-tutorial
+
+- Ajoute des Battle Rules (`setBattleRule`), les combats de boss sauvages (`editWildPokemon` avec `:hp_level` et `:immunities`), la capture style raid et les scripts en plein combat.
+- Remplace deux images de base : `Graphics/UI/Battle/icon_mega.png` et `cursor_command.png`.
+- `Town Map Generator.html` (version corrigée de `townmapgen.html`) est à la racine du projet.
+- Cohabitation avec le Nuzlocke : le kit efface les surnoms dans `pbStorePokemon`, le Nuzlocke remet le surnom forcé après coup. Effet visible : le message « envoyé dans la boîte » affiche le nom de l'espèce.
+
 ## Journal
 | Date | Ajout | Fichiers |
 |---|---|---|
 | 08/10/2026 | Plugin Nuzlocke v1.0.0 | `Plugins/Nuzlocke/*` |
 | 14/10/2026 | Nuzlocke v1.1.0 : shiny consomme une zone libre, morts verrouillés au PC, poison non mortel, équipe K.O. | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
+| 14/10/2026 | Deluxe Battle Kit v1.3.1 + v21.1 Hotfixes 1.0.9 ; Nuzlocke v1.1.1 : surnom conservé malgré le kit | `Plugins/[DBK_000] Deluxe Battle Kit/*`, `Plugins/v21.1 Hotfixes/*`, `Audio/`, `Graphics/`, `Plugins/Nuzlocke/004_Nicknames.rb`, `docs/FEATURES.md` |
