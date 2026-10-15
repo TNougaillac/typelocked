@@ -14,6 +14,7 @@ module MapEvents
     page.list = []
     page.graphic.character_name = entry.value("Graphic") || ""
     page.graphic.direction = FACINGS[entry.value("Facing")] || 2
+    set_movement(page, entry)
     case entry.kind
     when :npc     then build_npc(event, entry)
     when :trainer then event = build_trainer(event, entry, checker)
@@ -26,12 +27,26 @@ module MapEvents
   def build_npc(event, entry)
     event.name = "#{TAG} #{entry.label}"
     page = event.pages[0]
-    page.move_type = MOVES[entry.value("Move")] || 0
     entry.fields.each do |key, value|
       page.list.push(message(value)) if key == "Text"
       Compiler.push_script(page.list, value) if key == "Script"
     end
     Compiler.push_end(page.list)
+  end
+
+  # Movement type, speed and loop route; trainers keep them through
+  # Compiler.convert_to_trainer_event, which copies the first page.
+  def set_movement(page, entry)
+    route = entry.value("Route")
+    page.move_type = MOVES[entry.value("Move") || (route ? "ronde" : "fixe")]
+    page.move_speed = entry.value("Speed").to_i if entry.value("Speed")
+    page.move_frequency = entry.value("Frequency").to_i if entry.value("Frequency")
+    page.through = yes?(entry.value("Through"))
+    return if !route
+    page.move_route = RPG::MoveRoute.new
+    page.move_route.repeat = true
+    page.move_route.list = parse_route(route).map { |code, params, _, _| RPG::MoveCommand.new(code, params) }
+    page.move_route.list.push(RPG::MoveCommand.new)   # End of route
   end
 
   # One message box. Not Compiler.push_text, which cuts the text at each "\m"

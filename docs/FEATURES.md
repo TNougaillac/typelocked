@@ -173,14 +173,15 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Les PV affichés du boss et ses PV après capture (doivent revenir à la normale).
 
 ## F06. Placeur d'événements (MapEvents)
-**Statut :** v1.0.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
+**Statut :** v1.1.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
 **Version cible :** Essentials v21.1. Plugin séparé de MapGen (aucune dépendance obligatoire).
 **Dossier :** `Plugins/MapEvents/`, plans dans `MapEvents/*.txt` (exemple : `MapEvents/exemple.txt`, sur la carte de `MapGen/exemple.txt`).
 
 ### Règles
 - **Un plan par carte :** `Map = Route 1` (nom dans l'arbre des cartes, ou ID). `BGM = Route 1` (facultatif, `nom[,volume[,hauteur]]`) règle la musique de la carte.
 - **Un événement par section**, placé avec `Pos = x,y` (case comptée depuis 0, comme MapGen). Le nom après le type (`[Npc A]`) est une étiquette unique dans le fichier.
-- **`[Npc A]` (PNJ ou pancarte) :** `Graphic` (sans graphisme = pancarte), `Facing` (`haut`, `bas`, `gauche`, `droite`), `Move` (`fixe`, `aleatoire`), puis des `Text` (une boîte de message chacun) et des `Script` (une ligne de script chacun, ex. `pbPokemonMart([:POKEBALL, :POTION])`), exécutés dans l'ordre du fichier.
+- **`[Npc A]` (PNJ ou pancarte) :** `Graphic` (sans graphisme = pancarte), `Facing` (`haut`, `bas`, `gauche`, `droite`), puis des `Text` (une boîte de message chacun) et des `Script` (une ligne de script chacun, ex. `pbPokemonMart([:POKEBALL, :POTION])`), exécutés dans l'ordre du fichier.
+- **Déplacements (PNJ et dresseurs) :** `Move = fixe` (par défaut), `vers_joueur` (s'approche du joueur) ou `ronde`. `Route = droite*3, attendre 60, gauche*3, regard_bas` est un trajet répété en boucle (pas : `haut`, `bas`, `gauche`, `droite`, `*n` pour répéter, `regard_<direction>`, `attendre <images>`) ; il implique `Move = ronde`, doit revenir à `Pos` et rester dans la carte (vérifié). `Speed` et `Frequency` de 1 à 6 comme dans l'éditeur, `Through = oui` pour traverser les autres. Pas de déplacement aléatoire (un PNJ ne peut pas être tenu dans une zone).
 - **`[Trainer B]` (dresseur) :** `Type`, `Name`, `Battle` obligatoires ; `Sight` (portée de vue, 3 par défaut) ; `Graphic` (sinon celui du type de dresseur) ; `Facing`. Les autres clés sont les commentaires de dresseur d'Essentials : `EndBattle`, `BattleID`, `DoubleBattle` / `Continue` (`oui`/`non`), `Backdrop`, `EndIfSwitch`, `VanishIfSwitch`, `Outcome`, `RegSpeech`. Plusieurs `Battle` = revanches. L'équipe est celle de `PBS/trainers.txt`.
 - **Champion d'arène :** un `[Trainer]` avec, après une victoire, `Win` (texte, codes de message acceptés comme `\me[Badge get]`), `Badge = n` (badge 1 à 8), `Gift = TM39` (objet donné), `Switch = n` (interrupteur activé). Le Monotype le reconnaît par son type `LEADER_…`.
 - **`[Item C]` :** `Item = POTION`, `Hidden = oui` pour un objet caché.
@@ -209,7 +210,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Les objets (visible et caché) se ramassent une seule fois.
 
 ### Limites connues
-- Pas de scènes scénarisées (déplacements, plusieurs pages conditionnelles) : seulement PNJ à dialogue/script, dresseurs, champions et objets.
+- Pas de scènes scénarisées (déplacements ponctuels, plusieurs pages conditionnelles) : seulement PNJ à dialogue/script, rondes en boucle, dresseurs, champions et objets.
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## Journal
@@ -232,3 +233,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 14/10/2026 | MapGenerator v1.7.0 : plans du monde (lieux, raccords entre cartes, carte de région et son image) | `Plugins/MapGenerator/*`, `MapGen/exemple_monde.txt`, `docs/FEATURES.md` |
 | 14/10/2026 | Plugin OverworldBoss v1.0.0 : Pokémon boss sur la carte (multiplicateurs de stats, talent imposé, immunités) | `Plugins/OverworldBoss/*`, `docs/FEATURES.md` |
 | 15/10/2026 | Plugin MapEvents v1.0.0 : PNJ, dresseurs, champions, objets, rencontres et métadonnées de carte depuis un plan texte | `Plugins/MapEvents/*`, `MapEvents/exemple.txt`, `tools/ci/check_mapevents.rb`, `.github/workflows/ci.yml`, `README.md`, `docs/FEATURES.md` |
+| 15/10/2026 | MapEvents v1.1.0 : déplacements des PNJ et dresseurs (`vers_joueur`, rondes en boucle `Route`, `Speed`, `Frequency`, `Through`) | `Plugins/MapEvents/*`, `MapEvents/exemple.txt`, `docs/FEATURES.md` |
