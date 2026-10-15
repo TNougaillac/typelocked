@@ -18,8 +18,10 @@
 #                               of the chain, have no gym either; the others
 #                               without one are still drawn at random)
 #   Longueur = 2..4            (route length in squares, 2..4 by default)
-#   Surf     = 2               (water that blocks a route only appears after
-#                               the town of that gym, 2 by default)
+#   Surf     = 2               (Surf is obtained in a town with a gym, drawn
+#                               from the town of that gym onwards, 2 by
+#                               default; water that blocks a route only
+#                               appears after that town)
 #   Chenaux  = 0..2            (routes crossed by a straight channel, only by
 #                               surfing; 0 by default)
 #   Lacs     = 0..1            (routes crossed by a lake, only by surfing;
@@ -36,17 +38,19 @@
 # neighbours, then MapGen writes the maps, the connections and the Town Map
 # from the world plan made here. Only routes of 2 squares or more can be
 # crossed by water or a cave. A cave is a map of its own (« Grotte générée
-# N », for route N) whose layout Essentials draws anew each time.
+# N », for route N) whose layout Essentials draws from a seed of the world, so
+# it is the same on every visit.
 #===============================================================================
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
                      :surf, :channels, :lakes, :caves)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
-  # crossing: nil, "chenal", "lac" or "grotte" (routes)
-  WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing)
+  # crossing: nil, "chenal", "lac" or "grotte" (routes); surf: the town where
+  # Surf is obtained
+  WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
-  # caves: [WorldPlace of the route, name, MapGen plan text]
+  # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout]
   WorldResult = Struct.new(:text, :places, :caves)
 
   TOWN_SIZE = 2
@@ -143,7 +147,7 @@ module MapProceduralGenerator
       name = wp.name.sub("Route", "Grotte")
       doors = layout.doors.select { |_x, _y, brick| brick.kind == CAVE }
       text << cave_warps(name, doors, place)
-      [wp, name, cave_text(name, wp.name, doors)]
+      [wp, name, cave_text(name, wp.name, doors), (seed * 1000) + 500 + wp.index]
     end
     return WorldResult.new(world_text(world, built, seed), built, caves)
   end
@@ -166,7 +170,7 @@ module MapProceduralGenerator
   # layout, and one exit to each cave entrance of the route.
   def cave_text(name, route, doors)
     text = +"# Grotte de #{route}, générée par MapProceduralGenerator. Essentials\n"
-    text << "# tire une nouvelle disposition à chaque entrée (Dungeon = true).\n"
+    text << "# dessine la grotte à l'entrée (Dungeon = true), toujours depuis la même graine.\n"
     text << "Name    = #{name}\n"
     text << "Tileset = #{CAVE_TILESET}\n"
     text << "Ground  = .\n"
@@ -231,12 +235,19 @@ module MapProceduralGenerator
     return places
   end
 
-  # Water only on routes after the town of the Surf-th gym, so that the player
-  # can always go on without surfing before; caves anywhere.
+  # Surf is obtained in a town with a gym, the Surf-th one or a later one;
+  # water only blocks routes after that town, so that the player can always go
+  # on without surfing before. Caves anywhere.
   def choose_crossings(world, places, rng)
     routes = places.select { |p| p.kind == "route" && [p.w, p.h].max >= 2 }
-    gym_towns = places.select { |p| p.kind == "ville" && p.gym }
-    surf_town = gym_towns[world.surf - 1]
+    candidates = places.select { |p| p.kind == "ville" && p.gym }.drop(world.surf - 1)
+    # A town with a water route after it, when water is wanted
+    if world.channels.max + world.lakes.max > 0
+      wet_after = candidates.select { |t| routes.any? { |r| r.index > t.index } }
+      candidates = wet_after if !wet_after.empty?
+    end
+    surf_town = candidates.sample(random: rng)
+    surf_town.surf = true if surf_town
     wet = surf_town ? routes.select { |r| r.index > surf_town.index }.shuffle(random: rng) : []
     rng.rand(world.channels).times { (wet.shift || break).crossing = "chenal" }
     rng.rand(world.lakes).times { (wet.shift || break).crossing = "lac" }
@@ -285,6 +296,8 @@ module MapProceduralGenerator
     text << "Image   = #{world.image}\n" if world.image
     text << "Cell    = #{world.cell}\n"
     text << "Origin  = #{world.origin.join(',')}\n"
+    surf = built.find { |wp, *| wp.surf }
+    text << "# Surf s'obtient à #{surf[0].name}.\n" if surf
     text << "\n[Places]\n"
     built.each do |wp, _place, _text, layout|
       line = "#{wp.symbol} = #{wp.name}  type=#{wp.kind}"

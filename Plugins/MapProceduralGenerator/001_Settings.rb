@@ -21,10 +21,14 @@ module MapProceduralGenerator
   MAX_DOOR_DISTANCE = 6
 
   # Caves of a world: tileset of their maps (it needs a section in
-  # PBS/dungeon_tilesets.txt) and its floor tile. Essentials draws a new random
-  # layout each time the player walks in (map metadata Dungeon = true).
+  # PBS/dungeon_tilesets.txt) and its floor tile. Essentials draws their layout
+  # when the player walks in (map metadata Dungeon = true), always from the
+  # same seed (see CAVE_SEEDS_FILE).
   CAVE_TILESET = 7
   CAVE_FLOOR = "T42"
   # Graphic of the cave exits (a ladder, as in the example dungeon map).
   CAVE_EXIT_TILE = 384 + 47
+  # Seed of each cave's layout (map ID => seed), so that a cave stays the same
+  # for a given world seed.
+  CAVE_SEEDS_FILE = "Data/MapProcCaves.rxdata"
 end
