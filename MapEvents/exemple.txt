@@ -48,9 +48,3 @@ Item = POTION
 Pos = 1,1
 Item = ANTIDOTE
 Hidden = oui
-
-[Encounters]
-Land,21
-40,PIDGEY,2,4
-40,RATTATA,2,4
-20,CATERPIE,3,5
