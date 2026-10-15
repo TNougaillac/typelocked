@@ -213,6 +213,21 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Pas de scènes scénarisées (déplacements ponctuels, plusieurs pages conditionnelles) : seulement PNJ à dialogue/script, rondes en boucle, dresseurs, champions et objets.
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
+## F03. Add-ons du Deluxe Battle Kit
+**Statut :** installés, **non testés**.
+
+| Plugin | Version | Dossier | Ajout |
+|---|---|---|---|
+| Modular UI Scenes | 2.0.9 | `Plugins/[MUI_000] Modular UI Scenes/` | Écrans Résumé et Pokédex en pages modulaires (`UIHandlers`), couleurs des commandes du menu d'équipe. |
+| [DBK] Enhanced Battle UI | 2.1.1 | `Plugins/[DBK_001] Enhanced Battle UI/` | Fenêtres d'infos sur les attaques et les combattants, menu de sélection de Ball. |
+| [DBK] Animated Pokémon System | 1.1.3 | `Plugins/[DBK_009] Animated Pokemon System/` | Sprites animés, ombres, motifs de statut, Sprite Editor remanié. |
+
+- Sprites animés (gén. 1 à 9) copiés dans `Graphics/Pokemon/` : ils remplacent les sprites de base du même nom. Les sprites des espèces de gén. 9 restent inutilisés tant que le Generation 9 Pack n'est pas installé.
+- Métriques : `PBS/pokemon_metrics.txt` remplacé, plus `_female`, `_forms` et `_gmax`. `pokemon_metrics_Gen_9_Pack.txt` volontairement **non copié** : ses 127 espèces n'existent pas dans `pokemon.txt` et bloqueraient la compilation.
+- Écrans Résumé et Pokédex : nouvelles images dans `Graphics/UI/Summary/` et `Graphics/UI/Pokedex/` (5 remplacées).
+- Nuzlocke : la sélection de Ball de l'Enhanced Battle UI passe par `ItemHandlers.triggerCanUseInBattle`, donc les Balls restent grisées quand aucune capture n'est permise.
+- Non installé : Customizable Battle UI (décision du 14/10/2026).
+
 ## Journal
 | Date | Ajout | Fichiers |
 |---|---|---|
@@ -235,3 +250,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 15/10/2026 | Plugin MapEvents v1.0.0 : PNJ, dresseurs, champions, objets, rencontres et métadonnées de carte depuis un plan texte | `Plugins/MapEvents/*`, `MapEvents/exemple.txt`, `tools/ci/check_mapevents.rb`, `.github/workflows/ci.yml`, `README.md`, `docs/FEATURES.md` |
 | 15/10/2026 | MapEvents v1.1.0 : déplacements des PNJ et dresseurs (`vers_joueur`, rondes en boucle `Route`, `Speed`, `Frequency`, `Through`) | `Plugins/MapEvents/*`, `MapEvents/exemple.txt`, `docs/FEATURES.md` |
 | 15/10/2026 | Plans MapEvents sans `[Encounters]` : les rencontres restent dans `PBS/encounters.txt` | `MapEvents/exemple.txt`, `docs/FEATURES.md` |
+| 15/10/2026 | Modular UI Scenes 2.0.9, Enhanced Battle UI 2.1.1, Animated Pokémon System 1.1.3 + sprites animés | `Plugins/[MUI_000]*`, `Plugins/[DBK_001]*`, `Plugins/[DBK_009]*`, `Graphics/`, `PBS/pokemon_metrics*.txt`, `docs/FEATURES.md` |

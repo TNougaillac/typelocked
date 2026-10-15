@@ -12,6 +12,8 @@ AllCops:
     # Third-party plugins, not maintained here
     - "Plugins/*Deluxe Battle Kit/**/*"
     - "Plugins/v21.1 Hotfixes/**/*"
+    - "Plugins/[[]DBK_*/**/*"
+    - "Plugins/[[]MUI_*/**/*"
 
 Lint:
   Enabled: true
