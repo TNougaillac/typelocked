@@ -9,6 +9,7 @@ ESSENTIALS_VERSION = "21.1"
 # --- Encoding ---------------------------------------------------------------
 text_files = Dir.glob(File.join(ROOT, "PBS", "*.txt")) +
              Dir.glob(File.join(ROOT, "MapGen", "*.txt")) +
+             Dir.glob(File.join(ROOT, "MapEvents", "*.txt")) +
              Dir.glob(File.join(ROOT, "Plugins", "**", "*.{rb,txt}"))
 text_files.sort.each do |path|
   bytes = File.binread(path).force_encoding("UTF-8")
