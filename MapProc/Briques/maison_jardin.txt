@@ -1,4 +1,4 @@
-# Maison avec un jardin fleuri à sa droite.
+# Maison avec un jardin fleuri à sa droite et une jardinière.
 Brique = Maison et jardin
 Type   = maison
 Porte  = 1,3
@@ -6,4 +6,4 @@ Porte  = 1,3
 hhhh***
 hhhh***
 hhhh...
-hhhh...
+hhhhpp.
