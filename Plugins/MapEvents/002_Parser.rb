@@ -1,0 +1,155 @@
+#===============================================================================
+# MapEvents - Plan file parser
+# File format (one file per map, keys in English, # starts a comment):
+#   Map = Route 1              (required: map name in the map tree, or its ID)
+#   BGM = Route 1              (optional: map music, name[,volume[,pitch]])
+#   [Npc A]                    (a person or a sign: one event per section,
+#   Pos = 4,7                   A = its label, unique in the file;
+#   Graphic = NPC 01            Pos = x,y cell from 0; no Graphic = sign;
+#   Facing = bas                Facing = haut|bas|gauche|droite;
+#   Move = aleatoire            Move = fixe|aleatoire;
+#   Text = Bonjour !            each Text = one message box, each Script =
+#   Script = pbPokemonMart([:POKEBALL])   one script line, run in file order)
+#   [Trainer B]                (Essentials trainer: Type, Name and Battle are
+#   Pos = 10,3                  required; Sight = how far it sees, 3 by
+#   Sight = 4                   default; Graphic is taken from the trainer
+#   Type = YOUNGSTER            type when omitted; the other keys are the
+#   Name = Ben                  Essentials trainer comments: BattleID,
+#   Battle = Tu es nouveau ?    DoubleBattle, Continue (oui|non), Backdrop,
+#   EndBattle = Bien joué.      EndBattle, EndIfSwitch, VanishIfSwitch,
+#   Badge = 1                   Outcome, RegSpeech; several Battle = rematches.
+#   Win = \me[Badge get]Badge !  Gym leader: Badge = n gives badge n (1-8),
+#   Gift = TM39                 Win = text after a win, Gift = item given,
+#   Switch = 25                 Switch = game switch turned on)
+#   [Item C]                   (Poké Ball on the ground, Hidden = oui for a
+#   Pos = 2,2                   hidden item)
+#   Item = POTION
+#   [Metadata]                 (lines merged into the map's section of
+#   HealingSpot = 3,10,8        PBS/map_metadata.txt, other keys kept)
+#   [Encounters]               (replaces the map's section of
+#   Land,21                     PBS/encounters.txt, same lines as there)
+#   40,PIDGEY,2,4
+#===============================================================================
+module MapEvents
+  class Error < StandardError; end
+
+  Plan = Struct.new(:file, :target, :bgm, :events, :metadata, :encounters)
+  # fields: [key, value] in file order, a key can repeat (Text, Battle...)
+  Entry = Struct.new(:kind, :label, :x, :y, :fields, :lineno) do
+    def value(key)
+      pair = fields.find { |k, _| k == key }
+      return pair && pair[1]
+    end
+  end
+
+  FACINGS = { "bas" => 2, "gauche" => 4, "droite" => 6, "haut" => 8 }
+  MOVES   = { "fixe" => 0, "aleatoire" => 1 }
+  # Keys written as comments for Compiler.convert_to_trainer_event
+  TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
+                        EndIfSwitch VanishIfSwitch Outcome RegSpeech]
+  KEYS = {
+    npc:     %w[Pos Graphic Facing Move Text Script],
+    trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + TRAINER_COMMENTS,
+    item:    %w[Pos Item Hidden]
+  }
+  REQUIRED = { npc: %w[Pos], trainer: %w[Pos Type Name Battle], item: %w[Pos Item] }
+  NUMBER_KEYS = %w[Sight Badge Switch BattleID EndIfSwitch VanishIfSwitch Outcome]
+  YES_NO_KEYS = %w[DoubleBattle Continue Hidden]
+  ID_KEYS     = %w[Type Item Gift]
+
+  module_function
+
+  def yes?(value)
+    return %w[oui true].include?(value.to_s.downcase)
+  end
+
+  def parse_file(path)
+    text = File.read(path, encoding: "UTF-8").sub(/\A﻿/, "")
+    return parse(text, File.basename(path))
+  end
+
+  def parse(text, file = "plan")
+    plan = Plan.new(file, nil, nil, [], [], [])
+    section = :header
+    entry = nil
+    text.each_line.with_index(1) do |raw, lineno|
+      line = raw.chomp.sub(/(\A|\s)#.*\z/, "").strip
+      next if line.empty?
+      fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
+      if line =~ /\A\[(\w+)(?:\s+(\S+))?\]\z/
+        section = $1.downcase.to_sym
+        label = $2
+        if KEYS[section]
+          fail_at.call("nom attendu, par exemple [#{$1} A]") if !label
+          fail_at.call("« #{label} » est déjà utilisé") if plan.events.any? { |e| e.label == label }
+          entry = Entry.new(section, label, nil, nil, [], lineno)
+          plan.events.push(entry)
+        elsif ![:metadata, :encounters].include?(section) || label
+          fail_at.call("section inconnue [#{$1}] (Npc, Trainer, Item, Metadata, Encounters)")
+        end
+        next
+      end
+      if section == :encounters
+        plan.encounters.push(line)
+        next
+      end
+      fail_at.call("attendu « Clé = valeur »") unless line =~ /\A(\w+)\s*=\s*(.+)\z/
+      key, value = $1, $2.strip
+      case section
+      when :header
+        case key.downcase
+        when "map" then plan.target = (value =~ /\A\d+\z/) ? value.to_i : value
+        when "bgm" then plan.bgm = value
+        else fail_at.call("clé « #{key} » inconnue (Map, BGM)")
+        end
+      when :metadata
+        plan.metadata.push("#{key} = #{value}")
+      else
+        known = KEYS[section].find { |k| k.casecmp?(key) }
+        fail_at.call("clé « #{key} » inconnue dans [#{section.capitalize}] (#{KEYS[section].join(', ')})") if !known
+        check_value(entry, known, value, fail_at)
+        entry.fields.push([known, value])
+      end
+    end
+    validate(plan)
+    return plan
+  end
+
+  def check_value(entry, key, value, fail_at)
+    if key == "Pos"
+      fail_at.call("attendu « Pos = x,y »") unless value =~ /\A(\d+)\s*,\s*(\d+)\z/
+      fail_at.call("« Pos » donné deux fois") if entry.x
+      entry.x, entry.y = $1.to_i, $2.to_i
+    elsif key == "Facing" && !FACINGS[value]
+      fail_at.call("direction « #{value} » inconnue (#{FACINGS.keys.join(', ')})")
+    elsif key == "Move" && !MOVES[value]
+      fail_at.call("déplacement « #{value} » inconnu (#{MOVES.keys.join(', ')})")
+    elsif NUMBER_KEYS.include?(key) && value !~ /\A\d+\z/
+      fail_at.call("nombre attendu pour « #{key} », trouvé « #{value} »")
+    elsif YES_NO_KEYS.include?(key) && !%w[oui non true false].include?(value.downcase)
+      fail_at.call("« #{key} » vaut oui ou non")
+    elsif ID_KEYS.include?(key) && value !~ /\A\w+\z/
+      fail_at.call("identifiant attendu pour « #{key} » (ex. POTION), trouvé « #{value} »")
+    elsif key == "Badge" && !value.to_i.between?(1, 8)
+      fail_at.call("« Badge » va de 1 à 8")
+    end
+  end
+
+  def validate(plan)
+    raise Error, "#{plan.file} : « Map » manquant" if !plan.target
+    cells = {}
+    plan.events.each do |entry|
+      where = "#{plan.file}, ligne #{entry.lineno} : [#{entry.kind.capitalize} #{entry.label}]"
+      REQUIRED[entry.kind].each do |key|
+        raise Error, "#{where} : « #{key} » manquant" if !entry.value(key)
+      end
+      if entry.kind == :npc && !entry.value("Text") && !entry.value("Script")
+        raise Error, "#{where} : « Text » ou « Script » manquant"
+      end
+      if (other = cells[[entry.x, entry.y]])
+        raise Error, "#{where} : case #{entry.x},#{entry.y} déjà prise par [#{other.kind.capitalize} #{other.label}]"
+      end
+      cells[[entry.x, entry.y]] = entry
+    end
+  end
+end
