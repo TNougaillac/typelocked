@@ -186,7 +186,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - **Champion d'arène :** un `[Trainer]` avec, après une victoire, `Win` (texte, codes de message acceptés comme `\me[Badge get]`), `Badge = n` (badge 1 à 8), `Gift = TM39` (objet donné), `Switch = n` (interrupteur activé). Le Monotype le reconnaît par son type `LEADER_…`.
 - **`[Item C]` :** `Item = POTION`, `Hidden = oui` pour un objet caché.
 - **`[Metadata]` :** lignes `Clé = valeur` fusionnées dans la section de la carte de `PBS/map_metadata.txt` (les autres clés sont gardées), ex. `HealingSpot`, `Outdoor`, `BattleBack`.
-- **`[Encounters]` :** mêmes lignes que dans `PBS/encounters.txt` (`Land,21` puis `40,PIDGEY,2,4`) ; elles remplacent la section de la carte. Les deux PBS sont recompilés aussitôt.
+- **`[Encounters]` :** mêmes lignes que dans `PBS/encounters.txt` (`Land,21` puis `40,PIDGEY,2,4`) ; elles remplacent la section de la carte. Les deux PBS sont recompilés aussitôt. **Convention du projet : ne pas l'utiliser**, les rencontres se gèrent uniquement dans `PBS/encounters.txt`.
 - **Relance :** chaque événement écrit porte « MapEvents <étiquette> » dans son nom ; relancer un plan remplace ces événements et garde ceux placés à la main dans l'éditeur. Une case déjà occupée par un autre événement donne un avertissement.
 
 ### Fichiers
@@ -234,3 +234,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 14/10/2026 | Plugin OverworldBoss v1.0.0 : Pokémon boss sur la carte (multiplicateurs de stats, talent imposé, immunités) | `Plugins/OverworldBoss/*`, `docs/FEATURES.md` |
 | 15/10/2026 | Plugin MapEvents v1.0.0 : PNJ, dresseurs, champions, objets, rencontres et métadonnées de carte depuis un plan texte | `Plugins/MapEvents/*`, `MapEvents/exemple.txt`, `tools/ci/check_mapevents.rb`, `.github/workflows/ci.yml`, `README.md`, `docs/FEATURES.md` |
 | 15/10/2026 | MapEvents v1.1.0 : déplacements des PNJ et dresseurs (`vers_joueur`, rondes en boucle `Route`, `Speed`, `Frequency`, `Through`) | `Plugins/MapEvents/*`, `MapEvents/exemple.txt`, `docs/FEATURES.md` |
+| 15/10/2026 | Plans MapEvents sans `[Encounters]` : les rencontres restent dans `PBS/encounters.txt` | `MapEvents/exemple.txt`, `docs/FEATURES.md` |
