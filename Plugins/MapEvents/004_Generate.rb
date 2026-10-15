@@ -32,6 +32,10 @@ module MapEvents
       if entry.x >= map.width || entry.y >= map.height
         raise Error, "#{plan.file} : #{label} en #{entry.x},#{entry.y}, hors de la carte (#{map.width}x#{map.height})"
       end
+      if entry.value("Route")
+        cell = route_cells(entry).find { |x, y| x < 0 || y < 0 || x >= map.width || y >= map.height }
+        raise Error, "#{plan.file} : la ronde de #{label} sort de la carte en #{cell[0]},#{cell[1]}" if cell
+      end
       other = map.events.values.find { |event| event.x == entry.x && event.y == entry.y }
       notes.push(_INTL("{1} : {2} est sur la même case que l'événement « {3} ».", plan.file, label, other.name)) if other
       event = build_event(entry, (map.events.keys.max || 0) + 1, checker)

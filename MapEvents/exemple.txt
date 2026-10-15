@@ -10,7 +10,8 @@ BGM = Route 1
 Pos = 2,7
 Graphic = NPC 01
 Facing = droite
-Move = aleatoire
+Route = droite*2, attendre 40, regard_bas, attendre 40, gauche*2, attendre 40
+Speed = 3
 Text = Les hautes herbes sont pleines de Pokémon sauvages !
 Text = Prends des Poké Balls avant d'y aller.
 

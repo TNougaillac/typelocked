@@ -7,9 +7,15 @@
 #   Pos = 4,7                   A = its label, unique in the file;
 #   Graphic = NPC 01            Pos = x,y cell from 0; no Graphic = sign;
 #   Facing = bas                Facing = haut|bas|gauche|droite;
-#   Move = aleatoire            Move = fixe|aleatoire;
 #   Text = Bonjour !            each Text = one message box, each Script =
 #   Script = pbPokemonMart([:POKEBALL])   one script line, run in file order)
+#   Move = ronde               (movement, also for trainers: Move = fixe |
+#   Route = droite*3, attendre 60, gauche*3   vers_joueur | ronde; Route =
+#   Speed = 3                   steps repeated in a loop (haut, bas, gauche,
+#   Frequency = 3               droite, *n to repeat, regard_<direction>,
+#   Through = oui               attendre <frames>), it implies Move = ronde and
+#                               must come back to Pos; Speed and Frequency =
+#                               1-6; Through = oui walks through the others)
 #   [Trainer B]                (Essentials trainer: Type, Name and Battle are
 #   Pos = 10,3                  required; Sight = how far it sees, 3 by
 #   Sight = 4                   default; Graphic is taken from the trainer
@@ -43,18 +49,25 @@ module MapEvents
   end
 
   FACINGS = { "bas" => 2, "gauche" => 4, "droite" => 6, "haut" => 8 }
-  MOVES   = { "fixe" => 0, "aleatoire" => 1 }
+  MOVES   = { "fixe" => 0, "vers_joueur" => 2, "ronde" => 3 }   # RMXP move types
+  # Route steps: RMXP move command code and [dx, dy]
+  ROUTE_STEPS = {
+    "bas" => [1, [0, 1]], "gauche" => [2, [-1, 0]], "droite" => [3, [1, 0]], "haut" => [4, [0, -1]],
+    "regard_bas" => [16, [0, 0]], "regard_gauche" => [17, [0, 0]],
+    "regard_droite" => [18, [0, 0]], "regard_haut" => [19, [0, 0]]
+  }
+  MOVE_KEYS = %w[Move Route Speed Frequency Through]
   # Keys written as comments for Compiler.convert_to_trainer_event
   TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
-    npc:     %w[Pos Graphic Facing Move Text Script],
-    trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + TRAINER_COMMENTS,
+    npc:     %w[Pos Graphic Facing Text Script] + MOVE_KEYS,
+    trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden]
   }
   REQUIRED = { npc: %w[Pos], trainer: %w[Pos Type Name Battle], item: %w[Pos Item] }
   NUMBER_KEYS = %w[Sight Badge Switch BattleID EndIfSwitch VanishIfSwitch Outcome]
-  YES_NO_KEYS = %w[DoubleBattle Continue Hidden]
+  YES_NO_KEYS = %w[DoubleBattle Continue Hidden Through]
   ID_KEYS     = %w[Type Item Gift]
 
   module_function
@@ -132,7 +145,38 @@ module MapEvents
       fail_at.call("identifiant attendu pour « #{key} » (ex. POTION), trouvé « #{value} »")
     elsif key == "Badge" && !value.to_i.between?(1, 8)
       fail_at.call("« Badge » va de 1 à 8")
+    elsif %w[Speed Frequency].include?(key) && !value.to_i.between?(1, 6)
+      fail_at.call("« #{key} » va de 1 à 6")
+    elsif key == "Route"
+      begin
+        parse_route(value)
+      rescue Error => e
+        fail_at.call(e.message)
+      end
     end
+  end
+
+  # Returns the route as [[code, params, dx, dy], ...], one entry per step.
+  def parse_route(value)
+    value.split(",").flat_map do |step|
+      step = step.strip
+      if step =~ /\Aattendre\s+(\d+)\z/
+        next [[15, [$1.to_i], 0, 0]]
+      end
+      raise Error, "pas « #{step} » inconnu (#{ROUTE_STEPS.keys.join(', ')}, attendre n)" unless step =~ /\A(\w+)(?:\*(\d+))?\z/
+      code, (dx, dy) = ROUTE_STEPS[$1]
+      raise Error, "pas « #{step} » inconnu (#{ROUTE_STEPS.keys.join(', ')}, attendre n)" if !code
+      Array.new(($2 || 1).to_i) { [code, [], dx, dy] }
+    end
+  end
+
+  # Cells a route walks through from its entry's Pos, raising if the loop
+  # does not end where it started (the event would drift away).
+  def route_cells(entry)
+    x, y = entry.x, entry.y
+    cells = parse_route(entry.value("Route")).map { |_, _, dx, dy| [x += dx, y += dy] }
+    return cells if [x, y] == [entry.x, entry.y]
+    raise Error, "[#{entry.kind.capitalize} #{entry.label}] : la ronde finit en #{x},#{y} au lieu de revenir en #{entry.x},#{entry.y}"
   end
 
   def validate(plan)
@@ -145,6 +189,16 @@ module MapEvents
       end
       if entry.kind == :npc && !entry.value("Text") && !entry.value("Script")
         raise Error, "#{where} : « Text » ou « Script » manquant"
+      end
+      if entry.value("Move") == "ronde" && !entry.value("Route")
+        raise Error, "#{where} : « Move = ronde » demande une « Route »"
+      elsif entry.value("Route")
+        raise Error, "#{where} : « Route » demande « Move = ronde »" if (entry.value("Move") || "ronde") != "ronde"
+        begin
+          route_cells(entry)
+        rescue Error => e
+          raise Error, "#{plan.file}, ligne #{entry.lineno} : #{e.message}"
+        end
       end
       if (other = cells[[entry.x, entry.y]])
         raise Error, "#{where} : case #{entry.x},#{entry.y} déjà prise par [#{other.kind.capitalize} #{other.label}]"
