@@ -1,0 +1,8 @@
+Brique = Boutique (porte à gauche)
+Type   = boutique
+Porte  = 1,3
+[Map]
+NNNN
+NNNN
+NNNN
+NNNN

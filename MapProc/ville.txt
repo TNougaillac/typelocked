@@ -4,7 +4,7 @@
 Lieu    = ville
 Nom     = Ville générée
 Tileset = 1
-Taille  = 38x32
+Taille  = 40x34
 Sol     = .
 Rue     = P
 Bordure = t
@@ -37,11 +37,33 @@ arbre    = 3..8
 P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
 
 [Objects]
-G = T2800 7x5        # arène
-B = T1576 5x5        # immeuble à toit rouge
-h = T1784 4x4        # petite maison
 C = T2608 5x5        # Centre Pokémon
-M = T2648 4x4        # Boutique
+M = T2648 4x4        # Boutique (porte à droite)
+N = T2652 4x4        # Boutique (porte à gauche)
+G = T2800 7x5        # arène au toit de chaume
+H = T2856 6x5        # arène en brique
+J = T2912 7x4        # arène au toit gris
+j = T2946 3x1        # marches de l'arène au toit gris (sous J)
+X = T2680 4x4        # bâtiment « Card » vert (porte à droite)
+Y = T2684 4x4        # bâtiment « Card » vert (porte à gauche)
+Z = T2712 4x4        # bâtiment « Card » orange (porte à droite)
+A = T2716 4x4        # bâtiment « Card » orange (porte à gauche)
+R = T2744 7x6        # grand dôme orange
+B = T1576 5x5        # immeuble à toit rouge
+Q = T1828 4x4        # bâtiment gris à toit plat
+V = T1336 5x4        # maison verte à cheminée
+U = T1368 5x4        # maison bleue à cheminée
+E = T1400 5x4        # maison à auvent vert
+K = T1432 5x4        # garage
+D = T1467 5x4        # maison violette
+O = T1536 5x5        # maison orange
+h = T1784 4x4        # petite maison à toit plat
+W = T1816 4x4        # maison en bois
+u = T1664 4x3        # petite maison bleue
+r = T1648 4x2        # toit rouge (sur w)
+g = T1652 4x2        # toit vert (sur w)
+o = T1668 4x2        # toit orange (sur w)
+w = T1680 4x1        # façade avec porte, sous un toit r, g ou o
 s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T420 2x3         # arbre

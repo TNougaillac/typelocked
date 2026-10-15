@@ -1,0 +1,10 @@
+Brique = Grand dôme orange
+Type   = special
+Porte  = 3,5
+[Map]
+RRRRRRR
+RRRRRRR
+RRRRRRR
+RRRRRRR
+RRRRRRR
+RRRRRRR

@@ -1,0 +1,9 @@
+Brique = Arène au toit gris
+Type   = arene
+Porte  = 3,4
+[Map]
+JJJJJJJ
+JJJJJJJ
+JJJJJJJ
+JJJJJJJ
+  jjj

@@ -1,0 +1,8 @@
+Brique = Maison verte à cheminée
+Type   = maison
+Porte  = 2,3
+[Map]
+VVVVV
+VVVVV
+VVVVV
+VVVVV

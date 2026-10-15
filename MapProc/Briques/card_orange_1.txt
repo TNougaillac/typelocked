@@ -1,0 +1,8 @@
+Brique = Bâtiment Card orange
+Type   = special
+Porte  = 2,3
+[Map]
+ZZZZ
+ZZZZ
+ZZZZ
+ZZZZ

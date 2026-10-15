@@ -1,0 +1,7 @@
+Brique = Petite maison bleue
+Type   = maison
+Porte  = 1,2
+[Map]
+uuuu
+uuuu
+uuuu
