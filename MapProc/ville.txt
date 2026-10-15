@@ -10,6 +10,7 @@ Rue     = P
 Bordure = t
 Sorties = nord sud ouest
 Rues    = 1..2
+Eau     = ~
 
 [Briques]
 centre   = 1
@@ -21,12 +22,14 @@ foire    = 0..2
 parc     = 1..3
 lampe    = 6..10
 arbre    = 3..8
+lac      = 0..1
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
 . = T1|T1|T1|T2|T3   # herbe
 " = T7               # hautes herbes
 * = T1 A5            # massif de fleurs
+~ = T1 A1            # eau des lacs
 [ = T1 T1016         # pieds du stand rayé
 ] = T1 T1018
 { = T1 T1019         # pieds du stand jaune

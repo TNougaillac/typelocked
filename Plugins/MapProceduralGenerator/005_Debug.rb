@@ -63,20 +63,64 @@ module MapProceduralGenerator
     # MapGen finds the world's maps by name: another map with the same name
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")
-    result.places.each do |wp, *|
-      clash = infos.find { |id, info| info.name == wp.name && map_ids[wp.name] != id }
+    names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, _text| name }
+    names.each do |name|
+      clash = infos.find { |id, info| info.name == name && map_ids[name] != id }
       next if !clash
-      raise Error, "#{File.basename(path)} : la carte #{clash[0]} s'appelle déjà « #{wp.name} » ; renomme-la ou change « Noms »"
+      raise Error, "#{File.basename(path)} : la carte #{clash[0]} s'appelle déjà « #{name} » ; renomme-la ou change « Noms »"
     end
-    result.places.each do |wp, _place, text, _layout|
-      map_ids[wp.name], = MapGenerator.generate(MapGenerator.parse(text, File.basename(path)))
+    # Routes first (their caves don't exist yet: their warps are linked after)
+    plans = result.places.map { |_wp, _place, text, _layout| text } +
+            result.caves.map { |_wp, name, text| text.sub(/^Tileset/, map_ids[name] ? "MapID   = #{map_ids[name]}\nTileset" : "Tileset") }
+    unlinked = []
+    plans.each do |text|
+      plan = MapGenerator.parse(text, File.basename(path))
+      map_ids[plan.name], _notes, missing = MapGenerator.generate(plan)
+      unlinked.push(plan) if !missing.empty?
     end
+    unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
+    result.caves.each { |_wp, name, _text| dress_cave(map_ids[name]) }
+    write_cave_metadata(world, result, map_ids)
     export_path(path, seed)   # creates the folder
     File.write(world_maps_path(path), map_ids.map { |name, id| "#{id} = #{name}\n" }.join)
     export = export_path(path, seed)
     File.write(export, result.text)
     MapGenerator.run_world(export)
     return export
+  end
+
+  # Shows the cave exits as ladders.
+  def dress_cave(map_id)
+    path = sprintf("Data/Map%03d.rxdata", map_id)
+    map = load_data(path)
+    map.events.each_value do |event|
+      next if event.name != MapGenerator::WARP_EVENT_NAME
+      event.pages[0].graphic.tile_id = CAVE_EXIT_TILE
+    end
+    save_data(map, path)
+  end
+
+  # Caves are not on the world grid: MapGen doesn't write their metadata.
+  # Dungeon = true makes Essentials draw a random layout on each visit.
+  def write_cave_metadata(world, result, map_ids)
+    file = MapGenerator::MAP_METADATA_PBS
+    lines = MapGenerator.read_pbs(file)
+    result.caves.each do |wp, name, _text|
+      id = map_ids[name]
+      start = lines.index { |l| l =~ /\A\[0*#{id}\]/ }
+      if start
+        finish = start + 1
+        finish += 1 while finish < lines.length && lines[finish] !~ /\A\[|\A#-/
+        lines.slice!(start...finish)
+      else
+        lines.push("#-------------------------------") if !lines.empty?
+        start = lines.length
+      end
+      lines.insert(start, sprintf("[%03d]   # %s", id, name), "Name = #{name}",
+                   "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}",
+                   "Dungeon = true", "BattleBack = cave1", "Environment = Cave")
+    end
+    MapGenerator.write_pbs(file, lines)
   end
 
   def debug_menu

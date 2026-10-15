@@ -17,3 +17,11 @@ Arenes   = 8
 # La première ville n'a jamais d'arène. Les autres villes sans arène sont tirées
 # au hasard dans la chaîne, ou imposées par leur numéro, ex. « SansArene = 5 ».
 Longueur = 2..3
+# L'eau qui barre une route (chenal tout droit ou lac d'un bord à l'autre) ne se
+# traverse qu'avec Surf : elle n'apparaît qu'après la ville de la 2e arène.
+# Les lacs posés dans les villes et les routes ne bloquent jamais le passage.
+Surf     = 2
+Chenaux  = 1..2
+Lacs     = 0..1
+# Routes barrées par un mur de rochers, que l'on passe par une grotte.
+Grottes  = 1..2

@@ -19,4 +19,12 @@ module MapProceduralGenerator
 
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
+
+  # Caves of a world: tileset of their maps (it needs a section in
+  # PBS/dungeon_tilesets.txt) and its floor tile. Essentials draws a new random
+  # layout each time the player walks in (map metadata Dungeon = true).
+  CAVE_TILESET = 7
+  CAVE_FLOOR = "T42"
+  # Graphic of the cave exits (a ladder, as in the example dungeon map).
+  CAVE_EXIT_TILE = 384 + 47
 end

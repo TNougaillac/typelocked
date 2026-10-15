@@ -14,12 +14,20 @@
 #   Sorties = nord sud         (exits: nord, sud, est, ouest; in a world, the
 #                               world sets them and the size)
 #   Rues    = 1..2             (optional: extra dead-end streets, 1 by default)
+#   Eau     = ~                (optional: [Legend] symbol of water, for the
+#                               « lac » bricks and the crossings of a world)
+#   Roche   = R                (optional: [Objects] symbol of the rock wall that
+#                               blocks a route crossed through a cave)
+#   Caillou = o                (optional: 1x1 [Legend] symbol filling the gaps
+#                               of that wall)
 #   MapID   = 52               (optional: overwrite this map instead of
 #                               creating a new one each time)
 #   [Briques]
 #   centre  = 1                (brick type = how many: n or min..max)
 #   maison  = 3..6
 #   herbes  = 1..2 par case    ("par case": per 20x20 tiles of the map)
+#   lac     = 0..1             (a lake drawn with Eau, never in the way: no
+#                               brick file for it)
 #   [Legend] [Terrains] [Objects]
 #   ...                        (MapGen palette, shared by every brick)
 # Brick file (MapProc/Briques/*.txt):
@@ -38,9 +46,11 @@ module MapProceduralGenerator
   class Error < StandardError; end
 
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
-                     :border, :exits, :spurs, :map_id, :counts, :per_case, :palette)
+                     :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
+                     :water, :rock, :pebble, :crossing)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
   PLACE_KINDS = %w[ville route]
+  LAKE = "lac"   # brick type drawn by the builder, not read from a file
   SIDES = %w[nord sud est ouest]
 
   module_function
@@ -58,7 +68,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"")
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -96,6 +106,9 @@ module MapProceduralGenerator
         place.exits = value.split.map { |side| [side, nil] }
       when "rues"    then place.spurs = range(value, fail_at)
       when "mapid"   then place.map_id = integer(value, fail_at)
+      when "eau"     then place.water = symbol(value, fail_at)
+      when "roche"   then place.rock = symbol(value, fail_at)
+      when "caillou" then place.pebble = symbol(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -161,8 +174,18 @@ module MapProceduralGenerator
     if place.border && !palette.objects[place.border]
       raise Error, "#{place.file} : « Bordure = #{place.border} » doit être un symbole de [Objects]"
     end
+    if place.water && !palette.legend[place.water]
+      raise Error, "#{place.file} : « Eau = #{place.water} » doit être un symbole de [Legend]"
+    end
+    if place.rock && !palette.objects[place.rock]
+      raise Error, "#{place.file} : « Roche = #{place.rock} » doit être un symbole de [Objects]"
+    end
+    if place.pebble && !palette.legend[place.pebble]
+      raise Error, "#{place.file} : « Caillou = #{place.pebble} » doit être un symbole de [Legend]"
+    end
+    raise Error, "#{place.file} : « lac » dans [Briques] demande « Eau »" if place.counts["lac"] && !place.water
     place.counts.each_key do |kind|
-      next if bricks.any? { |b| b.kind == kind }
+      next if kind == LAKE || bricks.any? { |b| b.kind == kind }
       raise Error, "#{place.file} : aucune brique de type « #{kind} » dans #{FOLDER}/#{BRICK_FOLDER}/"
     end
     bricks.each do |brick|

@@ -6,6 +6,9 @@
 # 3. Bricks with a door (buildings), required ones first, each linked to the
 #    nearest street by a path; then bricks without a door (decoration).
 # 4. Every door and exit must be reachable, or the generation fails.
+# A route of a world may be crossed by water (chenal: a straight channel, lac:
+# a lake from side to side), reached only by surfing, or by a rock wall with a
+# cave entrance on each side (grotte); the exits then lie on both sides of it.
 # Same place + same bricks + same seed = same map.
 #===============================================================================
 module MapProceduralGenerator
@@ -16,11 +19,12 @@ module MapProceduralGenerator
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
   CASE_SIZE = 20
+  CAVE = "grotte"   # type of the cave entrance bricks
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
       @place = place
-      @bricks = bricks.select { |b| place.counts[b.kind] }
+      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && place.crossing == "grotte") }
       @palette = palette
       @seed = seed
       @rng = Random.new(seed)
@@ -39,6 +43,8 @@ module MapProceduralGenerator
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
       @place.exits.each { |side, offset| carve_exit(side, offset, hub) }
       @rng.rand(@place.spurs).times { carve_spur(hub) }
+      @water = Array.new(@h) { Array.new(@w, false) }
+      cross if @place.crossing
       place_bricks
       plant_border
       check_reachable
@@ -137,20 +143,133 @@ module MapProceduralGenerator
       end
     end
 
+    #---------------------------------------------------------------------------
+    # Crossings (routes of a world)
+    #---------------------------------------------------------------------------
+    # Along: the route runs north-south (band across the rows) or east-west.
+    def vertical_route?
+      return @place.exits.any? { |side, _| %w[nord sud].include?(side) }
+    end
+
+    def cross
+      length = vertical_route? ? @h : @w
+      case @place.crossing
+      when "chenal", "lac"
+        error("« Eau » manquant pour traverser l'eau") if !@place.water
+        thickness = @rng.rand(6..[10, length / 4].max)
+        start = @rng.rand((length * 0.35).to_i..(length * 0.65).to_i - thickness)
+        wobble = (@place.crossing == "lac") ? 1 : 0
+        flood_band(start, thickness, wobble)
+      when "grotte"
+        error("« Roche » et « Caillou » manquants pour traverser une grotte") if !@place.rock || !@place.pebble
+        start = @rng.rand((length * 0.4).to_i..(length * 0.6).to_i - 3)
+        wall_band(start, rock_size[vertical_route? ? 1 : 0])
+        place_cave_entrances(start, rock_size[vertical_route? ? 1 : 0])
+      else error("traversée « #{@place.crossing} » inconnue")
+      end
+    end
+
+    def rock_size
+      object = @palette.objects[@place.rock]
+      return [object.width, object.height]
+    end
+
+    # Cell of the band at position a along the route and b across it.
+    def band_cell(along, across)
+      return vertical_route? ? [across, along] : [along, across]
+    end
+
+    # Water from edge to edge of the inner area, between start and
+    # start + thickness along the route; a lake's shores move by up to wobble
+    # every 3 cells (no thinner bumps, they look odd in the water's edge).
+    def flood_band(start, thickness, wobble)
+      across = vertical_route? ? @w : @h
+      top, bottom = start, start + thickness
+      across.times do |b|
+        if wobble > 0 && b % 3 == 0
+          top = (top + @rng.rand(-wobble..wobble)).clamp(start - 3, start + 2)
+          bottom = (bottom + @rng.rand(-wobble..wobble)).clamp(start + thickness - 2, start + thickness + 3)
+        end
+        (top...bottom).each do |a|
+          x, y = band_cell(a, b)
+          next if @border[y][x]
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
+          @street[y][x] = false
+        end
+      end
+    end
+
+    # A wall of rocks across the whole map (border included), gaps filled with
+    # border objects, then with pebbles.
+    def wall_band(start, depth)
+      across = vertical_route? ? @w : @h
+      wall = {}
+      depth.times { |a| across.times { |b| wall[band_cell(start + a, b)] = true } }
+      wall.each_key do |x, y|
+        @cells[y][x] = nil
+        @solid[y][x] = true
+        @street[y][x] = @border[y][x] = false
+      end
+      fill = [@place.rock, @place.border].compact.map { |sym| [sym, @palette.objects[sym]] }
+      wall.each_key do |x, y|
+        fill.each do |sym, object|
+          cells = (0...object.height).flat_map { |dy| (0...object.width).map { |dx| [x + dx, y + dy] } }
+          next if !cells.all? { |cx, cy| wall[[cx, cy]] && !@cells[cy][cx] }
+          cells.each { |cx, cy| @cells[cy][cx] = sym }
+          break
+        end
+      end
+      wall.each_key { |x, y| @cells[y][x] ||= @place.pebble }
+    end
+
+    # One cave entrance on each side of the wall, linked to that side's street.
+    def place_cave_entrances(start, depth)
+      return if !@bricks.any? { |b| b.kind == CAVE }
+      [[0, start], [start + depth, vertical_route? ? @h : @w]].each do |from, to|
+        side = lambda do |brick, x, y|
+          a0 = vertical_route? ? y : x
+          a1 = a0 + (vertical_route? ? brick.rows.length + STREET_WIDTH : brick.rows[0].length)
+          next a0 >= from && a1 <= to
+        end
+        next if place_brick(CAVE, side)
+        error("impossible de placer l'entrée de la grotte ; allonge la route")
+      end
+    end
+
+    #---------------------------------------------------------------------------
+    # Lakes (« lac » in [Briques])
+    #---------------------------------------------------------------------------
+    # A brick of water in a rough oval, made for this spot of the map.
+    def lake_brick
+      w, h = @rng.rand(6..11), @rng.rand(5..8)
+      rows = Array.new(h) do |y|
+        Array.new(w) do |x|
+          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
+          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
+          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.25)) ? @place.water : " "
+        end.join
+      end
+      return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
+    end
+
     def pick_brick(kind)
+      return lake_brick if kind == LAKE
       bricks = @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       return bricks.find { |b| (roll -= b.weight) < 0 }
     end
 
-    # Puts one brick of that type where it fits; returns false if none does.
-    def place_brick(kind)
+    # Puts one brick of that type where it fits (and where allowed says so);
+    # returns false if none does.
+    def place_brick(kind, allowed = nil)
       brick = pick_brick(kind)
       bw, bh = brick.rows[0].length, brick.rows.length
       distances = brick.door ? street_distances : nil
       spots = []
       (0..@h - bh).each do |y|
         (0..@w - bw).each do |x|
+          next if allowed && !allowed.call(brick, x, y)
           next if !fits?(brick, x, y)
           next if brick.by_street && !touches_street?(brick, x, y)
           if brick.door
@@ -291,12 +410,32 @@ module MapProceduralGenerator
       return inside?(x, y) && @border[y][x] && !@street[y][x] && !@cells[y][x]
     end
 
-    # Walks from the first exit over ground and streets: every exit and the
-    # cell below every door must be reached.
+    # Walks over ground and streets (and water, by surfing) from the first
+    # exit: every exit and the cell below every door must be reached. Across a
+    # cave's wall, each side is walked from its own exit and must reach its
+    # cave entrance.
     def check_reachable
-      walkable = ->(x, y) { inside?(x, y) && (@street[y][x] || (!@cells[y][x] && !@border[y][x])) }
       return if @exits.empty? && @doors.empty?
+      if @place.crossing == "grotte"
+        @exits.each do |side, ex, ey|
+          seen = walk([ex, ey])
+          next if @doors.any? { |dx, dy, brick| brick.kind == CAVE && seen[dy + 1][dx] }
+          error("la sortie #{side} ne mène à aucune entrée de la grotte")
+        end
+        return
+      end
       start = @exits.empty? ? [@doors[0][0], @doors[0][1] + 1] : @exits[0][1, 2]
+      seen = walk(start)
+      @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
+      @doors.each do |dx, dy, brick|
+        error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]
+      end
+    end
+
+    def walk(start)
+      walkable = lambda do |x, y|
+        inside?(x, y) && (@street[y][x] || @water[y][x] || (!@cells[y][x] && !@border[y][x]))
+      end
       seen = Array.new(@h) { Array.new(@w, false) }
       seen[start[1]][start[0]] = true
       queue = [start]
@@ -309,10 +448,7 @@ module MapProceduralGenerator
           queue.push([nx, ny])
         end
       end
-      @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
-      @doors.each do |dx, dy, brick|
-        error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]
-      end
+      return seen
     end
   end
 

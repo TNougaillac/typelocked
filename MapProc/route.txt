@@ -11,18 +11,37 @@ Rue     = .
 Bordure = t
 Sorties = nord sud
 Rues    = 0..1
+Eau     = ~
+Roche   = R
+Caillou = o
 
 [Briques]
 prairie = 1
 herbes = 0..2 par case
 arbre  = 1..3 par case
 parc   = 0..1 par case
+lac    = 0..1
+# Entrées de grotte : posées seulement sur les routes que le monde fait passer
+# par une grotte (« Grottes » dans monde.txt).
+grotte = 0
 
 # Palette MapGen (tileset Outside).
 [Legend]
 . = T1|T1|T1|T2|T3   # herbe
 " = T7               # hautes herbes
 * = T1 A5            # massif de fleurs
+~ = T1 A1            # eau (lacs, chenaux ; on la traverse avec Surf)
+o = T1 T815          # caillou (comble les trous du mur de rochers)
+1 = T787             # rocher de l'entrée de grotte
+2 = T790
+3 = T789
+4 = T795
+5 = T798
+6 = T797
+7 = T803
+8 = T806
+9 = T805
 
 [Objects]
 t = T420 2x3         # arbre
+R = T784 3x3         # rocher (mur que l'on passe par la grotte)

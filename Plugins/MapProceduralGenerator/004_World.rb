@@ -18,6 +18,14 @@
 #                               of the chain, have no gym either; the others
 #                               without one are still drawn at random)
 #   Longueur = 2..4            (route length in squares, 2..4 by default)
+#   Surf     = 2               (water that blocks a route only appears after
+#                               the town of that gym, 2 by default)
+#   Chenaux  = 0..2            (routes crossed by a straight channel, only by
+#                               surfing; 0 by default)
+#   Lacs     = 0..1            (routes crossed by a lake, only by surfing;
+#                               0 by default)
+#   Grottes  = 0..2            (routes blocked by a rock wall and passed
+#                               through a cave; 0 by default)
 #   Noms     = Bourg Typelock, Ville Rubis, ...
 #                              (optional town names, in order; "Ville
 #                               générée 1"... otherwise; routes are "Route
@@ -26,15 +34,20 @@
 # town a little further from the start, so the gyms come in that order. Each
 # place is assembled from its place file with the exits facing its
 # neighbours, then MapGen writes the maps, the connections and the Town Map
-# from the world plan made here.
+# from the world plan made here. Only routes of 2 squares or more can be
+# crossed by water or a cave. A cave is a map of its own (« Grotte générée
+# N », for route N) whose layout Essentials draws anew each time.
 #===============================================================================
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
-                     :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym)
+                     :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
+                     :surf, :channels, :lakes, :caves)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
-  WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index)
-  # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout]
-  WorldResult = Struct.new(:text, :places)
+  # crossing: nil, "chenal", "lac" or "grotte" (routes)
+  WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing)
+  # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
+  # caves: [WorldPlace of the route, name, MapGen plan text]
+  WorldResult = Struct.new(:text, :places, :caves)
 
   TOWN_SIZE = 2
   TOWN_SYMBOLS = ("A".."Z").to_a
@@ -49,7 +62,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [])
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -74,6 +87,10 @@ module MapProceduralGenerator
       when "longueur" then world.route_length = range(value, fail_at)
       when "noms"     then world.names = value.split(",").map(&:strip)
       when "sansarene" then world.no_gym = value.split(",").map { |n| integer(n.strip, fail_at) }
+      when "surf"     then world.surf = integer(value, fail_at)
+      when "chenaux"  then world.channels = range(value, fail_at)
+      when "lacs"     then world.lakes = range(value, fail_at)
+      when "grottes"  then world.caves = range(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -93,6 +110,7 @@ module MapProceduralGenerator
     end
     raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length}" if !(1..TOWN_SYMBOLS.length).include?(world.towns)
     raise Error, "#{file} : « Longueur » doit commencer à 1 au moins" if world.route_length.min < 1
+    raise Error, "#{file} : « Surf » doit valoir 1 au moins" if world.surf < 1
     return world
   end
 
@@ -115,11 +133,51 @@ module MapProceduralGenerator
       place.map_id = map_ids[wp.name]
       place.counts = base.counts.dup
       place.counts["arene"] = wp.gym ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
+      place.crossing = wp.crossing
       place_seed = (seed * 1000) + wp.index
       _plan, text, layout = generate_place(place, bricks, place_seed)
       [wp, place, text, layout]
     end
-    return WorldResult.new(world_text(world, built, seed), built)
+    caves = built.filter_map do |wp, place, text, layout|
+      next if wp.crossing != "grotte"
+      name = wp.name.sub("Route", "Grotte")
+      doors = layout.doors.select { |_x, _y, brick| brick.kind == CAVE }
+      text << cave_warps(name, doors, place)
+      [wp, name, cave_text(name, wp.name, doors)]
+    end
+    return WorldResult.new(world_text(world, built, seed), built, caves)
+  end
+
+  # [Warps] and [Events] of a route: each cave entrance leads into the cave
+  # (Essentials puts the player in a random room of it).
+  def cave_warps(cave, doors, place)
+    text = +"\n[Warps]\n"
+    events = Array.new(place.height) { "." * place.width }
+    doors.each_with_index do |(x, y, _brick), i|
+      text << "#{i + 1} = #{cave} 1,1\n"
+      events[y][x] = (i + 1).to_s
+    end
+    text << "\n[Events]\n"
+    events.each { |row| text << row << "\n" }
+    return text
+  end
+
+  # MapGen plan of a cave: an empty floor that Essentials replaces with a random
+  # layout, and one exit to each cave entrance of the route.
+  def cave_text(name, route, doors)
+    text = +"# Grotte de #{route}, générée par MapProceduralGenerator. Essentials\n"
+    text << "# tire une nouvelle disposition à chaque entrée (Dungeon = true).\n"
+    text << "Name    = #{name}\n"
+    text << "Tileset = #{CAVE_TILESET}\n"
+    text << "Ground  = .\n"
+    text << "\n[Legend]\n. = #{CAVE_FLOOR}\n"
+    text << "\n[Warps]\n"
+    doors.each_with_index { |(x, y, _brick), i| text << "#{i + 1} = #{route} #{x},#{y + 1} bas\n" }
+    text << "\n[Map]\n"
+    10.times { text << ("." * 10) << "\n" }
+    text << "\n[Events]\n"
+    10.times { |y| text << ((y == 1) ? ".1.2......" : "..........") << "\n" }
+    return text
   end
 
   # Returns the WorldPlaces of a chain of towns and routes, or nil if the chain
@@ -169,7 +227,21 @@ module MapProceduralGenerator
     no_gym += others.sample(world.towns - world.gyms - no_gym.length, random: rng)
     towns.each_with_index { |t, i| t.gym = !no_gym.include?(i) }
     places.each_with_index { |p, i| p.index = i }
+    choose_crossings(world, places, rng)
     return places
+  end
+
+  # Water only on routes after the town of the Surf-th gym, so that the player
+  # can always go on without surfing before; caves anywhere.
+  def choose_crossings(world, places, rng)
+    routes = places.select { |p| p.kind == "route" && [p.w, p.h].max >= 2 }
+    gym_towns = places.select { |p| p.kind == "ville" && p.gym }
+    surf_town = gym_towns[world.surf - 1]
+    wet = surf_town ? routes.select { |r| r.index > surf_town.index }.shuffle(random: rng) : []
+    rng.rand(world.channels).times { (wet.shift || break).crossing = "chenal" }
+    rng.rand(world.lakes).times { (wet.shift || break).crossing = "lac" }
+    dry = routes.select { |r| !r.crossing }.shuffle(random: rng)
+    rng.rand(world.caves).times { (dry.shift || break).crossing = "grotte" }
   end
 
   # Route of that length leaving the town on that side, and the next town at
