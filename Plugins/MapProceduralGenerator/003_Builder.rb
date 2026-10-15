@@ -1,18 +1,23 @@
 #===============================================================================
-# MapProceduralGenerator - Town assembler
+# MapProceduralGenerator - Place assembler (towns and routes)
 # 1. A border of trees with openings for the exits.
-# 2. Streets from each exit to a square near the middle, plus dead ends.
+# 2. Streets from each exit to a square near the middle, plus dead ends (on a
+#    route the "street" is plain ground: it only keeps the way clear).
 # 3. Bricks with a door (buildings), required ones first, each linked to the
 #    nearest street by a path; then bricks without a door (decoration).
 # 4. Every door and exit must be reachable, or the generation fails.
-# Same place + same bricks + same seed = same town.
+# Same place + same bricks + same seed = same map.
 #===============================================================================
 module MapProceduralGenerator
   # rows: MapGen [Map] rows; doors: [x, y, brick] (door cells); exits:
-  # side => [x, y] (first street cell on the map edge)
-  Town = Struct.new(:rows, :doors, :exits)
+  # [side, x, y] (first street cell on the map edge)
+  Layout = Struct.new(:rows, :doors, :exits)
 
-  class TownBuilder
+  # Bricks counted "par case" in [Briques] are multiplied by the place's area
+  # in squares of CASE_SIZE x CASE_SIZE tiles.
+  CASE_SIZE = 20
+
+  class PlaceBuilder
     def initialize(place, bricks, palette, seed)
       @place = place
       @bricks = bricks.select { |b| place.counts[b.kind] }
@@ -25,14 +30,14 @@ module MapProceduralGenerator
       @street = Array.new(@h) { Array.new(@w, false) }
       @border = Array.new(@h) { Array.new(@w, false) }
       @doors = []
-      @exits = {}
+      @exits = []
     end
 
     def build
       reserve_border
       hub = [@rng.rand((@w * 0.35).to_i..(@w * 0.65).to_i - STREET_WIDTH),
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
-      @place.exits.each { |side| carve_exit(side, hub) }
+      @place.exits.each { |side, offset| carve_exit(side, offset, hub) }
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       place_bricks
       plant_border
@@ -40,7 +45,7 @@ module MapProceduralGenerator
       rows = Array.new(@h) do |y|
         Array.new(@w) { |x| @street[y][x] ? @place.street : (@cells[y][x] || @place.ground) }.join
       end
-      return Town.new(rows, @doors, @exits)
+      return Layout.new(rows, @doors, @exits)
     end
 
     private
@@ -90,15 +95,17 @@ module MapProceduralGenerator
       end
     end
 
-    def carve_exit(side, hub)
-      along = ->(size) { @rng.rand((size * 0.25).to_i..(size * 0.75).to_i - STREET_WIDTH) }
+    # offset: position along the edge (tiles from the left or top end), set by
+    # the world so that both sides of a connection line up; random if nil.
+    def carve_exit(side, offset, hub)
+      along = ->(size) { offset || @rng.rand((size * 0.25).to_i..(size * 0.75).to_i - STREET_WIDTH) }
       x, y = case side
              when "nord"  then [along.call(@w), 0]
              when "sud"   then [along.call(@w), @h - STREET_WIDTH]
              when "ouest" then [0, along.call(@h)]
              when "est"   then [@w - STREET_WIDTH, along.call(@h)]
              end
-      @exits[side] = [x, y]
+      @exits.push([side, x, y])
       carve_line(x, y, hub[0], hub[1])
     end
 
@@ -113,7 +120,9 @@ module MapProceduralGenerator
     def place_bricks
       required = []
       optional = []
+      area = @w * @h / (CASE_SIZE * CASE_SIZE).to_f
       @place.counts.each do |kind, range|
+        range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = @rng.rand(range)
         range.min.times { required.push(kind) }
         (count - range.min).times { optional.push(kind) }
@@ -287,7 +296,7 @@ module MapProceduralGenerator
     def check_reachable
       walkable = ->(x, y) { inside?(x, y) && (@street[y][x] || (!@cells[y][x] && !@border[y][x])) }
       return if @exits.empty? && @doors.empty?
-      start = @exits.values.first || [@doors[0][0], @doors[0][1] + 1]
+      start = @exits.empty? ? [@doors[0][0], @doors[0][1] + 1] : @exits[0][1, 2]
       seen = Array.new(@h) { Array.new(@w, false) }
       seen[start[1]][start[0]] = true
       queue = [start]
@@ -300,7 +309,7 @@ module MapProceduralGenerator
           queue.push([nx, ny])
         end
       end
-      @exits.each { |side, (ex, ey)| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
+      @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
       @doors.each do |dx, dy, brick|
         error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]
       end
@@ -309,11 +318,11 @@ module MapProceduralGenerator
 
   module_function
 
-  # Returns [MapGen plan, its text, Town] for that seed.
+  # Returns [MapGen plan, its text, Layout] for that seed.
   def generate_place(place, bricks, seed)
     palette = check_palette(place, bricks)
-    town = TownBuilder.new(place, bricks, palette, seed).build
-    text = plan_text(place, seed, town.rows)
-    return MapGenerator.parse(text, place.file), text, town
+    layout = PlaceBuilder.new(place, bricks, palette, seed).build
+    text = plan_text(place, seed, layout.rows)
+    return MapGenerator.parse(text, place.file), text, layout
   end
 end

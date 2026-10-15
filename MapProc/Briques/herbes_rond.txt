@@ -1,0 +1,9 @@
+Brique = Hautes herbes (rond)
+Type   = herbes
+Poids  = 2
+[Map]
+ """"
+""""""
+""""""
+""""""
+ """"

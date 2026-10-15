@@ -1,0 +1,9 @@
+Brique = Hautes herbes (colonne)
+Type   = herbes
+[Map]
+"""
+"""
+"""
+"""
+"""
+"""

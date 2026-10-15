@@ -1,0 +1,17 @@
+# Monde entier tiré au hasard (plugin MapProceduralGenerator) : villes reliées
+# par des routes, chaque ville un peu plus loin du départ, donc les arènes dans
+# cet ordre. Chaque ville vient de ville.txt, chaque route de route.txt.
+# Lancer : menu debug > Autres éditeurs > Générer un lieu (MapProc) > [Monde] monde.txt.
+# MapGen écrit ensuite les raccords, les métadonnées des cartes et la Carte de
+# la région (PBS/map_connections.txt, map_metadata.txt, town_map.txt).
+Monde    = TypeLocked
+Region   = 0
+Image    = typelocked_proc.png
+Origin   = 1,1
+Taille   = 28x18
+Cell     = 20
+Ville    = ville.txt
+Route    = route.txt
+Villes   = 9
+Arenes   = 8
+Longueur = 2..3

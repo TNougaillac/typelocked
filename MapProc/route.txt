@@ -1,0 +1,28 @@
+# Route assemblée à partir des briques de MapProc/Briques/ (plugin MapProceduralGenerator).
+# Dans un monde (monde.txt), la taille et les sorties sont données par le monde.
+# Les quantités « par case » sont comptées pour 20x20 tuiles : une route plus
+# longue a plus d'herbes et d'arbres.
+Lieu    = route
+Nom     = Route générée
+Tileset = 1
+Taille  = 20x60
+Sol     = .
+Rue     = .
+Bordure = t
+Sorties = nord sud
+Rues    = 0..1
+
+[Briques]
+prairie = 1
+herbes = 0..2 par case
+arbre  = 1..3 par case
+parc   = 0..1 par case
+
+# Palette MapGen (tileset Outside).
+[Legend]
+. = T1|T1|T1|T2|T3   # herbe
+" = T7               # hautes herbes
+* = T1 A5            # massif de fleurs
+
+[Objects]
+t = T420 2x3         # arbre

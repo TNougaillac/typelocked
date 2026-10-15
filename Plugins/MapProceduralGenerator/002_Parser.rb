@@ -1,8 +1,9 @@
 #===============================================================================
 # MapProceduralGenerator - Place and brick file parsers
 # Place file (MapProc/*.txt):
-#   Lieu    = ville            (required: kind of place, only "ville" for now)
-#   Nom     = Ville générée    (required: map name, the seed is added to it)
+#   Lieu    = ville            (required: ville or route)
+#   Nom     = Ville générée    (required: map name; the debug menu adds the
+#                               seed, a world gives its own names)
 #   Tileset = 1                (required, as in MapGen)
 #   Taille  = 40x32            (required: map size in tiles)
 #   Sol     = .                (required: [Legend] symbol of the ground)
@@ -10,14 +11,15 @@
 #                               symbol gets its edges drawn)
 #   Bordure = t                (optional: [Objects] symbol planted along the
 #                               edges of the map, exits excepted)
-#   Sorties = nord sud         (exits: nord, sud, est, ouest; later given by
-#                               the region)
+#   Sorties = nord sud         (exits: nord, sud, est, ouest; in a world, the
+#                               world sets them and the size)
 #   Rues    = 1..2             (optional: extra dead-end streets, 1 by default)
 #   MapID   = 52               (optional: overwrite this map instead of
 #                               creating a new one each time)
 #   [Briques]
 #   centre  = 1                (brick type = how many: n or min..max)
 #   maison  = 3..6
+#   herbes  = 1..2 par case    ("par case": per 20x20 tiles of the map)
 #   [Legend] [Terrains] [Objects]
 #   ...                        (MapGen palette, shared by every brick)
 # Brick file (MapProc/Briques/*.txt):
@@ -36,9 +38,9 @@ module MapProceduralGenerator
   class Error < StandardError; end
 
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
-                     :border, :exits, :spurs, :map_id, :counts, :palette)
+                     :border, :exits, :spurs, :map_id, :counts, :per_case, :palette)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
-  PLACE_KINDS = %w[ville]
+  PLACE_KINDS = %w[ville route]
   SIDES = %w[nord sud est ouest]
 
   module_function
@@ -56,7 +58,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, +"")
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"")
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -72,6 +74,7 @@ module MapProceduralGenerator
       fail_at.call("attendu « Clé = valeur »") unless content =~ /\A(\w+)\s*=\s*(.+)\z/
       key, value = $1, $2.strip
       if section == :bricks
+        place.per_case.push(key) if value.sub!(/\s+par\s+case\z/, "")
         place.counts[key] = range(value, fail_at)
         next
       end
@@ -88,9 +91,9 @@ module MapProceduralGenerator
       when "rue"     then place.street = symbol(value, fail_at)
       when "bordure" then place.border = symbol(value, fail_at)
       when "sorties"
-        place.exits = value.split
-        bad = place.exits - SIDES
+        bad = value.split - SIDES
         fail_at.call("sortie « #{bad[0]} » inconnue (#{SIDES.join(', ')})") unless bad.empty?
+        place.exits = value.split.map { |side| [side, nil] }
       when "rues"    then place.spurs = range(value, fail_at)
       when "mapid"   then place.map_id = integer(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
@@ -176,7 +179,7 @@ module MapProceduralGenerator
 
   # MapGen plan text of a place: header, palette, then the assembled rows.
   def plan_text(place, seed, rows)
-    text = +"Name    = #{place.name} #{seed}\n"
+    text = +"Name    = #{place.name}\n"
     text << "Tileset = #{place.tileset_id}\n"
     text << "MapID   = #{place.map_id}\n" if place.map_id
     text << "Seed    = #{seed}\n"
