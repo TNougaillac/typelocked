@@ -68,4 +68,3 @@ s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T420 2x3         # arbre
 l = T1029 1x2        # lampadaire
-p = T984 2x1         # jardinière
