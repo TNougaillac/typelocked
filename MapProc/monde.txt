@@ -14,6 +14,6 @@ Ville    = ville.txt
 Route    = route.txt
 Villes   = 9
 Arenes   = 8
-# Villes sans arène : tirées au hasard dans la chaîne (la première comprise),
-# ou imposées par leur numéro depuis le départ, ex. « SansArene = 1, 5 ».
+# La première ville n'a jamais d'arène. Les autres villes sans arène sont tirées
+# au hasard dans la chaîne, ou imposées par leur numéro, ex. « SansArene = 5 ».
 Longueur = 2..3

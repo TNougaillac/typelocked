@@ -10,12 +10,13 @@
 #   Ville    = ville.txt       (required: place file of the towns)
 #   Route    = route.txt       (required: place file of the routes)
 #   Villes   = 9               (required: number of towns)
-#   Arenes   = 8               (towns with a gym, Villes - 1 by default; the
-#                               towns without one are drawn anywhere in the
-#                               chain, the first one included)
-#   SansArene = 1, 5           (optional: these towns, counted from the start
-#                               of the chain, have no gym; the others without
-#                               one are still drawn at random)
+#   Arenes   = 8               (towns with a gym, Villes - 1 at most and by
+#                               default: the first town never has one; the
+#                               other towns without one are drawn anywhere
+#                               in the chain)
+#   SansArene = 3, 5           (optional: these towns, counted from the start
+#                               of the chain, have no gym either; the others
+#                               without one are still drawn at random)
 #   Longueur = 2..4            (route length in squares, 2..4 by default)
 #   Noms     = Bourg Typelock, Ville Rubis, ...
 #                              (optional town names, in order; "Ville
@@ -81,12 +82,14 @@ module MapProceduralGenerator
       raise Error, "#{file} : « #{key} » manquant" if !value
     end
     world.gyms ||= world.towns - 1
-    raise Error, "#{file} : « Arenes » dépasse « Villes »" if world.gyms > world.towns
+    if world.gyms > world.towns - 1
+      raise Error, "#{file} : « Arenes » dépasse Villes - 1 (la première ville n'a jamais d'arène)"
+    end
     if world.no_gym.any? { |n| !(1..world.towns).include?(n) }
       raise Error, "#{file} : « SansArene » attend des numéros de ville entre 1 et #{world.towns}"
     end
-    if world.no_gym.uniq.length > world.towns - world.gyms
-      raise Error, "#{file} : « SansArene » nomme plus de villes que Villes - Arenes (#{world.towns - world.gyms})"
+    if (world.no_gym | [1]).length > world.towns - world.gyms
+      raise Error, "#{file} : « SansArene » et la première ville dépassent Villes - Arenes (#{world.towns - world.gyms})"
     end
     raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length}" if !(1..TOWN_SYMBOLS.length).include?(world.towns)
     raise Error, "#{file} : « Longueur » doit commencer à 1 au moins" if world.route_length.min < 1
@@ -159,8 +162,9 @@ module MapProceduralGenerator
       return nil if !found
     end
     towns = places.select { |p| p.kind == "ville" }
-    # The towns without a gym: the listed ones, then others drawn at random
-    no_gym = world.no_gym.uniq.map { |n| n - 1 }
+    # The towns without a gym: the first one and the listed ones, then others
+    # drawn at random
+    no_gym = (world.no_gym | [1]).map { |n| n - 1 }
     others = (0...world.towns).to_a - no_gym
     no_gym += others.sample(world.towns - world.gyms - no_gym.length, random: rng)
     towns.each_with_index { |t, i| t.gym = !no_gym.include?(i) }
