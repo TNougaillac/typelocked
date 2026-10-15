@@ -1,0 +1,6 @@
+Brique = Lampadaire
+Type   = lampe
+Contre = rue
+[Map]
+l
+l

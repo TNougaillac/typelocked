@@ -1,0 +1,9 @@
+Brique = Maison
+Type   = maison
+Porte  = 1,3
+Poids  = 2
+[Map]
+hhhh
+hhhh
+hhhh
+hhhh

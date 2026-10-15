@@ -1,0 +1,9 @@
+Brique = Arène
+Type   = arene
+Porte  = 3,4
+[Map]
+GGGGGGG
+GGGGGGG
+GGGGGGG
+GGGGGGG
+GGGGGGG

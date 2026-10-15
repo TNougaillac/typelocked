@@ -1,0 +1,9 @@
+Brique = Centre Pokémon
+Type   = centre
+Porte  = 2,4
+[Map]
+CCCCC
+CCCCC
+CCCCC
+CCCCC
+CCCCC

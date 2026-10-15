@@ -1,0 +1,7 @@
+Brique = Hautes herbes
+Type   = parc
+[Map]
+""""""
+""""""
+""""""
+""""""

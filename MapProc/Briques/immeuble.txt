@@ -1,0 +1,9 @@
+Brique = Immeuble
+Type   = immeuble
+Porte  = 1,4
+[Map]
+BBBBB
+BBBBB
+BBBBB
+BBBBB
+BBBBB

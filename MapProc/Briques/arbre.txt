@@ -1,0 +1,6 @@
+Brique = Arbre
+Type   = arbre
+[Map]
+tt
+tt
+tt

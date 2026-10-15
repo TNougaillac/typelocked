@@ -1,0 +1,49 @@
+# Ville assemblée à partir des briques de MapProc/Briques/ (plugin MapProceduralGenerator).
+# Chaque graine donne une ville différente : rues, emplacement des bâtiments, décor.
+# Lancer : menu debug > Autres éditeurs > Générer un lieu (MapProc).
+Lieu    = ville
+Nom     = Ville générée
+Tileset = 1
+Taille  = 38x32
+Sol     = .
+Rue     = P
+Bordure = t
+Sorties = nord sud ouest
+Rues    = 1..2
+
+[Briques]
+centre   = 1
+boutique = 1
+arene    = 1
+immeuble = 0..2
+maison   = 4..7
+foire    = 0..2
+parc     = 1..3
+lampe    = 6..10
+arbre    = 3..8
+
+# Palette MapGen partagée par toutes les briques (tileset Outside).
+[Legend]
+. = T1|T1|T1|T2|T3   # herbe
+" = T7               # hautes herbes
+* = T1 A5            # massif de fleurs
+[ = T1 T1016         # pieds du stand rayé
+] = T1 T1018
+{ = T1 T1019         # pieds du stand jaune
+} = T1 T1021
+
+[Terrains]
+# Pavé des rues : les bords et les angles sont choisis tout seuls.
+P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+
+[Objects]
+G = T2800 7x5        # arène
+B = T1576 5x5        # immeuble à toit rouge
+h = T1784 4x4        # petite maison
+C = T2608 5x5        # Centre Pokémon
+M = T2648 4x4        # Boutique
+s = T1000 3x2        # stand rayé
+y = T1003 3x2        # stand jaune
+t = T420 2x3         # arbre
+l = T1029 1x2        # lampadaire
+p = T984 2x1         # jardinière

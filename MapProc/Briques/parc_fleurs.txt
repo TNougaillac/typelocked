@@ -1,0 +1,5 @@
+Brique = Massif de fleurs
+Type   = parc
+[Map]
+*****
+*****

@@ -1,0 +1,6 @@
+Brique = Stand rayé
+Type   = foire
+[Map]
+sss
+sss
+[.]
