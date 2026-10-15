@@ -10,8 +10,12 @@
 #   Ville    = ville.txt       (required: place file of the towns)
 #   Route    = route.txt       (required: place file of the routes)
 #   Villes   = 9               (required: number of towns)
-#   Arenes   = 8               (towns with a gym, the last ones of the chain;
-#                               Villes - 1 by default)
+#   Arenes   = 8               (towns with a gym, Villes - 1 by default; the
+#                               towns without one are drawn anywhere in the
+#                               chain, the first one included)
+#   SansArene = 1, 5           (optional: these towns, counted from the start
+#                               of the chain, have no gym; the others without
+#                               one are still drawn at random)
 #   Longueur = 2..4            (route length in squares, 2..4 by default)
 #   Noms     = Bourg Typelock, Ville Rubis, ...
 #                              (optional town names, in order; "Ville
@@ -25,7 +29,7 @@
 #===============================================================================
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
-                     :town_file, :route_file, :towns, :gyms, :route_length, :names)
+                     :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout]
@@ -44,7 +48,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [])
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [])
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -68,6 +72,7 @@ module MapProceduralGenerator
       when "arenes"   then world.gyms = integer(value, fail_at)
       when "longueur" then world.route_length = range(value, fail_at)
       when "noms"     then world.names = value.split(",").map(&:strip)
+      when "sansarene" then world.no_gym = value.split(",").map { |n| integer(n.strip, fail_at) }
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -77,6 +82,12 @@ module MapProceduralGenerator
     end
     world.gyms ||= world.towns - 1
     raise Error, "#{file} : « Arenes » dépasse « Villes »" if world.gyms > world.towns
+    if world.no_gym.any? { |n| !(1..world.towns).include?(n) }
+      raise Error, "#{file} : « SansArene » attend des numéros de ville entre 1 et #{world.towns}"
+    end
+    if world.no_gym.uniq.length > world.towns - world.gyms
+      raise Error, "#{file} : « SansArene » nomme plus de villes que Villes - Arenes (#{world.towns - world.gyms})"
+    end
     raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length}" if !(1..TOWN_SYMBOLS.length).include?(world.towns)
     raise Error, "#{file} : « Longueur » doit commencer à 1 au moins" if world.route_length.min < 1
     return world
@@ -148,7 +159,11 @@ module MapProceduralGenerator
       return nil if !found
     end
     towns = places.select { |p| p.kind == "ville" }
-    towns.each_with_index { |t, i| t.gym = i >= world.towns - world.gyms }
+    # The towns without a gym: the listed ones, then others drawn at random
+    no_gym = world.no_gym.uniq.map { |n| n - 1 }
+    others = (0...world.towns).to_a - no_gym
+    no_gym += others.sample(world.towns - world.gyms - no_gym.length, random: rng)
+    towns.each_with_index { |t, i| t.gym = !no_gym.include?(i) }
     places.each_with_index { |p, i| p.index = i }
     return places
   end
