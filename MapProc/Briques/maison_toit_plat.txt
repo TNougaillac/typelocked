@@ -1,0 +1,8 @@
+Brique = Petite maison à toit plat
+Type   = maison
+Porte  = 1,3
+[Map]
+hhhh
+hhhh
+hhhh
+hhhh

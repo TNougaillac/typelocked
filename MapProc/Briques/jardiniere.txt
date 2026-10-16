@@ -1,0 +1,5 @@
+Brique = Jardinière
+Type   = lampe
+Contre = rue
+[Map]
+pp

@@ -1,0 +1,9 @@
+# Maison avec un jardin fleuri à sa droite et une jardinière.
+Brique = Maison et jardin
+Type   = maison
+Porte  = 1,3
+[Map]
+hhhh***
+hhhh***
+hhhh...
+hhhhpp.

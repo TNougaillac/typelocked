@@ -1,0 +1,9 @@
+Brique = Arène en brique
+Type   = arene
+Porte  = 3,4
+[Map]
+HHHHHH
+HHHHHH
+HHHHHH
+HHHHHH
+HHHHHH

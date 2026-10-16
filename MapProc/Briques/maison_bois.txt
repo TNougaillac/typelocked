@@ -1,0 +1,8 @@
+Brique = Maison en bois
+Type   = maison
+Porte  = 1,3
+[Map]
+WWWW
+WWWW
+WWWW
+WWWW

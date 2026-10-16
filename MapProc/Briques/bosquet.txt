@@ -1,0 +1,9 @@
+Brique = Bosquet
+Type   = arbre
+[Map]
+tttt
+tttt
+tttt
+ tt
+ tt
+ tt

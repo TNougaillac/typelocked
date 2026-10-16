@@ -1,0 +1,6 @@
+Brique = Stand jaune
+Type   = foire
+[Map]
+yyy
+yyy
+{.}

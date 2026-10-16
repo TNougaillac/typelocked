@@ -1,0 +1,7 @@
+Brique = Hautes herbes (carré)
+Type   = herbes
+[Map]
+""""
+""""
+""""
+""""

@@ -1,0 +1,9 @@
+Brique = Grande prairie
+Type   = prairie
+[Map]
+ """"
+""""""
+""""""
+""""""
+""""""
+ """"

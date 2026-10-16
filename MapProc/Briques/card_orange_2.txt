@@ -1,0 +1,8 @@
+Brique = Bâtiment Card orange (miroir)
+Type   = special
+Porte  = 1,3
+[Map]
+AAAA
+AAAA
+AAAA
+AAAA

@@ -1,0 +1,8 @@
+Brique = Bâtiment Card vert (miroir)
+Type   = special
+Porte  = 1,3
+[Map]
+YYYY
+YYYY
+YYYY
+YYYY

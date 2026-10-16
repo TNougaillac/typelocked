@@ -1,0 +1,7 @@
+Brique = Petite maison orange
+Type   = maison
+Porte  = 1,2
+[Map]
+oooo
+oooo
+wwww

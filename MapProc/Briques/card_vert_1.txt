@@ -1,0 +1,8 @@
+Brique = Bâtiment Card vert
+Type   = special
+Porte  = 2,3
+[Map]
+XXXX
+XXXX
+XXXX
+XXXX

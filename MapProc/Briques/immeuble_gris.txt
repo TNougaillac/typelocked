@@ -1,0 +1,8 @@
+Brique = Bâtiment gris à toit plat
+Type   = immeuble
+Porte  = 1,3
+[Map]
+QQQQ
+QQQQ
+QQQQ
+QQQQ
