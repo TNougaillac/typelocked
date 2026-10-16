@@ -1,0 +1,7 @@
+# Butte : un bloc de roche plus haut, posé sur un niveau de montagne.
+Brique = Butte (montagne)
+Type   = rocaille
+[Map]
+&&&&
+&&&&
+&&&&

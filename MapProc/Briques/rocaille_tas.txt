@@ -1,0 +1,4 @@
+Brique = Tas de cailloux (montagne)
+Type   = rocaille
+[Map]
+u

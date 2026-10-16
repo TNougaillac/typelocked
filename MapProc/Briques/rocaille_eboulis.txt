@@ -1,0 +1,6 @@
+# Éboulis : quelques rochers sur la roche d'une route de montagne.
+Brique = Éboulis (montagne)
+Type   = rocaille
+[Map]
+ qv
+uwq

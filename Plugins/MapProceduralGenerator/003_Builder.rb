@@ -21,11 +21,14 @@ module MapProceduralGenerator
   # in squares of CASE_SIZE x CASE_SIZE tiles.
   CASE_SIZE = 20
   CAVE = "grotte"   # type of the cave entrance bricks
+  # The only bricks on the raised levels of a mountain route (the others have
+  # grass under them), and only there
+  HIGHLAND = ["rocaille"].freeze
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
       @place = place
-      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && place.crossing == "grotte") }
+      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && (place.crossing == "grotte" || place.cave)) }
       @palette = palette
       @seed = seed
       @rng = Random.new(seed)
@@ -42,20 +45,31 @@ module MapProceduralGenerator
       reserve_border
       hub = [@rng.rand((@w * 0.35).to_i..(@w * 0.65).to_i - STREET_WIDTH),
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
+      hub[1] = climbing_hub_row || hub[1] if @place.mountain
       @place.exits.each { |side, offset| carve_exit(side, offset, hub) }
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       @water = Array.new(@h) { Array.new(@w, false) }
       cross if @place.crossing
+      if @place.mountain
+        raise_levels
+        # Its cave is left out when no spot fits
+        place_brick(CAVE) if @place.cave
+      end
       place_bricks
       plant_border
       check_reachable
-      rows = Array.new(@h) do |y|
-        Array.new(@w) { |x| @street[y][x] ? @place.street : (@cells[y][x] || @place.ground) }.join
-      end
+      rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       return Layout.new(rows, @doors, @exits, @deep || [])
     end
 
     private
+
+    def symbol_at(x, y)
+      return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
+      rock = (@level && @level[y] > 0) ? @place.levels[@level[y] - 1] : nil
+      return rock || @place.street if @street[y][x]
+      return @cells[y][x] || rock || @place.ground
+    end
 
     def error(msg)
       raise Error, "#{@place.file} (graine #{@seed}) : #{msg}"
@@ -91,9 +105,12 @@ module MapProceduralGenerator
       end
     end
 
-    # L-shaped street, bending at a random end.
+    # L-shaped street, bending at a random end (at the far end on an
+    # east-west mountain route, so that the street climbs at the hub).
     def carve_line(x0, y0, x1, y1)
-      if @rng.rand(2) == 0
+      far_bend = @rng.rand(2) == 0
+      far_bend = true if @place.mountain && !vertical_route?
+      if far_bend
         (x0 < x1 ? x0.upto(x1) : x0.downto(x1)).each { |x| paint(x, y0) }
         (y0 < y1 ? y0.upto(y1) : y0.downto(y1)).each { |y| paint(x1, y) }
       else
@@ -139,7 +156,10 @@ module MapProceduralGenerator
       order = required.shuffle(random: @rng).sort_by { |k| with_door.call(k) } +
               optional.shuffle(random: @rng).sort_by { |k| with_door.call(k) }
       order.each_with_index do |kind, i|
+        next if HIGHLAND.include?(kind) && !@level
         next if place_brick(kind)
+        # A mountain route keeps little ground: what doesn't fit is left out
+        next if @level
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
     end
@@ -171,6 +191,119 @@ module MapProceduralGenerator
         place_cave_entrances(start, rock_size[vertical_route? ? 1 : 0])
       else error("traversée « #{@place.crossing} » inconnue")
       end
+    end
+
+    #---------------------------------------------------------------------------
+    # Mountain routes
+    #---------------------------------------------------------------------------
+    # The map is cut into bands across the rows, each at level 0 (ground), 1 or
+    # 2, two next bands one level apart. The higher one shows a cliff (its
+    # south face) or a rim (its north edge), crossed by stairs where a street
+    # goes through. The bands of the exits stay on the ground.
+    def raise_levels
+      error("« Relief » et « Escalier » manquants pour une route de montagne") if !@place.levels
+      _bw, bh = border_size
+      crossings = (bh + 3..@h - bh - 3).to_h { |r| [r, boundary_crossings(r)] }.compact
+      # A north-south route must climb: every boundary is crossed by a street
+      crossings.reject! { |_r, n| n == 0 } if vertical_route?
+      # The exits and the water stay on the ground
+      ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
+                    (0...@h).select { |y| @water[y].any? }
+      wanted = vertical_route? ? @rng.rand(3..4) : @rng.rand(1..2)
+      # East-west routes may end up with cliffs and no stairs; a route with no
+      # room for levels stays flat
+      [true, vertical_route?].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
+        20.times.any? { try_levels(crossings, ground_rows, count, stairs) }
+      end
+    end
+
+    # Draws count boundaries picked among crossings; false if they don't fit.
+    def try_levels(crossings, ground_rows, count, stairs)
+      picks = []
+      crossings.keys.shuffle(random: @rng).each do |r|
+        picks.push(r) if picks.none? { |p| (p - r).abs < 5 }
+        break if picks.length == count
+      end
+      return false if picks.length < count
+      # Stairs somewhere, even on an east-west route
+      return false if stairs && picks.all? { |r| crossings[r] == 0 }
+      picks.sort!
+      band = ->(y) { picks.count { |p| p <= y } }
+      ground = ground_rows.map(&band).uniq
+      sequences = level_sequences(count + 1).select do |seq|
+        seq.max > 0 && ground.all? { |i| seq[i] == 0 }
+      end
+      return false if sequences.empty?
+      # Up to the 2nd level when possible, most of the time
+      high = sequences.select { |seq| seq.max == 2 }
+      sequences = high if !high.empty? && @rng.rand(3) > 0
+      levels = sequences.sample(random: @rng)
+      @level = Array.new(@h) { |y| levels[band.call(y)] }
+      picks.each { |r| draw_face(r) }
+      return true
+    end
+
+    # Level sequences of n bands, one level apart from band to band.
+    def level_sequences(n)
+      sequences = [[0], [1], [2]]
+      (n - 1).times do
+        sequences = sequences.flat_map do |seq|
+          [seq.last - 1, seq.last + 1].select { |l| l.between?(0, 2) }.map { |l| seq + [l] }
+        end
+      end
+      return sequences
+    end
+
+    # Number of streets going straight across the boundary above row r, or nil
+    # if a street runs along it or crosses it wider than the stairs.
+    def boundary_crossings(r)
+      crossings = 0
+      [r - 1, r].each do |y|
+        run = 0
+        (0..@w).each do |x|
+          if x < @w && @street[y][x]
+            return nil if !(r - 2..r + 1).all? { |yy| @street[yy][x] }
+            run += 1
+            next
+          end
+          return nil if run != 0 && run != STREET_WIDTH
+          crossings += 1 if run > 0 && y == r
+          run = 0
+        end
+      end
+      return crossings
+    end
+
+    # The higher band's row along the boundary above row r: a wall, with
+    # stairs where the streets cross it.
+    def draw_face(r)
+      north, south = @level[r - 1], @level[r]
+      y, level = (north > south) ? [r - 1, north] : [r, south]
+      pair = @place.stairs[((level - 1) * 2) + ((north > south) ? 0 : 1)]
+      @stairs_at ||= {}
+      @w.times do |x|
+        next if @border[y][x]
+        if @street[y][x]
+          @stairs_at[[x, y]] = @street[y][x - 1] ? pair[1] : pair[0]
+        else
+          @cells[y][x] = @place.levels[level - 1]
+          @solid[y][x] = true
+        end
+      end
+    end
+
+    # On an east-west mountain route, a hub row away from the exits, so that the
+    # streets climb to it.
+    def climbing_hub_row
+      return nil if vertical_route?
+      _bw, bh = border_size
+      exit_rows = @place.exits.filter_map { |_side, offset| offset }
+      rows = (bh + 1..@h - bh - 1 - STREET_WIDTH).to_a
+      return nil if rows.empty? || exit_rows.empty?
+      distance = ->(y) { exit_rows.map { |e| (y - e).abs }.min }
+      best = rows.map(&distance).max
+      return nil if best < 3
+      return rows.select { |y| distance.call(y) == best }.sample(random: @rng)
     end
 
     def rock_size
@@ -292,7 +425,7 @@ module MapProceduralGenerator
     # returns false if none does.
     def place_brick(kind, allowed = nil)
       brick = pick_brick(kind)
-      bw, bh = brick.rows[0].length, brick.rows.length
+      bw, bh = brick.rows.map(&:length).max, brick.rows.length
       distances = brick.door ? street_distances : nil
       spots = []
       (0..@h - bh).each do |y|
@@ -325,6 +458,8 @@ module MapProceduralGenerator
           next if c == " "
           cx, cy = x + dx, y + dy
           return false if @solid[cy][cx] || @street[cy][cx]
+          raised = @level ? @level[cy] > 0 : false
+          return false if HIGHLAND.include?(brick.kind) != raised
           (-1..1).each do |oy|
             (-1..1).each do |ox|
               nx, ny = cx + ox, cy + oy
