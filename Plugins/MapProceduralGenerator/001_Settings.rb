@@ -31,4 +31,15 @@ module MapProceduralGenerator
   # Seed of each cave's layout (map ID => seed), so that a cave stays the same
   # for a given world seed.
   CAVE_SEEDS_FILE = "Data/MapProcCaves.rxdata"
+
+  # Seabeds of a world (under routes with deep water): tileset and palette.
+  # « . » = floor, « s » = seaweed, « R » = rock (walls, edges drawn by MapGen).
+  SEABED_TILESET = 22
+  SEABED_PALETTE = <<~PALETTE
+    [Legend]
+    . = T0|T1|T2|T3|T8|T9
+    s = T0 A4
+    [Terrains]
+    R = T44 N=T36 S=T52 W=T43 E=T45 NW=T35 NE=T37 SW=T51 SE=T53 iNW=T47 iNE=T46 iSW=T39 iSE=T38
+  PALETTE
 end

@@ -63,15 +63,18 @@ module MapProceduralGenerator
     # MapGen finds the world's maps by name: another map with the same name
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")
-    names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
+    names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name } +
+            result.seabeds.map { |_wp, name, _text| name }
     names.each do |name|
       clash = infos.find { |id, info| info.name == name && map_ids[name] != id }
       next if !clash
       raise Error, "#{File.basename(path)} : la carte #{clash[0]} s'appelle déjà « #{name} » ; renomme-la ou change « Noms »"
     end
     # Routes first (their caves don't exist yet: their warps are linked after)
+    with_id = ->(name, text) { map_ids[name] ? text.sub(/^Tileset/, "MapID   = #{map_ids[name]}\nTileset") : text }
     plans = result.places.map { |_wp, _place, text, _layout| text } +
-            result.caves.map { |_wp, name, text, _seed| text.sub(/^Tileset/, map_ids[name] ? "MapID   = #{map_ids[name]}\nTileset" : "Tileset") }
+            result.caves.map { |_wp, name, text, _seed| with_id.call(name, text) } +
+            result.seabeds.map { |_wp, name, text| with_id.call(name, text) }
     unlinked = []
     plans.each do |text|
       plan = MapGenerator.parse(text, File.basename(path))
@@ -81,7 +84,7 @@ module MapProceduralGenerator
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
     result.caves.each { |_wp, name, _text, _seed| dress_cave(map_ids[name]) }
     save_cave_seeds(result.caves.to_h { |_wp, name, _text, cave_seed| [map_ids[name], cave_seed] })
-    write_cave_metadata(world, result, map_ids)
+    write_extra_metadata(world, result, map_ids)
     export_path(path, seed)   # creates the folder
     File.write(world_maps_path(path), map_ids.map { |name, id| "#{id} = #{name}\n" }.join)
     export = export_path(path, seed)
@@ -89,6 +92,8 @@ module MapProceduralGenerator
     MapGenerator.run_world(export)
     surf = result.places.find { |wp, *| wp.surf }
     pbMessage(_INTL("Surf s'obtient à {1}.", surf[0].name)) if surf
+    dive = result.places.find { |wp, *| wp.dive }
+    pbMessage(_INTL("Plongée s'obtient à {1}.", dive[0].name)) if dive
     return export
   end
 
@@ -103,27 +108,53 @@ module MapProceduralGenerator
     save_data(map, path)
   end
 
-  # Caves are not on the world grid: MapGen doesn't write their metadata.
-  # Dungeon = true makes Essentials draw a random layout on each visit.
-  def write_cave_metadata(world, result, map_ids)
+  # Caves and seabeds are not on the world grid: MapGen doesn't write their
+  # metadata. Dungeon = true makes Essentials draw a cave's layout; DiveMap
+  # links a route to its seabed (MapGen keeps that key when it rewrites the
+  # route's section).
+  def write_extra_metadata(world, result, map_ids)
     file = MapGenerator::MAP_METADATA_PBS
     lines = MapGenerator.read_pbs(file)
+    position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
     result.caves.each do |wp, name, *|
-      id = map_ids[name]
+      replace_section(lines, map_ids[name], name,
+                      ["Name = #{wp.name}", position.call(wp), "Dungeon = true", "BattleBack = cave1", "Environment = Cave"])
+    end
+    result.seabeds.each do |wp, name, _text|
+      replace_section(lines, map_ids[name], name,
+                      ["Name = #{wp.name}", position.call(wp), "BattleBack = underwater", "Environment = Underwater"])
+    end
+    seabeds = result.seabeds.to_h { |wp, name, _text| [wp.name, map_ids[name]] }
+    result.places.each do |wp, *|
+      next if wp.kind != "route"
+      id = map_ids[wp.name]
       start = lines.index { |l| l =~ /\A\[0*#{id}\]/ }
       if start
         finish = start + 1
         finish += 1 while finish < lines.length && lines[finish] !~ /\A\[|\A#-/
-        lines.slice!(start...finish)
-      else
-        lines.push("#-------------------------------") if !lines.empty?
-        start = lines.length
+        body = lines[start + 1...finish].reject { |l| l.start_with?("DiveMap") }
+        lines[start + 1...finish] = body
       end
-      lines.insert(start, sprintf("[%03d]   # %s", id, name), "Name = #{name}",
-                   "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}",
-                   "Dungeon = true", "BattleBack = cave1", "Environment = Cave")
+      next if !seabeds[wp.name]
+      replace_section(lines, id, wp.name, ["Name = #{wp.name}"]) if !start
+      start = lines.index { |l| l =~ /\A\[0*#{id}\]/ }
+      lines.insert(start + 1, "DiveMap = #{seabeds[wp.name]}")
     end
     MapGenerator.write_pbs(file, lines)
+  end
+
+  # Replaces (or adds) the section of that map in the map metadata lines.
+  def replace_section(lines, id, name, body)
+    start = lines.index { |l| l =~ /\A\[0*#{id}\]/ }
+    if start
+      finish = start + 1
+      finish += 1 while finish < lines.length && lines[finish] !~ /\A\[|\A#-/
+      lines.slice!(start...finish)
+    else
+      lines.push("#-------------------------------") if !lines.empty?
+      start = lines.length
+    end
+    lines.insert(start, sprintf("[%03d]   # %s", id, name), *body)
   end
 
   def debug_menu

@@ -214,7 +214,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.3.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.4.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -227,8 +227,12 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
   - au plus une arène par ville, jamais dans la ville de départ ;
   - la ville où l'on obtient Surf est tirée parmi les villes à arène, à partir de la 2e arène au minimum (`Surf`) ;
   - un chenal ou un lac ne barre une route qu'après cette ville ;
-  - une route peut être barrée par un mur de rochers, avec une entrée de grotte de chaque côté.
+  - une route peut être barrée par un mur de rochers, avec une entrée de grotte de chaque côté ;
+  - la ville où l'on obtient Plongée est tirée de la même façon, à partir de la 2e arène au minimum (`Plongee`) ;
+  - une zone sous-marine (`Fonds`) n'apparaît que sur une route d'eau située après les villes de Surf et de Plongée : la route reçoit une tache d'eau profonde, et sa carte de fonds (tileset Underwater) est reliée par `DiveMap`.
 - Une grotte est une carte à part (tileset Dungeon cave, `Dungeon = true`) : Essentials dessine son intérieur et y place les deux sorties. Elle reste la même à chaque visite pour une même graine du monde.
+- Une zone sous-marine est une carte à part, de la taille de la route : on y plonge depuis l'eau profonde, on remonte là où l'eau au-dessus est profonde.
+- Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers), le lieu est retiré avec une graine dérivée de la sienne : le monde reste le même pour une même graine.
 - Lancement : menu debug > Autres éditeurs > « Générer un lieu (MapProc) ». Les raccords, les métadonnées, la carte de région et les points de vol sont écrits par MapGen.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
@@ -239,11 +243,13 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 
 - Entrer dans une grotte par chaque entrée, en ressortir, y revenir : la grotte doit être identique.
 - Sauvegarder dans une grotte puis recharger : non vérifié.
+- Plonger sur l'eau profonde d'une route, remonter : il faut aussi le badge `Settings::BADGE_FOR_DIVE` et un Pokémon qui connaît Plongée.
 
 ### Limites connues
 
 - Pas encore de rencontres sauvages, de dresseurs, d'objets ni d'intérieurs derrière les portes.
-- L'obtention de Surf elle-même n'est pas encore placée : seule la ville est tirée.
+- L'obtention de Surf et de Plongée elle-même n'est pas encore placée : seule la ville est tirée.
+- Pas encore de rencontres sous l'eau.
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -285,3 +291,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 15/10/2026 | Modular UI Scenes 2.0.9, Enhanced Battle UI 2.1.1, Animated Pokémon System 1.1.3 + sprites animés | `Plugins/[MUI_000]*`, `Plugins/[DBK_001]*`, `Plugins/[DBK_009]*`, `Graphics/`, `PBS/pokemon_metrics*.txt`, `docs/FEATURES.md` |
 | 15/10/2026 | Plugin MapProceduralGenerator v0.2.0 (prototype) : villes, routes et monde générés, lacs, chenaux, grottes | `Plugins/MapProceduralGenerator/*`, `MapProc/*`, `tools/ci/check_mapproc.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
 | 16/10/2026 | MapProceduralGenerator v0.3.0 : ambiances, des sols et des rues différents d'un lieu à l'autre | `Plugins/MapProceduralGenerator/*`, `MapProc/ville.txt`, `MapProc/route.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
+| 16/10/2026 | MapProceduralGenerator v0.4.0 : Plongée et zones sous-marines (eau profonde sur les routes, cartes de fonds reliées par `DiveMap`) | `Plugins/MapProceduralGenerator/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |

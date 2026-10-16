@@ -16,6 +16,8 @@
 #   Rues    = 1..2             (optional: extra dead-end streets, 1 by default)
 #   Eau     = ~                (optional: [Legend] symbol of water, for the
 #                               « lac » bricks and the crossings of a world)
+#   Profond = %                (optional: [Legend] symbol of deep water, where
+#                               the player can dive, in a world)
 #   Roche   = R                (optional: [Objects] symbol of the rock wall that
 #                               blocks a route crossed through a cave)
 #   Caillou = o                (optional: 1x1 [Legend] symbol filling the gaps
@@ -55,7 +57,8 @@ module MapProceduralGenerator
 
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
-                     :water, :rock, :pebble, :crossing, :ambiances, :ambiance)
+                     :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
+                     :deep, :dive)
   # ground, street: tile text of the ground and street symbols
   Ambiance = Struct.new(:name, :weight, :ground, :street)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
@@ -78,7 +81,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -131,6 +134,7 @@ module MapProceduralGenerator
       when "rues"    then place.spurs = range(value, fail_at)
       when "mapid"   then place.map_id = integer(value, fail_at)
       when "eau"     then place.water = symbol(value, fail_at)
+      when "profond" then place.deep = symbol(value, fail_at)
       when "roche"   then place.rock = symbol(value, fail_at)
       when "caillou" then place.pebble = symbol(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
@@ -213,6 +217,9 @@ module MapProceduralGenerator
     end
     if place.water && !palette.legend[place.water]
       raise Error, "#{place.file} : « Eau = #{place.water} » doit être un symbole de [Legend]"
+    end
+    if place.deep && !palette.legend[place.deep]
+      raise Error, "#{place.file} : « Profond = #{place.deep} » doit être un symbole de [Legend]"
     end
     if place.rock && !palette.objects[place.rock]
       raise Error, "#{place.file} : « Roche = #{place.rock} » doit être un symbole de [Objects]"
