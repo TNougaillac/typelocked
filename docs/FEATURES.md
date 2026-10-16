@@ -100,7 +100,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.4.0, écrit, **non testé**.
+**Statut :** v1.5.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -110,7 +110,9 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - **Évolutions :** le sens inverse ne compte pas. Un Pokémon qui perd le type en évoluant (Évoli → Pyroli en Eau) devient inutilisable et part au PC.
 - **Dons et échanges hors du type :** envoyés directement au PC, présents mais inutilisables.
 - **Inutilisable :** ne peut pas quitter le PC pour l'équipe. Un Pokémon inutilisable dans l'équipe (évolution, échange, Pension) est envoyé au PC à la fin du combat ou au pas suivant.
-- **Starter :** le premier Pokémon reçu reste utilisable jusqu'à la première capture (Concours de Capture compris). Il n'est jamais utilisable dans une arène ni à la Ligue : avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, sa période de grâce prend fin et il retourne au PC. Sans Pokémon du type dans l'équipe, le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
+- **Starter :** le joueur choisit son starter, niveau 5, parmi 3 Pokémon tirés au hasard pour la partie. Ils viennent des 300 Pokémon du jeu (`docs/roster/liste-300.csv`) : formes de base (leur pré-évolution n'est pas dans la liste) qui respectent la règle de capture, sans les pseudo-légendaires (évolution finale à plus de `STARTER_MAX_FINAL_STATS` = 599 de stats de base). Le tirage est gardé dans la sauvegarde pour que chaque Poké Ball du professeur garde son Pokémon.
+- **Où :** chez le professeur (carte 4) : chacune des 3 Poké Balls appelle `Monotype.starter_ball(0)`, `(1)` ou `(2)` et propose « Tu veux X (type) ? ». Avec `STARTER_AT_SETUP = true`, le choix s'affiche à la place juste après celui du type, dans une seule liste (`Monotype.starter_dialog`).
+- **Arènes et Ligue :** avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, s'il n'y a aucun Pokémon du type dans l'équipe (par exemple un seul Pokémon qui a perdu le type en évoluant), le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
 
@@ -118,22 +120,25 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | `EXCLUDED_TYPES` (types impossibles à tirer ou choisir), `GYM_MAP_PATTERN` (nom des cartes d'arène et de Ligue dans l'éditeur), `GYM_LEADER_PATTERN` (types de dresseur des champions, du Conseil 4 et du Maître). |
-| `002_Data.rb` | Données de sauvegarde (`$monotype`), test du type avec les évolutions. |
-| `003_Setup.rb` | Fenêtre de choix du début de partie, inscrite auprès de NewGameSetup. |
-| `004_Capture.rb` | Blocage des captures, fin de la grâce du starter. |
-| `005_Party.rb` | Starter, combats d'arène et de Ligue, dons au PC, Pokémon inutilisables, verrous du PC. |
+| `001_Settings.rb` | `EXCLUDED_TYPES` (types impossibles à tirer ou choisir), `STARTER_COUNT`, `STARTER_LEVEL`, `STARTER_MAX_FINAL_STATS` (exclut les pseudo-légendaires), `STARTER_AT_SETUP` (choix du starter en début de partie ou par événement), `GYM_MAP_PATTERN` (nom des cartes d'arène et de Ligue dans l'éditeur), `GYM_LEADER_PATTERN` (types de dresseur des champions, du Conseil 4 et du Maître). |
+| `002_Data.rb` | Données de sauvegarde (`$monotype`), test du type avec les évolutions, starters possibles. |
+| `003_Setup.rb` | Fenêtres du début de partie (type puis starter), inscrites auprès de NewGameSetup. |
+| `004_Capture.rb` | Blocage des captures. |
+| `005_Party.rb` | Combats d'arène et de Ligue, dons au PC, Pokémon inutilisables, verrous du PC. |
+| `006_Roster.rb` | `ROSTER` : les 300 Pokémon du jeu, copie de `docs/roster/liste-300.csv` (vérifiée par la CI, qui vérifie aussi qu'il y a au moins 3 starters possibles par type). |
 
 ### Intégration
 - Rien à placer dans l'éditeur : les choix de mode s'affichent seuls en début de partie, les dresseurs d'arène et de Ligue sont reconnus par le nom de la carte dans l'éditeur (« Gym », « Arène », « League » ou « Ligue », réglable avec `GYM_MAP_PATTERN`), et les champions, le Conseil 4 et le Maître par leur type de dresseur (`LEADER_…`, `ELITEFOUR_…`, `CHAMPION…`, réglable avec `GYM_LEADER_PATTERN`).
 - Facultatif : `Monotype.setup_dialog` ou `Nuzlocke.setup_dialog` dans un événement pour choisir le moment exact.
+- Labo du professeur (carte 4) : les 3 Poké Balls de la démo appellent `Monotype.starter_ball(i)` dans une condition « Script » ; si le joueur prend le Pokémon, elles gardent leurs effets (interrupteur 3, variable 7 = 1, 2 ou 3 selon la Poké Ball, interrupteur local A). Pour un autre lieu, recopier ces 3 événements.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
-`pbThrowPokeBall`, `pbStorePokemon` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `TrainerBattle.start_core`, `BugContestState#pbEnd`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
+`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
 
 ### À vérifier au premier lancement
 - La liste des 18 types tient à l'écran (la fenêtre défile normalement).
 - Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
+- Au labo, chaque Poké Ball propose un starter différent du type, et le Pokémon pris arrive dans l'équipe ; refuser laisse la Poké Ball en place.
 
 ### Limites connues
 - L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène ni à la Ligue).
@@ -328,3 +333,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 16/10/2026 | MapProceduralGenerator v0.6.0 : routes de montagne à niveaux et escaliers, avec ou sans rivière et grotte | `Plugins/MapProceduralGenerator/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `MapProc/Briques/rocaille_*.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | MapProceduralGenerator v0.7.0 : démesure, des lieux hors norme de temps en temps (forêt profonde, lac géant, route interminable, cité lacustre…) ; rivière le long des routes de montagne | `Plugins/MapProceduralGenerator/*`, `MapProc/monde.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | Lore : le Pacte avec Arceus, la Famille et ses rangs, le parcours du joueur, la fin ; table des noms de lieux ; Monotype obligatoire (ADR 0001) | `docs/LORE.md`, `GLOSSARY.md`, `docs/adr/0001-monotype-obligatoire.md`, `MapProc/Lore/noms.txt`, `docs/FEATURES.md` |
+| 16/10/2026 | Monotype v1.5.0 : starter à choisir chez le professeur parmi 3 Pokémon du type tirés au hasard à chaque partie (sans pseudo-légendaires), fin de la période de grâce du starter | `Plugins/Monotype/*`, `Data/Map004.rxdata`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
