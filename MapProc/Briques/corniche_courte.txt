@@ -1,0 +1,6 @@
+# Corniche : un rebord de roche que l'on saute vers le sud, sans pouvoir le
+# remonter.
+Brique = Corniche (courte)
+Type   = corniche
+[Map]
+<--->
