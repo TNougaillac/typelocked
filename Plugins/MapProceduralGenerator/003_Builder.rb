@@ -24,6 +24,8 @@ module MapProceduralGenerator
   # The only bricks on the raised levels of a mountain route (the others have
   # grass under them), and only there
   HIGHLAND = ["rocaille"].freeze
+  # Most bricks an excess « fill » adds after the others (until none fits)
+  FILL_LIMIT = 80
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
@@ -37,6 +39,7 @@ module MapProceduralGenerator
       @solid = Array.new(@h) { Array.new(@w, false) }   # nothing else may go there
       @street = Array.new(@h) { Array.new(@w, false) }
       @border = Array.new(@h) { Array.new(@w, false) }
+      @kinds = Array.new(@h) { Array.new(@w) }   # brick type of each cell
       @doors = []
       @exits = []
     end
@@ -51,13 +54,16 @@ module MapProceduralGenerator
       @water = Array.new(@h) { Array.new(@w, false) }
       cross if @place.crossing
       if @place.mountain
+        choose_river if @place.river
         raise_levels
+        lay_river
         # Its cave is left out when no spot fits
         place_brick(CAVE) if @place.cave
       end
       place_bricks
       plant_border
       check_reachable
+      cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       return Layout.new(rows, @doors, @exits, @deep || [])
     end
@@ -66,9 +72,14 @@ module MapProceduralGenerator
 
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
-      rock = (@level && @level[y] > 0) ? @place.levels[@level[y] - 1] : nil
-      return rock || @place.street if @street[y][x]
+      rock = (level_at(x, y) > 0) ? @place.levels[level_at(x, y) - 1] : nil
+      return @cells[y][x] || rock || @place.street if @street[y][x]
       return @cells[y][x] || rock || @place.ground
+    end
+
+    # What the place's excess (« Demesure ») changes, {} if none.
+    def excess
+      return EXCESSES[@place.excess] || {}
     end
 
     def error(msg)
@@ -148,20 +159,140 @@ module MapProceduralGenerator
       @place.counts.each do |kind, range|
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = @rng.rand(range)
+        boost = excess[:boost]&.[](kind)
+        count = [count, range.max * boost].max if boost
         range.min.times { required.push(kind) }
         (count - range.min).times { optional.push(kind) }
       end
       # Buildings before decoration, so decoration never blocks a door
       with_door = ->(kind) { @bricks.any? { |b| b.kind == kind && b.door } ? 0 : 1 }
+      # The bricks an excess boosts go first among the optional ones
+      boosted = ->(kind) { excess[:boost]&.key?(kind) ? 0 : 1 }
       order = required.shuffle(random: @rng).sort_by { |k| with_door.call(k) } +
-              optional.shuffle(random: @rng).sort_by { |k| with_door.call(k) }
+              optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] }
+      # With « dense », the fill bricks may touch each other (not the others)
+      @dense = excess[:fill] if excess[:dense]
       order.each_with_index do |kind, i|
+        flood_ground if i == required.length
         next if HIGHLAND.include?(kind) && !@level
         next if place_brick(kind)
+        # A giant lake shrinks until it fits
+        next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out
         next if @level
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
+      flood_ground
+      fill_with(excess[:fill]) if excess[:fill]
+      @dense = nil
+    end
+
+    # Excess « fill »: more bricks of that type wherever they still fit.
+    # The biggest bricks first, then the smaller ones in the gaps. A brick
+    # that would cut off some ground from the exits and doors is taken back.
+    def fill_with(kind)
+      return if HIGHLAND.include?(kind) && !@level
+      left = FILL_LIMIT
+      @bricks.select { |b| b.kind == kind }.sort_by { |b| -b.rows.join.count("^ ") }.each do |brick|
+        while left > 0
+          before = reachable_ground
+          spot = put_brick(brick)
+          break if !spot
+          left -= 1
+          after = reachable_ground
+          cut_off = (0...@h).any? { |y| (0...@w).any? { |x| before[y][x] && !after[y][x] && !@cells[y][x] } }
+          unstamp(brick, *spot) if cut_off
+        end
+      end
+    end
+
+    # Free tiles that can be walked to from the exits and doors.
+    def reachable_ground
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      seen = Array.new(@h) { Array.new(@w, false) }
+      starts.each do |start|
+        next if seen[start[1]][start[0]]
+        walk(start).each_with_index { |row, y| row.each_index { |x| seen[y][x] ||= row[x] } }
+      end
+      return seen
+    end
+
+    # Takes back a brick without a door.
+    def unstamp(brick, x, y)
+      brick.rows.each_with_index do |row, dy|
+        row.each_char.with_index do |c, dx|
+          next if c == " "
+          @cells[y + dy][x + dx] = nil
+          @solid[y + dy][x + dx] = false
+          @kinds[y + dy][x + dx] = nil
+        end
+      end
+    end
+
+    # Ground on the lowest level that nothing uses yet.
+    def free_ground?(x, y)
+      return false if level_at(x, y) > 0
+      return !@border[y][x] && !@solid[y][x] && !@cells[y][x] && !@stairs_at&.key?([x, y])
+    end
+
+    # Excess « flood », once the required bricks are in: water over the free
+    # ground, but 2 tiles off the streets and 1 off the bricks, so the way stays
+    # dry. Only bodies of water at least 3 tiles thick, no thin ditches. The
+    # other bricks then go on what is left.
+    def flood_ground
+      return if !excess[:flood] || @flooded
+      @flooded = true
+      open = Array.new(@h) do |y|
+        Array.new(@w) do |x|
+          free_ground?(x, y) && !near?(x, y, 2) { |nx, ny| @street[ny][nx] } &&
+            !near?(x, y, 1) { |nx, ny| @solid[ny][nx] && !@border[ny][nx] && !@water[ny][nx] }
+        end
+      end
+      block = ->(x, y) { (0..2).all? { |oy| (0..2).all? { |ox| open[y + oy]&.[](x + ox) } } }
+      wet = Array.new(@h) { Array.new(@w, false) }
+      (0..@h - 3).each do |y|
+        (0..@w - 3).each do |x|
+          next if !block.call(x, y)
+          (0..2).each { |oy| (0..2).each { |ox| wet[y + oy][x + ox] = true } }
+        end
+      end
+      @h.times do |y|
+        @w.times do |x|
+          next if !wet[y][x]
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
+        end
+      end
+    end
+
+    # Excess « carpet », once every door and exit is known to be reachable:
+    # that symbol (grass, flowers) on the free ground, and over the streets too
+    # with « over_street » (walkable, but kept off the exits).
+    def cover_ground
+      carpet = excess[:carpet]
+      return if !carpet
+      @h.times do |y|
+        @w.times do |x|
+          if @street[y][x]
+            next if level_at(x, y) > 0 || @stairs_at&.key?([x, y]) || !excess[:over_street]
+            next if near?(x, y, 3) { |nx, ny| exit_at?(nx, ny) }
+          elsif !free_ground?(x, y)
+            next
+          end
+          @cells[y][x] = carpet
+        end
+      end
+    end
+
+    # True if a tile within that distance (square around x, y) passes the block.
+    def near?(x, y, distance)
+      (-distance..distance).any? do |oy|
+        (-distance..distance).any? { |ox| inside?(x + ox, y + oy) && yield(x + ox, y + oy) }
+      end
+    end
+
+    def exit_at?(x, y)
+      return @exits.any? { |_side, ex, ey| (ex..ex + STREET_WIDTH - 1).cover?(x) && (ey..ey + STREET_WIDTH - 1).cover?(y) }
     end
 
     #---------------------------------------------------------------------------
@@ -210,6 +341,7 @@ module MapProceduralGenerator
       ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
                     (0...@h).select { |y| @water[y].any? }
       wanted = vertical_route? ? @rng.rand(3..4) : @rng.rand(1..2)
+      wanted = vertical_route? ? 8 : 3 if excess[:colossal]
       # East-west routes may end up with cliffs and no stairs; a route with no
       # room for levels stays flat
       [true, vertical_route?].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
@@ -236,7 +368,7 @@ module MapProceduralGenerator
       return false if sequences.empty?
       # Up to the 2nd level when possible, most of the time
       high = sequences.select { |seq| seq.max == 2 }
-      sequences = high if !high.empty? && @rng.rand(3) > 0
+      sequences = high if !high.empty? && (excess[:colossal] || @rng.rand(3) > 0)
       levels = sequences.sample(random: @rng)
       @level = Array.new(@h) { |y| levels[band.call(y)] }
       picks.each { |r| draw_face(r) }
@@ -282,12 +414,59 @@ module MapProceduralGenerator
       pair = @place.stairs[((level - 1) * 2) + ((north > south) ? 0 : 1)]
       @stairs_at ||= {}
       @w.times do |x|
-        next if @border[y][x]
+        next if @border[y][x] || @low&.[](y)&.[](x)
         if @street[y][x]
           @stairs_at[[x, y]] = @street[y][x - 1] ? pair[1] : pair[0]
         else
           @cells[y][x] = @place.levels[level - 1]
           @solid[y][x] = true
+        end
+      end
+    end
+
+    # Level of a tile: that of its band, but the river and its outer bank stay
+    # on the ground.
+    def level_at(x, y)
+      return 0 if !@level || @low&.[](y)&.[](x)
+      return @level[y]
+    end
+
+    # River alongside a north-south mountain route: a band 3 or 4 tiles wide
+    # against the west or east border, winding a little, on the ground the
+    # whole way (the cliffs stop at its bank), 2 tiles off the streets. It
+    # runs from the northern to the southern trees; none if it doesn't fit.
+    def choose_river
+      bw, bh = border_size
+      width = @rng.rand(3..4)
+      rows = (bh...@h - bh)
+      [:west, :east].shuffle(random: @rng).find do |side|
+        cells = Array.new(@h) { Array.new(@w, false) }
+        low = Array.new(@h) { Array.new(@w, false) }
+        offset = 0
+        ok = rows.all? do |y|
+          offset = (offset + @rng.rand(-1..1)).clamp(0, 2) if y % 3 == 0
+          x0 = (side == :west) ? bw + offset : @w - bw - width - offset
+          band = (x0...x0 + width)
+          next false if (x0 - 2..x0 + width + 1).any? { |x| inside?(x, y) && @street[y][x] }
+          band.each { |x| cells[y][x] = true }
+          # Between the river and the trees: ground, no thin strip of cliff
+          outer = (side == :west) ? (0...x0 + width) : (x0...@w)
+          outer.each { |x| low[y][x] = true }
+          true
+        end
+        @river, @low = cells, low if ok
+        ok
+      end
+    end
+
+    # The river's water, once the levels are drawn.
+    def lay_river
+      return if !@river
+      @h.times do |y|
+        @w.times do |x|
+          next if !@river[y][x]
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
         end
       end
     end
@@ -402,8 +581,14 @@ module MapProceduralGenerator
     # Lakes (« lac » in [Briques])
     #---------------------------------------------------------------------------
     # A brick of water in a rough oval, made for this spot of the map.
-    def lake_brick
+    # A giant lake (excess) that doesn't fit is retried smaller (shrink).
+    def lake_brick(shrink = 0)
       w, h = @rng.rand(6..11), @rng.rand(5..8)
+      if excess[:giant_lake]
+        bw, bh = border_size
+        w = @rng.rand(12..[12, @w - (2 * bw) - 4].max.clamp(12, 22)) * (5 - shrink) / 5
+        h = @rng.rand(9..[9, @h - (2 * bh) - 4].max.clamp(9, 16)) * (5 - shrink) / 5
+      end
       rows = Array.new(h) do |y|
         Array.new(w) do |x|
           dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
@@ -414,8 +599,8 @@ module MapProceduralGenerator
       return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
     end
 
-    def pick_brick(kind)
-      return lake_brick if kind == LAKE
+    def pick_brick(kind, shrink = 0)
+      return lake_brick(shrink) if kind == LAKE
       bricks = @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       return bricks.find { |b| (roll -= b.weight) < 0 }
@@ -423,8 +608,11 @@ module MapProceduralGenerator
 
     # Puts one brick of that type where it fits (and where allowed says so);
     # returns false if none does.
-    def place_brick(kind, allowed = nil)
-      brick = pick_brick(kind)
+    def place_brick(kind, allowed = nil, shrink = 0)
+      return put_brick(pick_brick(kind, shrink), allowed)
+    end
+
+    def put_brick(brick, allowed = nil)
       bw, bh = brick.rows.map(&:length).max, brick.rows.length
       distances = brick.door ? street_distances : nil
       spots = []
@@ -447,7 +635,7 @@ module MapProceduralGenerator
       best = spots.map { |s| s[2] }.min
       x, y, = spots.select { |s| s[2] <= best + 2 }.sample(random: @rng)
       stamp(brick, x, y)
-      return true
+      return [x, y]
     end
 
     # The brick's cells must be free, with one free tile around it (streets
@@ -458,12 +646,13 @@ module MapProceduralGenerator
           next if c == " "
           cx, cy = x + dx, y + dy
           return false if @solid[cy][cx] || @street[cy][cx]
-          raised = @level ? @level[cy] > 0 : false
+          raised = level_at(cx, cy) > 0
           return false if HIGHLAND.include?(brick.kind) != raised
           (-1..1).each do |oy|
             (-1..1).each do |ox|
               nx, ny = cx + ox, cy + oy
-              return false if inside?(nx, ny) && @solid[ny][nx] && !@border[ny][nx]
+              next if !inside?(nx, ny) || !@solid[ny][nx] || @border[ny][nx]
+              return false if brick.kind != @dense || @kinds[ny][nx] != @dense
             end
           end
         end
@@ -497,6 +686,7 @@ module MapProceduralGenerator
           next if c == " "
           @cells[y + dy][x + dx] = c
           @solid[y + dy][x + dx] = true
+          @kinds[y + dy][x + dx] = brick.kind
         end
       end
       return if !brick.door

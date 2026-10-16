@@ -214,13 +214,14 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.6.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.7.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
 ### Règles
 
 - Une ville ou une route est assemblée à partir de briques faites main (bâtiments, herbes, décor) : chaque graine donne un résultat différent, la même graine redonne le même.
+- Les herbes sont de deux sortes : les hautes herbes normales (T6) et des touffes d'herbes très hautes (T7 posé sur son pied T15, une rangée de pied sous la touffe, comme dans les cartes d'exemple d'Essentials ; on n'y court pas). La CI (`check_mapproc.rb`, `SPILL_BELOW`) refuse toute plante sur deux tuiles posée sans sa partie basse.
 - Les lacs décoratifs (`lac` dans `[Briques]`) ne se posent jamais sur le passage.
 - Relief : des montagnes (massifs de roche, terrain `^`) se posent sur les routes et parfois dans les villes ; certaines ont un escalier taillé dans leur face sud qui mène sur le dessus. Les routes ont aussi des corniches, que l'on saute vers le sud sans pouvoir les remonter. Ces briques ne barrent jamais le passage.
 - Ambiances (`[Ambiance nom]` dans `ville.txt` et `route.txt`) : chaque lieu tire son sol et ses rues selon un poids. L'herbe reste la plus courante ; quelques villes ont des chemins de terre, un sol de prairie, de sable, minéral ou de terre battue, quelques routes un sol de prairie, de sable ou de terre battue.
@@ -229,9 +230,10 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
   - la ville où l'on obtient Surf est tirée parmi les villes à arène, à partir de la 2e arène au minimum (`Surf`) ;
   - un chenal ou un lac ne barre une route qu'après cette ville ;
   - une route peut être barrée par un mur de rochers, avec une entrée de grotte de chaque côté ;
-  - des routes de montagne (`Montagnes`) se découpent en niveaux (sol, niveau 1, niveau 2) séparés par des falaises ou des rebords, que l'on passe par des escaliers ; les sorties et l'eau restent au sol. Une route de montagne peut aussi être coupée par un chenal ou un lac. Elle a une grotte en cul-de-sac selon `GrotteMontagne` (en %). Sur les niveaux ne se posent que des rochers et des buttes (briques `rocaille`) ;
+  - des routes de montagne (`Montagnes`) se découpent en niveaux (sol, niveau 1, niveau 2) séparés par des falaises ou des rebords, que l'on passe par des escaliers ; les sorties et l'eau restent au sol. Une route de montagne peut aussi être coupée par un chenal ou un lac, ou, si elle va du nord au sud sans être coupée, être longée par une rivière au pied des falaises, en parallèle du chemin (`RiviereMontagne`, en %). Elle a une grotte en cul-de-sac selon `GrotteMontagne` (en %). Sur les niveaux ne se posent que des rochers et des buttes (briques `rocaille`) ;
   - la ville où l'on obtient Plongée est tirée parmi les villes à arène, à partir de la 3e arène au minimum (`Plongee`) et toujours après la ville de Surf, car il faut Surf pour plonger ;
   - une zone sous-marine (`Fonds`) n'apparaît que sur une route d'eau située après la ville de Plongée : la route reçoit une tache d'eau profonde, et sa carte de fonds (tileset Underwater) est reliée par `DiveMap`.
+  - démesure (`Demesure`, en % par lieu, 25 par défaut) : de temps en temps un lieu est hors norme. Routes : forêt profonde (arbres serrés partout), mer d'herbes (hautes herbes sur toute la route, chemin compris), chaos rocheux (montagnes soudées en crêtes), lac géant (l'eau envahit la route, le chemin reste au sec), montagne colossale (autant de niveaux que la route en tient, routes de montagne seulement), route interminable (trois fois la longueur maximale). Villes : ville-jardin (tapis de fleurs, arbres partout, rues en terre), cité lacustre (la ville bâtie sur l'eau), grande foire. Les excès ne touchent que les briques facultatives et la place libre : le chemin, les portes et les sorties restent toujours praticables, et un lac géant n'oblige jamais à surfer. Le monde note chaque excès en commentaire (`# Démesure : …`). Les excès se règlent dans `EXCESSES` (`001_Settings.rb`).
 - Une grotte est une carte à part (tileset Dungeon cave, `Dungeon = true`) : Essentials dessine son intérieur et y place les deux sorties. Elle reste la même à chaque visite pour une même graine du monde.
 - Une zone sous-marine est une carte à part, de la taille de la route : on y plonge depuis l'eau profonde, on remonte là où l'eau au-dessus est profonde.
 - Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers), le lieu est retiré avec une graine dérivée de la sienne : le monde reste le même pour une même graine.
@@ -324,3 +326,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 16/10/2026 | MapProceduralGenerator v0.4.0 : Plongée et zones sous-marines (eau profonde sur les routes, cartes de fonds reliées par `DiveMap`) | `Plugins/MapProceduralGenerator/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
 | 16/10/2026 | MapProceduralGenerator v0.5.0 : relief, montagnes, plateaux à escalier et corniches | `Plugins/MapProceduralGenerator/meta.txt`, `MapProc/ville.txt`, `MapProc/route.txt`, `MapProc/Briques/montagne_*.txt`, `MapProc/Briques/corniche_*.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | MapProceduralGenerator v0.6.0 : routes de montagne à niveaux et escaliers, avec ou sans rivière et grotte | `Plugins/MapProceduralGenerator/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `MapProc/Briques/rocaille_*.txt`, `docs/FEATURES.md` |
+| 16/10/2026 | MapProceduralGenerator v0.7.0 : démesure, des lieux hors norme de temps en temps (forêt profonde, lac géant, route interminable, cité lacustre…) ; rivière le long des routes de montagne | `Plugins/MapProceduralGenerator/*`, `MapProc/monde.txt`, `docs/FEATURES.md` |

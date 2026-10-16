@@ -61,7 +61,9 @@ Rue   = T218
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
-" = T7               # hautes herbes
+" = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
+: = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
+; = T15                 # pied des herbes très hautes, la rangée sous la touffe
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau des lacs
 [ = {sol} T1016         # pieds du stand rayé

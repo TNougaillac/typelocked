@@ -9,6 +9,24 @@ require_relative "lib/ci"
 %w[001_Settings 002_Parser 003_Builder 004_World].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
+# Vegetation drawn over two tiles: tile => tiles allowed just below it, so
+# that no half plant shows (very tall grass T7 needs itself or its base T15).
+SPILL_BELOW = { 384 + 7 => [384 + 7, 384 + 15] }.freeze
+
+# Raises if a tile of SPILL_BELOW lacks its lower part on the row below.
+def check_spill(plan, name)
+  tiles = ->(c) { (plan.legend[c] || []).flatten }
+  plan.rows.each_with_index do |row, y|
+    row.each_char.with_index do |c, x|
+      tiles.call(c).each do |tile|
+        next if !(below = SPILL_BELOW[tile])
+        under = plan.rows[y + 1]&.[](x)
+        next if under && tiles.call(under).intersect?(below)
+        raise MapGenerator::Error, "#{name} : T#{tile - 384} colonne #{x + 1}, ligne #{y + 1} sans sa partie basse dessous (moitié de plante)"
+      end
+    end
+  end
+end
 
 tilesets = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
 folder = File.join(ROOT, M::FOLDER)
@@ -26,6 +44,7 @@ places.each do |path|
   SEEDS.each do |seed|
     plan, = M.generate_place(place, bricks, seed)
     MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+    check_spill(plan, "#{File.basename(path)} (graine #{seed})")
   end
   # Every ambiance at least once
   place.ambiances.each do |ambiance|
@@ -46,8 +65,10 @@ worlds.each do |path|
   (1..3).each do |seed|
     result = M.generate_world(world, town, route, bricks, seed)
     MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
-    result.places.each do |_wp, place, text, _layout|
-      MapGenerator.check_tiles(MapGenerator.parse(text, place.file), tilesets[place.tileset_id])
+    result.places.each do |wp, place, text, _layout|
+      plan = MapGenerator.parse(text, place.file)
+      MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
+      check_spill(plan, "#{wp.name} (graine #{seed})")
     end
     result.caves.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])

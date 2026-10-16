@@ -64,7 +64,7 @@ module MapProceduralGenerator
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
-                     :deep, :dive, :levels, :stairs, :mountain, :cave)
+                     :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river)
   # ground, street: tile text of the ground and street symbols
   Ambiance = Struct.new(:name, :weight, :ground, :street)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
@@ -87,7 +87,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }

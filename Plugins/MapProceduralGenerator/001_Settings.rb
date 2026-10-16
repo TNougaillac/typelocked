@@ -32,6 +32,28 @@ module MapProceduralGenerator
   # for a given world seed.
   CAVE_SEEDS_FILE = "Data/MapProcCaves.rxdata"
 
+  # Excesses (« Demesure » in a world): now and then a place goes over the top.
+  # kind: ville or route; boost: brick type => times its usual most (optional
+  # bricks only, so the place always fits); giant_lake: lakes far bigger;
+  # colossal: a mountain route with as many levels as fit (mountain routes
+  # only); long: a route three times as long as « Longueur » allows; fill: after the
+  # other bricks, that type again wherever it still fits; dense: those may
+  # touch each other; flood: water all over the free ground, the streets kept
+  # dry; carpet: that symbol all over the free ground (over_street: over the
+  # streets too, not the exits); ambiance: that [Ambiance] of the place file
+  # (its ground and streets), if the file has it.
+  EXCESSES = {
+    "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
+    "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
+    "chaos rocheux"      => { kind: "route", boost: { "montagne" => 4, "corniche" => 3, "rocaille" => 2 }, fill: "montagne", dense: true },
+    "lac géant"          => { kind: "route", boost: { "lac" => 1 }, giant_lake: true, flood: true },
+    "montagne colossale" => { kind: "route", colossal: true, boost: { "rocaille" => 2 } },
+    "route interminable" => { kind: "route", long: true },
+    "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
+    "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
+    "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" }
+  }.freeze
+
   # Seabeds of a world (under routes with deep water): tileset and palette.
   # « . » = floor, « s » = seaweed, « R » = rock (walls, edges drawn by MapGen).
   SEABED_TILESET = 22

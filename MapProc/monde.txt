@@ -30,9 +30,16 @@ Grottes  = 1..2
 # lac. Certaines ont une grotte, un cul-de-sac à explorer (en %).
 Montagnes = 1..2
 GrotteMontagne = 50
+# Une route de montagne nord-sud peut avoir une rivière qui longe la montée,
+# au pied des falaises, en parallèle du chemin (en %).
+RiviereMontagne = 50
 # Plongée s'obtient dans une ville à arène, la 3e ou une suivante, et toujours
 # après la ville de Surf (il faut Surf pour plonger). Les zones sous-marines ne
 # sont posées que sur des routes d'eau situées après la ville de Plongée : on y
 # plonge depuis l'eau profonde.
 Plongee  = 3
 Fonds    = 1
+# Démesure : chance (en %) qu'un lieu soit hors norme : forêt profonde, mer
+# d'herbes, chaos rocheux, lac géant, montagne colossale, route interminable,
+# ville-jardin, cité lacustre, grande foire.
+Demesure = 25
