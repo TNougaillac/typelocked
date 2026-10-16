@@ -14,7 +14,8 @@
 module MapProceduralGenerator
   # rows: MapGen [Map] rows; doors: [x, y, brick] (door cells); exits:
   # [side, x, y] (first street cell on the map edge)
-  Layout = Struct.new(:rows, :doors, :exits)
+  # deep: cells of deep water, where the player can dive
+  Layout = Struct.new(:rows, :doors, :exits, :deep)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -51,7 +52,7 @@ module MapProceduralGenerator
       rows = Array.new(@h) do |y|
         Array.new(@w) { |x| @street[y][x] ? @place.street : (@cells[y][x] || @place.ground) }.join
       end
-      return Layout.new(rows, @doors, @exits)
+      return Layout.new(rows, @doors, @exits, @deep || [])
     end
 
     private
@@ -156,10 +157,13 @@ module MapProceduralGenerator
       case @place.crossing
       when "chenal", "lac"
         error("« Eau » manquant pour traverser l'eau") if !@place.water
-        thickness = @rng.rand(6..[10, length / 4].max)
-        start = @rng.rand((length * 0.35).to_i..(length * 0.65).to_i - thickness)
+        # Wider water when it hides a dive spot
+        thickness = @place.dive ? @rng.rand(10..[10, length * 3 / 10].max) : @rng.rand(6..[10, length / 4].max)
+        low = (length * 0.35).to_i
+        start = @rng.rand(low..[low, (length * 0.65).to_i - thickness].max)
         wobble = (@place.crossing == "lac") ? 1 : 0
         flood_band(start, thickness, wobble)
+        deepen(start, thickness) if @place.dive
       when "grotte"
         error("« Roche » et « Caillou » manquants pour traverser une grotte") if !@place.rock || !@place.pebble
         start = @rng.rand((length * 0.4).to_i..(length * 0.6).to_i - 3)
@@ -198,6 +202,30 @@ module MapProceduralGenerator
           @street[y][x] = false
         end
       end
+    end
+
+    # An oval of deep water in the middle of the band, where the player can
+    # dive (the map's DiveMap lies under it).
+    def deepen(start, thickness)
+      error("« Profond » manquant pour plonger") if !@place.deep
+      across = vertical_route? ? @w : @h
+      ra = (thickness / 2.0) - 1.5
+      rb = @rng.rand(3.0..[6.0, across / 4.0].max)
+      ca = start + (thickness / 2.0)
+      cb = @rng.rand((across * 0.35)..(across * 0.65))
+      @deep = []
+      (start...start + thickness).each do |a|
+        across.times do |b|
+          da = (a + 0.5 - ca) / ra
+          db = (b + 0.5 - cb) / rb
+          next if (da * da) + (db * db) > 1.0
+          x, y = band_cell(a, b)
+          next if !@water[y][x]
+          @cells[y][x] = @place.deep
+          @deep.push([x, y])
+        end
+      end
+      error("eau profonde vide ; élargis la route") if @deep.empty?
     end
 
     # A wall of rocks across the whole map (border included), gaps filled with

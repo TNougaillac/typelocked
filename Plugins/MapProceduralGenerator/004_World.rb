@@ -28,6 +28,12 @@
 #                               0 by default)
 #   Grottes  = 0..2            (routes blocked by a rock wall and passed
 #                               through a cave; 0 by default)
+#   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
+#                               from the town of that gym onwards and after
+#                               the Surf town, needed to dive; 3 by default)
+#   Fonds    = 0..1            (water routes with deep water and an underwater
+#                               map, after the towns of Surf and Dive; 0 by
+#                               default)
 #   Noms     = Bourg Typelock, Ville Rubis, ...
 #                              (optional town names, in order; "Ville
 #                               générée 1"... otherwise; routes are "Route
@@ -44,14 +50,16 @@
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
-                     :surf, :channels, :lakes, :caves)
+                     :surf, :channels, :lakes, :caves, :dive, :dives)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
-  # crossing: nil, "chenal", "lac" or "grotte" (routes); surf: the town where
-  # Surf is obtained
-  WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf)
+  # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
+  # where Surf, Dive is obtained; deep: a route with a dive spot
+  WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
+                          :dive, :deep)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
-  # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout]
-  WorldResult = Struct.new(:text, :places, :caves)
+  # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
+  # seabeds: [WorldPlace of the route, name, MapGen plan text]
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds)
 
   TOWN_SIZE = 2
   TOWN_SYMBOLS = ("A".."Z").to_a
@@ -66,7 +74,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -95,6 +103,8 @@ module MapProceduralGenerator
       when "chenaux"  then world.channels = range(value, fail_at)
       when "lacs"     then world.lakes = range(value, fail_at)
       when "grottes"  then world.caves = range(value, fail_at)
+      when "plongee"  then world.dive = integer(value, fail_at)
+      when "fonds"    then world.dives = range(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -115,6 +125,7 @@ module MapProceduralGenerator
     raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length}" if !(1..TOWN_SYMBOLS.length).include?(world.towns)
     raise Error, "#{file} : « Longueur » doit commencer à 1 au moins" if world.route_length.min < 1
     raise Error, "#{file} : « Surf » doit valoir 1 au moins" if world.surf < 1
+    raise Error, "#{file} : « Plongee » doit dépasser « Surf » (il faut Surf pour plonger)" if world.dive <= world.surf
     return world
   end
 
@@ -138,9 +149,8 @@ module MapProceduralGenerator
       place.counts = base.counts.dup
       place.counts["arene"] = wp.gym ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
       place.crossing = wp.crossing
-      place_seed = (seed * 1000) + wp.index
-      _plan, text, layout = generate_place(place, bricks, place_seed)
-      [wp, place, text, layout]
+      place.dive = wp.deep
+      [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
     end
     caves = built.filter_map do |wp, place, text, layout|
       next if wp.crossing != "grotte"
@@ -149,7 +159,85 @@ module MapProceduralGenerator
       text << cave_warps(name, doors, place)
       [wp, name, cave_text(name, wp.name, doors), (seed * 1000) + 500 + wp.index]
     end
-    return WorldResult.new(world_text(world, built, seed), built, caves)
+    seabeds = built.filter_map do |wp, place, _text, layout|
+      next if !wp.deep
+      name = "#{wp.name} (fonds)"
+      [wp, name, seabed_text(name, place, layout, Random.new((seed * 1000) + 700 + wp.index))]
+    end
+    return WorldResult.new(world_text(world, built, seed), built, caves, seabeds)
+  end
+
+  # A place whose bricks don't fit (a narrow route cut by a wall or water) is
+  # drawn again with another seed derived from its own, so the world stays the
+  # same for a given seed. Returns [text, layout].
+  def generate_world_place(place, bricks, place_seed)
+    4.times do |retry_index|
+      _plan, text, layout = generate_place(place, bricks, place_seed + (retry_index * 100_000))
+      return text, layout
+    rescue Error
+      raise if retry_index == 3
+    end
+  end
+
+  # Steps from the nearest of those cells, for each cell of a w x h map.
+  def distances(cells, w, h)
+    dist = Array.new(h) { Array.new(w) }
+    queue = cells.dup
+    queue.each { |x, y| dist[y][x] = 0 }
+    until queue.empty?
+      x, y = queue.shift
+      [[0, -1], [1, 0], [0, 1], [-1, 0]].each do |ox, oy|
+        nx, ny = x + ox, y + oy
+        next if nx < 0 || ny < 0 || nx >= w || ny >= h || dist[ny][nx]
+        dist[ny][nx] = dist[y][x] + 1
+        queue.push([nx, ny])
+      end
+    end
+    return dist
+  end
+
+  # MapGen plan of the seabed under a route: the same size, open around the
+  # deep water (the player surfaces where the water above is deep), rock
+  # elsewhere, with a few patches of seaweed.
+  def seabed_text(name, place, layout, rng)
+    w, h = place.width, place.height
+    deep = layout.deep.to_h { |cell| [cell, true] }
+    dist = distances(layout.deep, w, h)
+    # Open within a reach that changes every 5 tiles, then smoothed
+    reach = Array.new((h / 5) + 1) { Array.new((w / 5) + 1) { rng.rand(4..9) } }
+    open = Array.new(h) do |y|
+      Array.new(w) do |x|
+        x > 1 && y > 1 && x < w - 2 && y < h - 2 && dist[y][x] && dist[y][x] <= reach[y / 5][x / 5]
+      end
+    end
+    2.times do
+      open = Array.new(h) do |y|
+        Array.new(w) do |x|
+          next false if x < 2 || y < 2 || x >= w - 2 || y >= h - 2
+          next true if deep[[x, y]]
+          (-1..1).sum { |oy| (-1..1).count { |ox| open[y + oy][x + ox] } } >= 5
+        end
+      end
+    end
+    # Seaweed in a few spots of the open floor, away from the deep water
+    floor = (0...h).flat_map { |y| (0...w).select { |x| open[y][x] && !deep[[x, y]] }.map { |x| [x, y] } }
+    weed = {}
+    rng.rand(1..3).times do
+      cx, cy = floor.sample(random: rng) || break
+      r = rng.rand(1.5..3.0)
+      floor.each { |x, y| weed[[x, y]] = true if ((x - cx)**2) + ((y - cy)**2) <= r * r }
+    end
+    text = +"# Fonds de #{place.name}, générés par MapProceduralGenerator. On y plonge depuis\n"
+    text << "# l'eau profonde de la route, et on remonte là où l'eau au-dessus est profonde.\n"
+    text << "Name    = #{name}\n"
+    text << "Tileset = #{SEABED_TILESET}\n"
+    text << "Ground  = .\n"
+    text << SEABED_PALETTE
+    text << "\n[Map]\n"
+    h.times do |y|
+      text << Array.new(w) { |x| open[y][x] ? (weed[[x, y]] ? "s" : ".") : "R" }.join << "\n"
+    end
+    return text
   end
 
   # [Warps] and [Events] of a route: each cave entrance leads into the cave
@@ -240,19 +328,51 @@ module MapProceduralGenerator
   # on without surfing before. Caves anywhere.
   def choose_crossings(world, places, rng)
     routes = places.select { |p| p.kind == "route" && [p.w, p.h].max >= 2 }
-    candidates = places.select { |p| p.kind == "ville" && p.gym }.drop(world.surf - 1)
+    gyms = places.select { |p| p.kind == "ville" && p.gym }
+    route_after = ->(town) { routes.any? { |r| r.index > town.index } }
+    candidates = gyms.drop(world.surf - 1)
     # A town with a water route after it, when water is wanted
     if world.channels.max + world.lakes.max > 0
-      wet_after = candidates.select { |t| routes.any? { |r| r.index > t.index } }
+      wet_after = candidates.select(&route_after)
       candidates = wet_after if !wet_after.empty?
+    end
+    # A town with a later Dive town and a route after that one, when seabeds
+    # are wanted
+    if world.dives.max > 0
+      dive_after = candidates.select { |t| gyms.drop(world.dive - 1).any? { |g| g.index > t.index && route_after.call(g) } }
+      candidates = dive_after if !dive_after.empty?
     end
     surf_town = candidates.sample(random: rng)
     surf_town.surf = true if surf_town
+    dive_town = choose_dive_town(world, gyms, surf_town, route_after, rng)
     wet = surf_town ? routes.select { |r| r.index > surf_town.index }.shuffle(random: rng) : []
+    # The first water goes after the Dive town, so that a seabed can lie there
+    if dive_town && world.dives.max > 0
+      first = wet.find { |r| r.index > dive_town.index }
+      wet.unshift(wet.delete(first)) if first
+    end
     rng.rand(world.channels).times { (wet.shift || break).crossing = "chenal" }
     rng.rand(world.lakes).times { (wet.shift || break).crossing = "lac" }
     dry = routes.select { |r| !r.crossing }.shuffle(random: rng)
     rng.rand(world.caves).times { (dry.shift || break).crossing = "grotte" }
+    return if !dive_town
+    # Deep water only on water routes after the Dive town
+    deep = routes.select { |r| %w[chenal lac].include?(r.crossing) && r.index > dive_town.index }.shuffle(random: rng)
+    rng.rand(world.dives).times { (deep.shift || break).deep = true }
+  end
+
+  # Dive is obtained in a town with a gym, the Plongee-th one or a later one,
+  # after the Surf town (Dive needs Surf).
+  def choose_dive_town(world, gyms, surf_town, route_after, rng)
+    return nil if !surf_town
+    candidates = gyms.drop(world.dive - 1).select { |t| t.index > surf_town.index }
+    if world.dives.max > 0
+      with_route = candidates.select(&route_after)
+      candidates = with_route if !with_route.empty?
+    end
+    dive_town = candidates.sample(random: rng)
+    dive_town.dive = true if dive_town
+    return dive_town
   end
 
   # Route of that length leaving the town on that side, and the next town at
@@ -298,6 +418,8 @@ module MapProceduralGenerator
     text << "Origin  = #{world.origin.join(',')}\n"
     surf = built.find { |wp, *| wp.surf }
     text << "# Surf s'obtient à #{surf[0].name}.\n" if surf
+    dive = built.find { |wp, *| wp.dive }
+    text << "# Plongée s'obtient à #{dive[0].name}.\n" if dive
     text << "\n[Places]\n"
     built.each do |wp, _place, _text, layout|
       line = "#{wp.symbol} = #{wp.name}  type=#{wp.kind}"
