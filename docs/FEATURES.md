@@ -228,8 +228,8 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
   - la ville où l'on obtient Surf est tirée parmi les villes à arène, à partir de la 2e arène au minimum (`Surf`) ;
   - un chenal ou un lac ne barre une route qu'après cette ville ;
   - une route peut être barrée par un mur de rochers, avec une entrée de grotte de chaque côté ;
-  - la ville où l'on obtient Plongée est tirée de la même façon, à partir de la 2e arène au minimum (`Plongee`) ;
-  - une zone sous-marine (`Fonds`) n'apparaît que sur une route d'eau située après les villes de Surf et de Plongée : la route reçoit une tache d'eau profonde, et sa carte de fonds (tileset Underwater) est reliée par `DiveMap`.
+  - la ville où l'on obtient Plongée est tirée parmi les villes à arène, à partir de la 3e arène au minimum (`Plongee`) et toujours après la ville de Surf, car il faut Surf pour plonger ;
+  - une zone sous-marine (`Fonds`) n'apparaît que sur une route d'eau située après la ville de Plongée : la route reçoit une tache d'eau profonde, et sa carte de fonds (tileset Underwater) est reliée par `DiveMap`.
 - Une grotte est une carte à part (tileset Dungeon cave, `Dungeon = true`) : Essentials dessine son intérieur et y place les deux sorties. Elle reste la même à chaque visite pour une même graine du monde.
 - Une zone sous-marine est une carte à part, de la taille de la route : on y plonge depuis l'eau profonde, on remonte là où l'eau au-dessus est profonde.
 - Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers), le lieu est retiré avec une graine dérivée de la sienne : le monde reste le même pour une même graine.

@@ -28,9 +28,9 @@
 #                               0 by default)
 #   Grottes  = 0..2            (routes blocked by a rock wall and passed
 #                               through a cave; 0 by default)
-#   Plongee  = 2               (Dive is obtained in a town with a gym, drawn
-#                               from the town of that gym onwards, 2 by
-#                               default)
+#   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
+#                               from the town of that gym onwards and after
+#                               the Surf town, needed to dive; 3 by default)
 #   Fonds    = 0..1            (water routes with deep water and an underwater
 #                               map, after the towns of Surf and Dive; 0 by
 #                               default)
@@ -74,7 +74,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 2, 0..0)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -125,7 +125,7 @@ module MapProceduralGenerator
     raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length}" if !(1..TOWN_SYMBOLS.length).include?(world.towns)
     raise Error, "#{file} : « Longueur » doit commencer à 1 au moins" if world.route_length.min < 1
     raise Error, "#{file} : « Surf » doit valoir 1 au moins" if world.surf < 1
-    raise Error, "#{file} : « Plongee » doit valoir 1 au moins" if world.dive < 1
+    raise Error, "#{file} : « Plongee » doit dépasser « Surf » (il faut Surf pour plonger)" if world.dive <= world.surf
     return world
   end
 
@@ -328,37 +328,51 @@ module MapProceduralGenerator
   # on without surfing before. Caves anywhere.
   def choose_crossings(world, places, rng)
     routes = places.select { |p| p.kind == "route" && [p.w, p.h].max >= 2 }
-    candidates = places.select { |p| p.kind == "ville" && p.gym }.drop(world.surf - 1)
+    gyms = places.select { |p| p.kind == "ville" && p.gym }
+    route_after = ->(town) { routes.any? { |r| r.index > town.index } }
+    candidates = gyms.drop(world.surf - 1)
     # A town with a water route after it, when water is wanted
     if world.channels.max + world.lakes.max > 0
-      wet_after = candidates.select { |t| routes.any? { |r| r.index > t.index } }
+      wet_after = candidates.select(&route_after)
       candidates = wet_after if !wet_after.empty?
+    end
+    # A town with a later Dive town and a route after that one, when seabeds
+    # are wanted
+    if world.dives.max > 0
+      dive_after = candidates.select { |t| gyms.drop(world.dive - 1).any? { |g| g.index > t.index && route_after.call(g) } }
+      candidates = dive_after if !dive_after.empty?
     end
     surf_town = candidates.sample(random: rng)
     surf_town.surf = true if surf_town
+    dive_town = choose_dive_town(world, gyms, surf_town, route_after, rng)
     wet = surf_town ? routes.select { |r| r.index > surf_town.index }.shuffle(random: rng) : []
+    # The first water goes after the Dive town, so that a seabed can lie there
+    if dive_town && world.dives.max > 0
+      first = wet.find { |r| r.index > dive_town.index }
+      wet.unshift(wet.delete(first)) if first
+    end
     rng.rand(world.channels).times { (wet.shift || break).crossing = "chenal" }
     rng.rand(world.lakes).times { (wet.shift || break).crossing = "lac" }
     dry = routes.select { |r| !r.crossing }.shuffle(random: rng)
     rng.rand(world.caves).times { (dry.shift || break).crossing = "grotte" }
-    choose_dives(world, places, routes, surf_town, rng)
+    return if !dive_town
+    # Deep water only on water routes after the Dive town
+    deep = routes.select { |r| %w[chenal lac].include?(r.crossing) && r.index > dive_town.index }.shuffle(random: rng)
+    rng.rand(world.dives).times { (deep.shift || break).deep = true }
   end
 
-  # Dive is obtained in a town with a gym, the Plongee-th one or a later one;
-  # deep water only on water routes after the towns of Surf and Dive.
-  def choose_dives(world, places, routes, surf_town, rng)
-    candidates = places.select { |p| p.kind == "ville" && p.gym }.drop(world.dive - 1)
-    wet = routes.select { |r| %w[chenal lac].include?(r.crossing) }
+  # Dive is obtained in a town with a gym, the Plongee-th one or a later one,
+  # after the Surf town (Dive needs Surf).
+  def choose_dive_town(world, gyms, surf_town, route_after, rng)
+    return nil if !surf_town
+    candidates = gyms.drop(world.dive - 1).select { |t| t.index > surf_town.index }
     if world.dives.max > 0
-      wet_after = candidates.select { |t| wet.any? { |r| r.index > t.index } }
-      candidates = wet_after if !wet_after.empty?
+      with_route = candidates.select(&route_after)
+      candidates = with_route if !with_route.empty?
     end
     dive_town = candidates.sample(random: rng)
-    return if !dive_town
-    dive_town.dive = true
-    after = [dive_town.index, surf_town&.index || 0].max
-    deep = wet.select { |r| r.index > after }.shuffle(random: rng)
-    rng.rand(world.dives).times { (deep.shift || break).deep = true }
+    dive_town.dive = true if dive_town
+    return dive_town
   end
 
   # Route of that length leaving the town on that side, and the next town at

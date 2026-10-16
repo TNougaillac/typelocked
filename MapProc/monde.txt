@@ -25,8 +25,9 @@ Chenaux  = 1..2
 Lacs     = 0..1
 # Routes barrées par un mur de rochers, que l'on passe par une grotte.
 Grottes  = 1..2
-# Plongée s'obtient comme Surf dans une ville à arène, la 2e ou une suivante.
-# Les zones sous-marines ne sont posées que sur des routes d'eau situées après
-# les villes de Surf et de Plongée : on y plonge depuis l'eau profonde.
-Plongee  = 2
+# Plongée s'obtient dans une ville à arène, la 3e ou une suivante, et toujours
+# après la ville de Surf (il faut Surf pour plonger). Les zones sous-marines ne
+# sont posées que sur des routes d'eau situées après la ville de Plongée : on y
+# plonge depuis l'eau profonde.
+Plongee  = 3
 Fonds    = 1
