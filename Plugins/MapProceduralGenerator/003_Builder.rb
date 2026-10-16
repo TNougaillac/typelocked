@@ -54,7 +54,9 @@ module MapProceduralGenerator
       @water = Array.new(@h) { Array.new(@w, false) }
       cross if @place.crossing
       if @place.mountain
+        choose_river if @place.river
         raise_levels
+        lay_river
         # Its cave is left out when no spot fits
         place_brick(CAVE) if @place.cave
       end
@@ -70,7 +72,7 @@ module MapProceduralGenerator
 
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
-      rock = (@level && @level[y] > 0) ? @place.levels[@level[y] - 1] : nil
+      rock = (level_at(x, y) > 0) ? @place.levels[level_at(x, y) - 1] : nil
       return @cells[y][x] || rock || @place.street if @street[y][x]
       return @cells[y][x] || rock || @place.ground
     end
@@ -229,7 +231,7 @@ module MapProceduralGenerator
 
     # Ground on the lowest level that nothing uses yet.
     def free_ground?(x, y)
-      return false if @level && @level[y] > 0
+      return false if level_at(x, y) > 0
       return !@border[y][x] && !@solid[y][x] && !@cells[y][x] && !@stairs_at&.key?([x, y])
     end
 
@@ -272,7 +274,7 @@ module MapProceduralGenerator
       @h.times do |y|
         @w.times do |x|
           if @street[y][x]
-            next if (@level && @level[y] > 0) || @stairs_at&.key?([x, y]) || !excess[:over_street]
+            next if level_at(x, y) > 0 || @stairs_at&.key?([x, y]) || !excess[:over_street]
             next if near?(x, y, 3) { |nx, ny| exit_at?(nx, ny) }
           elsif !free_ground?(x, y)
             next
@@ -412,12 +414,59 @@ module MapProceduralGenerator
       pair = @place.stairs[((level - 1) * 2) + ((north > south) ? 0 : 1)]
       @stairs_at ||= {}
       @w.times do |x|
-        next if @border[y][x]
+        next if @border[y][x] || @low&.[](y)&.[](x)
         if @street[y][x]
           @stairs_at[[x, y]] = @street[y][x - 1] ? pair[1] : pair[0]
         else
           @cells[y][x] = @place.levels[level - 1]
           @solid[y][x] = true
+        end
+      end
+    end
+
+    # Level of a tile: that of its band, but the river and its outer bank stay
+    # on the ground.
+    def level_at(x, y)
+      return 0 if !@level || @low&.[](y)&.[](x)
+      return @level[y]
+    end
+
+    # River alongside a north-south mountain route: a band 3 or 4 tiles wide
+    # against the west or east border, winding a little, on the ground the
+    # whole way (the cliffs stop at its bank), 2 tiles off the streets. It
+    # runs from the northern to the southern trees; none if it doesn't fit.
+    def choose_river
+      bw, bh = border_size
+      width = @rng.rand(3..4)
+      rows = (bh...@h - bh)
+      [:west, :east].shuffle(random: @rng).find do |side|
+        cells = Array.new(@h) { Array.new(@w, false) }
+        low = Array.new(@h) { Array.new(@w, false) }
+        offset = 0
+        ok = rows.all? do |y|
+          offset = (offset + @rng.rand(-1..1)).clamp(0, 2) if y % 3 == 0
+          x0 = (side == :west) ? bw + offset : @w - bw - width - offset
+          band = (x0...x0 + width)
+          next false if (x0 - 2..x0 + width + 1).any? { |x| inside?(x, y) && @street[y][x] }
+          band.each { |x| cells[y][x] = true }
+          # Between the river and the trees: ground, no thin strip of cliff
+          outer = (side == :west) ? (0...x0 + width) : (x0...@w)
+          outer.each { |x| low[y][x] = true }
+          true
+        end
+        @river, @low = cells, low if ok
+        ok
+      end
+    end
+
+    # The river's water, once the levels are drawn.
+    def lay_river
+      return if !@river
+      @h.times do |y|
+        @w.times do |x|
+          next if !@river[y][x]
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
         end
       end
     end
@@ -597,7 +646,7 @@ module MapProceduralGenerator
           next if c == " "
           cx, cy = x + dx, y + dy
           return false if @solid[cy][cx] || @street[cy][cx]
-          raised = @level ? @level[cy] > 0 : false
+          raised = level_at(cx, cy) > 0
           return false if HIGHLAND.include?(brick.kind) != raised
           (-1..1).each do |oy|
             (-1..1).each do |ox|

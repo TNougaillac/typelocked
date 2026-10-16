@@ -40,7 +40,8 @@ module MapProceduralGenerator
   # other bricks, that type again wherever it still fits; dense: those may
   # touch each other; flood: water all over the free ground, the streets kept
   # dry; carpet: that symbol all over the free ground (over_street: over the
-  # streets too, not the exits).
+  # streets too, not the exits); ambiance: that [Ambiance] of the place file
+  # (its ground and streets), if the file has it.
   EXCESSES = {
     "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
     "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
@@ -48,7 +49,7 @@ module MapProceduralGenerator
     "lac géant"          => { kind: "route", boost: { "lac" => 1 }, giant_lake: true, flood: true },
     "montagne colossale" => { kind: "route", colossal: true, boost: { "rocaille" => 2 } },
     "route interminable" => { kind: "route", long: true },
-    "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*" },
+    "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
     "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
     "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" }
   }.freeze

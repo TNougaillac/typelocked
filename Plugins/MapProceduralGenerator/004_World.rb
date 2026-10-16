@@ -32,6 +32,9 @@
 #                               by stairs; 0 by default)
 #   GrotteMontagne = 50        (chance in % that a mountain route has a cave,
 #                               a dead end; 50 by default)
+#   RiviereMontagne = 50       (chance in % that a north-south mountain route
+#                               with no crossing has a river alongside the
+#                               climb, at the foot of the cliffs; 0 by default)
 #   Demesure = 25              (chance in % that a place goes over the top,
 #                               see EXCESSES; 0 by default)
 #   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
@@ -56,14 +59,14 @@
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
-                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess)
+                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
   # route climbing by levels (with a crossing or not); cave: a mountain route
   # with a cave
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
-                          :dive, :deep, :mountain, :cave, :excess)
+                          :dive, :deep, :mountain, :cave, :excess, :river)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
   # seabeds: [WorldPlace of the route, name, MapGen plan text]
@@ -82,7 +85,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -114,6 +117,7 @@ module MapProceduralGenerator
       when "montagnes" then world.mountains = range(value, fail_at)
       when "grottemontagne" then world.mountain_cave = integer(value, fail_at)
       when "demesure" then world.excess = integer(value, fail_at)
+      when "rivieremontagne" then world.mountain_river = integer(value, fail_at)
       when "plongee"  then world.dive = integer(value, fail_at)
       when "fonds"    then world.dives = range(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
@@ -162,7 +166,10 @@ module MapProceduralGenerator
       place.crossing = wp.crossing
       place.mountain = wp.mountain
       place.cave = wp.cave
+      place.river = wp.river
       place.excess = wp.excess
+      wanted = EXCESSES.dig(wp.excess, :ambiance)
+      place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
       place.dive = wp.deep
       [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
     end
@@ -397,6 +404,8 @@ module MapProceduralGenerator
       route = climbs.shift || break
       route.mountain = true
       route.cave = rng.rand(100) < world.mountain_cave
+      # A river alongside, on a north-south route that nothing crosses
+      route.river = rng.rand(100) < world.mountain_river if !route.crossing && route.h > route.w
     end
     return if !dive_town
     # Deep water only on water routes after the Dive town
