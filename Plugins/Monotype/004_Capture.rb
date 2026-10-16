@@ -27,12 +27,6 @@ module Monotype::BattleHooks
     end
     super
   end
-
-  # The first capture ends the starter's grace (applied at the end of the battle).
-  def pbStorePokemon(pkmn)
-    super
-    Monotype.data.grace = false if Monotype.active?
-  end
 end
 
 Battle.prepend(Monotype::BattleHooks)

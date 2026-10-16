@@ -165,4 +165,27 @@ sections("regional_dexes").each do |s|
   end
 end
 
+# Monotype: ROSTER (Plugins/Monotype/006_Roster.rb) is docs/roster/liste-300.csv,
+# and each type that can be drawn has enough starters (base forms of the roster
+# that have the type or evolve into it, as Monotype.starter_pool).
+%w[001_Settings 006_Roster].each { |f| require File.join(ROOT, "Plugins", "Monotype", "#{f}.rb") }
+roster_file = File.join(ROOT, "Plugins", "Monotype", "006_Roster.rb")
+csv_ids = CI.read_text(File.join(ROOT, "docs", "roster", "liste-300.csv")).lines.drop(1).map { |l| l.split(",")[0] }
+roster = Monotype::ROSTER.map(&:to_s)
+CI.error(roster_file, nil, "ROSTER différent de docs/roster/liste-300.csv") if roster != csv_ids
+roster.each { |id| CI.error(roster_file, nil, "ROSTER : espèce « #{id} » inconnue") unless species[id] }
+value_of = ->(s, key) { s.pairs.find { |k, _, _| k == key }&.at(1).to_s }
+evolutions = species.transform_values do |s|
+  value_of.call(s, "Evolutions").split(",").each_slice(3).map { |a| a[0].strip }
+end
+prevo = evolutions.flat_map { |id, evos| evos.map { |evo| [evo, id] } }.to_h
+types_of = ->(id) { species[id] ? value_of.call(species[id], "Types").split(",").map(&:strip) : [] }
+eligible = ->(id, type) { types_of.call(id).include?(type) || evolutions.fetch(id, []).any? { |e| eligible.call(e, type) } }
+types.each_value do |t|
+  next if value_of.call(t, "IsPseudoType") == "true" || Monotype::EXCLUDED_TYPES.include?(t.id.to_sym)
+  pool = roster.select { |id| !roster.include?(prevo[id]) && eligible.call(id, t.id) }
+  next if pool.length >= Monotype::STARTER_COUNT
+  CI.error(roster_file, nil, "#{pool.length} starter(s) possible(s) pour #{t.id}, il en faut #{Monotype::STARTER_COUNT}")
+end
+
 CI.finish("Références des PBS")
