@@ -1,6 +1,7 @@
 #===============================================================================
 # Nuzlocke - Start-of-game dialog
-# Shown automatically by the Monotype plugin; also usable as an event script.
+# Shown automatically at the start of a new game (NewGameSetup plugin), before
+# the Monotype choice. Can also be called from an event: Nuzlocke.setup_dialog
 #===============================================================================
 module Nuzlocke
   module_function
@@ -39,3 +40,5 @@ module Nuzlocke
     end
   end
 end
+
+NewGameSetup.add(:nuzlocke, 10) { Nuzlocke.setup_dialog }
