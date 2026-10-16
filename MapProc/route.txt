@@ -55,6 +55,8 @@ Sol   = T106
 # Palette MapGen (tileset Outside).
 [Legend]
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
+: = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
+; = T15                 # pied des herbes très hautes, la rangée sous la touffe
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
 % = {sol} A1 A3         # eau profonde (on y plonge avec Plongée)

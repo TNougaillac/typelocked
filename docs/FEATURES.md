@@ -221,6 +221,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 ### Règles
 
 - Une ville ou une route est assemblée à partir de briques faites main (bâtiments, herbes, décor) : chaque graine donne un résultat différent, la même graine redonne le même.
+- Les herbes sont de deux sortes : les hautes herbes normales (T6) et des touffes d'herbes très hautes (T7 posé sur son pied T15, une rangée de pied sous la touffe, comme dans les cartes d'exemple d'Essentials ; on n'y court pas). La CI (`check_mapproc.rb`, `SPILL_BELOW`) refuse toute plante sur deux tuiles posée sans sa partie basse.
 - Les lacs décoratifs (`lac` dans `[Briques]`) ne se posent jamais sur le passage.
 - Relief : des montagnes (massifs de roche, terrain `^`) se posent sur les routes et parfois dans les villes ; certaines ont un escalier taillé dans leur face sud qui mène sur le dessus. Les routes ont aussi des corniches, que l'on saute vers le sud sans pouvoir les remonter. Ces briques ne barrent jamais le passage.
 - Ambiances (`[Ambiance nom]` dans `ville.txt` et `route.txt`) : chaque lieu tire son sol et ses rues selon un poids. L'herbe reste la plus courante ; quelques villes ont des chemins de terre, un sol de prairie, de sable, minéral ou de terre battue, quelques routes un sol de prairie, de sable ou de terre battue.
