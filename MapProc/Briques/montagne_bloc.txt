@@ -1,0 +1,8 @@
+# Petite montagne : un massif de roche, son dessus se voit mais ne s'atteint pas.
+Brique = Montagne (bloc)
+Type   = montagne
+[Map]
+^^^^^
+^^^^^
+^^^^^
+^^^^^

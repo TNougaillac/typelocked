@@ -1,0 +1,10 @@
+Brique = Grand plateau avec escalier
+Type   = montagne
+Porte  = 4,5
+[Map]
+ ^^^^^^  
+^^^^^^^^^
+^^^^^^^^^
+^^^^^^^^^
+^^^^^^^^^
+^^^^e^^^^

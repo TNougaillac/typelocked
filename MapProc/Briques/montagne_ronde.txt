@@ -1,0 +1,8 @@
+Brique = Montagne (ronde)
+Type   = montagne
+[Map]
+  ^^^^ 
+ ^^^^^^
+^^^^^^^
+^^^^^^^
+ ^^^^^ 

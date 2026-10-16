@@ -1,0 +1,12 @@
+# Grand massif : un escalier mène sur le dessus.
+Brique = Grand massif
+Type   = montagne
+Porte  = 3,6
+[Map]
+   ^^^^^^   
+ ^^^^^^^^^^ 
+^^^^^^^^^^^^
+^^^^^^^^^^^^
+^^^^^^^^^^^^
+^^^^^^^^^^^ 
+^^^e^^^^^^  

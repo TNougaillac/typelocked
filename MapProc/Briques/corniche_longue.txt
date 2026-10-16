@@ -1,0 +1,4 @@
+Brique = Corniche (longue)
+Type   = corniche
+[Map]
+<------>

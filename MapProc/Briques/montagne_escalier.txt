@@ -1,0 +1,11 @@
+# Plateau rocheux : un escalier taillé dans sa face sud mène sur le dessus.
+Brique = Plateau avec escalier
+Type   = montagne
+Poids  = 2
+Porte  = 2,4
+[Map]
+ ^^^^ 
+^^^^^^
+^^^^^^
+^^^^^^
+^^e^^^

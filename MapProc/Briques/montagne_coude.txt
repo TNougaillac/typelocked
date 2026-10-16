@@ -1,0 +1,9 @@
+Brique = Montagne (en coude)
+Type   = montagne
+[Map]
+^^^^    
+^^^^    
+^^^^^^^^
+^^^^^^^^
+^^^^^^^^
+  ^^^^^^
