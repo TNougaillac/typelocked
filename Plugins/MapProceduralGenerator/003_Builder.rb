@@ -61,6 +61,7 @@ module MapProceduralGenerator
       place_bricks
       plant_border
       check_reachable
+      cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       return Layout.new(rows, @doors, @exits, @deep || [])
     end
@@ -70,7 +71,7 @@ module MapProceduralGenerator
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       rock = (@level && @level[y] > 0) ? @place.levels[@level[y] - 1] : nil
-      return rock || @place.street if @street[y][x]
+      return @cells[y][x] || rock || @place.street if @street[y][x]
       return @cells[y][x] || rock || @place.ground
     end
 
@@ -170,6 +171,7 @@ module MapProceduralGenerator
       # With « dense », the fill bricks may touch each other (not the others)
       @dense = excess[:fill] if excess[:dense]
       order.each_with_index do |kind, i|
+        flood_ground if i == required.length
         next if HIGHLAND.include?(kind) && !@level
         next if place_brick(kind)
         # A giant lake shrinks until it fits
@@ -178,6 +180,7 @@ module MapProceduralGenerator
         next if @level
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
+      flood_ground
       fill_with(excess[:fill]) if excess[:fill]
       @dense = nil
     end
@@ -222,6 +225,72 @@ module MapProceduralGenerator
           @kinds[y + dy][x + dx] = nil
         end
       end
+    end
+
+    # Ground on the lowest level that nothing uses yet.
+    def free_ground?(x, y)
+      return false if @level && @level[y] > 0
+      return !@border[y][x] && !@solid[y][x] && !@cells[y][x] && !@stairs_at&.key?([x, y])
+    end
+
+    # Excess « flood », once the required bricks are in: water over the free
+    # ground, but 2 tiles off the streets and 1 off the bricks, so the way stays
+    # dry. Only bodies of water at least 3 tiles thick, no thin ditches. The
+    # other bricks then go on what is left.
+    def flood_ground
+      return if !excess[:flood] || @flooded
+      @flooded = true
+      open = Array.new(@h) do |y|
+        Array.new(@w) do |x|
+          free_ground?(x, y) && !near?(x, y, 2) { |nx, ny| @street[ny][nx] } &&
+            !near?(x, y, 1) { |nx, ny| @solid[ny][nx] && !@border[ny][nx] && !@water[ny][nx] }
+        end
+      end
+      block = ->(x, y) { (0..2).all? { |oy| (0..2).all? { |ox| open[y + oy]&.[](x + ox) } } }
+      wet = Array.new(@h) { Array.new(@w, false) }
+      (0..@h - 3).each do |y|
+        (0..@w - 3).each do |x|
+          next if !block.call(x, y)
+          (0..2).each { |oy| (0..2).each { |ox| wet[y + oy][x + ox] = true } }
+        end
+      end
+      @h.times do |y|
+        @w.times do |x|
+          next if !wet[y][x]
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
+        end
+      end
+    end
+
+    # Excess « carpet », once every door and exit is known to be reachable:
+    # that symbol (grass, flowers) on the free ground, and over the streets too
+    # with « over_street » (walkable, but kept off the exits).
+    def cover_ground
+      carpet = excess[:carpet]
+      return if !carpet
+      @h.times do |y|
+        @w.times do |x|
+          if @street[y][x]
+            next if (@level && @level[y] > 0) || @stairs_at&.key?([x, y]) || !excess[:over_street]
+            next if near?(x, y, 3) { |nx, ny| exit_at?(nx, ny) }
+          elsif !free_ground?(x, y)
+            next
+          end
+          @cells[y][x] = carpet
+        end
+      end
+    end
+
+    # True if a tile within that distance (square around x, y) passes the block.
+    def near?(x, y, distance)
+      (-distance..distance).any? do |oy|
+        (-distance..distance).any? { |ox| inside?(x + ox, y + oy) && yield(x + ox, y + oy) }
+      end
+    end
+
+    def exit_at?(x, y)
+      return @exits.any? { |_side, ex, ey| (ex..ex + STREET_WIDTH - 1).cover?(x) && (ey..ey + STREET_WIDTH - 1).cover?(y) }
     end
 
     #---------------------------------------------------------------------------

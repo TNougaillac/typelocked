@@ -314,9 +314,9 @@ module MapProceduralGenerator
     take.call(current)
     (1...world.towns).each do |i|
       lengths = world.route_length.to_a.shuffle(random: rng)
-      # « route interminable »: twice the longest length, when it fits
+      # « route interminable »: three times the longest length, when it fits
       long = rng.rand(100) < world.excess && rng.rand(EXCESSES.length) == 0
-      lengths.unshift(world.route_length.max * 2) if long
+      lengths.unshift(world.route_length.max * 3) if long
       found = DIRECTIONS.keys.shuffle(random: rng).product(lengths).find do |side, length|
         rt, nt = route_and_town(current, side, length, rng)
         # The route only touches the current town, the new town only its route
