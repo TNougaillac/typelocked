@@ -16,11 +16,29 @@ _Avoid_ : monde, carte
 Le nombre qui détermine la région d'une partie ; la même graine redonne la même région.
 _Avoid_ : seed
 
+## La Famille
+
+**La Famille** :
+La mafia qui gouverne la région à la place de l'État. Son nom sonne accueillant, ce qu'elle n'est pas.
+_Avoid_ : mafia, Syndicat, Team
+
+**Champion d'arène** :
+Un lieutenant de la Famille, qui tient une ville et son arène.
+_Avoid_ : chef d'arène
+
+**Ligue** :
+Le sommet de la Famille, au bout du parcours des arènes.
+_Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
+
 ## Le verrou
 
 **Pacte** :
-L'ancien accord passé entre la mafia qui gouverne la région et Arceus, à l'origine du verrou. Ses termes sont oubliés et il a un prix.
+L'ancien accord passé entre la Famille et Arceus, à l'origine du verrou : Arceus a donné à la Famille le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul type, doit monter jusqu'à la Ligue et être remise à Arceus. Les anciens désignés ont disparu après la Ligue.
 _Avoid_ : malédiction, contrat
+
+**Joueur** :
+La personne que le Pacte a désignée pour cette génération. Les PNJ l'appellent par son nom, jamais par un titre.
+_Avoid_ : Élu, Lié
 
 **Type imposé** :
 Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans toutes les parties, et le joueur est le seul dresseur de la région à en avoir un.
