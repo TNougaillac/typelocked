@@ -1,0 +1,24 @@
+# Noms de lieux tirés par la graine du monde (voir docs/LORE.md).
+# Pas encore lu par le générateur : ce fichier est hors du dossier des lieux,
+# pour que la CI ne le prenne pas pour un plan de ville ou de route.
+#
+# [Formes] : comment un nom de base devient un nom de lieu. {nom} = un nom tiré
+# dans [Italien], [Americain] ou [Francais], à parts égales.
+# [Region] : noms possibles pour la région entière.
+
+[Formes]
+Village = Bourg {nom}
+Port    = Port {nom}
+Ville   = {nom}ville
+
+[Region]
+Omerta, Vendetta, Calabria, Sicaria, Bayonne, Nouvelle-Corse, Borgata, Liberty
+
+[Italien]
+Lucca, Moretti, Santoro, Bellagio, Carbone, Rossini, Salerno, Vittoria, Corleo, Palermo, Ferrara, Caruso, Gallo, Riva, Messina, Bari
+
+[Americain]
+Hudson, Jackson, Brook, Lincoln, Cooper, Maple, Harlow, Stanton, Garfield, Bronx, Kingston, Warren, Lexington, Clayton, Bridgeport, Hamilton
+
+[Francais]
+Beaumont, Marsolle, Saint-Rémy, Valcourt, Montclair, Lorient, Castel, Rochebrune, Belleau, Vauclaire, Ombrière, Grisemont, Chantenoir, Fontbrune, Mirecourt, Pontaval

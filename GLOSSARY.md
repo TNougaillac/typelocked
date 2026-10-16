@@ -42,6 +42,10 @@ _Avoid_ : sbires, Team, grunts
 Celui qui annonce au joueur son type imposé et lui propose les trois starters. Il travaille en secret pour la Famille.
 _Avoid_ : Prof
 
+**Sceau** :
+La chevalière de la Famille qu'un champion d'arène remet quand il est battu, à la place d'un badge.
+_Avoid_ : badge (en jeu), bague
+
 **Ligue** :
 Le sommet de la Famille, au bout du parcours des arènes.
 _Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
