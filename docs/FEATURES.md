@@ -287,27 +287,35 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Sans le dossier `Plugins/Monotype/` : le choix Nuzlocke s'affiche quand même.
 - Sauvegarde existante dont les choix sont faits : aucune fenêtre.
 
-## F09. Multi Exp permanent (ExpAll)
-**Statut :** v1.0.0, écrit, **non testé**.
+## F09. Rythme rapide (FastPace)
+**Statut :** v1.1.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
-**Dossier :** `Plugins/ExpAll/`
+**Dossier :** `Plugins/FastPace/`
+
+Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans `001_Settings.rb`.
 
 ### Règles
-- Le Multi Exp est actif dès le début de la partie et ne se désactive pas (issue #30).
-- Comportement des jeux récents (Gen 6+) : les Pokémon qui ont combattu gagnent toute leur part, ceux de l'équipe qui n'ont pas combattu gagnent la moitié. Les Pokémon K.O. ne gagnent rien.
-- Les EV sont aussi donnés à toute l'équipe, comme dans les jeux récents.
+- **Multi Exp permanent :** actif dès le début et ne se désactive pas. Comportement des jeux récents (Gen 6+) : les Pokémon qui ont combattu gagnent toute leur part, ceux de l'équipe qui n'ont pas combattu gagnent la moitié, les K.O. ne gagnent rien. Les EV sont donnés à toute l'équipe.
+- **Expérience ×4** (`EXP_MULTIPLIER`) : toute l'expérience gagnée en combat est multipliée.
+- **Chaussures de course** dès le début.
+- **Déplacements plus rapides** (`MOVE_SPEEDS`) : course 0,1 s/case (Essentials : 0,125), vélo 0,05 s/case (0,1), surf 0,1 s/case (0,125). La marche reste à 0,25 s/case. Les déplacements imposés par un événement gardent leur vitesse.
+- **Options par défaut d'une nouvelle partie :** course activée par défaut (maintenir Retour pour marcher) et texte rapide. Le joueur peut les changer dans les Options.
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_ExpAll.rb` | `ExpAll::ALWAYS_ON` et redéfinition de `Player#has_exp_all`. |
+| `001_Settings.rb` | Tous les réglages. |
+| `002_ExpAll.rb` | `Player#has_exp_all` et `Player#has_running_shoes` forcés. |
+| `003_ExpMultiplier.rb` | `Pokemon#base_exp` multiplié. |
+| `004_Movement.rb` | Vitesses du joueur, options par défaut. |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`Player#has_exp_all`, lu par `Battle#pbGainExp`. Le calcul reste celui d'Essentials (`MECHANICS_GENERATION = 8`).
+`Player#has_exp_all` et `#has_running_shoes`, `Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Game_Player#set_movement_type`, `PokemonSystem#initialize`. Le calcul d'expérience reste celui d'Essentials (`MECHANICS_GENERATION = 8`).
 
 ### Limites connues
-- L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `ALWAYS_ON` vaut `true`.
+- L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `EXP_ALL_ALWAYS_ON` vaut `true`.
+- Les options par défaut ne s'appliquent que si aucune sauvegarde n'existe encore (Essentials garde les options d'une partie à l'autre).
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.

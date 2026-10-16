@@ -1,4 +1,4 @@
-Name       = ExpAll
-Version    = 1.0.0
+Name       = FastPace
+Version    = 1.1.0
 Essentials = 21.1
 Credits    = TypeLocked
