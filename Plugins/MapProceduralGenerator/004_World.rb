@@ -32,6 +32,8 @@
 #                               by stairs; 0 by default)
 #   GrotteMontagne = 50        (chance in % that a mountain route has a cave,
 #                               a dead end; 50 by default)
+#   Demesure = 25              (chance in % that a place goes over the top,
+#                               see EXCESSES; 0 by default)
 #   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
 #                               from the town of that gym onwards and after
 #                               the Surf town, needed to dive; 3 by default)
@@ -54,14 +56,14 @@
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
-                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave)
+                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
   # route climbing by levels (with a crossing or not); cave: a mountain route
   # with a cave
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
-                          :dive, :deep, :mountain, :cave)
+                          :dive, :deep, :mountain, :cave, :excess)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
   # seabeds: [WorldPlace of the route, name, MapGen plan text]
@@ -80,7 +82,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -111,6 +113,7 @@ module MapProceduralGenerator
       when "grottes"  then world.caves = range(value, fail_at)
       when "montagnes" then world.mountains = range(value, fail_at)
       when "grottemontagne" then world.mountain_cave = integer(value, fail_at)
+      when "demesure" then world.excess = integer(value, fail_at)
       when "plongee"  then world.dive = integer(value, fail_at)
       when "fonds"    then world.dives = range(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
@@ -159,6 +162,7 @@ module MapProceduralGenerator
       place.crossing = wp.crossing
       place.mountain = wp.mountain
       place.cave = wp.cave
+      place.excess = wp.excess
       place.dive = wp.deep
       [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
     end
@@ -309,12 +313,17 @@ module MapProceduralGenerator
     current = WorldPlace.new(TOWN_SYMBOLS[0], "ville", town_name.call(0), x, y, TOWN_SIZE, TOWN_SIZE, [], false)
     take.call(current)
     (1...world.towns).each do |i|
-      found = DIRECTIONS.keys.shuffle(random: rng).product(world.route_length.to_a.shuffle(random: rng)).find do |side, length|
+      lengths = world.route_length.to_a.shuffle(random: rng)
+      # « route interminable »: twice the longest length, when it fits
+      long = rng.rand(100) < world.excess && rng.rand(EXCESSES.length) == 0
+      lengths.unshift(world.route_length.max * 2) if long
+      found = DIRECTIONS.keys.shuffle(random: rng).product(lengths).find do |side, length|
         rt, nt = route_and_town(current, side, length, rng)
         # The route only touches the current town, the new town only its route
         # (not laid yet, so nothing may be around the new town)
         next false if !free.call(rt.x, rt.y, rt.w, rt.h, [current]) || !free.call(nt.x, nt.y, nt.w, nt.h, [])
         take.call(rt.tap { |r| r.symbol = ROUTE_SYMBOLS[i - 1]; r.name = "Route générée #{i}" })
+        rt.excess = "route interminable" if long && length > world.route_length.max
         take.call(nt.tap { |t| t.symbol = TOWN_SYMBOLS[i]; t.name = town_name.call(i) })
         link(world, current, rt, side, rng)
         link(world, rt, nt, side, rng)
@@ -332,7 +341,20 @@ module MapProceduralGenerator
     towns.each_with_index { |t, i| t.gym = !no_gym.include?(i) }
     places.each_with_index { |p, i| p.index = i }
     choose_crossings(world, places, rng)
+    choose_excesses(world, places, rng)
     return places
+  end
+
+  # Now and then a place goes over the top (« Demesure »): an excess of its
+  # kind, drawn at random.
+  def choose_excesses(world, places, rng)
+    places.each do |wp|
+      next if wp.excess || rng.rand(100) >= world.excess
+      names = EXCESSES.select do |_name, e|
+        e[:kind] == wp.kind && !e[:long] && (!e[:colossal] || wp.mountain)
+      end.keys
+      wp.excess = names.sample(random: rng)
+    end
   end
 
   # Surf is obtained in a town with a gym, the Surf-th one or a later one;
@@ -441,6 +463,7 @@ module MapProceduralGenerator
     text << "# Surf s'obtient à #{surf[0].name}.\n" if surf
     dive = built.find { |wp, *| wp.dive }
     text << "# Plongée s'obtient à #{dive[0].name}.\n" if dive
+    built.each { |wp, *| text << "# Démesure : #{wp.name}, #{wp.excess}.\n" if wp.excess }
     text << "\n[Places]\n"
     built.each do |wp, _place, _text, layout|
       line = "#{wp.symbol} = #{wp.name}  type=#{wp.kind}"

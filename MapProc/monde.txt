@@ -36,3 +36,7 @@ GrotteMontagne = 50
 # plonge depuis l'eau profonde.
 Plongee  = 3
 Fonds    = 1
+# Démesure : chance (en %) qu'un lieu soit hors norme : forêt profonde, mer
+# d'herbes, chaos rocheux, lac géant, montagne colossale, route interminable,
+# ville-jardin, cité lacustre, grande foire.
+Demesure = 25
