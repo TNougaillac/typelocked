@@ -25,13 +25,30 @@ lac    = 0..1
 # par une grotte (« Grottes » dans monde.txt).
 grotte = 0
 
+# Ambiances : chaque route en tire une selon son poids (l'herbe le plus souvent).
+# « {sol} » dans la palette = la première tuile du sol tiré.
+[Ambiance verdoyante]
+Poids = 6
+Sol   = T1|T1|T1|T2|T3
+
+[Ambiance prairie]
+Poids = 1
+Sol   = T50
+
+[Ambiance sable]
+Poids = 1
+Sol   = T162
+
+[Ambiance terre battue]
+Poids = 1
+Sol   = T106
+
 # Palette MapGen (tileset Outside).
 [Legend]
-. = T1|T1|T1|T2|T3   # herbe
 " = T7               # hautes herbes
-* = T1 A5            # massif de fleurs
-~ = T1 A1            # eau (lacs, chenaux ; on la traverse avec Surf)
-o = T1 T815          # caillou (comble les trous du mur de rochers)
+* = {sol} A5            # massif de fleurs
+~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
+o = {sol} T815          # caillou (comble les trous du mur de rochers)
 1 = T787             # rocher de l'entrée de grotte
 2 = T790
 3 = T789

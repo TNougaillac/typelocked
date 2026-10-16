@@ -28,8 +28,16 @@
 #   herbes  = 1..2 par case    ("par case": per 20x20 tiles of the map)
 #   lac     = 0..1             (a lake drawn with Eau, never in the way: no
 #                               brick file for it)
+#   [Ambiance verdoyante]      (optional, as many as wanted: each place draws
+#   Poids = 6                   one, by weight, 1 by default)
+#   Sol   = T1|T2|T3           (tiles of the ground symbol, as in [Legend])
+#   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
+#                               with edges N=..., else as in [Legend]; not
+#                               needed when Rue and Sol are the same symbol)
 #   [Legend] [Terrains] [Objects]
-#   ...                        (MapGen palette, shared by every brick)
+#   ...                        (MapGen palette, shared by every brick; with
+#                               ambiances, « {sol} » stands for the first tile
+#                               of the drawn ground, under flowers, water...)
 # Brick file (MapProc/Briques/*.txt):
 #   Brique = Centre Pokémon    (required: name, for error messages)
 #   Type   = centre            (required: the type named in [Briques])
@@ -47,7 +55,9 @@ module MapProceduralGenerator
 
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
-                     :water, :rock, :pebble, :crossing)
+                     :water, :rock, :pebble, :crossing, :ambiances, :ambiance)
+  # ground, street: tile text of the ground and street symbols
+  Ambiance = Struct.new(:name, :weight, :ground, :street)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
@@ -68,11 +78,15 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
-      if raw.strip =~ /\A\[(\w+)\]\z/
+      if raw.strip =~ /\A\[Ambiance\s+(.+?)\]\z/i
+        place.ambiances.push(Ambiance.new($1.strip, 1, nil, nil))
+        section = :ambiance
+        next
+      elsif raw.strip =~ /\A\[(\w+)\]\z/
         section = ($1.downcase == "briques") ? :bricks : :palette
       end
       if section == :palette
@@ -86,6 +100,16 @@ module MapProceduralGenerator
       if section == :bricks
         place.per_case.push(key) if value.sub!(/\s+par\s+case\z/, "")
         place.counts[key] = range(value, fail_at)
+        next
+      end
+      if section == :ambiance
+        ambiance = place.ambiances.last
+        case key.downcase
+        when "poids" then ambiance.weight = integer(value, fail_at)
+        when "sol"   then ambiance.ground = value
+        when "rue"   then ambiance.street = value
+        else fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue)")
+        end
         next
       end
       case key.downcase
@@ -117,6 +141,12 @@ module MapProceduralGenerator
       raise Error, "#{file} : « #{key} » manquant" if !value
     end
     raise Error, "#{file} : section [Briques] vide" if place.counts.empty?
+    place.ambiances.each do |ambiance|
+      raise Error, "#{file} : [Ambiance #{ambiance.name}] sans « Sol »" if !ambiance.ground
+      if !ambiance.street && place.street != place.ground
+        raise Error, "#{file} : [Ambiance #{ambiance.name}] sans « Rue »"
+      end
+    end
     return place
   end
 
@@ -169,6 +199,13 @@ module MapProceduralGenerator
   # parser: returns the palette as a parsed MapGen plan.
   def check_palette(place, bricks)
     palette = MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+    # With ambiances, the ground and street are defined by each ambiance only
+    if place.ambiances.any?
+      [place.ground, place.street].uniq.each do |sym|
+        next if place.palette !~ /^\s*#{Regexp.escape(sym)}\s*=/
+        raise Error, "#{place.file} : avec des [Ambiance], « #{sym} » se définit dans chaque ambiance (Sol, Rue), pas dans la palette"
+      end
+    end
     known = palette.legend.keys + palette.objects.keys + palette.terrains.keys
     raise Error, "#{place.file} : « Rue = #{place.street} » absent de la palette" if !known.include?(place.street)
     if place.border && !palette.objects[place.border]
@@ -200,6 +237,31 @@ module MapProceduralGenerator
     return palette
   end
 
+  # The place's ambiance (place.ambiance names it, else the first one).
+  def ambiance(place)
+    return place.ambiances.find { |a| a.name == place.ambiance } || place.ambiances.first
+  end
+
+  # Draws an ambiance by weight; nil if the place has none.
+  def draw_ambiance(place, rng)
+    return nil if place.ambiances.empty?
+    roll = rng.rand(place.ambiances.sum(&:weight))
+    return place.ambiances.find { |a| (roll -= a.weight) < 0 }.name
+  end
+
+  # Palette with the ambiance's ground and street.
+  def palette_text(place)
+    chosen = ambiance(place)
+    return place.palette if !chosen
+    text = place.palette.gsub("{sol}", chosen.ground.split("|").first.split.first)
+    text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
+    if chosen.street && place.street != place.ground
+      section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
+      text << "[#{section}]\n#{place.street} = #{chosen.street}\n"
+    end
+    return text
+  end
+
   # MapGen plan text of a place: header, palette, then the assembled rows.
   def plan_text(place, seed, rows)
     text = +"Name    = #{place.name}\n"
@@ -207,7 +269,7 @@ module MapProceduralGenerator
     text << "MapID   = #{place.map_id}\n" if place.map_id
     text << "Seed    = #{seed}\n"
     text << "Ground  = #{place.ground}\n"
-    text << place.palette
+    text << palette_text(place)
     text << "\n[Map]\n"
     rows.each { |row| text << row << "\n" }
     return text

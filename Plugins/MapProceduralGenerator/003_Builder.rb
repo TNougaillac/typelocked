@@ -454,8 +454,13 @@ module MapProceduralGenerator
 
   module_function
 
-  # Returns [MapGen plan, its text, Layout] for that seed.
+  # Returns [MapGen plan, its text, Layout] for that seed. The ambiance is
+  # drawn from the seed unless place.ambiance already names one.
   def generate_place(place, bricks, seed)
+    if !place.ambiance && place.ambiances.any?
+      place = place.dup
+      place.ambiance = draw_ambiance(place, Random.new(seed + 7919))
+    end
     palette = check_palette(place, bricks)
     layout = PlaceBuilder.new(place, bricks, palette, seed).build
     text = plan_text(place, seed, layout.rows)

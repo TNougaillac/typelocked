@@ -214,7 +214,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.2.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.3.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -222,6 +222,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 
 - Une ville ou une route est assemblée à partir de briques faites main (bâtiments, herbes, décor) : chaque graine donne un résultat différent, la même graine redonne le même.
 - Les lacs décoratifs (`lac` dans `[Briques]`) ne se posent jamais sur le passage.
+- Ambiances (`[Ambiance nom]` dans `ville.txt` et `route.txt`) : chaque lieu tire son sol et ses rues selon un poids. L'herbe reste la plus courante ; quelques villes ont des chemins de terre, un sol de prairie, de sable, minéral ou de terre battue, quelques routes un sol de prairie, de sable ou de terre battue.
 - Un monde (`monde.txt`) tire une chaîne de villes reliées par des routes :
   - au plus une arène par ville, jamais dans la ville de départ ;
   - la ville où l'on obtient Surf est tirée parmi les villes à arène, à partir de la 2e arène au minimum (`Surf`) ;
@@ -311,3 +312,4 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 | 15/10/2026 | Modular UI Scenes 2.0.9, Enhanced Battle UI 2.1.1, Animated Pokémon System 1.1.3 + sprites animés | `Plugins/[MUI_000]*`, `Plugins/[DBK_001]*`, `Plugins/[DBK_009]*`, `Graphics/`, `PBS/pokemon_metrics*.txt`, `docs/FEATURES.md` |
 | 15/10/2026 | Plugin MapProceduralGenerator v0.2.0 (prototype) : villes, routes et monde générés, lacs, chenaux, grottes | `Plugins/MapProceduralGenerator/*`, `MapProc/*`, `tools/ci/check_mapproc.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
 | 16/10/2026 | Plugin NewGameSetup v1.0.0 : chaque mode inscrit son choix de début de partie ; Nuzlocke v1.2.0 et Monotype v1.4.0 découplés | `Plugins/NewGameSetup/*`, `Plugins/Nuzlocke/006_Setup.rb`, `Plugins/Monotype/003_Setup.rb`, `meta.txt` des deux, `docs/FEATURES.md` |
+| 16/10/2026 | MapProceduralGenerator v0.3.0 : ambiances, des sols et des rues différents d'un lieu à l'autre | `Plugins/MapProceduralGenerator/*`, `MapProc/ville.txt`, `MapProc/route.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
