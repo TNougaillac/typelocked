@@ -28,6 +28,10 @@
 #                               0 by default)
 #   Grottes  = 0..2            (routes blocked by a rock wall and passed
 #                               through a cave; 0 by default)
+#   Montagnes = 0..2           (mountain routes, climbing from level to level
+#                               by stairs; 0 by default)
+#   GrotteMontagne = 50        (chance in % that a mountain route has a cave,
+#                               a dead end; 50 by default)
 #   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
 #                               from the town of that gym onwards and after
 #                               the Surf town, needed to dive; 3 by default)
@@ -50,12 +54,14 @@
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
-                     :surf, :channels, :lakes, :caves, :dive, :dives)
+                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
-  # where Surf, Dive is obtained; deep: a route with a dive spot
+  # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
+  # route climbing by levels (with a crossing or not); cave: a mountain route
+  # with a cave
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
-                          :dive, :deep)
+                          :dive, :deep, :mountain, :cave)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
   # seabeds: [WorldPlace of the route, name, MapGen plan text]
@@ -74,7 +80,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -103,6 +109,8 @@ module MapProceduralGenerator
       when "chenaux"  then world.channels = range(value, fail_at)
       when "lacs"     then world.lakes = range(value, fail_at)
       when "grottes"  then world.caves = range(value, fail_at)
+      when "montagnes" then world.mountains = range(value, fail_at)
+      when "grottemontagne" then world.mountain_cave = integer(value, fail_at)
       when "plongee"  then world.dive = integer(value, fail_at)
       when "fonds"    then world.dives = range(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
@@ -149,13 +157,16 @@ module MapProceduralGenerator
       place.counts = base.counts.dup
       place.counts["arene"] = wp.gym ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
       place.crossing = wp.crossing
+      place.mountain = wp.mountain
+      place.cave = wp.cave
       place.dive = wp.deep
       [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
     end
     caves = built.filter_map do |wp, place, text, layout|
-      next if wp.crossing != "grotte"
+      next if wp.crossing != "grotte" && !wp.cave
       name = wp.name.sub("Route", "Grotte")
       doors = layout.doors.select { |_x, _y, brick| brick.kind == CAVE }
+      next if doors.empty?
       text << cave_warps(name, doors, place)
       [wp, name, cave_text(name, wp.name, doors), (seed * 1000) + 500 + wp.index]
     end
@@ -268,7 +279,8 @@ module MapProceduralGenerator
     text << "\n[Map]\n"
     10.times { text << ("." * 10) << "\n" }
     text << "\n[Events]\n"
-    10.times { |y| text << ((y == 1) ? ".1.2......" : "..........") << "\n" }
+    exits = (1..doors.length).map { |i| ".#{i}" }.join.ljust(10, ".")
+    10.times { |y| text << ((y == 1) ? exits : "..........") << "\n" }
     return text
   end
 
@@ -355,6 +367,15 @@ module MapProceduralGenerator
     rng.rand(world.lakes).times { (wet.shift || break).crossing = "lac" }
     dry = routes.select { |r| !r.crossing }.shuffle(random: rng)
     rng.rand(world.caves).times { (dry.shift || break).crossing = "grotte" }
+    # Mountains on any route but those of a cave, a river or a lake included;
+    # north-south routes first: they climb best
+    climbs = routes.select { |r| r.crossing != "grotte" }.shuffle(random: rng)
+    climbs = climbs.sort_by.with_index { |r, i| [(r.h > r.w) ? 0 : 1, i] }
+    rng.rand(world.mountains).times do
+      route = climbs.shift || break
+      route.mountain = true
+      route.cave = rng.rand(100) < world.mountain_cave
+    end
     return if !dive_town
     # Deep water only on water routes after the Dive town
     deep = routes.select { |r| %w[chenal lac].include?(r.crossing) && r.index > dive_town.index }.shuffle(random: rng)

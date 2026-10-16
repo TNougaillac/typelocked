@@ -1,0 +1,5 @@
+Brique = Rocher (montagne)
+Type   = rocaille
+Poids  = 2
+[Map]
+q

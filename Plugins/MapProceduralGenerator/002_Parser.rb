@@ -22,6 +22,12 @@
 #                               blocks a route crossed through a cave)
 #   Caillou = o                (optional: 1x1 [Legend] symbol filling the gaps
 #                               of that wall)
+#   Relief  = ^ &              (optional: [Terrains] symbols of the 1st and 2nd
+#                               levels of a mountain route of a world)
+#   Escalier = ef gh EF GH     (optional, with Relief: pairs of [Legend]
+#                               symbols for 2-wide stairs, in a south face of
+#                               level 1, a north edge of level 1, then the same
+#                               for level 2)
 #   MapID   = 52               (optional: overwrite this map instead of
 #                               creating a new one each time)
 #   [Briques]
@@ -58,7 +64,7 @@ module MapProceduralGenerator
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
-                     :deep, :dive)
+                     :deep, :dive, :levels, :stairs, :mountain, :cave)
   # ground, street: tile text of the ground and street symbols
   Ambiance = Struct.new(:name, :weight, :ground, :street)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
@@ -81,7 +87,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -137,6 +143,12 @@ module MapProceduralGenerator
       when "profond" then place.deep = symbol(value, fail_at)
       when "roche"   then place.rock = symbol(value, fail_at)
       when "caillou" then place.pebble = symbol(value, fail_at)
+      when "relief"
+        place.levels = value.split
+        fail_at.call("attendu deux symboles, ex. « ^ & »") unless place.levels.length == 2 && place.levels.all? { |v| v.length == 1 }
+      when "escalier"
+        place.stairs = value.split
+        fail_at.call("attendu quatre paires de symboles, ex. « ef gh EF GH »") unless place.stairs.length == 4 && place.stairs.all? { |v| v.length == 2 }
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -228,6 +240,13 @@ module MapProceduralGenerator
       raise Error, "#{place.file} : « Caillou = #{place.pebble} » doit être un symbole de [Legend]"
     end
     raise Error, "#{place.file} : « lac » dans [Briques] demande « Eau »" if place.counts["lac"] && !place.water
+    raise Error, "#{place.file} : « Relief » demande « Escalier »" if !place.levels != !place.stairs
+    place.levels&.each do |sym|
+      raise Error, "#{place.file} : « Relief » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
+    end
+    place.stairs&.join&.each_char do |sym|
+      raise Error, "#{place.file} : « Escalier » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
+    end
     place.counts.each_key do |kind|
       next if kind == LAKE || bricks.any? { |b| b.kind == kind }
       raise Error, "#{place.file} : aucune brique de type « #{kind} » dans #{FOLDER}/#{BRICK_FOLDER}/"

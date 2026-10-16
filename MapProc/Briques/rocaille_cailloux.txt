@@ -1,0 +1,4 @@
+Brique = Cailloux (montagne)
+Type   = rocaille
+[Map]
+vw

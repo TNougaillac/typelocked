@@ -25,6 +25,11 @@ Chenaux  = 1..2
 Lacs     = 0..1
 # Routes barrées par un mur de rochers, que l'on passe par une grotte.
 Grottes  = 1..2
+# Routes de montagne : on y monte et descend de niveau en niveau par des
+# escaliers. Une route de montagne peut aussi être coupée par un chenal ou un
+# lac. Certaines ont une grotte, un cul-de-sac à explorer (en %).
+Montagnes = 1..2
+GrotteMontagne = 50
 # Plongée s'obtient dans une ville à arène, la 3e ou une suivante, et toujours
 # après la ville de Surf (il faut Surf pour plonger). Les zones sous-marines ne
 # sont posées que sur des routes d'eau situées après la ville de Plongée : on y
