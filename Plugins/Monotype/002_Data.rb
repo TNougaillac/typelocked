@@ -56,11 +56,21 @@ module Monotype
     catchable?(pkmn)
   end
 
-  # Base forms of the roster (their prevolution isn't in it) that respect the rule.
+  # Highest base stat total among the final evolutions of the species.
+  def final_stats(species)
+    sp = GameData::Species.get(species)
+    evos = sp.get_evolutions(true)
+    return sp.base_stats.values.sum if evos.empty?
+    evos.map { |evo| final_stats(evo[0]) }.max
+  end
+
+  # Base forms of the roster (their prevolution isn't in it) that respect the
+  # rule, pseudo-legendaries excluded.
   def starter_pool
     ROSTER.select do |species|
       prevo = GameData::Species.get(species).get_previous_species
-      (prevo == species || !ROSTER.include?(prevo)) && species_eligible?(species)
+      (prevo == species || !ROSTER.include?(prevo)) && species_eligible?(species) &&
+        final_stats(species) <= STARTER_MAX_FINAL_STATS
     end
   end
 end

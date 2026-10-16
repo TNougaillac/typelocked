@@ -1,9 +1,9 @@
 #===============================================================================
 # Monotype - Start-of-game dialog
 # Shown automatically at the start of a new game (NewGameSetup plugin), after
-# the Nuzlocke choice, then the starter choice (unless STARTER_AT_SETUP is
-# false). Can also be called from an event: Monotype.setup_dialog,
-# Monotype.starter_dialog
+# the Nuzlocke choice, then the starter choice if STARTER_AT_SETUP is true.
+# Can also be called from an event: Monotype.setup_dialog,
+# Monotype.starter_dialog, Monotype.starter_ball(i)
 #===============================================================================
 module Monotype
   module_function
@@ -38,22 +38,40 @@ module Monotype
     _INTL("{1} ({2})", sp.name, sp.types.map { |t| GameData::Type.get(t).name }.join("/"))
   end
 
-  # Gives one of the starters drawn for this game. Can't be cancelled.
+  # Starter index (0 to STARTER_COUNT - 1) of this game. The draw is saved so
+  # that each of the professor's Poké Balls keeps its Pokémon.
+  def starter(index)
+    data.starters ||= starter_pool.sample(STARTER_COUNT)
+    data.starters[index]
+  end
+
+  def give_starter(species)
+    @giving_starter = true   # pbAddPokemon runs NewGameSetup again
+    data.starter_given = true if pbAddPokemon(species, STARTER_LEVEL)
+    data.starter_given
+  ensure
+    @giving_starter = false
+  end
+
+  # One of the professor's Poké Balls: offers starter index, true if taken.
+  def starter_ball(index)
+    NewGameSetup.run   # Mode choices first, if not made yet
+    return false if !active? || data.starter_given
+    species = starter(index)
+    return false if !pbConfirmMessage(_INTL("Tu veux {1} ?", starter_name(species)))
+    give_starter(species)
+  end
+
+  # All the starters in one list. Can't be cancelled.
   def starter_dialog
     return if !active? || data.starter_given || @giving_starter
-    data.starters ||= starter_pool.sample(STARTER_COUNT)
-    starters = data.starters
+    starters = Array.new(STARTER_COUNT) { |i| starter(i) }
     names = starters.map { |species| starter_name(species) }
     loop do
       index = pbMessage(_INTL("Choisis ton starter de type {1}.", type_name), names, 0)   # 0: no cancel
       next if !pbConfirmMessage(_INTL("Choisir {1} ? Ce choix est définitif.",
                                       GameData::Species.get(starters[index]).name))
-      begin
-        @giving_starter = true   # pbAddPokemon runs NewGameSetup again
-        data.starter_given = true if pbAddPokemon(starters[index], STARTER_LEVEL)
-      ensure
-        @giving_starter = false
-      end
+      give_starter(starters[index])
       return
     end
   end
