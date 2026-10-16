@@ -287,6 +287,28 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Sans le dossier `Plugins/Monotype/` : le choix Nuzlocke s'affiche quand même.
 - Sauvegarde existante dont les choix sont faits : aucune fenêtre.
 
+## F09. Multi Exp permanent (ExpAll)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/ExpAll/`
+
+### Règles
+- Le Multi Exp est actif dès le début de la partie et ne se désactive pas (issue #30).
+- Comportement des jeux récents (Gen 6+) : les Pokémon qui ont combattu gagnent toute leur part, ceux de l'équipe qui n'ont pas combattu gagnent la moitié. Les Pokémon K.O. ne gagnent rien.
+- Les EV sont aussi donnés à toute l'équipe, comme dans les jeux récents.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_ExpAll.rb` | `ExpAll::ALWAYS_ON` et redéfinition de `Player#has_exp_all`. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Player#has_exp_all`, lu par `Battle#pbGainExp`. Le calcul reste celui d'Essentials (`MECHANICS_GENERATION = 8`).
+
+### Limites connues
+- L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `ALWAYS_ON` vaut `true`.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
