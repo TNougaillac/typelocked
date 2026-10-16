@@ -48,3 +48,18 @@ module ItemHandlers
     end
   end
 end
+
+# Ball menu of the Enhanced Battle UI (JUMPDOWN key): it re-shows the message at
+# each confirm and stays open, so refuse to open it when no foe can be caught.
+module Monotype::BallMenuHooks
+  def pbToggleBallInfo(idxBattler, raidCapture = false)
+    if !raidCapture && Monotype.active? && @battle.wildBattle? &&
+       !Monotype.any_catchable?(@battle.pbParty(1))
+      pbDisplay(Monotype.blocked_message)
+      return false
+    end
+    super
+  end
+end
+
+Battle::Scene.prepend(Monotype::BallMenuHooks)
