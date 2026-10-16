@@ -22,9 +22,25 @@ _Avoid_ : seed
 La mafia qui gouverne la région à la place de l'État. Son nom sonne accueillant, ce qu'elle n'est pas.
 _Avoid_ : mafia, Syndicat, Team
 
+**Parrain** :
+Le chef de la Famille, qui tient le rôle de Maître de la Ligue.
+_Avoid_ : Maître, boss
+
+**Anciens** :
+Les quatre membres de la Famille qui gardent l'entrée du Parrain, à la place du Conseil 4.
+_Avoid_ : Conseil 4, Top 4
+
 **Champion d'arène** :
 Un lieutenant de la Famille, qui tient une ville et son arène.
 _Avoid_ : chef d'arène
+
+**Cousins** :
+Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
+_Avoid_ : sbires, Team, grunts
+
+**Professeur** :
+Celui qui annonce au joueur son type imposé et lui propose les trois starters. Il travaille en secret pour la Famille.
+_Avoid_ : Prof
 
 **Ligue** :
 Le sommet de la Famille, au bout du parcours des arènes.
@@ -33,7 +49,7 @@ _Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
 ## Le verrou
 
 **Pacte** :
-L'ancien accord passé entre la Famille et Arceus, à l'origine du verrou : Arceus a donné à la Famille le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul type, doit monter jusqu'à la Ligue et être remise à Arceus. Les anciens désignés ont disparu après la Ligue.
+L'ancien accord passé entre la Famille et Arceus, à l'origine du verrou : Arceus a donné à la Famille le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul type, doit monter jusqu'à la Ligue et être remise à Arceus. Les anciens désignés ont disparu après la Ligue. Un parent du joueur est membre de la Famille et savait qu'il serait désigné.
 _Avoid_ : malédiction, contrat
 
 **Joueur** :
