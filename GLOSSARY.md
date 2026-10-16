@@ -19,9 +19,13 @@ _Avoid_ : seed
 ## Le verrou
 
 **Pacte** :
-L'ancien accord passé avec un Pokémon légendaire, à l'origine du verrou. Ses termes sont oubliés et il a un prix.
+L'ancien accord passé entre la mafia qui gouverne la région et Arceus, à l'origine du verrou. Ses termes sont oubliés et il a un prix.
 _Avoid_ : malédiction, contrat
 
 **Type imposé** :
 Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans toutes les parties, et le joueur est le seul dresseur de la région à en avoir un.
 _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
+
+**Starter** :
+Le premier Pokémon du joueur, choisi parmi trois Pokémon de son type imposé.
+_Avoid_ : Pokémon de départ
