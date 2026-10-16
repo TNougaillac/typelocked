@@ -23,6 +23,7 @@ module Monotype::BattleHooks
     if battler && !Monotype.catchable?(battler.pokemon)
       pbDisplay(Monotype.blocked_message)
       respond_to?(:ballCount) ? @ballCount += 1 : $bag.add(ball)
+      @poke_ball_failed = true   # DBK raid-style capture: the target flees instead of staying at 0 HP
       return
     end
     super

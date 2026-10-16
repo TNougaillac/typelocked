@@ -70,6 +70,7 @@ module Nuzlocke::BattleEncounterHooks
     if reason
       pbDisplay(Nuzlocke.blocked_message(reason))
       respond_to?(:ballCount) ? @ballCount += 1 : $bag.add(ball)
+      @poke_ball_failed = true   # DBK raid-style capture: the target flees instead of staying at 0 HP
       return
     end
     super
