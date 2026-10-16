@@ -49,7 +49,7 @@ _Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
 ## Le verrou
 
 **Pacte** :
-L'ancien accord passé entre la Famille et Arceus, à l'origine du verrou : Arceus a donné à la Famille le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul type, doit monter jusqu'à la Ligue et être remise à Arceus. Les anciens désignés ont disparu après la Ligue. Un parent du joueur est membre de la Famille et savait qu'il serait désigné.
+L'ancien accord passé entre la Famille et Arceus, à l'origine du verrou : Arceus a donné à la Famille le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul type, doit monter jusqu'à la Ligue et être remise à Arceus. Les anciens désignés ont disparu après la Ligue.
 _Avoid_ : malédiction, contrat
 
 **Joueur** :
