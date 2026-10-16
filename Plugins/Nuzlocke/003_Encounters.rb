@@ -96,3 +96,19 @@ module ItemHandlers
     end
   end
 end
+
+# Ball menu of the Enhanced Battle UI (JUMPDOWN key): it re-shows the message at
+# each confirm and stays open, so refuse to open it when no foe can be caught.
+module Nuzlocke::BallMenuHooks
+  def pbToggleBallInfo(idxBattler, raidCapture = false)
+    if !raidCapture && Nuzlocke.active? && @battle.wildBattle? &&
+       !Nuzlocke.any_catchable?(@battle.pbParty(1))
+      foe = @battle.pbParty(1).find { |pkmn| pkmn && !pkmn.fainted? }
+      pbDisplay(Nuzlocke.blocked_message(Nuzlocke.catch_blocked_reason(foe)))
+      return false
+    end
+    super
+  end
+end
+
+Battle::Scene.prepend(Nuzlocke::BallMenuHooks)
