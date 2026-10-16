@@ -41,7 +41,6 @@ module Monotype
   # Gives one of the starters drawn for this game. Can't be cancelled.
   def starter_dialog
     return if !active? || data.starter_given || @giving_starter
-    @giving_starter = true   # pbAddPokemon runs NewGameSetup again
     data.starters ||= starter_pool.sample(STARTER_COUNT)
     starters = data.starters
     names = starters.map { |species| starter_name(species) }
@@ -49,11 +48,14 @@ module Monotype
       index = pbMessage(_INTL("Choisis ton starter de type {1}.", type_name), names, 0)   # 0: no cancel
       next if !pbConfirmMessage(_INTL("Choisir {1} ? Ce choix est définitif.",
                                       GameData::Species.get(starters[index]).name))
-      data.starter_given = true if pbAddPokemon(starters[index], STARTER_LEVEL)
+      begin
+        @giving_starter = true   # pbAddPokemon runs NewGameSetup again
+        data.starter_given = true if pbAddPokemon(starters[index], STARTER_LEVEL)
+      ensure
+        @giving_starter = false
+      end
       return
     end
-  ensure
-    @giving_starter = false
   end
 
   def setup_dialog
