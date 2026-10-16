@@ -3,13 +3,14 @@
 # pour que la CI ne le prenne pas pour un plan de ville ou de route.
 #
 # [Formes] : comment un nom de base devient un nom de lieu. {nom} = un nom tiré
-# dans [Italien], [Americain] ou [Francais], à parts égales.
+# dans [Italien], [Americain] ou [Francais], à parts égales. Plusieurs formes
+# séparées par « | » : une est tirée au hasard (française ou anglaise).
 # [Region] : noms possibles pour la région entière.
 
 [Formes]
-Village = Bourg {nom}
-Port    = Port {nom}
-Ville   = {nom}ville
+Village = Bourg {nom} | {nom} County
+Port    = Port {nom} | {nom} Dock | {nom} Harbor
+Ville   = {nom}ville | {nom} City
 
 [Region]
 Omerta, Vendetta, Calabria, Sicaria, Bayonne, Nouvelle-Corse, Borgata, Liberty

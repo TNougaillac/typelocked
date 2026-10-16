@@ -43,9 +43,9 @@ Au sommet de la Ligue, le joueur affronte le Parrain, puis Arceus, en combat de 
 
 Tirés à chaque graine dans [MapProc/Lore/noms.txt](../MapProc/Lore/noms.txt) :
 
-- villages : « Bourg » + nom (Bourg Lucca) ;
-- villes portuaires : « Port » + nom (Port Hudson) ;
-- villes : nom + « ville », en suffixe comme Albertville ou Jacksonville (Morettiville, Beaumontville) ;
+- villages : « Bourg » + nom (Bourg Lucca), ou nom + « County » (Beaumont County) ;
+- villes portuaires : « Port » + nom (Port Hudson), ou nom + « Dock » ou « Harbor » (Salerno Dock, Lorient Harbor) ;
+- villes : nom + « ville », en suffixe comme Albertville ou Jacksonville (Morettiville), ou nom + « City » (Caruso City) ;
 - routes : numérotées (Route 1) ;
 - région : tirée dans sa propre liste.
 
