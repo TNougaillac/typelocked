@@ -3,8 +3,6 @@
 # The game must be finishable quickly: more Exp., faster movement.
 #===============================================================================
 module FastPace
-  # Multi Exp. always on. false gives back the Exp. All item / debug toggle.
-  EXP_ALL_ALWAYS_ON = true
   # Multiplies all Exp. gained in battle. 1 = Essentials' normal amount.
   EXP_MULTIPLIER = 4
   # Running shoes from the start of the game.
