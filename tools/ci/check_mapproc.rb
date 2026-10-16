@@ -27,6 +27,11 @@ places.each do |path|
     plan, = M.generate_place(place, bricks, seed)
     MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
   end
+  # Every ambiance at least once
+  place.ambiances.each do |ambiance|
+    plan, = M.generate_place(place.dup.tap { |p| p.ambiance = ambiance.name }, bricks, 1)
+    MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+  end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end
