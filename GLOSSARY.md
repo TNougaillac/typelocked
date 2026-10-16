@@ -16,8 +16,12 @@ _Avoid_ : monde, carte
 Le nombre qui détermine la région d'une partie ; la même graine redonne la même région.
 _Avoid_ : seed
 
-## Règles
+## Le verrou
+
+**Pacte** :
+L'ancien accord passé avec un Pokémon légendaire, à l'origine du verrou. Ses termes sont oubliés et il a un prix.
+_Avoid_ : malédiction, contrat
 
 **Type imposé** :
-Le seul type de Pokémon avec lequel le joueur peut jouer. Il est obligatoire dans toutes les parties.
+Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans toutes les parties, et le joueur est le seul dresseur de la région à en avoir un.
 _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
