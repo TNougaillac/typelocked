@@ -369,10 +369,9 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 **Dossiers :** `Plugins/FieldItems/`, `PBS/items.txt`
 
 ### Règles
-- Les capacités de terrain se débloquent avec un objet clé remis par un PNJ, plus avec les sceaux. Aucun Pokémon n'a besoin de connaître la capacité (indispensable avec le Monotype).
+- Les capacités de terrain sont remplacées par des objets clés remis par des PNJ : c'est le joueur qui utilise l'objet (« Tom used Cut! »). Aucun sceau ni aucun Pokémon n'est nécessaire (indispensable avec le Monotype).
 - Objets : Machette (Coupe), Pioche (Éclate-Roc), Harnais (Force), Selle de Surf (Surf), Grappin (Cascade), Scaphandre (Plongée), Selle de Vol (Vol), Lanterne (Flash).
-- Avec l'objet, un Pokémon de l'équipe qui connaît la capacité l'utilise (avec son animation). Sinon, c'est le joueur qui utilise l'objet (« Tom used Cut! »).
-- Sans l'objet, un Pokémon qui connaît la capacité ne peut pas l'utiliser hors combat (« Il faut d'abord obtenir l'objet X. »).
+- Hors combat, les Pokémon ne proposent plus ces capacités dans le menu de l'équipe, même s'ils les connaissent.
 - Coupe, Éclate-Roc, Force, Surf, Cascade et Plongée se déclenchent devant l'obstacle, comme d'habitude. La Selle de Vol et la Lanterne s'utilisent depuis le Sac.
 - Les CS n'existent plus : ces attaques s'apprennent et s'oublient comme les autres, avec les CT du jeu (CT70 Flash, CT93 Coupe, CT94 Vol, CT95 Surf, CT96 Force, CT98 Éclate-Roc, CT99 Cascade) et la nouvelle CT101 Plongée.
 
@@ -381,14 +380,14 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
 | `001_Settings.rb` | `ITEMS` : capacité de terrain → objet clé. |
-| `002_FieldItems.rb` | Déblocage par objet, utilisation depuis le Sac. |
+| `002_FieldItems.rb` | Remplacement des capacités par les objets, utilisation depuis le Sac. |
 | `PBS/items.txt` | CS01 à CS06 retirées, CT101 Plongée et les 8 objets clés ajoutés. |
 
 ### Intégration
 - PNJ qui remet un objet : commande Script `pbReceiveItem(:MACHETE)` dans l'événement (ou `Script = pbReceiveItem(:MACHETE)` dans un plan MapEvents). Un lieutenant peut aussi la donner après sa victoire avec `Gift = MACHETE`.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`Player#get_pokemon_with_move`, `pbCheckHiddenMoveBadge` (toujours vrai), `pbHiddenMoveAnimation`, `HiddenMoveHandlers.triggerCanUseMove`, handlers `UseFromBag` / `UseInField` des deux objets.
+`Player#get_pokemon_with_move`, `pbCheckHiddenMoveBadge` (toujours vrai), `pbHiddenMoveAnimation`, `HiddenMoveHandlers.hasHandler` (menu de l'équipe), handlers `UseFromBag` / `UseInField` des deux objets.
 
 ### Limites connues
 - En mode test (lancement depuis l'éditeur), Essentials autorise déjà toutes les capacités de terrain : tester le blocage en lançant `Game.exe` directement.

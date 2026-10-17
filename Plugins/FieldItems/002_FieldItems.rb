@@ -1,11 +1,11 @@
 #===============================================================================
-# FieldItems - Key items unlock field moves
+# FieldItems - Key items replace field moves
 # Essentials' field move code asks $player.get_pokemon_with_move(move) and
 # checks the seal count; both are redirected to the key items here.
 #===============================================================================
 module FieldItems
-  # Stands in for a Pokémon when the player uses the item himself: Essentials
-  # then shows "<player> used <move>!" and no Pokémon animation.
+  # Stands in for the Pokémon: Essentials then shows "<player> used <move>!"
+  # and no Pokémon animation.
   class User
     def name
       return $player.name
@@ -26,10 +26,10 @@ end
 class Player
   alias __fielditems_get_pokemon_with_move get_pokemon_with_move
 
+  # The item replaces the move: a Pokémon knowing it is never used.
   def get_pokemon_with_move(move)
     return __fielditems_get_pokemon_with_move(move) if !FieldItems::ITEMS.key?(move)
-    return nil if !FieldItems.unlocked?(move)
-    return __fielditems_get_pokemon_with_move(move) || FieldItems.user
+    return (FieldItems.unlocked?(move)) ? FieldItems.user : nil
   end
 end
 
@@ -44,20 +44,14 @@ def pbHiddenMoveAnimation(pokemon)
   return __fielditems_pbHiddenMoveAnimation(pokemon)
 end
 
-# Party menu: a Pokémon knowing the move can't use it without the item.
+# Party menu: these moves are no longer listed as field moves.
 module HiddenMoveHandlers
   class << self
-    alias_method :__fielditems_triggerCanUseMove, :triggerCanUseMove
+    alias_method :__fielditems_hasHandler, :hasHandler
 
-    def triggerCanUseMove(move, pkmn, showmsg)
-      if FieldItems::ITEMS.key?(move) && !FieldItems.unlocked?(move)
-        if showmsg
-          pbMessage(_INTL("Il faut d'abord obtenir l'objet {1}.",
-                          GameData::Item.get(FieldItems::ITEMS[move]).name))
-        end
-        return false
-      end
-      return __fielditems_triggerCanUseMove(move, pkmn, showmsg)
+    def hasHandler(move)
+      return false if FieldItems::ITEMS.key?(move)
+      return __fielditems_hasHandler(move)
     end
   end
 end

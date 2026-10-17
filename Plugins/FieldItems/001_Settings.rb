@@ -1,8 +1,8 @@
 #===============================================================================
 # FieldItems - Settings
-# Field moves (Cut, Surf...) are unlocked by key items given by NPCs, not by
-# seals or by a Pokémon knowing the move. With the item, a party Pokémon that
-# knows the move uses it; otherwise the player uses the item.
+# Field moves (Cut, Surf...) are replaced by key items given by NPCs: the
+# player uses the item, no seal is needed and Pokémon no longer use these
+# moves outside battle.
 #===============================================================================
 module FieldItems
   # Field move => key item that unlocks it (PBS/items.txt, pocket 8).
