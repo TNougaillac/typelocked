@@ -9,7 +9,14 @@ module LevelCap
 
   def current
     return nil if !$player
-    return CAPS[$player.badge_count]
+    return cap_for_seals($player.badge_count)
+  end
+
+  def cap_for_seals(seals)
+    leader = LEADERS[seals]
+    trainer = leader && GameData::Trainer.try_get(*leader)
+    return trainer.pokemon.map { |pkmn| pkmn[:level] }.max if trainer
+    return FALLBACK_CAPS[seals]
   end
 
   def reached?(pkmn)

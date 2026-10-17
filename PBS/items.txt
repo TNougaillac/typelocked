@@ -5135,59 +5135,16 @@ Flags = Fling_90
 Move = ROCKCLIMB
 Description = A charging attack that may also leave the foe confused.
 #-------------------------------
-[HM01]
-Name = HM01
-NamePlural = HM01s
+[TM101]
+Name = TM101
+NamePlural = TM101s
 Pocket = 4
-Price = 0
-FieldUse = HM
-Move = CUT
-Description = The target is cut with a scythe or claw. This can also be used to cut down thin trees.
-#-------------------------------
-[HM02]
-Name = HM02
-NamePlural = HM02s
-Pocket = 4
-Price = 0
-FieldUse = HM
-Move = FLY
-Description = The user soars and then strikes on the next turn. This can also be used to fly to any familiar town.
-#-------------------------------
-[HM03]
-Name = HM03
-NamePlural = HM03s
-Pocket = 4
-Price = 0
-FieldUse = HM
-Move = SURF
-Description = Attacks everything by swamping the surroundings with a giant wave. This can also be used to cross water.
-#-------------------------------
-[HM04]
-Name = HM04
-NamePlural = HM04s
-Pocket = 4
-Price = 0
-FieldUse = HM
-Move = STRENGTH
-Description = The target is slugged with a punch thrown at maximum power. This can also be used to move heavy boulders.
-#-------------------------------
-[HM05]
-Name = HM05
-NamePlural = HM05s
-Pocket = 4
-Price = 0
-FieldUse = HM
-Move = WATERFALL
-Description = The user charges at the target and may make it flinch. It can also be used to climb a waterfall.
-#-------------------------------
-[HM06]
-Name = HM06
-NamePlural = HM06s
-Pocket = 4
-Price = 0
-FieldUse = HM
+Price = 3000
+BPPrice = 64
+FieldUse = TR
+Flags = Fling_80
 Move = DIVE
-Description = Diving on the first turn, the user floats up and attacks on the second. It can be used to dive underwater.
+Description = Diving on the first turn, the user floats up and attacks on the second.
 #-------------------------------
 [CHERIBERRY]
 Name = Cheri Berry
@@ -6563,3 +6520,69 @@ Pocket = 8
 Price = 0
 Flags = KeyItem
 Description = A faded sea chart that shows the way to a certain island.
+#-------------------------------
+[MACHETE]
+Name = Machette
+NamePlural = Machettes
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Une lame de la Famille, assez tranchante pour couper les petits arbres qui barrent la route.
+#-------------------------------
+[PICKAXE]
+Name = Pioche
+NamePlural = Pioches
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Une pioche solide qui brise les rochers fissurés.
+#-------------------------------
+[HARNESS]
+Name = Harnais
+NamePlural = Harnais
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Un harnais de traction : avec lui, un Pokémon de l'équipe peut pousser les gros rochers.
+#-------------------------------
+[SURFSADDLE]
+Name = Selle de Surf
+NamePlural = Selles de Surf
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Une selle étanche qui permet de monter sur un Pokémon pour traverser l'eau.
+#-------------------------------
+[GRAPPLINGHOOK]
+Name = Grappin
+NamePlural = Grappins
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Un grappin et sa corde, pour remonter les cascades.
+#-------------------------------
+[DIVINGSUIT]
+Name = Scaphandre
+NamePlural = Scaphandres
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Un scaphandre de contrebandier pour plonger dans les eaux profondes.
+#-------------------------------
+[FLYINGSADDLE]
+Name = Selle de Vol
+NamePlural = Selles de Vol
+Pocket = 8
+Price = 0
+FieldUse = Direct
+Flags = KeyItem
+Description = Une selle de vol : un Pokémon de l'équipe vous emmène dans une ville déjà visitée.
+#-------------------------------
+[LANTERN]
+Name = Lanterne
+NamePlural = Lanternes
+Pocket = 8
+Price = 0
+FieldUse = Direct
+Flags = KeyItem
+Description = Une lanterne qui éclaire les grottes sombres.

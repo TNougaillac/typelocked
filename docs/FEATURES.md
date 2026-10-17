@@ -341,24 +341,58 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 **Dossier :** `Plugins/LevelCap/`
 
 ### Règles
-- Le niveau maximum dépend du nombre de sceaux (`CAPS[n]` = niveau maximum avec n sceaux). Une entrée absente = pas de limite.
+- Le niveau maximum dépend du nombre de sceaux : c'est le niveau du Pokémon le plus fort du prochain lieutenant (avec 8 sceaux, celui du Parrain), lu dans `PBS/trainers.txt`. Les lieutenants sont listés dans l'ordre dans `LEADERS`.
+- Un lieutenant pas encore défini (`nil` dans `LEADERS` ou absent de `trainers.txt`) utilise `FALLBACK_CAPS` (provisoire : champions de la démo Kanto, 14, 21, 24, 29, 43, 43, 47, 50, 63). Une valeur `nil` = pas de limite.
 - Au niveau maximum, un Pokémon ne gagne plus d'expérience en combat (il gagne toujours ses EV). Un gain qui dépasserait la limite s'arrête pile au niveau maximum.
 - Super Bonbon et Bonbons Exp. : refusés au niveau maximum (« X ne peut pas dépasser le niveau N pour l'instant. »), et la quantité proposée s'arrête à la limite.
 - Un Pokémon déjà au-dessus de la limite (capturé, reçu) garde son niveau.
-- Valeurs provisoires : niveau du Pokémon le plus fort de chaque champion de la démo (Kanto), puis celui du Maître avec 8 sceaux : 14, 21, 24, 29, 43, 43, 47, 50, 63. À recaler sur les lieutenants de TypeLocked.
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | `CAPS`, `LEVEL_ITEMS`. |
-| `002_LevelCap.rb` | Limite d'expérience en combat et pour les objets. |
+| `001_Settings.rb` | `LEADERS`, `FALLBACK_CAPS`, `LEVEL_ITEMS`. |
+| `002_LevelCap.rb` | Calcul de la limite, limite d'expérience en combat et pour les objets. |
+
+### Intégration
+- À chaque nouveau lieutenant écrit dans `trainers.txt`, remplacer le `nil` correspondant de `LEADERS` par `[:TYPE_DE_DRESSEUR, "Nom"]`. La limite suit ensuite son équipe toute seule.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Battle#pbGainExpOne`, `Pokemon#growth_rate` (remplacé par une version plafonnée pendant le gain, Essentials fait le reste), `ItemHandlers.triggerUseOnPokemon` et `triggerUseOnPokemonMaximum`.
 
 ### Limites connues
 - La Pension n'est pas limitée.
+
+## F12. Objets de terrain (FieldItems)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossiers :** `Plugins/FieldItems/`, `PBS/items.txt`
+
+### Règles
+- Les capacités de terrain se débloquent avec un objet clé remis par un PNJ, plus avec les sceaux. Aucun Pokémon n'a besoin de connaître la capacité (indispensable avec le Monotype).
+- Objets : Machette (Coupe), Pioche (Éclate-Roc), Harnais (Force), Selle de Surf (Surf), Grappin (Cascade), Scaphandre (Plongée), Selle de Vol (Vol), Lanterne (Flash).
+- Avec l'objet, un Pokémon de l'équipe qui connaît la capacité l'utilise (avec son animation). Sinon, c'est le joueur qui utilise l'objet (« Tom used Cut! »).
+- Sans l'objet, un Pokémon qui connaît la capacité ne peut pas l'utiliser hors combat (« Il faut d'abord obtenir l'objet X. »).
+- Coupe, Éclate-Roc, Force, Surf, Cascade et Plongée se déclenchent devant l'obstacle, comme d'habitude. La Selle de Vol et la Lanterne s'utilisent depuis le Sac.
+- Les CS n'existent plus : ces attaques s'apprennent et s'oublient comme les autres, avec les CT du jeu (CT70 Flash, CT93 Coupe, CT94 Vol, CT95 Surf, CT96 Force, CT98 Éclate-Roc, CT99 Cascade) et la nouvelle CT101 Plongée.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | `ITEMS` : capacité de terrain → objet clé. |
+| `002_FieldItems.rb` | Déblocage par objet, utilisation depuis le Sac. |
+| `PBS/items.txt` | CS01 à CS06 retirées, CT101 Plongée et les 8 objets clés ajoutés. |
+
+### Intégration
+- PNJ qui remet un objet : commande Script `pbReceiveItem(:MACHETE)` dans l'événement (ou `Script = pbReceiveItem(:MACHETE)` dans un plan MapEvents). Un lieutenant peut aussi la donner après sa victoire avec `Gift = MACHETE`.
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Player#get_pokemon_with_move`, `pbCheckHiddenMoveBadge` (toujours vrai), `pbHiddenMoveAnimation`, `HiddenMoveHandlers.triggerCanUseMove`, handlers `UseFromBag` / `UseInField` des deux objets.
+
+### Limites connues
+- En mode test (lancement depuis l'éditeur), Essentials autorise déjà toutes les capacités de terrain : tester le blocage en lançant `Game.exe` directement.
+- Les messages d'utilisation restent ceux d'Essentials, en anglais.
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
