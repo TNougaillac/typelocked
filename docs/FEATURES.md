@@ -335,6 +335,31 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Limites connues
 - Les options par défaut ne s'appliquent que si aucune sauvegarde n'existe encore (Essentials garde les options d'une partie à l'autre).
 
+## F11. Niveau maximum par sceau (LevelCap)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/LevelCap/`
+
+### Règles
+- Le niveau maximum dépend du nombre de sceaux (`CAPS[n]` = niveau maximum avec n sceaux). Une entrée absente = pas de limite.
+- Au niveau maximum, un Pokémon ne gagne plus d'expérience en combat (il gagne toujours ses EV). Un gain qui dépasserait la limite s'arrête pile au niveau maximum.
+- Super Bonbon et Bonbons Exp. : refusés au niveau maximum (« X ne peut pas dépasser le niveau N pour l'instant. »), et la quantité proposée s'arrête à la limite.
+- Un Pokémon déjà au-dessus de la limite (capturé, reçu) garde son niveau.
+- Valeurs provisoires : niveau du Pokémon le plus fort de chaque champion de la démo (Kanto), puis celui du Maître avec 8 sceaux : 14, 21, 24, 29, 43, 43, 47, 50, 63. À recaler sur les lieutenants de TypeLocked.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | `CAPS`, `LEVEL_ITEMS`. |
+| `002_LevelCap.rb` | Limite d'expérience en combat et pour les objets. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Battle#pbGainExpOne`, `Pokemon#growth_rate` (remplacé par une version plafonnée pendant le gain, Essentials fait le reste), `ItemHandlers.triggerUseOnPokemon` et `triggerUseOnPokemonMaximum`.
+
+### Limites connues
+- La Pension n'est pas limitée.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
