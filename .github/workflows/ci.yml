@@ -9,6 +9,7 @@ on:
       - "MapGen/**"
       - "MapEvents/**"
       - "MapProc/**"
+      - "docs/roster/**"
       - "Data/**"
       - "tools/ci/**"
       - ".rubocop.yml"
@@ -20,6 +21,7 @@ on:
       - "MapGen/**"
       - "MapEvents/**"
       - "MapProc/**"
+      - "docs/roster/**"
       - "Data/**"
       - "tools/ci/**"
       - ".rubocop.yml"
@@ -47,6 +49,9 @@ jobs:
       - name: Lieux MapProc
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_mapproc.rb
+      - name: Rencontres générées
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_encounters.rb
       - name: Plans MapEvents
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_mapevents.rb
