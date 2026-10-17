@@ -1,8 +1,8 @@
 #===============================================================================
 # MapProceduralGenerator - A new world for each new game
 # Starting a new game draws the world of NEW_GAME_WORLD with a random seed
-# (maps only, no events); the end of the intro takes the player to its first
-# town. The seed is saved with the game. At each start of
+# (maps only, no events) and the game starts in its first town, the player
+# only choosing a name. The seed is saved with the game. At each start of
 # the game (load screen), the maps on disk are matched with the save: the
 # maps of a game left without saving are deleted, or the saved world is drawn
 # again from its seed if the save has one.
@@ -177,39 +177,37 @@ module Game
     alias_method :__mapproc_start_new, :start_new
 
     # The world is drawn before the game starts, so its data is ready. The
-    # intro of the editor's start map still runs (gender, name).
+    # game then starts in its first town, without the intro of the editor's
+    # start map: the player only chooses a name (see below).
     def start_new
       seed, start = MapProceduralGenerator.new_game_world
-      __mapproc_start_new
+      system = $data_system
+      editor_start = [system.start_map_id, system.start_x, system.start_y]
+      system.start_map_id, system.start_x, system.start_y = start if start
+      begin
+        __mapproc_start_new
+      ensure
+        system.start_map_id, system.start_x, system.start_y = editor_start
+      end
       $mapproc_world = seed
-      $game_temp.mapproc_start = start
+      $game_temp.mapproc_name_entry = true if start
     end
   end
 end
 
 class Game_Temp
-  # [map ID, x, y] of the new game's world, until the intro leaves its map.
-  attr_accessor :mapproc_start
+  # The player of a new game in a generated world still has to be named.
+  attr_accessor :mapproc_name_entry
 end
 
-class Interpreter
-  alias_method :__mapproc_command_201, :command_201
-
-  # The first transfer out of the editor's start map (end of the intro) goes
-  # to the first town of the world instead.
-  def command_201
-    transferring = $game_temp.player_transferring
-    result = __mapproc_command_201
-    start = $game_temp.mapproc_start
-    if start && !transferring && $game_temp.player_transferring &&
-       $game_map.map_id == $data_system.start_map_id
-      $game_temp.player_new_map_id, $game_temp.player_new_x, $game_temp.player_new_y = start
-      $game_temp.player_new_direction = 2
-      $game_temp.mapproc_start = nil
-    end
-    return result
-  end
-end
+# Name entry on the first frame of the map (character 1, as in the intro).
+EventHandlers.add(:on_frame_update, :mapproc_player_name,
+  proc {
+    next if !$game_temp.mapproc_name_entry || pbMapInterpreterRunning?
+    $game_temp.mapproc_name_entry = false
+    pbTrainerName
+  }
+)
 
 class PokemonLoadScreen
   alias_method :__mapproc_initialize, :initialize
