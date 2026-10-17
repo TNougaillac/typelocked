@@ -256,9 +256,8 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 
 ### Limites connues
 
-- Pas encore de rencontres sauvages, de dresseurs, d'objets ni d'intérieurs derrière les portes.
+- Pas encore de dresseurs, d'objets ni d'intérieurs derrière les portes. Les rencontres sauvages sont écrites par ProceduralEncounters (F13).
 - L'obtention de Surf et de Plongée elle-même n'est pas encore placée : seule la ville est tirée.
-- Pas encore de rencontres sous l'eau.
 
 ## F08. Choix de mode en début de partie (NewGameSetup)
 **Statut :** v1.0.0, écrit, **non testé**.
@@ -393,6 +392,45 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - En mode test (lancement depuis l'éditeur), Essentials autorise déjà toutes les capacités de terrain : tester le blocage en lançant `Game.exe` directement.
 - Les messages d'utilisation restent ceux d'Essentials, en anglais.
 
+## F13. Rencontres sauvages générées (ProceduralEncounters)
+**Statut :** v1.0.0, écrit, testé hors jeu (CI), **non testé en jeu**.
+**Version cible :** Essentials v21.1. Dépend de MapProceduralGenerator (`Requires = MapProceduralGenerator`), sans le modifier.
+**Dossier :** `Plugins/ProceduralEncounters/`
+
+### Règles
+- Quand un monde MapProc est généré (menu debug), chaque carte reçoit ses rencontres dans `PBS/encounters.txt` : `Land` s'il y a des hautes herbes, `Water` et les trois cannes s'il y a de l'eau, `Cave` pour chaque grotte. Seules les sections des cartes du monde sont remplacées (ou retirées si la carte n'a plus ni herbe, ni eau, ni grotte), puis le fichier est recompilé. Une copie est écrite dans `MapProc/Export/<monde>_<graine>_rencontres.txt`.
+- Source : les 300 de `docs/roster/liste-300.csv` (types, types Monotype, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. Modifier la liste change les rencontres à la prochaine génération du monde.
+- **Niveaux :** les sceaux d'une carte = les arènes avant elle dans la chaîne. Les niveaux montent du cap précédent vers 80 % de l'écart jusqu'au cap suivant (caps de LevelCap, sinon `CAPS`), en commençant à 3. Cannes : Canne -6, Super Canne -3, Méga Canne +2.
+- **Biomes :** ville, montagne, grotte, eau, sinon le sol de la route (herbe, prairie, sable, terre battue). La démesure peut le remplacer (forêt profonde et ville-jardin = forêt, mer d'herbes = prairie, chaos rocheux et montagne colossale = montagne). Chaque biome donne un poids par type (`BIOMES`) ; un Pokémon prend le meilleur de ses types. L'eau et les cannes n'ont que des Pokémon de type Eau, la Canne seulement des faibles non évolués.
+- **Tirage :** chaque table tire quelques Pokémon selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
+- **Évolutions :** une évolution par niveau apparaît à partir de ce niveau ; par pierre, bonheur, échange… à partir de 3 sceaux (stade 2) ou 6 sceaux (stade 3).
+- **Couverture Monotype :** entre deux lieutenants, les 18 types ont chacun au moins un Pokémon capturable par un run de ce type (herbe, grotte, ou surf une fois Surf obtenu). Les manquants sont ajoutés en rares, d'abord ceux qui couvrent le plus de types d'un coup ; les tables peuvent alors grandir (jusqu'à 14 Pokémon en herbe).
+- **Couverture du Pokédex :** chaque famille de la liste apparaît au moins une fois dans le monde.
+- Même graine du monde = mêmes rencontres.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Fichiers lus, tuiles d'herbe et d'eau, `BIOMES`, `TABLES`, niveaux, poids. |
+| `002_Species.rb` | Lecture de la liste des 300 et des évolutions (niveau ou sceaux minimum). |
+| `003_Tables.rb` | Tirage des tables, couverture des types et des familles, lignes PBS. |
+| `004_World.rb` | Zones d'un monde généré : sceaux, niveaux, biome, types de rencontre. |
+| `005_Generate.rb` | Écriture dans `encounters.txt` et accroche à MapProc. |
+| `tools/ci/check_encounters.rb` | CI : 3 graines par monde, lignes, niveaux, pourcentages, couverture. |
+
+### Points d'accroche (alias, aucun script de base modifié)
+`MapProceduralGenerator.generate_world` et `generate_world_maps` (alias `__encounters_…`), `Compiler.compile_encounters`.
+
+### À vérifier au premier lancement
+- Générer un monde, puis marcher dans les hautes herbes d'une route, pêcher et surfer dans une ville à lac, entrer dans une grotte.
+- La console liste les types ou familles sans Pokémon s'il y en a (la CI vérifie qu'il n'y en a aucun sur 3 graines).
+
+### Limites connues
+- Pas de rencontres de nuit, Éclate-Roc, Poké Radar ni sous l'eau (fonds marins).
+- Les évolutions de Galar (Perrserker, Obstagoon, Cursola, M. Glaquette…) sont tirées comme les autres, mais leur pré-évolution sauvage reste la forme normale.
+- Ajouter un biome (sol, démesure) demande de compléter `BIOMES`, `GROUND_BIOMES` ou `EXCESS_BIOMES` dans ce plugin.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -440,3 +478,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 16/10/2026 | MapProceduralGenerator v0.7.0 : démesure, des lieux hors norme de temps en temps (forêt profonde, lac géant, route interminable, cité lacustre…) ; rivière le long des routes de montagne | `Plugins/MapProceduralGenerator/*`, `MapProc/monde.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | Lore : le Pacte avec Arceus, la Famille et ses rangs, le parcours du joueur, la fin ; table des noms de lieux ; Monotype obligatoire (ADR 0001) | `docs/LORE.md`, `GLOSSARY.md`, `docs/adr/0001-monotype-obligatoire.md`, `MapProc/Lore/noms.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | Monotype v1.5.0 : starter à choisir chez le professeur parmi 3 Pokémon du type tirés au hasard à chaque partie (sans pseudo-légendaires), fin de la période de grâce du starter | `Plugins/Monotype/*`, `Data/Map004.rxdata`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
+| 17/10/2026 | Plugin ProceduralEncounters v1.0.0 : rencontres sauvages des mondes MapProc générées depuis la liste des 300 (biomes, niveaux par sceau, couverture Monotype et Pokédex), contrôle CI (issue #25) | `Plugins/ProceduralEncounters/*`, `tools/ci/check_encounters.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
