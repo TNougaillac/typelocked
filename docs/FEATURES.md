@@ -287,6 +287,112 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Sans le dossier `Plugins/Monotype/` : le choix Nuzlocke s'affiche quand même.
 - Sauvegarde existante dont les choix sont faits : aucune fenêtre.
 
+## F09. Multi Exp permanent (ExpAll)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/ExpAll/`
+
+### Règles
+- Le Multi Exp est actif dès le début de la partie et ne se désactive pas (issue #30).
+- Comportement des jeux récents (Gen 6+) : les Pokémon qui ont combattu gagnent toute leur part, ceux de l'équipe qui n'ont pas combattu gagnent la moitié. Les Pokémon K.O. ne gagnent rien. Les EV sont donnés à toute l'équipe.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_ExpAll.rb` | `ExpAll::ALWAYS_ON` et redéfinition de `Player#has_exp_all`. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Player#has_exp_all`, lu par `Battle#pbGainExp`. Le calcul reste celui d'Essentials (`MECHANICS_GENERATION = 8`).
+
+### Limites connues
+- L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `ALWAYS_ON` vaut `true`.
+
+## F10. Rythme rapide (FastPace)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/FastPace/`
+
+Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans `001_Settings.rb`.
+
+### Règles
+- **Expérience ×4** (`EXP_MULTIPLIER`) : toute l'expérience gagnée en combat est multipliée.
+- **Chaussures de course** dès le début.
+- **Déplacements plus rapides** (`MOVE_SPEEDS`) : course 0,1 s/case (Essentials : 0,125), vélo 0,05 s/case (0,1), surf 0,1 s/case (0,125). La marche reste à 0,25 s/case. Les déplacements imposés par un événement gardent leur vitesse.
+- **Options par défaut d'une nouvelle partie :** course activée par défaut (maintenir Retour pour marcher) et texte rapide. Le joueur peut les changer dans les Options.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Tous les réglages. |
+| `002_ExpMultiplier.rb` | `Pokemon#base_exp` multiplié. |
+| `003_Movement.rb` | Chaussures de course, vitesses du joueur, options par défaut. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Player#has_running_shoes`, `Game_Player#set_movement_type`, `PokemonSystem#initialize`.
+
+### Limites connues
+- Les options par défaut ne s'appliquent que si aucune sauvegarde n'existe encore (Essentials garde les options d'une partie à l'autre).
+
+## F11. Niveau maximum par sceau (LevelCap)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/LevelCap/`
+
+### Règles
+- Le niveau maximum dépend du nombre de sceaux : c'est le niveau du Pokémon le plus fort du prochain lieutenant (avec 8 sceaux, celui du Parrain), lu dans `PBS/trainers.txt`. Les lieutenants sont listés dans l'ordre dans `LEADERS`.
+- Un lieutenant pas encore défini (`nil` dans `LEADERS` ou absent de `trainers.txt`) utilise `FALLBACK_CAPS` (provisoire : champions de la démo Kanto, 14, 21, 24, 29, 43, 43, 47, 50, 63). Une valeur `nil` = pas de limite.
+- Au niveau maximum, un Pokémon ne gagne plus d'expérience en combat (il gagne toujours ses EV). Un gain qui dépasserait la limite s'arrête pile au niveau maximum.
+- Super Bonbon et Bonbons Exp. : refusés au niveau maximum (« X ne peut pas dépasser le niveau N pour l'instant. »), et la quantité proposée s'arrête à la limite.
+- Un Pokémon déjà au-dessus de la limite (capturé, reçu) garde son niveau.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | `LEADERS`, `FALLBACK_CAPS`, `LEVEL_ITEMS`. |
+| `002_LevelCap.rb` | Calcul de la limite, limite d'expérience en combat et pour les objets. |
+
+### Intégration
+- À chaque nouveau lieutenant écrit dans `trainers.txt`, remplacer le `nil` correspondant de `LEADERS` par `[:TYPE_DE_DRESSEUR, "Nom"]`. La limite suit ensuite son équipe toute seule.
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Battle#pbGainExpOne`, `Pokemon#growth_rate` (remplacé par une version plafonnée pendant le gain, Essentials fait le reste), `ItemHandlers.triggerUseOnPokemon` et `triggerUseOnPokemonMaximum`.
+
+### Limites connues
+- La Pension n'est pas limitée.
+
+## F12. Objets de terrain (FieldItems)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossiers :** `Plugins/FieldItems/`, `PBS/items.txt`
+
+### Règles
+- Les capacités de terrain sont remplacées par des objets clés remis par des PNJ : c'est le joueur qui utilise l'objet (« Tom used Cut! »). Aucun sceau ni aucun Pokémon n'est nécessaire (indispensable avec le Monotype).
+- Objets : Machette (Coupe), Pioche (Éclate-Roc), Harnais (Force), Selle de Surf (Surf), Grappin (Cascade), Scaphandre (Plongée), Selle de Vol (Vol), Lanterne (Flash).
+- Hors combat, les Pokémon ne proposent plus ces capacités dans le menu de l'équipe, même s'ils les connaissent.
+- Coupe, Éclate-Roc, Force, Surf, Cascade et Plongée se déclenchent devant l'obstacle, comme d'habitude. La Selle de Vol et la Lanterne s'utilisent depuis le Sac.
+- Les CS n'existent plus : ces attaques s'apprennent et s'oublient comme les autres, avec les CT du jeu (CT70 Flash, CT93 Coupe, CT94 Vol, CT95 Surf, CT96 Force, CT98 Éclate-Roc, CT99 Cascade) et la nouvelle CT101 Plongée.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | `ITEMS` : capacité de terrain → objet clé. |
+| `002_FieldItems.rb` | Remplacement des capacités par les objets, utilisation depuis le Sac. |
+| `PBS/items.txt` | CS01 à CS06 retirées, CT101 Plongée et les 8 objets clés ajoutés. |
+
+### Intégration
+- PNJ qui remet un objet : commande Script `pbReceiveItem(:MACHETE)` dans l'événement (ou `Script = pbReceiveItem(:MACHETE)` dans un plan MapEvents). Un lieutenant peut aussi la donner après sa victoire avec `Gift = MACHETE`.
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Player#get_pokemon_with_move`, `pbCheckHiddenMoveBadge` (toujours vrai), `pbHiddenMoveAnimation`, `HiddenMoveHandlers.hasHandler` (menu de l'équipe), handlers `UseFromBag` / `UseInField` des deux objets.
+
+### Limites connues
+- En mode test (lancement depuis l'éditeur), Essentials autorise déjà toutes les capacités de terrain : tester le blocage en lançant `Game.exe` directement.
+- Les messages d'utilisation restent ceux d'Essentials, en anglais.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
