@@ -53,7 +53,8 @@ module MapProceduralGenerator
   end
 
   # Writes every place of the world to its map, then runs the world plan
-  # through MapGen (connections, map metadata, Town Map). Returns the export.
+  # through MapGen (connections, map metadata, Town Map). Returns the export
+  # and the start of the world ([map ID, x, y], see world_start).
   # quiet: no message to the player (world made at the start of a game);
   # prune: deletes the maps of earlier seeds that this one doesn't have.
   def generate_world_maps(path, seed, quiet: false, prune: false)
@@ -100,11 +101,20 @@ module MapProceduralGenerator
     dive = result.places.find { |wp, *| wp.dive }
     if quiet
       Console.echoln_li(_INTL("Surf : {1}, Plongée : {2}", surf&.first&.name || "-", dive&.first&.name || "-"))
-      return export
+      return export, world_start(result, map_ids)
     end
     pbMessage(_INTL("Surf s'obtient à {1}.", surf[0].name)) if surf
     pbMessage(_INTL("Plongée s'obtient à {1}.", dive[0].name)) if dive
-    return export
+    return export, world_start(result, map_ids)
+  end
+
+  # [map ID, x, y] where a game starts: the first town of the chain, in front
+  # of its Pokémon Centre (else of its first door, else in its middle).
+  def world_start(result, map_ids)
+    wp, place, _text, layout = result.places.select { |p, *| p.kind == "ville" }.min_by { |p, *| p.index }
+    door = layout.doors.find { |_x, _y, brick| brick.kind == "centre" } || layout.doors.first
+    x, y = door ? [door[0], door[1] + 1] : [place.width / 2, place.height / 2]
+    return map_ids[wp.name], x, y
   end
 
   # Shows the cave exits as ladders.
@@ -179,7 +189,7 @@ module MapProceduralGenerator
     seed = (text =~ /\A\d+\z/) ? text.to_i : rand(1_000_000)
     if world_file?(files[index])
       begin
-        export = generate_world_maps(files[index], seed)
+        export, = generate_world_maps(files[index], seed)
         # The maps on disk are no longer the ones of a game: leave them alone
         forget_game_world if game_world&.fetch(:path) == files[index]
       rescue Error, MapGenerator::Error => e

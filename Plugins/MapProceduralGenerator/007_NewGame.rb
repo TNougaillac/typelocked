@@ -1,7 +1,8 @@
 #===============================================================================
 # MapProceduralGenerator - A new world for each new game
 # Starting a new game draws the world of NEW_GAME_WORLD with a random seed
-# (maps only, no events). The seed is saved with the game. At each start of
+# (maps only, no events); the end of the intro takes the player to its first
+# town. The seed is saved with the game. At each start of
 # the game (load screen), the maps on disk are matched with the save: the
 # maps of a game left without saving are deleted, or the saved world is drawn
 # again from its seed if the save has one.
@@ -9,7 +10,8 @@
 module MapProceduralGenerator
   module_function
 
-  # { path:, seed: } of the world on disk if a new game drew it, else nil.
+  # { path:, seed:, town_map:, start: } of the world on disk if a new game
+  # drew it, else nil.
   def game_world
     return nil if !File.exist?(GAME_WORLD_FILE)
     return load_data(GAME_WORLD_FILE)
@@ -25,14 +27,15 @@ module MapProceduralGenerator
     nil
   end
 
-  # Draws the world of a new game. Returns its seed (nil if there is none).
+  # Draws the world of a new game. Returns its seed and start ([map ID, x, y]),
+  # nil if there is none.
   def new_game_world
     return nil if !NEW_GAME_WORLD
     path = File.join(FOLDER, NEW_GAME_WORLD)
     return nil if !File.exist?(path)
     seed = rand(1_000_000)
-    return nil if !draw_game_world(path, seed)
-    return seed
+    start = draw_game_world(path, seed)
+    return start ? [seed, start] : nil
   end
 
   # Called with the seed of the save file (nil = no save, or a save without a
@@ -51,7 +54,7 @@ module MapProceduralGenerator
   end
 
   # prune: also deletes the maps of the unsaved world that this one doesn't
-  # have (more caves...).
+  # have (more caves...). Returns the world's start, nil if it failed.
   def draw_game_world(path, seed, prune: false)
     # The world rewrites its Town Map region: its lines from before the first
     # game world are kept, and put back before each new world is drawn
@@ -63,13 +66,14 @@ module MapProceduralGenerator
       town_map = town_map_section(region)
     end
     begin
-      generate_world_maps(path, seed, quiet: true, prune: prune)
+      _export, start = generate_world_maps(path, seed, quiet: true, prune: prune)
     rescue Error, MapGenerator::Error => e
       pbMessage(_INTL("Le monde n'a pas pu être généré : {1}", e.message))
-      return false
+      return nil
     end
-    save_data({ path: path, seed: seed, town_map: town_map }, GAME_WORLD_FILE)
-    return true
+    $game_temp.map_infos = nil if $game_temp
+    save_data({ path: path, seed: seed, town_map: town_map, start: start }, GAME_WORLD_FILE)
+    return start
   end
 
   # Deletes every map made for this world file and puts its Town Map region
@@ -172,12 +176,38 @@ module Game
   class << self
     alias_method :__mapproc_start_new, :start_new
 
-    # The world is drawn before the game starts, so its data is ready.
+    # The world is drawn before the game starts, so its data is ready. The
+    # intro of the editor's start map still runs (gender, name).
     def start_new
-      seed = MapProceduralGenerator.new_game_world
+      seed, start = MapProceduralGenerator.new_game_world
       __mapproc_start_new
       $mapproc_world = seed
+      $game_temp.mapproc_start = start
     end
+  end
+end
+
+class Game_Temp
+  # [map ID, x, y] of the new game's world, until the intro leaves its map.
+  attr_accessor :mapproc_start
+end
+
+class Interpreter
+  alias_method :__mapproc_command_201, :command_201
+
+  # The first transfer out of the editor's start map (end of the intro) goes
+  # to the first town of the world instead.
+  def command_201
+    transferring = $game_temp.player_transferring
+    result = __mapproc_command_201
+    start = $game_temp.mapproc_start
+    if start && !transferring && $game_temp.player_transferring &&
+       $game_map.map_id == $data_system.start_map_id
+      $game_temp.player_new_map_id, $game_temp.player_new_x, $game_temp.player_new_y = start
+      $game_temp.player_new_direction = 2
+      $game_temp.mapproc_start = nil
+    end
+    return result
   end
 end
 
