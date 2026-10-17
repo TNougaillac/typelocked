@@ -393,7 +393,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Les messages d'utilisation restent ceux d'Essentials, en anglais.
 
 ## F13. Rencontres sauvages générées (ProceduralEncounters)
-**Statut :** v1.0.0, écrit, testé hors jeu (CI), **non testé en jeu**.
+**Statut :** v1.1.0, écrit, testé hors jeu (CI), **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapProceduralGenerator (`Requires = MapProceduralGenerator`), sans le modifier.
 **Dossier :** `Plugins/ProceduralEncounters/`
 
@@ -402,19 +402,21 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Source : les 300 de `docs/roster/liste-300.csv` (types, types Monotype, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. Modifier la liste change les rencontres à la prochaine génération du monde.
 - **Niveaux :** les sceaux d'une carte = les arènes avant elle dans la chaîne. Les niveaux montent du cap précédent vers 80 % de l'écart jusqu'au cap suivant (caps de LevelCap, sinon `CAPS`), en commençant à 3. Cannes : Canne -6, Super Canne -3, Méga Canne +2.
 - **Biomes :** ville, montagne, grotte, eau, sinon le sol de la route (herbe, prairie, sable, terre battue). La démesure peut le remplacer (forêt profonde et ville-jardin = forêt, mer d'herbes = prairie, chaos rocheux et montagne colossale = montagne). Chaque biome donne un poids par type (`BIOMES`) ; un Pokémon prend le meilleur de ses types. L'eau et les cannes n'ont que des Pokémon de type Eau, la Canne seulement des faibles non évolués.
-- **Tirage :** chaque table tire quelques Pokémon selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
+- **Identité d'un lieu :** chaque table d'herbe ou de grotte tire 2 types dominants selon son biome (ceux du lieu précédent 4 fois moins probables, pour que deux voisins diffèrent). Les Pokémon de ces types font 60 % des rencontres.
+- **Tirage :** chaque table tire 4 à 7 Pokémon (environ 60 % d'entre eux des types dominants) selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
 - **Évolutions :** une évolution par niveau apparaît à partir de ce niveau ; par pierre, bonheur, échange… à partir de 3 sceaux (stade 2) ou 6 sceaux (stade 3).
-- **Couverture Monotype :** entre deux lieutenants, les 18 types ont chacun au moins un Pokémon capturable par un run de ce type (herbe, grotte, ou surf une fois Surf obtenu). Les manquants sont ajoutés en rares, d'abord ceux qui couvrent le plus de types d'un coup ; les tables peuvent alors grandir (jusqu'à 14 Pokémon en herbe).
-- **Couverture du Pokédex :** chaque famille de la liste apparaît au moins une fois dans le monde.
+- **Couverture Monotype :** chaque type imposé a au moins un Pokémon capturable dans un lieu du tronçon ou du tronçon précédent (herbe, grotte, ou surf une fois Surf obtenu ; les cannes ne comptent pas). Les manquants sont ajoutés au tronçon, d'abord ceux qui couvrent le plus de types d'un coup, à 5 % chacun.
+- **Couverture du Pokédex :** chaque famille de la liste apparaît au moins une fois dans le monde, à 5 %.
+- **Taille des tables :** 8 Pokémon en herbe, 7 en grotte, 5 en surf. La couverture remplit d'abord jusque-là, puis dépasse en dernier recours (14 / 12 / 8). Garder les 149 familles fait monter environ un tiers des tables à 10-12 Pokémon (choix assumé, plutôt que des familles absentes).
 - Même graine du monde = mêmes rencontres.
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | Fichiers lus, tuiles d'herbe et d'eau, `BIOMES`, `TABLES`, niveaux, poids. |
+| `001_Settings.rb` | Fichiers lus, tuiles d'herbe et d'eau, `BIOMES`, `TABLES`, types dominants, couverture, niveaux, poids. |
 | `002_Species.rb` | Lecture de la liste des 300 et des évolutions (niveau ou sceaux minimum). |
-| `003_Tables.rb` | Tirage des tables, couverture des types et des familles, lignes PBS. |
+| `003_Tables.rb` | Types dominants, tirage des tables, couverture des types et des familles, pourcentages, lignes PBS. |
 | `004_World.rb` | Zones d'un monde généré : sceaux, niveaux, biome, types de rencontre. |
 | `005_Generate.rb` | Écriture dans `encounters.txt` et accroche à MapProc. |
 | `tools/ci/check_encounters.rb` | CI : 3 graines par monde, lignes, niveaux, pourcentages, couverture. |
@@ -479,3 +481,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 16/10/2026 | Lore : le Pacte avec Arceus, la Famille et ses rangs, le parcours du joueur, la fin ; table des noms de lieux ; Monotype obligatoire (ADR 0001) | `docs/LORE.md`, `GLOSSARY.md`, `docs/adr/0001-monotype-obligatoire.md`, `MapProc/Lore/noms.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | Monotype v1.5.0 : starter à choisir chez le professeur parmi 3 Pokémon du type tirés au hasard à chaque partie (sans pseudo-légendaires), fin de la période de grâce du starter | `Plugins/Monotype/*`, `Data/Map004.rxdata`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
 | 17/10/2026 | Plugin ProceduralEncounters v1.0.0 : rencontres sauvages des mondes MapProc générées depuis la liste des 300 (biomes, niveaux par sceau, couverture Monotype et Pokédex), contrôle CI (issue #25) | `Plugins/ProceduralEncounters/*`, `tools/ci/check_encounters.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
+| 17/10/2026 | ProceduralEncounters v1.1.0 : identité des lieux (2 types dominants à 60 %), couverture Monotype sur le tronçon et le précédent, Pokémon de couverture à 5 %, tables plus courtes ; « Tronçon » au glossaire | `Plugins/ProceduralEncounters/*`, `GLOSSARY.md`, `docs/FEATURES.md` |
