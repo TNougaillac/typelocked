@@ -82,6 +82,7 @@ module MapProceduralGenerator
     plans.each do |text|
       plan = MapGenerator.parse(text, File.basename(path))
       map_ids[plan.name], _notes, missing = MapGenerator.generate(plan)
+      busy_update
       unlinked.push(plan) if !missing.empty?
     end
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }

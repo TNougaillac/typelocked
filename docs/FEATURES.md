@@ -219,7 +219,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.8.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.8.1, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -247,13 +247,14 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - **Partie non sauvegardée :** au lancement suivant du jeu (écran de chargement), les cartes sur le disque sont remises d'accord avec la sauvegarde :
   - pas de sauvegarde (ou une sauvegarde sans monde) : les cartes du monde sont supprimées (`Data/MapXXX.rxdata`, arbre des cartes, raccords, métadonnées, points de la carte de région, graines des grottes) et la région de `town_map.txt` est remise comme avant le premier monde ;
   - sauvegarde d'un autre monde : ce monde est redessiné depuis sa graine (mêmes numéros de carte), les cartes en trop du monde abandonné sont supprimées.
+- Pendant la génération ou la suppression, un écran noir affiche « Le monde se prépare... ». Les fichiers PBS réécrits sont ensuite datés juste avant leurs données compilées, pour qu'Essentials ne recompile pas tout au lancement suivant.
 - Générer le même monde depuis le menu debug le détache de la partie : il n'est plus jamais supprimé ni redessiné tout seul.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 
 - `Game_Map#setup` (alias `__mapproc_setup`) : avant de charger une grotte générée, fixe `$PokemonGlobal.dungeon_rng_seed` avec la graine enregistrée dans `Data/MapProcCaves.rxdata`.
 - `Game.start_new` (alias `__mapproc_start_new`) : tire le monde avant le début de la partie, la graine va dans `$mapproc_world` (`SaveData.register(:mapproc_world)`).
-- `Game.start_new` : `$data_system.start_map_id` / `start_x` / `start_y` remplacés le temps de l'appel par la première ville ; handler `:on_frame_update` pour la saisie du nom.
+- `Game.start_new` : `$data_system.start_map_id` / `start_x` / `start_y` remplacés le temps de l'appel par la première ville ; `Scene_Map#update` (alias `__mapproc_update`) pour la saisie du nom, une fois la carte affichée.
 - `PokemonLoadScreen#initialize` (alias `__mapproc_initialize`) : compare la graine de la sauvegarde au monde du disque (`Data/MapProcWorld.rxdata`), supprime ou redessine.
 
 ### À vérifier au premier lancement
@@ -493,3 +494,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 17/10/2026 | Plugin ProceduralEncounters v1.0.0 : rencontres sauvages des mondes MapProc générées depuis la liste des 300 (biomes, niveaux par sceau, couverture Monotype et Pokédex), contrôle CI (issue #25) | `Plugins/ProceduralEncounters/*`, `tools/ci/check_encounters.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
 | 17/10/2026 | MapProceduralGenerator v0.8.0 : un monde tiré à chaque nouvelle partie, supprimé (ou celui de la sauvegarde redessiné) si la partie n'est pas sauvegardée, la partie commence dans sa première ville, intro remplacée par la seule saisie du nom ; ProceduralEncounters v1.0.1 suit la nouvelle signature sans écrire de rencontres pour une nouvelle partie ; fonds sous-marins reproductibles ; correction : regénérer un monde depuis le menu debug ne bute plus sur « la carte N s'appelle déjà » ; MapGenerator v1.7.1 : génération du monde sans message | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/meta.txt`, `Plugins/ProceduralEncounters/005_Generate.rb`, `Plugins/ProceduralEncounters/meta.txt`, `.gitignore`, `docs/FEATURES.md` |
 | 17/10/2026 | ProceduralEncounters v1.0.2 : rencontres écrites aussi pour le monde d'une nouvelle partie (en silence), retirées avec les cartes d'une partie non sauvegardée | `Plugins/ProceduralEncounters/005_Generate.rb`, `Plugins/ProceduralEncounters/meta.txt`, `docs/FEATURES.md` |
+| 17/10/2026 | MapProceduralGenerator v0.8.1 : écran « Le monde se prépare... » pendant la génération, plus de recompilation complète au lancement suivant ; correction : écran noir après « Nouvelle partie » (la saisie du nom s'ouvrait avant l'affichage de la carte) | `Plugins/MapProceduralGenerator/005_Debug.rb`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
