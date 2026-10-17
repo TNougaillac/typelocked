@@ -58,7 +58,7 @@
 - Cohabitation avec le Nuzlocke : le kit efface les surnoms dans `pbStorePokemon`, le Nuzlocke remet le surnom forcé après coup. Effet visible : le message « envoyé dans la boîte » affiche le nom de l'espèce.
 
 ## F03. Générateur de cartes (MapGen)
-**Statut :** v1.7.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
+**Statut :** v1.7.1, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemples : `MapGen/exemple.txt`, `MapGen/exemple_calques.txt`, `MapGen/exemple_porte_dehors.txt` + `MapGen/exemple_porte_maison.txt`, `MapGen/place_ville.txt`, plan du monde `MapGen/exemple_monde.txt`).
 
@@ -219,7 +219,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.7.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.8.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -243,16 +243,27 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Une zone sous-marine est une carte à part, de la taille de la route : on y plonge depuis l'eau profonde, on remonte là où l'eau au-dessus est profonde.
 - Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers), le lieu est retiré avec une graine dérivée de la sienne : le monde reste le même pour une même graine.
 - Lancement : menu debug > Autres éditeurs > « Générer un lieu (MapProc) ». Les raccords, les métadonnées, la carte de région et les points de vol sont écrits par MapGen.
+- **Nouvelle partie :** chaque nouvelle partie tire un monde (`NEW_GAME_WORLD`, `monde.txt` par défaut, `nil` = désactivé) avec une graine au hasard. Seules les cartes sont générées, sans événements (pas de MapEvents) ni rencontres (ProceduralEncounters n'écrit pas encore celles d'une nouvelle partie). La partie commence directement dans la première ville du monde, devant le Centre Pokémon (sinon devant la première porte) : l'intro de l'éditeur (carte 1) est sautée, le joueur choisit seulement son nom (`pbTrainerName`, personnage 1). Sans monde (`NEW_GAME_WORLD = nil` ou génération ratée), l'intro d'origine se joue. Aucun message au joueur : la graine, Surf et Plongée sont écrits dans la console. La graine est gardée dans la sauvegarde.
+- **Partie non sauvegardée :** au lancement suivant du jeu (écran de chargement), les cartes sur le disque sont remises d'accord avec la sauvegarde :
+  - pas de sauvegarde (ou une sauvegarde sans monde) : les cartes du monde sont supprimées (`Data/MapXXX.rxdata`, arbre des cartes, raccords, métadonnées, points de la carte de région, graines des grottes) et la région de `town_map.txt` est remise comme avant le premier monde ;
+  - sauvegarde d'un autre monde : ce monde est redessiné depuis sa graine (mêmes numéros de carte), les cartes en trop du monde abandonné sont supprimées.
+- Générer le même monde depuis le menu debug le détache de la partie : il n'est plus jamais supprimé ni redessiné tout seul.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 
 - `Game_Map#setup` (alias `__mapproc_setup`) : avant de charger une grotte générée, fixe `$PokemonGlobal.dungeon_rng_seed` avec la graine enregistrée dans `Data/MapProcCaves.rxdata`.
+- `Game.start_new` (alias `__mapproc_start_new`) : tire le monde avant le début de la partie, la graine va dans `$mapproc_world` (`SaveData.register(:mapproc_world)`).
+- `Game.start_new` : `$data_system.start_map_id` / `start_x` / `start_y` remplacés le temps de l'appel par la première ville ; handler `:on_frame_update` pour la saisie du nom.
+- `PokemonLoadScreen#initialize` (alias `__mapproc_initialize`) : compare la graine de la sauvegarde au monde du disque (`Data/MapProcWorld.rxdata`), supprime ou redessine.
 
 ### À vérifier au premier lancement
 
 - Entrer dans une grotte par chaque entrée, en ressortir, y revenir : la grotte doit être identique.
 - Sauvegarder dans une grotte puis recharger : non vérifié.
 - Plonger sur l'eau profonde d'une route, remonter : il faut aussi le badge `Settings::BADGE_FOR_DIVE` et un Pokémon qui connaît Plongée.
+- Nouvelle partie : durée de la génération (environ 6 s hors jeu pour `monde.txt`, écran noir pendant ce temps), puis quitter sans sauvegarder et relancer : plus de « Ville générée » dans l'arbre des cartes.
+- Sauvegarder, lancer une nouvelle partie, quitter sans sauvegarder, relancer puis Continuer : on retrouve son monde, au même endroit.
+- Jouer depuis RPG Maker XP (test) : l'éditeur ne voit pas les cartes écrites par le jeu, ne pas enregistrer le projet après (il écraserait `MapInfos.rxdata`).
 
 ### Limites connues
 
@@ -398,7 +409,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 **Dossier :** `Plugins/ProceduralEncounters/`
 
 ### Règles
-- Quand un monde MapProc est généré (menu debug), chaque carte reçoit ses rencontres dans `PBS/encounters.txt` : `Land` s'il y a des hautes herbes, `Water` et les trois cannes s'il y a de l'eau, `Cave` pour chaque grotte. Seules les sections des cartes du monde sont remplacées (ou retirées si la carte n'a plus ni herbe, ni eau, ni grotte), puis le fichier est recompilé. Une copie est écrite dans `MapProc/Export/<monde>_<graine>_rencontres.txt`.
+- Quand un monde MapProc est généré depuis le menu debug (pas encore celui d'une nouvelle partie), chaque carte reçoit ses rencontres dans `PBS/encounters.txt` : `Land` s'il y a des hautes herbes, `Water` et les trois cannes s'il y a de l'eau, `Cave` pour chaque grotte. Seules les sections des cartes du monde sont remplacées (ou retirées si la carte n'a plus ni herbe, ni eau, ni grotte), puis le fichier est recompilé. Une copie est écrite dans `MapProc/Export/<monde>_<graine>_rencontres.txt`.
 - Source : les 300 de `docs/roster/liste-300.csv` (types, types Monotype, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. Modifier la liste change les rencontres à la prochaine génération du monde.
 - **Niveaux :** les sceaux d'une carte = les arènes avant elle dans la chaîne. Les niveaux montent du cap précédent vers 80 % de l'écart jusqu'au cap suivant (caps de LevelCap, sinon `CAPS`), en commençant à 3. Cannes : Canne -6, Super Canne -3, Méga Canne +2.
 - **Biomes :** ville, montagne, grotte, eau, sinon le sol de la route (herbe, prairie, sable, terre battue). La démesure peut le remplacer (forêt profonde et ville-jardin = forêt, mer d'herbes = prairie, chaos rocheux et montagne colossale = montagne). Chaque biome donne un poids par type (`BIOMES`) ; un Pokémon prend le meilleur de ses types. L'eau et les cannes n'ont que des Pokémon de type Eau, la Canne seulement des faibles non évolués.
@@ -479,3 +490,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 16/10/2026 | Lore : le Pacte avec Arceus, la Famille et ses rangs, le parcours du joueur, la fin ; table des noms de lieux ; Monotype obligatoire (ADR 0001) | `docs/LORE.md`, `GLOSSARY.md`, `docs/adr/0001-monotype-obligatoire.md`, `MapProc/Lore/noms.txt`, `docs/FEATURES.md` |
 | 16/10/2026 | Monotype v1.5.0 : starter à choisir chez le professeur parmi 3 Pokémon du type tirés au hasard à chaque partie (sans pseudo-légendaires), fin de la période de grâce du starter | `Plugins/Monotype/*`, `Data/Map004.rxdata`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
 | 17/10/2026 | Plugin ProceduralEncounters v1.0.0 : rencontres sauvages des mondes MapProc générées depuis la liste des 300 (biomes, niveaux par sceau, couverture Monotype et Pokédex), contrôle CI (issue #25) | `Plugins/ProceduralEncounters/*`, `tools/ci/check_encounters.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
+| 17/10/2026 | MapProceduralGenerator v0.8.0 : un monde tiré à chaque nouvelle partie, supprimé (ou celui de la sauvegarde redessiné) si la partie n'est pas sauvegardée, la partie commence dans sa première ville, intro remplacée par la seule saisie du nom ; ProceduralEncounters v1.0.1 suit la nouvelle signature sans écrire de rencontres pour une nouvelle partie ; fonds sous-marins reproductibles ; correction : regénérer un monde depuis le menu debug ne bute plus sur « la carte N s'appelle déjà » ; MapGenerator v1.7.1 : génération du monde sans message | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/meta.txt`, `Plugins/ProceduralEncounters/005_Generate.rb`, `Plugins/ProceduralEncounters/meta.txt`, `.gitignore`, `docs/FEATURES.md` |

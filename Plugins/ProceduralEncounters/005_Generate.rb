@@ -1,8 +1,9 @@
 #===============================================================================
 # ProceduralEncounters - Written with the world
-# When MapProceduralGenerator writes a world (debug menu), the encounters of
-# its maps replace their sections in PBS/encounters.txt (the other maps are
-# left alone), then the file is recompiled. A copy goes next to the world's
+# When MapProceduralGenerator writes a world (debug menu, not yet the world of
+# a new game), the encounters of its maps replace their sections in
+# PBS/encounters.txt (the other maps are left alone), then the file is
+# recompiled. A copy goes next to the world's
 # export (MapProc/Export/<world>_<seed>_rencontres.txt).
 #===============================================================================
 module ProceduralEncounters
@@ -73,10 +74,11 @@ module MapProceduralGenerator
       return @encounters_world
     end
 
-    def generate_world_maps(path, seed)
-      export = __encounters_generate_world_maps(path, seed)
-      ProceduralEncounters.write_world(@encounters_world, read_world_maps(path), seed, export)
-      return export
+    # Not for the world of a new game (quiet) for now.
+    def generate_world_maps(path, seed, quiet: false, prune: false)
+      export, start = __encounters_generate_world_maps(path, seed, quiet: quiet, prune: prune)
+      ProceduralEncounters.write_world(@encounters_world, read_world_maps(path), seed, export) if !quiet
+      return export, start
     end
   end
 end
