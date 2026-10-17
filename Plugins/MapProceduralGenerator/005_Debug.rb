@@ -2,8 +2,8 @@
 # MapProceduralGenerator - Debug menu command
 # Debug menu > Other editors... > Générer un lieu (MapProc)
 # Prototype: writes the assembled place, or every place of a world, to maps of
-# the editor, like MapGen, so each seed can be looked at. Generating while
-# playing comes later.
+# the editor, like MapGen, so each seed can be looked at. A new game draws
+# its own world (007_NewGame.rb).
 #===============================================================================
 module MapProceduralGenerator
   module_function
@@ -49,12 +49,14 @@ module MapProceduralGenerator
   def read_world_maps(path)
     file = world_maps_path(path)
     return {} if !File.exist?(file)
-    return read(file).each_line.filter_map { |l| [$2.strip, $1.to_i] if l =~ /\A(\d+)\s*=\s*(.+)\z/ }.to_h
+    return read(file).each_line(chomp: true).filter_map { |l| [$2.strip, $1.to_i] if l =~ /\A(\d+)\s*=\s*(.+)\z/ }.to_h
   end
 
   # Writes every place of the world to its map, then runs the world plan
   # through MapGen (connections, map metadata, Town Map). Returns the export.
-  def generate_world_maps(path, seed)
+  # quiet: no message to the player (world made at the start of a game);
+  # prune: deletes the maps of earlier seeds that this one doesn't have.
+  def generate_world_maps(path, seed, quiet: false, prune: false)
     world = load_world(path)
     town = load_place(File.join(FOLDER, world.town_file))
     route = load_place(File.join(FOLDER, world.route_file))
@@ -85,14 +87,22 @@ module MapProceduralGenerator
     result.caves.each { |_wp, name, _text, _seed| dress_cave(map_ids[name]) }
     save_cave_seeds(result.caves.to_h { |_wp, name, _text, cave_seed| [map_ids[name], cave_seed] })
     write_extra_metadata(world, result, map_ids)
+    if prune
+      stale, map_ids = map_ids.partition { |name, _id| !names.include?(name) }.map(&:to_h)
+      remove_maps(stale.values, compile: false)   # run_world compiles
+    end
     export_path(path, seed)   # creates the folder
     File.write(world_maps_path(path), map_ids.map { |name, id| "#{id} = #{name}\n" }.join)
     export = export_path(path, seed)
     File.write(export, result.text)
-    MapGenerator.run_world(export)
+    MapGenerator.run_world(export, quiet: quiet)
     surf = result.places.find { |wp, *| wp.surf }
-    pbMessage(_INTL("Surf s'obtient à {1}.", surf[0].name)) if surf
     dive = result.places.find { |wp, *| wp.dive }
+    if quiet
+      Console.echoln_li(_INTL("Surf : {1}, Plongée : {2}", surf&.first&.name || "-", dive&.first&.name || "-"))
+      return export
+    end
+    pbMessage(_INTL("Surf s'obtient à {1}.", surf[0].name)) if surf
     pbMessage(_INTL("Plongée s'obtient à {1}.", dive[0].name)) if dive
     return export
   end
@@ -170,6 +180,8 @@ module MapProceduralGenerator
     if world_file?(files[index])
       begin
         export = generate_world_maps(files[index], seed)
+        # The maps on disk are no longer the ones of a game: leave them alone
+        forget_game_world if game_world&.fetch(:path) == files[index]
       rescue Error, MapGenerator::Error => e
         pbMessage(_INTL("Erreur : {1}", e.message))
         return

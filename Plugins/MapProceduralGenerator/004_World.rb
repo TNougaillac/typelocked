@@ -254,6 +254,8 @@ module MapProceduralGenerator
     text << "Name    = #{name}\n"
     text << "Tileset = #{SEABED_TILESET}\n"
     text << "Ground  = .\n"
+    # The floor variants too, so the seabed is the same for a world seed
+    text << "Seed    = #{rng.rand(1_000_000)}\n"
     text << SEABED_PALETTE
     text << "\n[Map]\n"
     h.times do |y|

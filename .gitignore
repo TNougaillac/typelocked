@@ -1,3 +1,4 @@
 
-# MapProceduralGenerator: plans exported by the debug menu
+# MapProceduralGenerator: plans exported by the debug menu, world of the current game
 MapProc/Export/
+Data/MapProcWorld.rxdata

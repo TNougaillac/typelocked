@@ -32,6 +32,14 @@ module MapProceduralGenerator
   # for a given world seed.
   CAVE_SEEDS_FILE = "Data/MapProcCaves.rxdata"
 
+  # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
+  # The game only keeps it if it is saved: at the next start, the maps of a
+  # game left without saving are deleted (or the saved world is drawn again).
+  NEW_GAME_WORLD = "monde.txt"
+  # Which world the maps on disk belong to ({ path:, seed: }), written when a
+  # new game draws its world.
+  GAME_WORLD_FILE = "Data/MapProcWorld.rxdata"
+
   # Excesses (« Demesure » in a world): now and then a place goes over the top.
   # kind: ville or route; boost: brick type => times its usual most (optional
   # bricks only, so the place always fits); giant_lake: lakes far bigger;
