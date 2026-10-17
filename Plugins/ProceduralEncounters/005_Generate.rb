@@ -1,9 +1,9 @@
 #===============================================================================
 # ProceduralEncounters - Written with the world
-# When MapProceduralGenerator writes a world (debug menu, not yet the world of
-# a new game), the encounters of its maps replace their sections in
-# PBS/encounters.txt (the other maps are left alone), then the file is
-# recompiled. A copy goes next to the world's
+# When MapProceduralGenerator writes a world (debug menu or new game), the
+# encounters of its maps replace their sections in PBS/encounters.txt (the
+# other maps are left alone), then the file is recompiled. The sections of
+# the maps it deletes are removed. A copy goes next to the world's
 # export (MapProc/Export/<world>_<seed>_rencontres.txt).
 #===============================================================================
 module ProceduralEncounters
@@ -17,7 +17,8 @@ module ProceduralEncounters
     end
   end
 
-  def write_world(result, map_ids, seed, export)
+  # quiet: console only (world of a new game).
+  def write_world(result, map_ids, seed, export, quiet: false)
     lines, generated = world_encounters(result, load_species, level_caps, seed)
     pbs = MapGenerator.read_pbs(ENCOUNTERS_PBS)
     copy = +""
@@ -29,7 +30,15 @@ module ProceduralEncounters
     MapGenerator.write_pbs(ENCOUNTERS_PBS, pbs)
     Compiler.compile_encounters(ENCOUNTERS_PBS)
     File.write(export.sub(/\.txt\z/, "_rencontres.txt"), copy)
-    report(generated, lines.count { |_name, body| !body.empty? })
+    report(generated, lines.count { |_name, body| !body.empty? }, quiet)
+  end
+
+  # Removes the sections of these deleted maps.
+  def remove_maps(ids)
+    pbs = MapGenerator.read_pbs(ENCOUNTERS_PBS)
+    ids.each { |id| set_section(pbs, id, nil, []) }
+    MapGenerator.write_pbs(ENCOUNTERS_PBS, pbs)
+    Compiler.compile_encounters(ENCOUNTERS_PBS)
   end
 
   # Replaces the map's [ID] section with body, or removes it when body is
@@ -51,13 +60,14 @@ module ProceduralEncounters
     end
   end
 
-  def report(generated, maps)
-    pbMessage(_INTL("Rencontres sauvages écrites pour {1} cartes.", maps))
+  def report(generated, maps, quiet = false)
+    Console.echoln_li(_INTL("Rencontres sauvages écrites pour {1} cartes.", maps)) if quiet
+    pbMessage(_INTL("Rencontres sauvages écrites pour {1} cartes.", maps)) if !quiet
     generated.gaps.each do |seals, type|
       Console.echoln_li(_INTL("Rencontres : aucun Pokémon {1} capturable avec {2} sceau(x).", type, seals))
     end
     generated.missing.each { |family| Console.echoln_li(_INTL("Rencontres : famille {1} absente du monde.", family)) }
-    return if generated.gaps.empty? && generated.missing.empty?
+    return if quiet || (generated.gaps.empty? && generated.missing.empty?)
     pbMessage(_INTL("Attention : {1} type(s) sans Pokémon sur un tronçon, {2} famille(s) absente(s). Détail dans la console.",
                     generated.gaps.length, generated.missing.length))
   end
@@ -67,6 +77,7 @@ module MapProceduralGenerator
   class << self
     alias_method :__encounters_generate_world, :generate_world
     alias_method :__encounters_generate_world_maps, :generate_world_maps
+    alias_method :__encounters_remove_maps, :remove_maps
 
     # Keeps the last world, for its encounters once its maps are written.
     def generate_world(*args)
@@ -74,11 +85,16 @@ module MapProceduralGenerator
       return @encounters_world
     end
 
-    # Not for the world of a new game (quiet) for now.
     def generate_world_maps(path, seed, quiet: false, prune: false)
       export, start = __encounters_generate_world_maps(path, seed, quiet: quiet, prune: prune)
-      ProceduralEncounters.write_world(@encounters_world, read_world_maps(path), seed, export) if !quiet
+      ProceduralEncounters.write_world(@encounters_world, read_world_maps(path), seed, export, quiet: quiet)
       return export, start
+    end
+
+    # Maps of an unsaved game's world, deleted: their encounters go too.
+    def remove_maps(ids, compile: true)
+      __encounters_remove_maps(ids, compile: compile)
+      ProceduralEncounters.remove_maps(ids) if !ids.empty?
     end
   end
 end
