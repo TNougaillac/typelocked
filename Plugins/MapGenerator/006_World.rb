@@ -331,11 +331,16 @@ module MapGenerator
     MapFactoryHelper.clear
   end
 
-  def run_world(path)
+  # quiet: notes go to the console only (world made while playing).
+  def run_world(path, quiet: false)
     plan = parse_world_file(path)
     links, notes = generate_world(plan)
     compile_world_pbs
     Console.echoln_li(_INTL("{1} : {2} lieux, {3} raccords", File.basename(path), plan.places.length, links.length))
+    if quiet
+      notes.compact.each { |n| Console.echoln_li(n) }
+      return
+    end
     pbMessage(_INTL("{1} : monde « {2} » généré, {3} lieux et {4} raccords.",
                     File.basename(path), plan.name, plan.places.length, links.length))
     notes.each { |n| pbMessage(n) }
