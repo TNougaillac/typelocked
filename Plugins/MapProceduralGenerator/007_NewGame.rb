@@ -242,14 +242,20 @@ class Game_Temp
   attr_accessor :mapproc_name_entry
 end
 
-# Name entry on the first frame of the map (character 1, as in the intro).
-EventHandlers.add(:on_frame_update, :mapproc_player_name,
-  proc {
-    next if !$game_temp.mapproc_name_entry || pbMapInterpreterRunning?
-    $game_temp.mapproc_name_entry = false
-    pbTrainerName
-  }
-)
+# Name entry once the map is on screen (character 1, as in the intro). Not in
+# :on_frame_update: it already runs while the map scene is being set up, before
+# the screen transition, so the name screen would stay invisible.
+class Scene_Map
+  alias_method :__mapproc_update, :update
+
+  def update
+    if $game_temp.mapproc_name_entry && !pbMapInterpreterRunning?
+      $game_temp.mapproc_name_entry = false
+      pbTrainerName
+    end
+    __mapproc_update
+  end
+end
 
 class PokemonLoadScreen
   alias_method :__mapproc_initialize, :initialize
