@@ -62,7 +62,8 @@ module MapProceduralGenerator
     town = load_place(File.join(FOLDER, world.town_file))
     route = load_place(File.join(FOLDER, world.route_file))
     map_ids = read_world_maps(path)
-    result = generate_world(world, town, route, load_bricks, seed, map_ids)
+    names = world.names_file && load_names(File.join(FOLDER, world.names_file))
+    result = generate_world(world, town, route, load_bricks, seed, map_ids, names)
     # MapGen finds the world's maps by name: another map with the same name
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")
@@ -106,11 +107,11 @@ module MapProceduralGenerator
     surf = result.places.find { |wp, *| wp.surf }
     dive = result.places.find { |wp, *| wp.dive }
     if quiet
-      Console.echoln_li(_INTL("Surf : {1}, Plongée : {2}", surf&.first&.name || "-", dive&.first&.name || "-"))
+      Console.echoln_li(_INTL("Surf : {1}, Plongée : {2}", surf&.first&.title || "-", dive&.first&.title || "-"))
       return export, world_start(result, map_ids)
     end
-    pbMessage(_INTL("Surf s'obtient à {1}.", surf[0].name)) if surf
-    pbMessage(_INTL("Plongée s'obtient à {1}.", dive[0].name)) if dive
+    pbMessage(_INTL("Surf s'obtient à {1}.", surf[0].title)) if surf
+    pbMessage(_INTL("Plongée s'obtient à {1}.", dive[0].title)) if dive
     return export, world_start(result, map_ids)
   end
 
@@ -144,11 +145,11 @@ module MapProceduralGenerator
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
     result.caves.each do |wp, name, *|
       replace_section(lines, map_ids[name], name,
-                      ["Name = #{wp.name}", position.call(wp), "Dungeon = true", "BattleBack = cave1", "Environment = Cave"])
+                      ["Name = #{wp.cave_title || wp.title}", position.call(wp), "Dungeon = true", "BattleBack = cave1", "Environment = Cave"])
     end
     result.seabeds.each do |wp, name, _text|
       replace_section(lines, map_ids[name], name,
-                      ["Name = #{wp.name}", position.call(wp), "BattleBack = underwater", "Environment = Underwater"])
+                      ["Name = #{wp.title}", position.call(wp), "BattleBack = underwater", "Environment = Underwater"])
     end
     result.islands.each do |wp, port, *|
       replace_section(lines, map_ids[wp.name], wp.name,
@@ -166,7 +167,7 @@ module MapProceduralGenerator
         lines[start + 1...finish] = body
       end
       next if !seabeds[wp.name]
-      replace_section(lines, id, wp.name, ["Name = #{wp.name}"]) if !start
+      replace_section(lines, id, wp.name, ["Name = #{wp.title}"]) if !start
       start = lines.index { |l| l =~ /\A\[0*#{id}\]/ }
       lines.insert(start + 1, "DiveMap = #{seabeds[wp.name]}")
     end

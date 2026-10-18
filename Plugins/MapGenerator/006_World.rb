@@ -14,7 +14,9 @@
 #   A = Bourg Typelock  vol=12,8   (one symbol = one map, found by its name;
 #   1 = Route 1                     vol=x,y = fly destination on that map;
 #   L = Lac  type=lieu              type=ville|route|lieu = drawing on the
-#                                   Town Map, guessed from the name and vol)
+#   B = Ville 2  nom=Port Lucca     Town Map, guessed from the name and vol;
+#                                   nom=... = name shown in game, the map's
+#                                   name by default)
 #   [World]
 #   ..1..                      (one char per Town Map square, "." = nothing;
 #   AAB..                       each place is one solid rectangle, places that
@@ -28,7 +30,12 @@ module MapGenerator
   WorldPlan = Struct.new(:file, :name, :region, :cell, :origin, :image, :tileset_id,
                          :ground, :places, :rows, :no_links)
   # x, y, width, height in world cells
-  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id)
+  # title: name shown in game (map metadata, Town Map), nil = the map's name
+  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id, :title) do
+    def display_name
+      return title || name
+    end
+  end
   WORLD_EMPTY = "."
   PLACE_KINDS = %w[ville route lieu]
 
@@ -65,8 +72,9 @@ module MapGenerator
         fail_at.call("attendu « symbole = nom de la carte [vol=x,y] »") unless content =~ /\A(\S)\s*=\s*(.+)\z/
         symbol, rest = $1, $2
         fail_at.call("« #{WORLD_EMPTY} » est réservé aux cases vides") if symbol == WORLD_EMPTY
-        fly = kind = nil
-        while rest =~ /\A(.+?)\s+(\w+)=(\S+)\z/
+        fly = kind = title = nil
+        # Options from the end; a value may hold spaces (nom=Port Lucca)
+        while rest =~ /\A(.+?)\s+(\w+)=(\S+(?:\s+[^\s=]+)*)\z/
           rest, key, value = $1, $2, $3
           case key
           when "vol"
@@ -75,10 +83,13 @@ module MapGenerator
           when "type"
             fail_at.call("type « #{value} » inconnu (#{PLACE_KINDS.join(', ')})") unless PLACE_KINDS.include?(value)
             kind = value
-          else fail_at.call("option « #{key} » inconnue (vol, type)")
+          when "nom"
+            title = value
+          else fail_at.call("option « #{key} » inconnue (vol, type, nom)")
           end
         end
         plan.places[symbol] = Place.new(symbol, rest.strip, fly, kind)
+        plan.places[symbol].title = title
       when :nolinks
         fail_at.call("attendu deux symboles, par exemple « A B »") unless content =~ /\A(\S)\s+(\S)\z/
         plan.no_links.push([$1, $2].sort)
@@ -247,7 +258,7 @@ module MapGenerator
       x = plan.origin[0] + place.x
       y = plan.origin[1] + place.y
       values = {
-        "Name"        => place.name,
+        "Name"        => place.display_name,
         "Outdoor"     => "true",
         "ShowArea"    => "true",
         "MapPosition" => "#{plan.region},#{x},#{y}",
@@ -286,18 +297,20 @@ module MapGenerator
         end
       end
     end
-    names = plan.places.values.map(&:name)
+    names = plan.places.values.flat_map { |p| [p.name, p.display_name] }
     body = lines[start + 1...finish].reject do |l|
       next true if l.start_with?("Name") || (plan.image && l.start_with?("Filename"))
       next false unless l =~ /\APoint\s*=\s*(\d+),(\d+),([^,]*)/
-      squares[[$1.to_i, $2.to_i]] || names.include?($3)
+      # A region drawn from the plan (Image) only has the plan's places: the
+      # points of an earlier world with other names go too
+      plan.image || squares[[$1.to_i, $2.to_i]] || names.include?($3)
     end
     head = ["Name = #{plan.name}"]
     if !body.any? { |l| l.start_with?("Filename") }
       head.push("Filename = #{plan.image || "mapRegion#{plan.region}.png"}")
     end
     points = squares.sort_by { |(x, y), _| [y, x] }.map do |(x, y), place|
-      point = "Point = #{x},#{y},#{place.name}"
+      point = "Point = #{x},#{y},#{place.display_name}"
       point += ",,#{place.map_id},#{place.fly[0]},#{place.fly[1]}" if place.fly
       point
     end
