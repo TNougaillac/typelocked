@@ -97,6 +97,11 @@ worlds.each do |path|
     result.seabeds.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::SEABED_TILESET])
     end
+    # Every gym is on a map, in a town of the chain or on an island
+    gyms = (result.places + result.islands.map { |wp, _port, place, text, layout| [wp, place, text, layout] }).sum do |*, layout|
+      layout.doors.count { |_x, _y, brick| brick.kind == "arene" }
+    end
+    CI.error(path, nil, "graine #{seed} : #{gyms} arène(s) posée(s) au lieu de #{world.gyms}") if gyms != world.gyms
   end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
