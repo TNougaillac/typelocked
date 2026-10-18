@@ -49,10 +49,11 @@ module ProceduralEncounters
     return ground.filter_map { |tile| GROUND_BIOMES[tile] }.first || "herbe"
   end
 
-  # name => PBS lines of every zone of the world.
+  # name => PBS lines of every zone of the world, from the Pokémon drawn for
+  # it among the roster.
   def world_encounters(result, species, caps, seed)
     zones = world_zones(result, caps)
-    generated = generate(zones, species, (seed * 1000) + 900)
+    generated = generate(zones, world_species(species, (seed * 1000) + 901), (seed * 1000) + 900)
     lines = zones.to_h { |zone| [zone.name, zone_lines(generated.tables.select { |t| t.zone.equal?(zone) })] }
     return lines, generated
   end

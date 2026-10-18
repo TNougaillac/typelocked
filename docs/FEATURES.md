@@ -406,19 +406,22 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Les messages d'utilisation restent ceux d'Essentials, en anglais.
 
 ## F13. Rencontres sauvages générées (ProceduralEncounters)
-**Statut :** v1.0.0, écrit, testé hors jeu (CI), **non testé en jeu**.
+**Statut :** v1.1.0, écrit, testé hors jeu (CI), **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapProceduralGenerator (`Requires = MapProceduralGenerator`), sans le modifier.
 **Dossier :** `Plugins/ProceduralEncounters/`
 
 ### Règles
 - Quand un monde MapProc est généré (menu debug ou nouvelle partie), chaque carte reçoit ses rencontres dans `PBS/encounters.txt` : `Land` s'il y a des hautes herbes, `Water` et les trois cannes s'il y a de l'eau, `Cave` pour chaque grotte. Seules les sections des cartes du monde sont remplacées (ou retirées si la carte n'a plus ni herbe, ni eau, ni grotte), puis le fichier est recompilé. Une copie est écrite dans `MapProc/Export/<monde>_<graine>_rencontres.txt`.
-- Source : les 300 de `docs/roster/liste-300.csv` (types, types Monotype, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. Modifier la liste change les rencontres à la prochaine génération du monde.
+- Source : les 400 de `docs/roster/liste-400.csv` (types, types Monotype, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. Modifier la liste change les rencontres à la prochaine génération du monde.
+- **Pokémon du monde :** si la liste en a plus de `WORLD_SPECIES` (300), chaque graine tire des familles entières jusqu'à 300 Pokémon : d'abord au moins `TYPE_FAMILIES` (4) familles capturables par type imposé, puis au hasard. Une liste de 300 ou moins est prise entière.
 - **Niveaux :** les sceaux d'une carte = les arènes avant elle dans la chaîne. Les niveaux montent du cap précédent vers 80 % de l'écart jusqu'au cap suivant (caps de LevelCap, sinon `CAPS`), en commençant à 3. Cannes : Canne -6, Super Canne -3, Méga Canne +2.
 - **Biomes :** ville, montagne, grotte, eau, sinon le sol de la route (herbe, prairie, sable, terre battue). La démesure peut le remplacer (forêt profonde et ville-jardin = forêt, mer d'herbes = prairie, chaos rocheux et montagne colossale = montagne). Chaque biome donne un poids par type (`BIOMES`) ; un Pokémon prend le meilleur de ses types. L'eau et les cannes n'ont que des Pokémon de type Eau, la Canne seulement des faibles non évolués.
-- **Tirage :** chaque table tire quelques Pokémon selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
+- **Identité d'un lieu :** chaque table d'herbe ou de grotte tire 2 types dominants selon son biome (ceux du lieu précédent 4 fois moins probables, pour que deux voisins diffèrent). Les Pokémon de ces types font 60 % des rencontres.
+- **Tirage :** chaque table tire 4 à 7 Pokémon (environ 60 % d'entre eux des types dominants) selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
 - **Évolutions :** une évolution par niveau apparaît à partir de ce niveau ; par pierre, bonheur, échange… à partir de 3 sceaux (stade 2) ou 6 sceaux (stade 3).
-- **Couverture Monotype :** entre deux lieutenants, les 18 types ont chacun au moins un Pokémon capturable par un run de ce type (herbe, grotte, ou surf une fois Surf obtenu). Les manquants sont ajoutés en rares, d'abord ceux qui couvrent le plus de types d'un coup ; les tables peuvent alors grandir (jusqu'à 14 Pokémon en herbe).
-- **Couverture du Pokédex :** chaque famille de la liste apparaît au moins une fois dans le monde.
+- **Couverture Monotype :** chaque type imposé a au moins un Pokémon capturable dans un lieu du tronçon ou du tronçon précédent (herbe, grotte, ou surf une fois Surf obtenu ; les cannes ne comptent pas). Les manquants sont ajoutés au tronçon, d'abord ceux qui couvrent le plus de types d'un coup, à 5 % chacun.
+- **Couverture du Pokédex :** chaque famille tirée pour le monde apparaît au moins une fois dans le monde, à 5 %.
+- **Taille des tables :** 8 Pokémon en herbe, 7 en grotte, 5 en surf. La couverture remplit d'abord jusque-là, puis dépasse en dernier recours (14 / 12 / 8). Garder les 149 familles fait monter environ un tiers des tables à 10-12 Pokémon (choix assumé, plutôt que des familles absentes).
 - Même graine du monde = mêmes rencontres.
 - Nouvelle partie : écrites en silence (console seulement). Quand le monde d'une partie non sauvegardée est supprimé, les sections de ses cartes sont retirées ; quand celui de la sauvegarde est redessiné, ses rencontres sont réécrites.
 
@@ -426,9 +429,9 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | Fichiers lus, tuiles d'herbe et d'eau, `BIOMES`, `TABLES`, niveaux, poids. |
-| `002_Species.rb` | Lecture de la liste des 300 et des évolutions (niveau ou sceaux minimum). |
-| `003_Tables.rb` | Tirage des tables, couverture des types et des familles, lignes PBS. |
+| `001_Settings.rb` | Fichiers lus, tuiles d'herbe et d'eau, `BIOMES`, `TABLES`, types dominants, couverture, niveaux, poids. |
+| `002_Species.rb` | Lecture de la liste des 400 et des évolutions (niveau ou sceaux minimum), tirage des familles du monde. |
+| `003_Tables.rb` | Types dominants, tirage des tables, couverture des types et des familles, pourcentages, lignes PBS. |
 | `004_World.rb` | Zones d'un monde généré : sceaux, niveaux, biome, types de rencontre. |
 | `005_Generate.rb` | Écriture dans `encounters.txt` et accroche à MapProc. |
 | `tools/ci/check_encounters.rb` | CI : 3 graines par monde, lignes, niveaux, pourcentages, couverture. |
@@ -496,4 +499,5 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 17/10/2026 | MapProceduralGenerator v0.8.0 : un monde tiré à chaque nouvelle partie, supprimé (ou celui de la sauvegarde redessiné) si la partie n'est pas sauvegardée, la partie commence dans sa première ville, intro remplacée par la seule saisie du nom ; ProceduralEncounters v1.0.1 suit la nouvelle signature sans écrire de rencontres pour une nouvelle partie ; fonds sous-marins reproductibles ; correction : regénérer un monde depuis le menu debug ne bute plus sur « la carte N s'appelle déjà » ; MapGenerator v1.7.1 : génération du monde sans message | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/meta.txt`, `Plugins/ProceduralEncounters/005_Generate.rb`, `Plugins/ProceduralEncounters/meta.txt`, `.gitignore`, `docs/FEATURES.md` |
 | 17/10/2026 | ProceduralEncounters v1.0.2 : rencontres écrites aussi pour le monde d'une nouvelle partie (en silence), retirées avec les cartes d'une partie non sauvegardée | `Plugins/ProceduralEncounters/005_Generate.rb`, `Plugins/ProceduralEncounters/meta.txt`, `docs/FEATURES.md` |
 | 17/10/2026 | MapProceduralGenerator v0.8.1 : écran « Le monde se prépare... » pendant la génération, plus de recompilation complète au lancement suivant ; correction : écran noir après « Nouvelle partie » (la saisie du nom s'ouvrait avant l'affichage de la carte) | `Plugins/MapProceduralGenerator/005_Debug.rb`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
+| 17/10/2026 | ProceduralEncounters v1.1.0 : identité des lieux (2 types dominants à 60 %), couverture Monotype sur le tronçon et le précédent, Pokémon de couverture à 5 %, tables plus courtes, 300 Pokémon tirés par monde parmi les 400 de la liste ; « Tronçon » au glossaire | `Plugins/ProceduralEncounters/*`, `GLOSSARY.md`, `docs/FEATURES.md` |
 | 18/10/2026 | MapProceduralGenerator v0.9.0 : vrais noms de lieux tirés avec la graine dans `MapProc/Lore/noms.txt` (villes, ports, villages, grottes, région ; routes numérotées) au lieu de « Ville générée 3 » ; une partie non sauvegardée efface aussi l'image de sa région et ses plans exportés ; MapGenerator v1.8.0 : option `nom=` dans `[Places]` (nom affiché, la carte garde le sien) | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/meta.txt`, `MapProc/monde.txt`, `MapProc/Lore/noms.txt`, `tools/ci/check_mapproc.rb`, `docs/LORE.md`, `docs/FEATURES.md` |

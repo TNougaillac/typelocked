@@ -46,6 +46,10 @@ _Avoid_ : Prof
 La chevalière de la Famille qu'un champion d'arène remet quand il est battu, à la place d'un badge.
 _Avoid_ : badge (en jeu), bague
 
+**Tronçon** :
+La partie de la région comprise entre deux champions d'arène, où le joueur a le même nombre de sceaux.
+_Avoid_ : segment, étape
+
 **Ligue** :
 Le sommet de la Famille, au bout du parcours des arènes.
 _Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
