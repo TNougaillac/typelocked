@@ -47,6 +47,9 @@
 #                              (optional town names, in order; "Ville
 #                               générée 1"... otherwise; routes are "Route
 #                               générée 1"...)
+#   Toponymie = Lore/noms.txt  (optional: names shown in game, drawn with the
+#                               seed from this file, see 008_Names; the map
+#                               names otherwise)
 # The towns (2x2 squares) form a chain linked by routes (1 square wide), each
 # town a little further from the start, so the gyms come in that order. Each
 # place is assembled from its place file with the exits facing its
@@ -59,14 +62,15 @@
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
-                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river)
+                     :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river,
+                     :names_file)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
   # route climbing by levels (with a crossing or not); cave: a mountain route
-  # with a cave
+  # with a cave; title, cave_title: names shown in game (see 008_Names)
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
-                          :dive, :deep, :mountain, :cave, :excess, :river)
+                          :dive, :deep, :mountain, :cave, :excess, :river, :title, :cave_title)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
   # seabeds: [WorldPlace of the route, name, MapGen plan text]
@@ -85,7 +89,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, nil)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -109,6 +113,7 @@ module MapProceduralGenerator
       when "arenes"   then world.gyms = integer(value, fail_at)
       when "longueur" then world.route_length = range(value, fail_at)
       when "noms"     then world.names = value.split(",").map(&:strip)
+      when "toponymie" then world.names_file = value
       when "sansarene" then world.no_gym = value.split(",").map { |n| integer(n.strip, fail_at) }
       when "surf"     then world.surf = integer(value, fail_at)
       when "chenaux"  then world.channels = range(value, fail_at)
@@ -145,8 +150,9 @@ module MapProceduralGenerator
   end
 
   # Lays the towns and routes on the grid, then assembles every place.
-  # map_ids: name => map ID to overwrite (places of an earlier world).
-  def generate_world(world, town, route, bricks, seed, map_ids = {})
+  # map_ids: name => map ID to overwrite (places of an earlier world); names:
+  # NameTable of the names shown in game (nil = the map names).
+  def generate_world(world, town, route, bricks, seed, map_ids = {}, names = nil)
     rng = Random.new(seed)
     places = nil
     50.times do
@@ -154,6 +160,9 @@ module MapProceduralGenerator
       break if places
     end
     raise Error, "#{world.file} (graine #{seed}) : impossible de placer #{world.towns} villes dans #{world.width}x#{world.height} cases ; agrandis « Taille »" if !places
+    # Own random numbers: the names don't change the rest of the world
+    region = names ? name_world(world, places, names, Random.new((seed * 1000) + 800)) : world.name
+    places.each { |wp| wp.title ||= wp.name }
     built = places.map do |wp|
       base = (wp.kind == "ville") ? town : route
       place = base.dup
@@ -186,7 +195,7 @@ module MapProceduralGenerator
       name = "#{wp.name} (fonds)"
       [wp, name, seabed_text(name, place, layout, Random.new((seed * 1000) + 700 + wp.index))]
     end
-    return WorldResult.new(world_text(world, built, seed), built, caves, seabeds)
+    return WorldResult.new(world_text(world, built, seed, region), built, caves, seabeds)
   end
 
   # A place whose bricks don't fit (a narrow route cut by a wall or water) is
@@ -463,21 +472,22 @@ module MapProceduralGenerator
 
   # MapGen world plan of the generated places. Towns can be flown to, landing
   # in front of their Pokémon Centre.
-  def world_text(world, built, seed)
+  def world_text(world, built, seed, region = world.name)
     text = +"# Monde généré par MapProceduralGenerator, graine #{seed}.\n"
-    text << "World   = #{world.name}\n"
+    text << "World   = #{region}\n"
     text << "Region  = #{world.region}\n"
     text << "Image   = #{world.image}\n" if world.image
     text << "Cell    = #{world.cell}\n"
     text << "Origin  = #{world.origin.join(',')}\n"
     surf = built.find { |wp, *| wp.surf }
-    text << "# Surf s'obtient à #{surf[0].name}.\n" if surf
+    text << "# Surf s'obtient à #{surf[0].title}.\n" if surf
     dive = built.find { |wp, *| wp.dive }
-    text << "# Plongée s'obtient à #{dive[0].name}.\n" if dive
-    built.each { |wp, *| text << "# Démesure : #{wp.name}, #{wp.excess}.\n" if wp.excess }
+    text << "# Plongée s'obtient à #{dive[0].title}.\n" if dive
+    built.each { |wp, *| text << "# Démesure : #{wp.title}, #{wp.excess}.\n" if wp.excess }
     text << "\n[Places]\n"
     built.each do |wp, _place, _text, layout|
       line = "#{wp.symbol} = #{wp.name}  type=#{wp.kind}"
+      line += "  nom=#{wp.title}" if wp.title != wp.name
       centre = layout.doors.find { |_x, _y, brick| brick.kind == "centre" }
       line += "  vol=#{centre[0]},#{centre[1] + 1}" if centre
       text << line << "\n"

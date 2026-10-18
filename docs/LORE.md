@@ -47,6 +47,7 @@ Tirés à chaque graine dans [MapProc/Lore/noms.txt](../MapProc/Lore/noms.txt) :
 - villes portuaires : « Port » + nom (Port Hudson), ou nom + « Dock » ou « Harbor » (Salerno Dock, Lorient Harbor) ;
 - villes : nom + « ville », en suffixe comme Albertville ou Jacksonville (Morettiville), ou nom + « City » (Caruso City) ;
 - routes : numérotées (Route 1) ;
+- grottes : « Grotte » + nom (Grotte Rossini), ou nom + « Cave » (Hudson Cave) ;
 - région : tirée dans sa propre liste.
 
 ## Ce que le lore n'explique pas

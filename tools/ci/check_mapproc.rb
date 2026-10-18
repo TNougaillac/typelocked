@@ -6,7 +6,7 @@
 require_relative "lib/ci"
 
 %w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
-%w[001_Settings 002_Parser 003_Builder 004_World].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
+%w[001_Settings 002_Parser 003_Builder 004_World 008_Names].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
@@ -62,9 +62,12 @@ worlds.each do |path|
   town, route = [world.town_file, world.route_file].map do |name|
     M.parse_place(CI.read_text(File.join(folder, name)), name)
   end
+  names = world.names_file && M.parse_names(CI.read_text(File.join(folder, world.names_file)), world.names_file)
   (1..3).each do |seed|
-    result = M.generate_world(world, town, route, bricks, seed)
-    MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
+    result = M.generate_world(world, town, route, bricks, seed, {}, names)
+    plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
+    titles = plan.places.values.map(&:display_name)
+    raise M::Error, "#{File.basename(path)} (graine #{seed}) : noms affichés en double" if titles.uniq.length != titles.length
     result.places.each do |wp, place, text, _layout|
       plan = MapGenerator.parse(text, place.file)
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])

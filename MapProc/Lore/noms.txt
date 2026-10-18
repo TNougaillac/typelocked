@@ -1,16 +1,23 @@
-# Noms de lieux tirés par la graine du monde (voir docs/LORE.md).
-# Pas encore lu par le générateur : ce fichier est hors du dossier des lieux,
-# pour que la CI ne le prenne pas pour un plan de ville ou de route.
+# Noms de lieux tirés par la graine du monde (voir docs/LORE.md), lus par le
+# générateur via la clé « Toponymie » de monde.txt. Ce fichier est hors du
+# dossier des lieux, pour que la CI ne le prenne pas pour un plan de ville.
 #
 # [Formes] : comment un nom de base devient un nom de lieu. {nom} = un nom tiré
-# dans [Italien], [Americain] ou [Francais], à parts égales. Plusieurs formes
-# séparées par « | » : une est tirée au hasard (française ou anglaise).
-# [Region] : noms possibles pour la région entière.
+# dans une des autres sections ([Italien], [Americain], [Francais]...), à parts
+# égales, jamais deux fois le même. Plusieurs formes séparées par « | » : une
+# est tirée au hasard (française ou anglaise).
+# - Village : la première ville et les villes sans arène ;
+# - Port : les villes au bord d'une route d'eau (chenal, lac) ou lacustres ;
+# - Ville : les autres villes ;
+# - Grotte : les grottes des routes.
+# Les routes sont numérotées (Route 1, Route 2...).
+# [Region] : noms possibles pour la région entière (Carte de la région).
 
 [Formes]
 Village = Bourg {nom} | {nom} County
 Port    = Port {nom} | {nom} Dock | {nom} Harbor
 Ville   = {nom}ville | {nom} City
+Grotte  = Grotte {nom} | {nom} Cave
 
 [Region]
 Omerta, Vendetta, Calabria, Sicaria, Bayonne, Nouvelle-Corse, Borgata, Liberty

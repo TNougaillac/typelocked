@@ -12,6 +12,9 @@ Taille   = 28x18
 Cell     = 20
 Ville    = ville.txt
 Route    = route.txt
+# Noms affichés en jeu (villes, grottes, région), tirés avec la graine. Les
+# cartes gardent leur nom généré dans l'arbre des cartes.
+Toponymie = Lore/noms.txt
 Villes   = 9
 Arenes   = 8
 # La première ville n'a jamais d'arène. Les autres villes sans arène sont tirées
