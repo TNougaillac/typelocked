@@ -83,6 +83,17 @@ worlds.each do |path|
     result.caves.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])
     end
+    # Each island and its port lead to each other by boat
+    names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
+    result.islands.each do |wp, port, place, text, _layout|
+      plan = MapGenerator.parse(text, place.file)
+      MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
+      check_spill(plan, "#{wp.name} (graine #{seed})")
+      port_text = result.places.find { |p, *| p.equal?(port) }[2]
+      ok = plan.warps.values.map(&:target) == [port.name] &&
+           MapGenerator.parse(port_text, place.file).warps.values.map(&:target) == [wp.name] && !names.include?(wp.name)
+      CI.error(path, nil, "#{wp.name} (graine #{seed}) : le bateau ne relie pas l'île à #{port.name}") if !ok
+    end
     result.seabeds.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::SEABED_TILESET])
     end

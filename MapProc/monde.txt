@@ -37,6 +37,10 @@ RiviereMontagne = 50
 # une gare maritime sur pilotis. Une ville nommée Port, Dock ou Harbour en est
 # toujours une, en plus de celles-ci.
 Ports    = 1..2
+# Un port avec une gare maritime (mer au sud, à l'est ou à l'ouest) a, selon
+# ce pourcentage, un bateau vers une île : une carte à part, village ou île
+# sauvage, nommée « Île … » ou comme une ville.
+Iles     = 50
 # Plongée s'obtient dans une ville à arène, la 3e ou une suivante, et toujours
 # après la ville de Surf (il faut Surf pour plonger). Les zones sous-marines ne
 # sont posées que sur des routes d'eau situées après la ville de Plongée : on y

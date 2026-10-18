@@ -11,7 +11,8 @@
 # cave entrance on each side (grotte); the exits then lie on both sides of it.
 # A port town (« Port ») has the sea on one side with no exit: a wooden quay
 # along the water, piers out to sea, a paved promenade behind the quay and
-# its port buildings along it.
+# its port buildings along it. An island (a map of a world reached by boat)
+# is a port town with no exit and the sea on its other sides too.
 # Same place + same bricks + same seed = same map.
 #===============================================================================
 module MapProceduralGenerator
@@ -64,6 +65,9 @@ module MapProceduralGenerator
       @place.exits.each { |side, offset| carve_exit(side, offset, hub) }
       @water = Array.new(@h) { Array.new(@w, false) }
       lay_port(hub) if @place.port
+      lay_shore if @place.island
+      moor_boat if @terminal && (@place.ferry || @place.island)
+      scatter_reefs if @place.island
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       cross if @place.crossing
       if @place.mountain
@@ -162,6 +166,7 @@ module MapProceduralGenerator
     # port town, a point inland of the promenade, else no dead end).
     def carve_spur(hub)
       bw, bh = border_size
+      bw = bh = ISLAND_SHORE.max + 2 if @place.island
       inland = ->(x, y) { !@port_depth || port_depth_at(x, y) >= @port_depth + STREET_WIDTH }
       x, y = nil
       10.times do
@@ -230,6 +235,7 @@ module MapProceduralGenerator
     # Free tiles that can be walked to from the exits and doors.
     def reachable_ground
       starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts.push([@terminal[0], @terminal[1] - 1]) if @terminal
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each do |start|
         next if seen[start[1]][start[0]]
@@ -373,6 +379,7 @@ module MapProceduralGenerator
       @port_depth = depth
       bw, bh = border_size
       edge = %w[nord sud].include?(@place.port) ? bw : bh
+      edge = ISLAND_SHORE.max if @place.island
       length = along_sea
       length.times do |a|
         depth.times do |d|
@@ -451,6 +458,96 @@ module MapProceduralGenerator
       end
       @terminal = [x + (bw / 2), y]
       return span
+    end
+
+    # The sea around an island, on its sides without the port: a few tiles
+    # wide, the width wandering by one tile now and then along the shore.
+    def lay_shore
+      sides = SIDES - [@place.port]
+      width = sides.to_h do |side|
+        length = %w[nord sud].include?(side) ? @w : @h
+        current = @rng.rand(ISLAND_SHORE)
+        [side, Array.new(length) { current = (current + [-1, 0, 0, 1].sample(random: @rng)).clamp(ISLAND_SHORE.min, ISLAND_SHORE.max) }]
+      end
+      @h.times do |y|
+        @w.times do |x|
+          next if @street[y][x] || @cells[y][x]
+          wet = sides.any? do |side|
+            along, depth = case side
+                           when "nord"  then [x, y]
+                           when "sud"   then [x, @h - 1 - y]
+                           when "ouest" then [y, x]
+                           else              [y, @w - 1 - x]
+                           end
+            depth < width[side][along]
+          end
+          next if !wet
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
+        end
+      end
+    end
+
+    # The boat of a ferry terminal that leads to an island, on the water close
+    # to the terminal, with water all around it.
+    def moor_boat
+      object = @place.boat && @palette.objects[@place.boat]
+      return if !object
+      bw, bh = object.width, object.height
+      tx, ty = @terminal
+      spots = []
+      (0..@h - bh).each do |y|
+        (0..@w - bw).each do |x|
+          next if !open_sea?(x, y, bw, bh, 1)
+          spots.push([x, y, (x + (bw / 2) - tx).abs + (y + (bh / 2) - ty).abs])
+        end
+      end
+      return if spots.empty?
+      x, y, = spots.min_by { |s| s[2] }
+      reef(x, y, bw, bh, @place.boat)
+    end
+
+    # Sandbanks (walked on after surfing) and rocks in the sea around an
+    # island, off the shore, the piers and one another.
+    def scatter_reefs
+      # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
+      # the hand-made maps
+      [[@place.bank, ISLAND_BANKS, [2, 4], [2, 3]], [@place.reef, ISLAND_REEFS, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
+        next if !sym
+        @rng.rand(count).times do
+          w, h = @rng.rand(ws[0]..ws[1]), @rng.rand(hs[0]..hs[1])
+          spots = (0..@h - h).flat_map { |y| (0..@w - w).map { |x| [x, y] } }
+          spot = spots.shuffle(random: @rng).find { |x, y| open_sea?(x, y, w, h, 2) }
+          break if !spot
+          reef(*spot, w, h, sym)
+        end
+      end
+    end
+
+    # Only plain sea in that rectangle and the margin around it, off the map
+    # edge.
+    def open_sea?(x, y, w, h, margin)
+      return false if x < 1 || y < 1 || x + w > @w - 1 || y + h > @h - 1
+      (y - margin...y + h + margin).each do |cy|
+        (x - margin...x + w + margin).each do |cx|
+          next if !inside?(cx, cy)
+          return false if !@water[cy][cx] || @cells[cy][cx] != @place.water
+        end
+      end
+      return true
+    end
+
+    # A boat, rocks or a sandbank on the sea: the sand can be walked on (it
+    # counts as water for the way, reached by surfing), the rest blocks.
+    def reef(x, y, w, h, sym)
+      h.times do |dy|
+        w.times do |dx|
+          @cells[y + dy][x + dx] = sym
+          @water[y + dy][x + dx] = (sym == @place.bank)
+          @solid[y + dy][x + dx] = true
+          @kinds[y + dy][x + dx] = sym
+        end
+      end
     end
 
     # The south lip of the planks is drawn on the water under them.
@@ -956,7 +1053,7 @@ module MapProceduralGenerator
     # cave's wall, each side is walked from its own exit and must reach its
     # cave entrance.
     def check_reachable
-      return if @exits.empty? && @doors.empty?
+      return if @exits.empty? && @doors.empty? && !@terminal && !@place.island
       if @place.crossing == "grotte"
         @exits.each do |side, ex, ey|
           seen = walk([ex, ey])
@@ -965,7 +1062,14 @@ module MapProceduralGenerator
         end
         return
       end
-      start = @exits.empty? ? [@doors[0][0], @doors[0][1] + 1] : @exits[0][1, 2]
+      error("l'île n'a pas de gare maritime") if @place.island && !@terminal
+      start = if !@exits.empty?
+                @exits[0][1, 2]
+              elsif @terminal
+                [@terminal[0], @terminal[1] - 1]
+              else
+                [@doors[0][0], @doors[0][1] + 1]
+              end
       seen = walk(start)
       error("la gare maritime est inaccessible") if @terminal && !seen[@terminal[1] - 1][@terminal[0]]
       @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }

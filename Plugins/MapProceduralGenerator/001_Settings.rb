@@ -72,4 +72,27 @@ module MapProceduralGenerator
     [Terrains]
     R = T44 N=T36 S=T52 W=T43 E=T45 NW=T35 NE=T37 SW=T51 SE=T53 iNW=T47 iNE=T46 iSW=T39 iSE=T38
   PALETTE
+
+  # Islands reached by boat from a port town (« Iles » in a world): a map of
+  # their own, built from the town file with the sea all around, and its own
+  # ferry terminal. Size, and the bricks of each kind of island: a village or
+  # a wild island (grass, trees, rocks).
+  ISLAND_SIZE = [40, 36]
+  ISLAND_KINDS = {
+    "village" => { "centre" => 1..1, "boutique" => 0..1, "maison" => 2..4, "parc" => 1..2,
+                   "lampe" => 2..4, "arbre" => 3..6, "foire" => 0..1 },
+    "sauvage" => { "maison" => 0..1, "herbes" => 3..5, "arbre" => 6..12, "parc" => 1..2,
+                   "lac" => 0..1, "montagne" => 0..1 }
+  }.freeze
+  # Ground of half the islands (an [Ambiance] of the town file)
+  ISLAND_AMBIANCE = "sable"
+  # Width of the sea around an island, on its sides without a port
+  ISLAND_SHORE = 4..7
+  # Sandbanks and rocks in the sea around an island
+  ISLAND_BANKS = 1..3
+  ISLAND_REEFS = 3..6
+  # Island names: « Île » and a name, or a name alone, from these sections of
+  # this file
+  ISLAND_NAMES_FILE = "Lore/noms.txt"
+  ISLAND_NAME_SECTIONS = %w[Italien Americain Francais].freeze
 end
