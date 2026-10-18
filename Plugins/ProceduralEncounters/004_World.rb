@@ -13,8 +13,8 @@ module ProceduralEncounters
   # Zones of the world, in the chain's order (each cave after its route).
   def world_zones(result, caps)
     places = result.places.sort_by { |wp, *| wp.index }
-    # An island with the gym of its port counts it at the port's place
-    gym_indexes = places.filter_map { |wp, *| wp.index if wp.gym && !wp.island_gym } +
+    # An island's gym counts at the place of its port
+    gym_indexes = places.filter_map { |wp, *| wp.index if wp.gym } +
                   (result.islands || []).filter_map { |wp, *| wp.index if wp.gym }
     seals = ->(wp) { gym_indexes.count { |i| i < wp.index } }
     surf_town = places.find { |wp, *| wp.surf }&.first

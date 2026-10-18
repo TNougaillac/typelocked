@@ -45,9 +45,10 @@
 #                               its own off the grid: a village or a wild
 #                               island, see ISLAND_KINDS; 0 by default)
 #   IlesArene = 50             (chance in % that the island of a port town
-#                               with a gym takes that gym: the island is
-#                               then a village; never the Surf or Dive town;
-#                               0 by default)
+#                               has a gym too: the island is then a village,
+#                               and the gym is taken from a town further in
+#                               the chain (else from the port), never from
+#                               the Surf or Dive town; 0 by default)
 #   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
 #                               from the town of that gym onwards and after
 #                               the Surf town, needed to dive; 3 by default)
@@ -77,7 +78,7 @@ module MapProceduralGenerator
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
   # route climbing by levels (with a crossing or not); cave: a mountain route
   # with a cave; port: the sea side of a port town; island: name of the island
-  # its boat goes to; island_gym: the gym of that town is on its island
+  # its boat goes to; island_gym: the town whose gym went to that island
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
                           :dive, :deep, :mountain, :cave, :excess, :river, :port, :island,
                           :island_gym)
@@ -185,7 +186,7 @@ module MapProceduralGenerator
       place.exits = wp.exits
       place.map_id = map_ids[wp.name]
       place.counts = base.counts.dup
-      place.counts["arene"] = (wp.gym && !wp.island_gym) ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
+      place.counts["arene"] = wp.gym ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
       place.crossing = wp.crossing
       place.mountain = wp.mountain
       place.cave = wp.cave
@@ -217,14 +218,20 @@ module MapProceduralGenerator
       next if !wp.island
       island = build_island(world, town, bricks, wp, layout, (seed * 1000) + 900 + wp.index, map_ids)
       if !island
-        # No island: the port keeps its gym, and no boat is moored
+        # No island: no boat is moored, and the town that gave its gym to
+        # the island gets it back
         wp.island = nil
-        if wp.island_gym
-          wp.island_gym = false
-          place.counts["arene"] = 1..1
-        end
         place.ferry = false
         built[i] = [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+        donor = wp.island_gym
+        wp.island_gym = nil
+        if donor
+          donor.gym = true
+          j = built.index { |other, *| other.equal?(donor) }
+          other = built[j][1]
+          other.counts["arene"] = 1..1
+          built[j] = [donor, other, *generate_world_place(other, bricks, (seed * 1000) + donor.index)]
+        end
         next
       end
       text << ferry_warps(wp.w * world.cell, wp.h * world.cell, layout, island[0].name, island[4])
@@ -243,7 +250,7 @@ module MapProceduralGenerator
     kind = ISLAND_KINDS.keys.sample(random: rng)
     kind = "village" if port_wp.island_gym
     wp = WorldPlace.new(nil, (kind == "village") ? "ville" : "route", port_wp.island, port_wp.x, port_wp.y, 1, 1, [],
-                        port_wp.island_gym)
+                        !port_wp.island_gym.nil?)
     wp.index = port_wp.index
     place = town.dup
     place.name = wp.name
@@ -499,8 +506,16 @@ module MapProceduralGenerator
       next if rng.rand(100) >= world.islands
       town.island = island_name(taken, rng)
       taken.push(town.island)
-      next if world.island_gyms <= 0 || !town.gym || town.surf || town.dive
-      town.island_gym = rng.rand(100) < world.island_gyms
+      next if world.island_gyms <= 0 || rng.rand(100) >= world.island_gyms
+      # The island has a gym too: the number of gyms stays the same, so a town
+      # further in the chain gives its own (the gyms between keep at least as
+      # many before them, Surf and Dive stay in their place), else the port
+      donors = towns.select { |t| t.gym && !t.surf && !t.dive && t.index > town.index }
+      donors = [town] if donors.empty? && town.gym && !town.surf && !town.dive
+      donor = donors.sample(random: rng)
+      next if !donor
+      donor.gym = false
+      town.island_gym = donor
     end
   end
 
@@ -647,7 +662,7 @@ module MapProceduralGenerator
     islands.each { |wp, *| text << "# Démesure : #{wp.name}, #{wp.excess}.\n" if wp.excess }
     built.each { |wp, *| text << "# Port : #{wp.name}, la mer au #{wp.port}.\n" if wp.port }
     built.each do |wp, *|
-      text << "# Île : #{wp.island}, en bateau depuis #{wp.name}#{wp.island_gym ? ", avec l'arène de la ville" : ''}.\n" if wp.island
+      text << "# Île : #{wp.island}, en bateau depuis #{wp.name}#{wp.island_gym ? ', avec une arène' : ''}.\n" if wp.island
     end
     text << "\n[Places]\n"
     built.each do |wp, _place, _text, layout|
