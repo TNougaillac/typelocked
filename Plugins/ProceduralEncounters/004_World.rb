@@ -1,8 +1,9 @@
 #===============================================================================
 # ProceduralEncounters - Zones of a generated world
 # From MapProceduralGenerator's WorldResult: one zone per town and route that
-# has tall grass or water, one per cave. Seals = lieutenants beaten on the way
-# there (the chain order); levels climb along the chain. Plain Ruby.
+# has tall grass or water, one per cave, one per island. Seals = lieutenants
+# beaten on the way there (the chain order); levels climb along the chain.
+# Plain Ruby.
 #===============================================================================
 module ProceduralEncounters
   WATER_TYPES = %w[Water OldRod GoodRod SuperRod].freeze
@@ -31,6 +32,15 @@ module ProceduralEncounters
     result.caves.each do |wp, name, *|
       route = zones[wp.name]
       zones[name] = Zone.new(name, wp.index, route.seals, route.levels, nil, ["Cave"], route.surf)
+    end
+    # An island by boat: the seals and levels of its port
+    (result.islands || []).each do |wp, port, place, text, _layout|
+      plan = MapGenerator.parse(text, place.file)
+      types = []
+      types.push("Land") if cells?(plan, GRASS_TILES)
+      types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+      town = zones[port.name]
+      zones[wp.name] = Zone.new(wp.name, wp.index, town.seals, town.levels, land_biome(wp, place, plan), types, town.surf)
     end
     return zones.values.sort_by { |z| [z.index, z.types == ["Cave"] ? 1 : 0] }
   end
