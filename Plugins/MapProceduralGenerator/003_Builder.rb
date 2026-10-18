@@ -9,13 +9,17 @@
 # A route of a world may be crossed by water (chenal: a straight channel, lac:
 # a lake from side to side), reached only by surfing, or by a rock wall with a
 # cave entrance on each side (grotte); the exits then lie on both sides of it.
+# A port town (« Port ») has the sea on one side with no exit: a wooden quay
+# along the water, piers out to sea, a paved promenade behind the quay and
+# its port buildings along it.
 # Same place + same bricks + same seed = same map.
 #===============================================================================
 module MapProceduralGenerator
   # rows: MapGen [Map] rows; doors: [x, y, brick] (door cells); exits:
   # [side, x, y] (first street cell on the map edge)
-  # deep: cells of deep water, where the player can dive
-  Layout = Struct.new(:rows, :doors, :exits, :deep)
+  # deep: cells of deep water, where the player can dive; terminal: [x, y] of
+  # the ferry terminal's door (its top middle cell, entered from the pier)
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -26,6 +30,13 @@ module MapProceduralGenerator
   HIGHLAND = ["rocaille"].freeze
   # Most bricks an excess « fill » adds after the others (until none fits)
   FILL_LIMIT = 80
+  PORT = "port"   # type of the port buildings, only put along the quay
+  TERMINAL = "gare"   # type of the ferry terminal, on piles at the end of a pier
+  # Sea depth of a port town, at most PORT_SHARE of the map across
+  PORT_DEPTH = 9..11
+  PORT_SHARE = 0.28
+  # Tiles that make the map side towards the town, for each sea side
+  INLAND = { "nord" => [0, 1], "sud" => [0, -1], "ouest" => [1, 0], "est" => [-1, 0] }.freeze
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
@@ -49,9 +60,11 @@ module MapProceduralGenerator
       hub = [@rng.rand((@w * 0.35).to_i..(@w * 0.65).to_i - STREET_WIDTH),
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
       hub[1] = climbing_hub_row || hub[1] if @place.mountain
+      hub = port_hub(hub) if @place.port
       @place.exits.each { |side, offset| carve_exit(side, offset, hub) }
-      @rng.rand(@place.spurs).times { carve_spur(hub) }
       @water = Array.new(@h) { Array.new(@w, false) }
+      lay_port(hub) if @place.port
+      @rng.rand(@place.spurs).times { carve_spur(hub) }
       cross if @place.crossing
       if @place.mountain
         choose_river if @place.river
@@ -60,12 +73,13 @@ module MapProceduralGenerator
         # Its cave is left out when no spot fits
         place_brick(CAVE) if @place.cave
       end
+      place_port_bricks if @port_depth
       place_bricks
       plant_border
       check_reachable
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
-      return Layout.new(rows, @doors, @exits, @deep || [])
+      return Layout.new(rows, @doors, @exits, @deep || [], @terminal)
     end
 
     private
@@ -144,12 +158,18 @@ module MapProceduralGenerator
       carve_line(x, y, hub[0], hub[1])
     end
 
-    # Dead end from the square towards a random point of the inner area.
+    # Dead end from the square towards a random point of the inner area (in a
+    # port town, a point inland of the promenade, else no dead end).
     def carve_spur(hub)
       bw, bh = border_size
-      x = @rng.rand(bw + 2..@w - bw - 2 - STREET_WIDTH)
-      y = @rng.rand(bh + 2..@h - bh - 2 - STREET_WIDTH)
-      carve_line(hub[0], hub[1], x, y)
+      inland = ->(x, y) { !@port_depth || port_depth_at(x, y) >= @port_depth + STREET_WIDTH }
+      x, y = nil
+      10.times do
+        x = @rng.rand(bw + 2..@w - bw - 2 - STREET_WIDTH)
+        y = @rng.rand(bh + 2..@h - bh - 2 - STREET_WIDTH)
+        break if inland.call(x, y)
+      end
+      carve_line(hub[0], hub[1], x, y) if inland.call(x, y)
     end
 
     def place_bricks
@@ -178,8 +198,9 @@ module MapProceduralGenerator
         next if place_brick(kind)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
-        # A mountain route keeps little ground: what doesn't fit is left out
-        next if @level
+        # A mountain route keeps little ground: what doesn't fit is left out;
+        # so does a port town, for its decoration
+        next if @level || (@port_depth && with_door.call(kind) == 1)
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
       flood_ground
@@ -274,6 +295,8 @@ module MapProceduralGenerator
       @h.times do |y|
         @w.times do |x|
           if @street[y][x]
+            # Never on the planks of a port
+            next if @cells[y][x]
             next if level_at(x, y) > 0 || @stairs_at&.key?([x, y]) || !excess[:over_street]
             next if near?(x, y, 3) { |nx, ny| exit_at?(nx, ny) }
           elsif !free_ground?(x, y)
@@ -293,6 +316,171 @@ module MapProceduralGenerator
 
     def exit_at?(x, y)
       return @exits.any? { |_side, ex, ey| (ex..ex + STREET_WIDTH - 1).cover?(x) && (ey..ey + STREET_WIDTH - 1).cover?(y) }
+    end
+
+    #---------------------------------------------------------------------------
+    # Port towns (« Port »)
+    #---------------------------------------------------------------------------
+    # Map cell of port coordinates: a along the sea side (from its left or top
+    # end), d inland from the map edge on that side.
+    def port_cell(a, d)
+      case @place.port
+      when "nord"  then [a, d]
+      when "sud"   then [a, @h - 1 - d]
+      when "ouest" then [d, a]
+      else              [@w - 1 - d, a]
+      end
+    end
+
+    # Smallest distance from the sea edge of the street brush at x, y.
+    def port_depth_at(x, y)
+      return [port_cell_d(x, y), port_cell_d(x + STREET_WIDTH - 1, y + STREET_WIDTH - 1)].min
+    end
+
+    # Distance of a cell from the sea edge.
+    def port_cell_d(x, y)
+      case @place.port
+      when "nord"  then y
+      when "sud"   then @h - 1 - y
+      when "ouest" then x
+      else              @w - 1 - x
+      end
+    end
+
+    def along_sea
+      return %w[nord sud].include?(@place.port) ? @w : @h
+    end
+
+    # Draws the sea depth and moves the square inland, far enough from the
+    # promenade for streets to come down to it.
+    def port_hub(hub)
+      across = %w[nord sud].include?(@place.port) ? @h : @w
+      @port_depth = [@rng.rand(PORT_DEPTH), (across * PORT_SHARE).to_i].min
+      dx, dy = INLAND[@place.port]
+      hub = [hub[0] + dx, hub[1] + dy] while port_depth_at(*hub) < @port_depth + STREET_WIDTH + 4
+      return hub
+    end
+
+    # The sea, its quay (2 rows of planks over the water), the piers out to
+    # sea and the promenade behind the quay, linked to the square. The sea
+    # stops short of the streets already there (those of the exits on the
+    # sides); a town whose exits leave no room for it gets no port.
+    def lay_port(hub)
+      streets = (0...@h).flat_map { |y| (0...@w).select { |x| @street[y][x] }.map { |x| port_depth_at(x, y) } }
+      depth = ([@port_depth] + streets).min
+      @port_depth = nil
+      return if depth < 7
+      @port_depth = depth
+      bw, bh = border_size
+      edge = %w[nord sud].include?(@place.port) ? bw : bh
+      length = along_sea
+      length.times do |a|
+        depth.times do |d|
+          x, y = port_cell(a, d)
+          @border[y][x] = false
+          @water[y][x] = @solid[y][x] = true
+          @cells[y][x] = @place.water
+        end
+      end
+      deck = lambda do |a, d|
+        x, y = port_cell(a, d)
+        @cells[y][x] = @place.pier
+        @street[y][x] = true
+        @water[y][x] = @solid[y][x] = false
+      end
+      (edge...length - edge).each do |a|
+        (depth - 2...depth).each { |d| deck.call(a, d) }
+        (depth...depth + STREET_WIDTH).each do |d|
+          x, y = port_cell(a, d)
+          @street[y][x] = true
+          @solid[y][x] = false
+        end
+      end
+      # Piers 3 tiles wide, at least 3 tiles of water between two of them;
+      # taken: stretches along the sea kept for a pier or the terminal
+      taken = []
+      terminal = lay_terminal(depth, edge, length, deck)
+      taken.push(terminal) if terminal
+      piers = 0
+      (edge + 1..length - edge - 4).to_a.shuffle(random: @rng).each do |a|
+        break if piers >= @rng.rand(2..4)
+        next if taken.any? { |range| range.cover?(a - 3) || range.cover?(a + 5) || (a - 3..a + 5).cover?(range.first) }
+        taken.push(a..a + 2)
+        piers += 1
+        reach = @rng.rand(3..depth - 4)
+        (depth - 2 - reach...depth - 2).each { |d| 3.times { |k| deck.call(a + k, d) } }
+      end
+      lay_pier_lips
+      # The promenade comes up to the square in a straight street
+      hub_a = %w[nord sud].include?(@place.port) ? hub[0] : hub[1]
+      corners = [port_cell(hub_a, depth), port_cell(hub_a + STREET_WIDTH - 1, depth + STREET_WIDTH - 1)]
+      carve_line(corners.map(&:first).min, corners.map(&:last).min, hub[0], hub[1])
+    end
+
+    # The ferry terminal on piles, entered from the top, at the end of a pier
+    # (sea to the south) or under a pier near its end (sea to the east or
+    # west); none with the sea to the north, it would face the land. Returns
+    # its stretch along the sea, nil if none.
+    def lay_terminal(depth, edge, length, deck)
+      brick = @bricks.find { |b| b.kind == TERMINAL }
+      return nil if !brick || @place.port == "nord" || depth < 9
+      bw, bh = brick.rows[0].length, brick.rows.length
+      if @place.port == "sud"
+        tip = @rng.rand(bh..depth - 3)   # depth of the pier's last planks
+        a = @rng.rand(edge + (bw / 2)..length - edge - (bw / 2) - 3)
+        pier = [a, tip]
+        span = a - (bw / 2) + 1..a + (bw / 2) + 1
+        footprint = [[a + 1 - (bw / 2), tip - 1], [a + 1 + (bw / 2), tip - bh]]
+      else
+        tip = @rng.rand((bw / 2)..depth - 3 - (bw / 2))
+        a = @rng.rand(edge + 1..length - edge - 3 - bh - 1)
+        pier = [a, tip]
+        span = a..a + 2 + bh
+        footprint = [[a + 3, tip - (bw / 2)], [a + 2 + bh, tip + (bw / 2)]]
+      end
+      (pier[1]...depth - 2).each { |d| 3.times { |k| deck.call(pier[0] + k, d) } }
+      cells = footprint.map { |fa, fd| port_cell(fa, fd) }
+      x, y = cells.map(&:first).min, cells.map(&:last).min
+      brick.rows.each_with_index do |row, dy|
+        row.each_char.with_index do |c, dx|
+          @cells[y + dy][x + dx] = c
+          @solid[y + dy][x + dx] = true
+          @water[y + dy][x + dx] = false
+          @kinds[y + dy][x + dx] = TERMINAL
+        end
+      end
+      @terminal = [x + (bw / 2), y]
+      return span
+    end
+
+    # The south lip of the planks is drawn on the water under them.
+    def lay_pier_lips
+      plank = ->(x, y) { inside?(x, y) && @street[y][x] && @cells[y][x] == @place.pier }
+      left, middle, right = @place.lips.chars
+      (1...@h).each do |y|
+        @w.times do |x|
+          next if !@water[y][x] || @cells[y][x] != @place.water || !plank.call(x, y - 1)
+          @cells[y][x] = if !plank.call(x - 1, y - 1)
+                           left
+                         elsif !plank.call(x + 1, y - 1)
+                           right
+                         else
+                           middle
+                         end
+        end
+      end
+    end
+
+    # One or two port buildings (warehouses) along the promenade, where they
+    # fit.
+    def place_port_bricks
+      along = lambda do |brick, x, y|
+        far = [x + brick.rows.map(&:length).max - 1, y + brick.rows.length - 1]
+        gap = [port_cell_d(x, y), port_cell_d(*far)].min - @port_depth - STREET_WIDTH
+        next gap >= 0 && gap <= 3
+      end
+      return if @bricks.none? { |b| b.kind == PORT }
+      @rng.rand(1..2).times { place_brick(PORT, along) }
     end
 
     #---------------------------------------------------------------------------
@@ -779,6 +967,7 @@ module MapProceduralGenerator
       end
       start = @exits.empty? ? [@doors[0][0], @doors[0][1] + 1] : @exits[0][1, 2]
       seen = walk(start)
+      error("la gare maritime est inaccessible") if @terminal && !seen[@terminal[1] - 1][@terminal[0]]
       @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
       @doors.each do |dx, dy, brick|
         error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]

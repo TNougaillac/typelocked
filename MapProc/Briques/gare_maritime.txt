@@ -1,0 +1,8 @@
+Brique = Gare maritime
+Type   = gare
+[Map]
+1FFFFF5
+2FFFFF6
+3FFFFF7
+2FFFFF6
+4FFFFF8

@@ -219,7 +219,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.8.1, prototype écrit, **non testé en jeu**.
+**Statut :** v0.9.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -239,6 +239,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
   - la ville où l'on obtient Plongée est tirée parmi les villes à arène, à partir de la 3e arène au minimum (`Plongee`) et toujours après la ville de Surf, car il faut Surf pour plonger ;
   - une zone sous-marine (`Fonds`) n'apparaît que sur une route d'eau située après la ville de Plongée : la route reçoit une tache d'eau profonde, et sa carte de fonds (tileset Underwater) est reliée par `DiveMap`.
   - démesure (`Demesure`, en % par lieu, 25 par défaut) : de temps en temps un lieu est hors norme. Routes : forêt profonde (arbres serrés partout), mer d'herbes (hautes herbes sur toute la route, chemin compris), chaos rocheux (montagnes soudées en crêtes), lac géant (l'eau envahit la route, le chemin reste au sec), montagne colossale (autant de niveaux que la route en tient, routes de montagne seulement), route interminable (trois fois la longueur maximale). Villes : ville-jardin (tapis de fleurs, arbres partout, rues en terre), cité lacustre (la ville bâtie sur l'eau), grande foire. Les excès ne touchent que les briques facultatives et la place libre : le chemin, les portes et les sorties restent toujours praticables, et un lac géant n'oblige jamais à surfer. Le monde note chaque excès en commentaire (`# Démesure : …`). Les excès se règlent dans `EXCESSES` (`001_Settings.rb`).
+  - villes portuaires (`Ports`, 0 par défaut, `1..2` dans `monde.txt`) : la mer occupe un côté sans sortie, un quai en bois longe l'eau sur toute la largeur, derrière une promenade pavée reliée à la place ; 2 à 4 pontons avancent dans la mer, et une gare maritime sur pilotis (on y entre par le haut, depuis le ponton) se tient au bout de l'un d'eux, mer au sud, ou accrochée sous un ponton, mer à l'est ou à l'ouest. Des entrepôts (briques `port`) se posent le long de la promenade. Une ville nommée Port, Dock ou Harbour (`Noms`) est toujours un port, en plus des villes tirées. Le côté de la mer est tiré parmi ceux sans sortie qui laissent assez de place aux rues des côtés voisins ; la mer au nord seulement faute d'autre côté, et alors sans gare maritime (elle ferait face à la terre). Dans un port, les briques de décor (arbres, parcs) qui ne tiennent plus sont laissées de côté. Le monde note chaque port en commentaire (`# Port : …`). Hors monde, `Port = est` dans `ville.txt` fait un port.
 - Une grotte est une carte à part (tileset Dungeon cave, `Dungeon = true`) : Essentials dessine son intérieur et y place les deux sorties. Elle reste la même à chaque visite pour une même graine du monde.
 - Une zone sous-marine est une carte à part, de la taille de la route : on y plonge depuis l'eau profonde, on remonte là où l'eau au-dessus est profonde.
 - Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers), le lieu est retiré avec une graine dérivée de la sienne : le monde reste le même pour une même graine.
@@ -270,6 +271,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 
 - Pas encore de dresseurs, d'objets ni d'intérieurs derrière les portes. Les rencontres sauvages sont écrites par ProceduralEncounters (F13).
 - L'obtention de Surf et de Plongée elle-même n'est pas encore placée : seule la ville est tirée.
+- La gare maritime n'a pas encore d'entrée ni de bateau : elle est posée, praticable jusqu'à sa porte, sans événement.
 
 ## F08. Choix de mode en début de partie (NewGameSetup)
 **Statut :** v1.0.0, écrit, **non testé**.
@@ -499,3 +501,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 17/10/2026 | ProceduralEncounters v1.0.2 : rencontres écrites aussi pour le monde d'une nouvelle partie (en silence), retirées avec les cartes d'une partie non sauvegardée | `Plugins/ProceduralEncounters/005_Generate.rb`, `Plugins/ProceduralEncounters/meta.txt`, `docs/FEATURES.md` |
 | 17/10/2026 | MapProceduralGenerator v0.8.1 : écran « Le monde se prépare... » pendant la génération, plus de recompilation complète au lancement suivant ; correction : écran noir après « Nouvelle partie » (la saisie du nom s'ouvrait avant l'affichage de la carte) | `Plugins/MapProceduralGenerator/005_Debug.rb`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 17/10/2026 | ProceduralEncounters v1.1.0 : identité des lieux (2 types dominants à 60 %), couverture Monotype sur le tronçon et le précédent, Pokémon de couverture à 5 %, tables plus courtes, 300 Pokémon tirés par monde parmi les 400 de la liste ; « Tronçon » au glossaire | `Plugins/ProceduralEncounters/*`, `GLOSSARY.md`, `docs/FEATURES.md` |
+| 18/10/2026 | MapProceduralGenerator v0.9.0 : villes portuaires (mer sur un côté, quai, pontons, gare maritime sur pilotis, entrepôts), choisies par le monde (`Ports`) ou par leur nom (Port, Dock, Harbour) ; contrôle CI d'un port sur chaque côté libre | `Plugins/MapProceduralGenerator/002_Parser.rb`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `MapProc/ville.txt`, `MapProc/monde.txt`, `MapProc/Briques/gare_maritime.txt`, `MapProc/Briques/entrepot.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |

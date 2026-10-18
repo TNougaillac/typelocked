@@ -33,6 +33,10 @@ GrotteMontagne = 50
 # Une route de montagne nord-sud peut avoir une rivière qui longe la montée,
 # au pied des falaises, en parallèle du chemin (en %).
 RiviereMontagne = 50
+# Villes portuaires : la mer sur un côté sans sortie, un quai, des pontons et
+# une gare maritime sur pilotis. Une ville nommée Port, Dock ou Harbour en est
+# toujours une, en plus de celles-ci.
+Ports    = 1..2
 # Plongée s'obtient dans une ville à arène, la 3e ou une suivante, et toujours
 # après la ville de Surf (il faut Surf pour plonger). Les zones sous-marines ne
 # sont posées que sur des routes d'eau situées après la ville de Plongée : on y

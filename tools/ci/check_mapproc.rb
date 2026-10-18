@@ -51,6 +51,16 @@ places.each do |path|
     plan, = M.generate_place(place.dup.tap { |p| p.ambiance = ambiance.name }, bricks, 1)
     MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
   end
+  # A port on each side with no exit, at the size of a world's town
+  next if !place.pier
+  (M::SIDES - place.exits.map(&:first)).each do |side|
+    port = place.dup.tap { |p| p.port = side; p.width = p.height = 40 }
+    SEEDS.each do |seed|
+      plan, = M.generate_place(port, bricks, seed)
+      MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+      check_spill(plan, "#{File.basename(path)} (port #{side}, graine #{seed})")
+    end
+  end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end

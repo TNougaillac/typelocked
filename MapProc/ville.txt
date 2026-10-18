@@ -11,6 +11,12 @@ Bordure = t
 Sorties = nord sud ouest
 Rues    = 1..2
 Eau     = ~
+# Ville portuaire : la mer d'un côté sans sortie, un quai en bois, des pontons,
+# une gare maritime sur pilotis au bout de l'un d'eux (port au sud, à l'est ou
+# à l'ouest) et des entrepôts le long du quai. Dans un monde, c'est le monde qui choisit ses ports.
+# Port    = est
+Ponton  = |
+Rebord  = (_)
 
 [Briques]
 centre   = 1
@@ -24,6 +30,8 @@ lampe    = 6..10
 arbre    = 3..8
 lac      = 0..1
 montagne = 0..1
+port     = 0        # entrepôts : posés le long du quai d'un port
+gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 
 # Ambiances : chaque ville en tire une selon son poids. L'herbe et ses rues
 # pavées restent le plus courant, quelques villes changent de sol.
@@ -71,9 +79,21 @@ Rue   = T218
 { = {sol} T1019         # pieds du stand jaune
 } = {sol} T1021
 e = {sol} T777          # escalier taillé dans une montagne
+( = {sol} A1 T1221      # rebord sud d'un ponton, sur l'eau (gauche, milieu, droite)
+_ = {sol} A1 T1222
+) = {sol} A1 T1223
+1 = {sol} A1 T3832      # pilotis de la gare maritime, à gauche (haut, milieu, entre-deux, bas)
+2 = {sol} A1 T3848
+3 = {sol} A1 T3840
+4 = {sol} A1 T3856
+5 = {sol} A1 T3833      # pilotis à droite
+6 = {sol} A1 T3849
+7 = {sol} A1 T3841
+8 = {sol} A1 T3857
 
 [Terrains]
 ^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.   # montagne (dessus praticable)
+| = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
 [Objects]
 C = T2608 5x5        # Centre Pokémon
@@ -106,3 +126,5 @@ y = T1003 3x2        # stand jaune
 t = T420 2x3         # arbre
 l = T1029 1x2        # lampadaire
 p = T984 2x1         # jardinière
+F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)
+J = T3344 4x4        # entrepôt du port

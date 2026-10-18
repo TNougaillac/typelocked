@@ -28,6 +28,13 @@
 #                               symbols for 2-wide stairs, in a south face of
 #                               level 1, a north edge of level 1, then the same
 #                               for level 2)
+#   Ponton  = |                (optional: [Terrains] symbol of the wooden piers
+#                               of a port town, over the water)
+#   Rebord  = (_)              (with Ponton: [Legend] symbols of water with the
+#                               south lip of a pier drawn on it, left, middle
+#                               and right: the row below the last planks)
+#   Port    = sud              (optional: a port town, the sea on that side;
+#                               in a world, the world picks its port towns)
 #   MapID   = 52               (optional: overwrite this map instead of
 #                               creating a new one each time)
 #   [Briques]
@@ -64,7 +71,8 @@ module MapProceduralGenerator
   Place = Struct.new(:file, :kind, :name, :tileset_id, :width, :height, :ground, :street,
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
-                     :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river)
+                     :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
+                     :lips)
   # ground, street: tile text of the ground and street symbols
   Ambiance = Struct.new(:name, :weight, :ground, :street)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
@@ -87,7 +95,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false, nil, nil, nil)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -140,6 +148,13 @@ module MapProceduralGenerator
       when "rues"    then place.spurs = range(value, fail_at)
       when "mapid"   then place.map_id = integer(value, fail_at)
       when "eau"     then place.water = symbol(value, fail_at)
+      when "ponton"  then place.pier = symbol(value, fail_at)
+      when "rebord"
+        fail_at.call("3 symboles attendus (gauche, milieu, droite), trouvé « #{value} »") unless value.length == 3
+        place.lips = value
+      when "port"
+        fail_at.call("côté « #{value} » inconnu (#{SIDES.join(', ')})") unless SIDES.include?(value)
+        place.port = value
       when "profond" then place.deep = symbol(value, fail_at)
       when "roche"   then place.rock = symbol(value, fail_at)
       when "caillou" then place.pebble = symbol(value, fail_at)
@@ -240,6 +255,14 @@ module MapProceduralGenerator
       raise Error, "#{place.file} : « Caillou = #{place.pebble} » doit être un symbole de [Legend]"
     end
     raise Error, "#{place.file} : « lac » dans [Briques] demande « Eau »" if place.counts["lac"] && !place.water
+    if place.pier && !palette.terrains[place.pier]
+      raise Error, "#{place.file} : « Ponton = #{place.pier} » doit être un symbole de [Terrains]"
+    end
+    raise Error, "#{place.file} : « Port » demande « Eau », « Ponton » et « Rebord »" if place.port && (!place.water || !place.pier || !place.lips)
+    place.lips&.each_char do |sym|
+      raise Error, "#{place.file} : « Rebord » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
+    end
+    raise Error, "#{place.file} : « Port = #{place.port} » est aussi une sortie" if place.port && place.exits.any? { |side, _| side == place.port }
     raise Error, "#{place.file} : « Relief » demande « Escalier »" if !place.levels != !place.stairs
     place.levels&.each do |sym|
       raise Error, "#{place.file} : « Relief » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
