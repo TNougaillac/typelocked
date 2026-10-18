@@ -89,7 +89,10 @@ module MapProceduralGenerator
     end
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
     result.caves.each { |_wp, name, _text, _seed| dress_cave(map_ids[name]) }
-    save_cave_seeds(result.caves.to_h { |_wp, name, _text, cave_seed| [map_ids[name], cave_seed] })
+    save_cave_seeds(result.caves.to_h do |_wp, name, _text, cave_seed, excess|
+      area = EXCESSES.dig(excess, :area)
+      [map_ids[name], area ? [cave_seed, area] : cave_seed]
+    end)
     write_extra_metadata(world, result, map_ids)
     if prune
       stale, map_ids = map_ids.partition { |name, _id| !names.include?(name) }.map(&:to_h)

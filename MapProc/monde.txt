@@ -41,6 +41,10 @@ Ports    = 1..2
 # ce pourcentage, un bateau vers une île : une carte à part, village ou île
 # sauvage, nommée « Île … » ou comme une ville.
 Iles     = 50
+# Une île dont le port a une arène peut la prendre (en %) : l'île est alors un
+# village, et l'arène n'est plus dans le port. Jamais la ville de Surf ou de
+# Plongée.
+IlesArene = 50
 # Plongée s'obtient dans une ville à arène, la 3e ou une suivante, et toujours
 # après la ville de Surf (il faut Surf pour plonger). Les zones sous-marines ne
 # sont posées que sur des routes d'eau situées après la ville de Plongée : on y
@@ -49,5 +53,7 @@ Plongee  = 3
 Fonds    = 1
 # Démesure : chance (en %) qu'un lieu soit hors norme : forêt profonde, mer
 # d'herbes, chaos rocheux, lac géant, montagne colossale, route interminable,
-# ville-jardin, cité lacustre, grande foire.
+# ville-jardin, cité lacustre, grande foire ; et hors de la chaîne, une île
+# (comme une ville ou une route), une grotte (grotte immense, dédale) ou des
+# fonds (abysse, forêt d'algues).
 Demesure = 25
