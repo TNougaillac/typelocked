@@ -1,0 +1,8 @@
+Brique = Entrepôt du port
+Type   = port
+Porte  = 2,3
+[Map]
+JJJJ
+JJJJ
+JJJJ
+JJJJ
