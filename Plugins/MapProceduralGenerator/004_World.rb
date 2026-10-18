@@ -185,6 +185,7 @@ module MapProceduralGenerator
       place.cave = wp.cave
       place.river = wp.river
       place.port = wp.port
+      place.ferry = !wp.island.nil?
       place.excess = wp.excess
       wanted = EXCESSES.dig(wp.excess, :ambiance)
       place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }

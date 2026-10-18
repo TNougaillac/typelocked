@@ -17,6 +17,11 @@ Eau     = ~
 # Port    = est
 Ponton  = |
 Rebord  = (_)
+# Le bateau amarré près d'une gare maritime qui mène à une île, et autour des
+# îles, des rochers dans l'eau et des bancs de sable.
+Bateau  = b
+Recif   = %
+Banc    = $
 
 [Briques]
 centre   = 1
@@ -82,6 +87,8 @@ e = {sol} T777          # escalier taillé dans une montagne
 ( = {sol} A1 T1221      # rebord sud d'un ponton, sur l'eau (gauche, milieu, droite)
 _ = {sol} A1 T1222
 ) = {sol} A1 T1223
+% = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
+$ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 1 = {sol} A1 T3832      # pilotis de la gare maritime, à gauche (haut, milieu, entre-deux, bas)
 2 = {sol} A1 T3848
 3 = {sol} A1 T3840
@@ -128,3 +135,4 @@ l = T1029 1x2        # lampadaire
 p = T984 2x1         # jardinière
 F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)
 J = T3344 4x4        # entrepôt du port
+b = T1096 5x3 L3 @~  # bateau amarré, sur l'eau

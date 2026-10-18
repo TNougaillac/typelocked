@@ -87,7 +87,10 @@ module MapProceduralGenerator
   # Ground of half the islands (an [Ambiance] of the town file)
   ISLAND_AMBIANCE = "sable"
   # Width of the sea around an island, on its sides without a port
-  ISLAND_SHORE = 3..5
+  ISLAND_SHORE = 4..7
+  # Sandbanks and rocks in the sea around an island
+  ISLAND_BANKS = 1..3
+  ISLAND_REEFS = 3..6
   # Island names: « Île » and a name, or a name alone, from these sections of
   # this file
   ISLAND_NAMES_FILE = "Lore/noms.txt"

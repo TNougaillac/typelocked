@@ -66,6 +66,8 @@ module MapProceduralGenerator
       @water = Array.new(@h) { Array.new(@w, false) }
       lay_port(hub) if @place.port
       lay_shore if @place.island
+      moor_boat if @terminal && (@place.ferry || @place.island)
+      scatter_reefs if @place.island
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       cross if @place.crossing
       if @place.mountain
@@ -482,6 +484,68 @@ module MapProceduralGenerator
           next if !wet
           @cells[y][x] = @place.water
           @water[y][x] = @solid[y][x] = true
+        end
+      end
+    end
+
+    # The boat of a ferry terminal that leads to an island, on the water close
+    # to the terminal, with water all around it.
+    def moor_boat
+      object = @place.boat && @palette.objects[@place.boat]
+      return if !object
+      bw, bh = object.width, object.height
+      tx, ty = @terminal
+      spots = []
+      (0..@h - bh).each do |y|
+        (0..@w - bw).each do |x|
+          next if !open_sea?(x, y, bw, bh, 1)
+          spots.push([x, y, (x + (bw / 2) - tx).abs + (y + (bh / 2) - ty).abs])
+        end
+      end
+      return if spots.empty?
+      x, y, = spots.min_by { |s| s[2] }
+      reef(x, y, bw, bh, @place.boat)
+    end
+
+    # Sandbanks (walked on after surfing) and rocks in the sea around an
+    # island, off the shore, the piers and one another.
+    def scatter_reefs
+      # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
+      # the hand-made maps
+      [[@place.bank, ISLAND_BANKS, [2, 4], [2, 3]], [@place.reef, ISLAND_REEFS, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
+        next if !sym
+        @rng.rand(count).times do
+          w, h = @rng.rand(ws[0]..ws[1]), @rng.rand(hs[0]..hs[1])
+          spots = (0..@h - h).flat_map { |y| (0..@w - w).map { |x| [x, y] } }
+          spot = spots.shuffle(random: @rng).find { |x, y| open_sea?(x, y, w, h, 2) }
+          break if !spot
+          reef(*spot, w, h, sym)
+        end
+      end
+    end
+
+    # Only plain sea in that rectangle and the margin around it, off the map
+    # edge.
+    def open_sea?(x, y, w, h, margin)
+      return false if x < 1 || y < 1 || x + w > @w - 1 || y + h > @h - 1
+      (y - margin...y + h + margin).each do |cy|
+        (x - margin...x + w + margin).each do |cx|
+          next if !inside?(cx, cy)
+          return false if !@water[cy][cx] || @cells[cy][cx] != @place.water
+        end
+      end
+      return true
+    end
+
+    # A boat, rocks or a sandbank on the sea: the sand can be walked on (it
+    # counts as water for the way, reached by surfing), the rest blocks.
+    def reef(x, y, w, h, sym)
+      h.times do |dy|
+        w.times do |dx|
+          @cells[y + dy][x + dx] = sym
+          @water[y + dy][x + dx] = (sym == @place.bank)
+          @solid[y + dy][x + dx] = true
+          @kinds[y + dy][x + dx] = sym
         end
       end
     end
