@@ -1,7 +1,7 @@
 #===============================================================================
 # Generates the wild encounters of each MapProc world with a few seeds
 # (plugin ProceduralEncounters) and checks them: PBS lines, levels, percents,
-# every type catchable between two lieutenants, every family of the roster
+# every type catchable between two lieutenants, every family drawn for the world
 # somewhere.
 #===============================================================================
 require_relative "lib/ci"
@@ -46,7 +46,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
         end
         pct, id, min, max = m[1].to_i, m[2].to_sym, m[3].to_i, (m[4] || m[3]).to_i
         total += pct
-        CI.error(path, nil, "#{where}, #{name} : #{id} hors de la liste des 300") if !species[id]
+        CI.error(path, nil, "#{where}, #{name} : #{id} hors de la liste") if !species[id]
         CI.error(path, nil, "#{where}, #{name} : #{id} à 0 %") if pct < 1
         CI.error(path, nil, "#{where}, #{name} : #{id} niveaux #{min},#{max} invalides") if min < 1 || max > 100 || min > max
       end

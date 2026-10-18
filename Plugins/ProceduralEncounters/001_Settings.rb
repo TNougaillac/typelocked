@@ -6,7 +6,7 @@
 #===============================================================================
 module ProceduralEncounters
   # The Pokémon of the game (types, Monotype types, strength tier, family).
-  ROSTER_FILE = "docs/roster/liste-300.csv"
+  ROSTER_FILE = "docs/roster/liste-400.csv"
   # Evolutions (method and level) are read from these.
   POKEMON_PBS = "PBS/pokemon.txt"
   POKEMON_FORMS_PBS = "PBS/pokemon_forms.txt"
@@ -46,18 +46,34 @@ module ProceduralEncounters
   EXCESS_BIOMES = { "forêt profonde" => "foret", "mer d'herbes" => "prairie", "chaos rocheux" => "montagne",
                     "montagne colossale" => "montagne", "ville-jardin" => "foret" }.freeze
 
-  # Encounter types written: number of species drawn (range), and at most
-  # once the coverage passes have added theirs (types, families), density (nil = none, as for the rods), level shift
-  # from the place's levels, required type, coverage (a Monotype run counts on
-  # it: land, caves, and surfing once Surf is obtained).
+  # Encounter types written: number of species drawn (range); max: at most
+  # in the table, and overflow: at most as a last resort, when a type or a
+  # family finds no room anywhere else; density (nil = none, as for the
+  # rods); level shift from the place's levels; required type; coverage (a
+  # Monotype run counts on it: land, caves, and surfing once Surf is
+  # obtained); dominant: the table draws dominant types from its biome.
   TABLES = {
-    "Land"     => { species: 4..7, max: 14, density: 21, shift: 0, cover: true },
-    "Cave"     => { species: 4..6, max: 12, density: 5, shift: 1, cover: true },
-    "Water"    => { species: 2..4, max: 8, density: 2, shift: 0, type: :WATER, cover: :surf },
+    "Land"     => { species: 4..7, max: 8, overflow: 14, density: 21, shift: 0, cover: true, dominant: true },
+    "Cave"     => { species: 4..6, max: 7, overflow: 12, density: 5, shift: 1, cover: true, dominant: true },
+    "Water"    => { species: 2..4, max: 5, overflow: 8, density: 2, shift: 0, type: :WATER, cover: :surf },
     "OldRod"   => { species: 1..2, max: 2, shift: -6, type: :WATER, weak: true },
     "GoodRod"  => { species: 2..3, max: 3, shift: -3, type: :WATER },
     "SuperRod" => { species: 2..4, max: 4, shift: 2, type: :WATER }
   }.freeze
+
+  # Identity of a place: each land or cave table draws DOMINANT_TYPES types
+  # from its biome's weights; Pokémon of those types make DOMINANT_SHARE of
+  # its encounters. A type dominant in the previous place is DOMINANT_REPEAT
+  # times as likely, so that two neighbours differ.
+  DOMINANT_TYPES = 2
+  DOMINANT_SHARE = 0.6
+  DOMINANT_REPEAT = 0.25
+
+  # A type counts as catchable in a tronçon (same number of seals) when it is
+  # in that tronçon or in the COVER_WINDOW - 1 before it (the player can go
+  # back). A Pokémon added for coverage gets at least COVER_PERCENT %.
+  COVER_WINDOW = 2
+  COVER_PERCENT = 5
 
   # Wild levels. Cap of n seals = LevelCap's cap (the level of the next
   # lieutenant), else CAPS[n]. Places between two lieutenants climb from the
@@ -71,6 +87,12 @@ module ProceduralEncounters
   # evolves another way (stone, friendship, trade...) shows up from that many
   # seals, by stage (2 = first evolution, 3 = second).
   STAGE_SEALS = { 2 => 3, 3 => 6 }.freeze
+
+  # Pokémon of a world: whole families drawn from the roster until about
+  # WORLD_SPECIES of them, with at least TYPE_FAMILIES families a Monotype run
+  # of each type can catch. The whole roster when it is that small.
+  WORLD_SPECIES = 300
+  TYPE_FAMILIES = 4
 
   # How often a Pokémon is drawn, by tier (« force » in the roster); « fort »
   # gains FORT_PER_SEAL per seal. Evolved stages are divided by their stage.

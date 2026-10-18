@@ -47,6 +47,24 @@ module ProceduralEncounters
     return list
   end
 
+  # The Pokémon of a world (id => Species, in the roster's order): whole
+  # families, first TYPE_FAMILIES per type, then by chance, up to
+  # WORLD_SPECIES.
+  def world_species(species, seed)
+    return species if species.length <= WORLD_SPECIES
+    rng = Random.new(seed)
+    families = species.values.group_by(&:family).values.shuffle(random: rng)
+    chosen = []
+    take = ->(family) { chosen.push(family) if chosen.sum(&:length) + family.length <= WORLD_SPECIES }
+    species.values.flat_map(&:monotype_types).uniq.shuffle(random: rng).each do |type|
+      catching = families.select { |f| f.any? { |sp| sp.monotype_types.include?(type) } }
+      (catching - chosen).first([TYPE_FAMILIES - (catching & chosen).length, 0].max).each(&take)
+    end
+    (families - chosen).each(&take)
+    ids = chosen.flatten.to_h { |sp| [sp.id, true] }
+    return species.select { |id, _sp| ids[id] }
+  end
+
   def resolve_stage(species, sp)
     return if !sp.prevo || sp.stage > 1
     prevo = species[sp.prevo[0]]
