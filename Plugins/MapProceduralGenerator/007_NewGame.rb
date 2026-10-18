@@ -5,13 +5,16 @@
 # only choosing a name. The seed is saved with the game. At each start of
 # the game (load screen), the maps on disk are matched with the save: the
 # maps of a game left without saving are deleted, or the saved world is drawn
-# again from its seed if the save has one.
+# again from its seed if the save has one. The world's Town Map region (its
+# lines and its image) is put back as it was before, and the plans exported
+# for the abandoned world are deleted.
 #===============================================================================
 module MapProceduralGenerator
   module_function
 
-  # { path:, seed:, town_map:, start: } of the world on disk if a new game
-  # drew it, else nil.
+  # { path:, seed:, town_map:, image:, start: } of the world on disk if a new
+  # game drew it, else nil. town_map, image: the region's lines and image file
+  # before the first game world (nil = none).
   def game_world
     return nil if !File.exist?(GAME_WORLD_FILE)
     return load_data(GAME_WORLD_FILE)
@@ -48,7 +51,7 @@ module MapProceduralGenerator
       draw_game_world(world[:path], saved_seed, prune: true)
     else
       Console.echoln_li(_INTL("Monde d'une partie non sauvegardée supprimé (graine {1})", world[:seed]))
-      remove_world(world[:path], world[:town_map])
+      remove_world(world)
       forget_game_world
     end
   end
@@ -96,12 +99,16 @@ module MapProceduralGenerator
   def draw_game_world_now(path, seed, prune)
     # The world rewrites its Town Map region: its lines from before the first
     # game world are kept, and put back before each new world is drawn
-    region = load_world(path).region
-    if game_world
-      town_map = game_world[:town_map]
-      restore_town_map(region, town_map)
+    world = load_world(path)
+    previous = game_world
+    if previous
+      town_map, image = previous[:town_map], previous[:image]
+      restore_town_map(world.region, town_map)
+      delete_exports(previous[:path], previous[:seed]) if previous[:seed] != seed
     else
-      town_map = town_map_section(region)
+      town_map = town_map_section(world.region)
+      file = MapGenerator.region_image_path(world)
+      image = File.exist?(file) ? File.binread(file) : nil
     end
     begin
       _export, start = generate_world_maps(path, seed, quiet: true, prune: prune)
@@ -110,21 +117,40 @@ module MapProceduralGenerator
       return nil
     end
     $game_temp.map_infos = nil if $game_temp
-    save_data({ path: path, seed: seed, town_map: town_map, start: start }, GAME_WORLD_FILE)
+    save_data({ path: path, seed: seed, town_map: town_map, image: image, start: start }, GAME_WORLD_FILE)
     return start
   end
 
-  # Deletes every map made for this world file and puts its Town Map region
-  # back.
-  def remove_world(path, town_map)
-    with_busy_screen { remove_world_now(path, town_map) }
+  # Deletes every map made for this game world, its exported plans, and puts
+  # its Town Map region (lines and image) back.
+  def remove_world(state)
+    with_busy_screen { remove_world_now(state) }
   end
 
-  def remove_world_now(path, town_map)
+  def remove_world_now(state)
+    path = state[:path]
     remove_maps(read_world_maps(path).values, compile: false)
     delete_file(world_maps_path(path))
-    restore_town_map(load_world(path).region, town_map)
+    delete_exports(path, state[:seed])
+    world = load_world(path)
+    restore_town_map(world.region, state[:town_map])
+    restore_region_image(MapGenerator.region_image_path(world), state[:image])
     MapGenerator.compile_world_pbs
+  end
+
+  # Plans exported for that seed (world, encounters).
+  def delete_exports(path, seed)
+    world_plan = export_path(path, seed)
+    [world_plan, world_plan.sub(/\.txt\z/, "_rencontres.txt")].each { |file| delete_file(file) }
+  end
+
+  # Writes the region image back (nil = there was none).
+  def restore_region_image(file, image)
+    if image
+      File.binwrite(file, image)
+    else
+      delete_file(file)
+    end
   end
 
   # Puts back the lines of a Town Map region's section (nil = no section).
