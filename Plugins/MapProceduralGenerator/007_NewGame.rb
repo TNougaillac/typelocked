@@ -53,9 +53,47 @@ module MapProceduralGenerator
     end
   end
 
+  # Shows a message on a black screen while the block runs (the window would
+  # stay blank otherwise), then puts the PBS files written meanwhile just
+  # before their compiled data: Essentials recompiles everything at the next
+  # start when a PBS file is as recent as its data (same second).
+  def with_busy_screen
+    viewport = Viewport.new(0, 0, Graphics.width, Graphics.height)
+    viewport.z = 999_999
+    sprite = BitmapSprite.new(Graphics.width, Graphics.height, viewport)
+    sprite.bitmap.fill_rect(0, 0, Graphics.width, Graphics.height, Color.new(0, 0, 0))
+    pbSetSystemFont(sprite.bitmap)
+    pbDrawTextPositions(sprite.bitmap, [[_INTL("Le monde se prépare..."), Graphics.width / 2, (Graphics.height / 2) - 16,
+                                         :center, Color.new(248, 248, 248), Color.new(72, 72, 72)]])
+    @busy = true
+    Graphics.update
+    return yield
+  ensure
+    @busy = false
+    sprite&.dispose
+    viewport&.dispose
+    settle_pbs_times
+  end
+
+  # Lets the window refresh during a long generation.
+  def busy_update
+    Graphics.update if @busy
+  end
+
+  def settle_pbs_times
+    time = Time.now - 5
+    Dir.glob("PBS/*.txt").each do |file|
+      File.utime(time, time, file) if File.mtime(file) > time
+    end
+  end
+
   # prune: also deletes the maps of the unsaved world that this one doesn't
   # have (more caves...). Returns the world's start, nil if it failed.
   def draw_game_world(path, seed, prune: false)
+    return with_busy_screen { draw_game_world_now(path, seed, prune) }
+  end
+
+  def draw_game_world_now(path, seed, prune)
     # The world rewrites its Town Map region: its lines from before the first
     # game world are kept, and put back before each new world is drawn
     region = load_world(path).region
@@ -79,6 +117,10 @@ module MapProceduralGenerator
   # Deletes every map made for this world file and puts its Town Map region
   # back.
   def remove_world(path, town_map)
+    with_busy_screen { remove_world_now(path, town_map) }
+  end
+
+  def remove_world_now(path, town_map)
     remove_maps(read_world_maps(path).values, compile: false)
     delete_file(world_maps_path(path))
     restore_town_map(load_world(path).region, town_map)
@@ -200,14 +242,20 @@ class Game_Temp
   attr_accessor :mapproc_name_entry
 end
 
-# Name entry on the first frame of the map (character 1, as in the intro).
-EventHandlers.add(:on_frame_update, :mapproc_player_name,
-  proc {
-    next if !$game_temp.mapproc_name_entry || pbMapInterpreterRunning?
-    $game_temp.mapproc_name_entry = false
-    pbTrainerName
-  }
-)
+# Name entry once the map is on screen (character 1, as in the intro). Not in
+# :on_frame_update: it already runs while the map scene is being set up, before
+# the screen transition, so the name screen would stay invisible.
+class Scene_Map
+  alias_method :__mapproc_update, :update
+
+  def update
+    if $game_temp.mapproc_name_entry && !pbMapInterpreterRunning?
+      $game_temp.mapproc_name_entry = false
+      pbTrainerName
+    end
+    __mapproc_update
+  end
+end
 
 class PokemonLoadScreen
   alias_method :__mapproc_initialize, :initialize

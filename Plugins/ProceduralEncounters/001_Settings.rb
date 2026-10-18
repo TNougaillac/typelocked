@@ -6,7 +6,7 @@
 #===============================================================================
 module ProceduralEncounters
   # The Pokémon of the game (types, Monotype types, strength tier, family).
-  ROSTER_FILE = "docs/roster/liste-300.csv"
+  ROSTER_FILE = "docs/roster/liste-400.csv"
   # Evolutions (method and level) are read from these.
   POKEMON_PBS = "PBS/pokemon.txt"
   POKEMON_FORMS_PBS = "PBS/pokemon_forms.txt"
