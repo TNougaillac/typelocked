@@ -12,8 +12,6 @@ module MapProceduralGenerator
   NameTable = Struct.new(:forms, :regions, :bases)
   NAME_FORMS = %w[Village Port Ville Grotte]
   NAME_SLOT = "{nom}"
-  # Towns by this water are ports
-  WATER_CROSSINGS = %w[chenal lac]
 
   module_function
 
@@ -61,7 +59,8 @@ module MapProceduralGenerator
   # shares, and no base name comes twice (until they have all been used).
   # Returns the region's name.
   def name_world(world, places, names, rng)
-    used = []
+    # The islands already took their base names (« Île Lucca »)
+    used = places.filter_map { |p| p.island&.sub(/\AÎle /, "") }
     draw_base = lambda do
       lists = names.bases.map { |list| list - used }.reject(&:empty?)
       if lists.empty?
@@ -84,21 +83,12 @@ module MapProceduralGenerator
         wp.title = wp.name   # named by the world plan (« Noms »)
       elsif wp == first
         wp.title = form.call("Village")
-      elsif wp.excess == "cité lacustre" || water_neighbour?(wp, places)
+      elsif wp.port || wp.excess == "cité lacustre"
         wp.title = form.call("Port")
       else
         wp.title = form.call(wp.gym ? "Ville" : "Village")
       end
     end
     return names.regions.sample(random: rng)
-  end
-
-  # A route crossed by water, or with a giant lake, leads to that town (the
-  # chain alternates towns and routes).
-  def water_neighbour?(town, places)
-    return places.any? do |p|
-      next false if p.kind != "route" || (p.index - town.index).abs != 1
-      WATER_CROSSINGS.include?(p.crossing) || p.excess == "lac géant"
-    end
   end
 end

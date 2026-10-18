@@ -68,17 +68,19 @@ module MapProceduralGenerator
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")
     names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name } +
-            result.seabeds.map { |_wp, name, _text| name }
+            result.seabeds.map { |_wp, name, _text| name } + result.islands.map { |wp, *| wp.name }
     names.each do |name|
       clash = infos.find { |id, info| info.name == name && map_ids[name] != id }
       next if !clash
       raise Error, "#{File.basename(path)} : la carte #{clash[0]} s'appelle déjà « #{name} » ; renomme-la ou change « Noms »"
     end
-    # Routes first (their caves don't exist yet: their warps are linked after)
+    # Routes first (their caves and islands don't exist yet: their warps are
+    # linked after)
     with_id = ->(name, text) { map_ids[name] ? text.sub(/^Tileset/, "MapID   = #{map_ids[name]}\nTileset") : text }
     plans = result.places.map { |_wp, _place, text, _layout| text } +
             result.caves.map { |_wp, name, text, _seed| with_id.call(name, text) } +
-            result.seabeds.map { |_wp, name, text| with_id.call(name, text) }
+            result.seabeds.map { |_wp, name, text| with_id.call(name, text) } +
+            result.islands.map { |_wp, _port, _place, text, _layout| text }
     unlinked = []
     plans.each do |text|
       plan = MapGenerator.parse(text, File.basename(path))
@@ -88,7 +90,10 @@ module MapProceduralGenerator
     end
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
     result.caves.each { |_wp, name, _text, _seed| dress_cave(map_ids[name]) }
-    save_cave_seeds(result.caves.to_h { |_wp, name, _text, cave_seed| [map_ids[name], cave_seed] })
+    save_cave_seeds(result.caves.to_h do |_wp, name, _text, cave_seed, excess|
+      area = EXCESSES.dig(excess, :area)
+      [map_ids[name], area ? [cave_seed, area] : cave_seed]
+    end)
     write_extra_metadata(world, result, map_ids)
     if prune
       stale, map_ids = map_ids.partition { |name, _id| !names.include?(name) }.map(&:to_h)
@@ -130,8 +135,8 @@ module MapProceduralGenerator
     save_data(map, path)
   end
 
-  # Caves and seabeds are not on the world grid: MapGen doesn't write their
-  # metadata. Dungeon = true makes Essentials draw a cave's layout; DiveMap
+  # Caves, seabeds and islands are not on the world grid: MapGen doesn't write
+  # their metadata (an island is put on the Town Map where its port is). Dungeon = true makes Essentials draw a cave's layout; DiveMap
   # links a route to its seabed (MapGen keeps that key when it rewrites the
   # route's section).
   def write_extra_metadata(world, result, map_ids)
@@ -145,6 +150,10 @@ module MapProceduralGenerator
     result.seabeds.each do |wp, name, _text|
       replace_section(lines, map_ids[name], name,
                       ["Name = #{wp.title}", position.call(wp), "BattleBack = underwater", "Environment = Underwater"])
+    end
+    result.islands.each do |wp, port, *|
+      replace_section(lines, map_ids[wp.name], wp.name,
+                      ["Name = #{wp.name}", "Outdoor = true", "ShowArea = true", position.call(port)])
     end
     seabeds = result.seabeds.to_h { |wp, name, _text| [wp.name, map_ids[name]] }
     result.places.each do |wp, *|

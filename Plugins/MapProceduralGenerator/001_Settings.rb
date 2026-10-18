@@ -41,7 +41,8 @@ module MapProceduralGenerator
   GAME_WORLD_FILE = "Data/MapProcWorld.rxdata"
 
   # Excesses (« Demesure » in a world): now and then a place goes over the top.
-  # kind: ville or route; boost: brick type => times its usual most (optional
+  # kind: ville or route (an island takes those of a village or of a route),
+  # grotte (cave) or fonds (seabed); boost: brick type => times its usual most (optional
   # bricks only, so the place always fits); giant_lake: lakes far bigger;
   # colossal: a mountain route with as many levels as fit (mountain routes
   # only); long: a route three times as long as « Longueur » allows; fill: after the
@@ -49,7 +50,10 @@ module MapProceduralGenerator
   # touch each other; flood: water all over the free ground, the streets kept
   # dry; carpet: that symbol all over the free ground (over_street: over the
   # streets too, not the exits); ambiance: that [Ambiance] of the place file
-  # (its ground and streets), if the file has it.
+  # (its ground and streets), if the file has it. Caves: area: the
+  # [section] of PBS/dungeon_parameters.txt that Essentials draws the cave
+  # from. Seabeds: reach: how far the floor opens from the deep water (4..9
+  # otherwise); weed: far more and bigger spots of seaweed.
   EXCESSES = {
     "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
     "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
@@ -59,8 +63,14 @@ module MapProceduralGenerator
     "route interminable" => { kind: "route", long: true },
     "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
     "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
-    "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" }
+    "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" },
+    "grotte immense"     => { kind: "grotte", area: "mapproc_immense" },
+    "dédale"             => { kind: "grotte", area: "mapproc_dedale" },
+    "abysse"             => { kind: "fonds", reach: 10..16 },
+    "forêt d'algues"     => { kind: "fonds", weed: true }
   }.freeze
+  # The kinds of the places of the chain (the others are off it)
+  CHAIN_KINDS = %w[ville route].freeze
 
   # Seabeds of a world (under routes with deep water): tileset and palette.
   # « . » = floor, « s » = seaweed, « R » = rock (walls, edges drawn by MapGen).
@@ -72,4 +82,27 @@ module MapProceduralGenerator
     [Terrains]
     R = T44 N=T36 S=T52 W=T43 E=T45 NW=T35 NE=T37 SW=T51 SE=T53 iNW=T47 iNE=T46 iSW=T39 iSE=T38
   PALETTE
+
+  # Islands reached by boat from a port town (« Iles » in a world): a map of
+  # their own, built from the town file with the sea all around, and its own
+  # ferry terminal. Size, and the bricks of each kind of island: a village or
+  # a wild island (grass, trees, rocks).
+  ISLAND_SIZE = [40, 36]
+  ISLAND_KINDS = {
+    "village" => { "centre" => 1..1, "boutique" => 0..1, "maison" => 2..4, "parc" => 1..2,
+                   "lampe" => 2..4, "arbre" => 3..6, "foire" => 0..1 },
+    "sauvage" => { "maison" => 0..1, "herbes" => 3..5, "arbre" => 6..12, "parc" => 1..2,
+                   "lac" => 0..1, "montagne" => 0..1 }
+  }.freeze
+  # Ground of half the islands (an [Ambiance] of the town file)
+  ISLAND_AMBIANCE = "sable"
+  # Width of the sea around an island, on its sides without a port
+  ISLAND_SHORE = 4..7
+  # Sandbanks and rocks in the sea around an island
+  ISLAND_BANKS = 1..3
+  ISLAND_REEFS = 3..6
+  # Island names: « Île » and a name, or a name alone, from these sections of
+  # this file
+  ISLAND_NAMES_FILE = "Lore/noms.txt"
+  ISLAND_NAME_SECTIONS = %w[Italien Americain Francais].freeze
 end

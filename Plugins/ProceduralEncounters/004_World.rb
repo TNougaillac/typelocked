@@ -1,8 +1,9 @@
 #===============================================================================
 # ProceduralEncounters - Zones of a generated world
 # From MapProceduralGenerator's WorldResult: one zone per town and route that
-# has tall grass or water, one per cave. Seals = lieutenants beaten on the way
-# there (the chain order); levels climb along the chain. Plain Ruby.
+# has tall grass or water, one per cave, one per island. Seals = lieutenants
+# beaten on the way there (the chain order); levels climb along the chain.
+# Plain Ruby.
 #===============================================================================
 module ProceduralEncounters
   WATER_TYPES = %w[Water OldRod GoodRod SuperRod].freeze
@@ -12,7 +13,9 @@ module ProceduralEncounters
   # Zones of the world, in the chain's order (each cave after its route).
   def world_zones(result, caps)
     places = result.places.sort_by { |wp, *| wp.index }
-    gym_indexes = places.filter_map { |wp, *| wp.index if wp.gym }
+    # An island's gym counts at the place of its port
+    gym_indexes = places.filter_map { |wp, *| wp.index if wp.gym } +
+                  (result.islands || []).filter_map { |wp, *| wp.index if wp.gym }
     seals = ->(wp) { gym_indexes.count { |i| i < wp.index } }
     surf_town = places.find { |wp, *| wp.surf }&.first
     segments = places.group_by { |wp, *| seals.call(wp) }
@@ -31,6 +34,15 @@ module ProceduralEncounters
     result.caves.each do |wp, name, *|
       route = zones[wp.name]
       zones[name] = Zone.new(name, wp.index, route.seals, route.levels, nil, ["Cave"], route.surf)
+    end
+    # An island by boat: the seals and levels of its port
+    (result.islands || []).each do |wp, port, place, text, _layout|
+      plan = MapGenerator.parse(text, place.file)
+      types = []
+      types.push("Land") if cells?(plan, GRASS_TILES)
+      types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+      town = zones[port.name]
+      zones[wp.name] = Zone.new(wp.name, wp.index, town.seals, town.levels, land_biome(wp, place, plan), types, town.surf)
     end
     return zones.values.sort_by { |z| [z.index, z.types == ["Cave"] ? 1 : 0] }
   end

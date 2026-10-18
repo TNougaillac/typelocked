@@ -37,6 +37,18 @@
 #                               climb, at the foot of the cliffs; 0 by default)
 #   Demesure = 25              (chance in % that a place goes over the top,
 #                               see EXCESSES; 0 by default)
+#   Ports    = 1..2            (port towns, with the sea on a side with no
+#                               exit; a town named Port, Dock or Harbour is
+#                               always one, on top of these; 0 by default)
+#   Iles     = 50              (chance in % that a port town with a ferry
+#                               terminal has a boat to an island, a map of
+#                               its own off the grid: a village or a wild
+#                               island, see ISLAND_KINDS; 0 by default)
+#   IlesArene = 50             (chance in % that the island of a port town
+#                               has a gym too: the island is then a village,
+#                               and the gym is taken from a town further in
+#                               the chain (else from the port), never from
+#                               the Surf or Dive town; 0 by default)
 #   Plongee  = 3               (Dive is obtained in a town with a gym, drawn
 #                               from the town of that gym onwards and after
 #                               the Surf town, needed to dive; 3 by default)
@@ -63,24 +75,33 @@ module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
                      :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river,
-                     :names_file)
+                     :ports, :islands, :island_gyms, :names_file)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
   # route climbing by levels (with a crossing or not); cave: a mountain route
-  # with a cave; title, cave_title: names shown in game (see 008_Names)
+  # with a cave; port: the sea side of a port town; island: name of the island
+  # its boat goes to; island_gym: the town whose gym went to that island;
+  # title, cave_title: names shown in game (see 008_Names)
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
-                          :dive, :deep, :mountain, :cave, :excess, :river, :title, :cave_title)
+                          :dive, :deep, :mountain, :cave, :excess, :river, :port, :island,
+                          :island_gym, :title, :cave_title)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
-  # seabeds: [WorldPlace of the route, name, MapGen plan text]
-  WorldResult = Struct.new(:text, :places, :caves, :seabeds)
+  # seabeds: [WorldPlace of the route, name, MapGen plan text];
+  # islands: [WorldPlace of the island, WorldPlace of its port, Place,
+  # MapGen plan text, Layout]
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands)
 
   TOWN_SIZE = 2
   TOWN_SYMBOLS = ("A".."Z").to_a
   ROUTE_SYMBOLS = ("1".."9").to_a + ("a".."z").to_a
   DIRECTIONS = { "est" => [1, 0], "ouest" => [-1, 0], "sud" => [0, 1], "nord" => [0, -1] }
   OPPOSITE = { "est" => "ouest", "ouest" => "est", "sud" => "nord", "nord" => "sud" }
+  # Towns named like a port always are one
+  PORT_NAME = /\b(port|dock|harbou?r)\b/i
+  # Tiles needed between the sea edge and the exits next to it
+  PORT_ROOM = 11
 
   module_function
 
@@ -89,7 +110,7 @@ module MapProceduralGenerator
   end
 
   def parse_world(text, file = "monde")
-    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, nil)
+    world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, 0..0, 0, 0, nil)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -123,6 +144,9 @@ module MapProceduralGenerator
       when "grottemontagne" then world.mountain_cave = integer(value, fail_at)
       when "demesure" then world.excess = integer(value, fail_at)
       when "rivieremontagne" then world.mountain_river = integer(value, fail_at)
+      when "ports"    then world.ports = range(value, fail_at)
+      when "iles"     then world.islands = integer(value, fail_at)
+      when "ilesarene" then world.island_gyms = integer(value, fail_at)
       when "plongee"  then world.dive = integer(value, fail_at)
       when "fonds"    then world.dives = range(value, fail_at)
       else fail_at.call("clé inconnue « #{key} »")
@@ -161,7 +185,7 @@ module MapProceduralGenerator
     end
     raise Error, "#{world.file} (graine #{seed}) : impossible de placer #{world.towns} villes dans #{world.width}x#{world.height} cases ; agrandis « Taille »" if !places
     # Own random numbers: the names don't change the rest of the world
-    region = names ? name_world(world, places, names, Random.new((seed * 1000) + 800)) : world.name
+    region = names ? name_world(world, places, names, Random.new((seed * 1000) + 999)) : world.name
     places.each { |wp| wp.title ||= wp.name }
     built = places.map do |wp|
       base = (wp.kind == "ville") ? town : route
@@ -176,6 +200,8 @@ module MapProceduralGenerator
       place.mountain = wp.mountain
       place.cave = wp.cave
       place.river = wp.river
+      place.port = wp.port
+      place.ferry = !wp.island.nil?
       place.excess = wp.excess
       wanted = EXCESSES.dig(wp.excess, :ambiance)
       place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
@@ -188,14 +214,118 @@ module MapProceduralGenerator
       doors = layout.doors.select { |_x, _y, brick| brick.kind == CAVE }
       next if doors.empty?
       text << cave_warps(name, doors, place)
-      [wp, name, cave_text(name, wp.name, doors), (seed * 1000) + 500 + wp.index]
+      cave_seed = (seed * 1000) + 500 + wp.index
+      [wp, name, cave_text(name, wp.name, doors), cave_seed, side_excess(world, "grotte", Random.new(cave_seed))]
     end
     seabeds = built.filter_map do |wp, place, _text, layout|
       next if !wp.deep
       name = "#{wp.name} (fonds)"
-      [wp, name, seabed_text(name, place, layout, Random.new((seed * 1000) + 700 + wp.index))]
+      excess = side_excess(world, "fonds", Random.new((seed * 1000) + 800 + wp.index))
+      [wp, name, seabed_text(name, place, layout, Random.new((seed * 1000) + 700 + wp.index), excess), excess]
     end
-    return WorldResult.new(world_text(world, built, seed, region), built, caves, seabeds)
+    islands = built.each_with_index.filter_map do |(wp, place, text, layout), i|
+      next if !wp.island
+      island = build_island(world, town, bricks, wp, layout, (seed * 1000) + 900 + wp.index, map_ids)
+      if !island
+        # No island: no boat is moored, and the town that gave its gym to
+        # the island gets it back
+        wp.island = nil
+        place.ferry = false
+        built[i] = [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+        donor = wp.island_gym
+        wp.island_gym = nil
+        if donor
+          donor.gym = true
+          j = built.index { |other, *| other.equal?(donor) }
+          other = built[j][1]
+          other.counts["arene"] = 1..1
+          built[j] = [donor, other, *generate_world_place(other, bricks, (seed * 1000) + donor.index)]
+        end
+        next
+      end
+      text << ferry_warps(wp.w * world.cell, wp.h * world.cell, layout, island[0].name, island[4])
+      island[3] << ferry_warps(island[2].width, island[2].height, island[4], wp.name, layout)
+      island
+    end
+    return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region), built, caves, seabeds, islands)
+  end
+
+  # The island that the boat of that port town goes to, nil if the town got
+  # no ferry terminal or the island could not be built. Half the islands are
+  # villages, half are wild; an island with the gym of its port is a village.
+  def build_island(world, town, bricks, port_wp, port_layout, island_seed, map_ids)
+    return nil if !port_layout.terminal
+    rng = Random.new(island_seed)
+    kind = ISLAND_KINDS.keys.sample(random: rng)
+    kind = "village" if port_wp.island_gym
+    wp = WorldPlace.new(nil, (kind == "village") ? "ville" : "route", port_wp.island, port_wp.x, port_wp.y, 1, 1, [],
+                        !port_wp.island_gym.nil?)
+    wp.index = port_wp.index
+    place = town.dup
+    place.name = wp.name
+    place.width, place.height = ISLAND_SIZE
+    place.exits = []
+    place.border = nil
+    place.port = "sud"
+    place.island = true
+    place.map_id = map_ids[wp.name]
+    place.counts = ISLAND_KINDS[kind].select { |k, _| bricks.any? { |b| b.kind == k } || k == LAKE }
+    [PORT, TERMINAL].each { |k| place.counts[k] = 0..0 if town.counts.key?(k) }
+    place.counts["arene"] = 1..1 if wp.gym && town.counts.key?("arene")
+    place.per_case = []
+    place.crossing = place.river = nil
+    place.mountain = place.cave = place.dive = false
+    place.ambiance = (rng.rand(2) == 0 && town.ambiances.any? { |a| a.name == ISLAND_AMBIANCE }) ? ISLAND_AMBIANCE : nil
+    # An excess of a town (village) or of a route (wild island)
+    wp.excess = place.excess = side_excess(world, wp.kind, rng)
+    wanted = EXCESSES.dig(wp.excess, :ambiance)
+    place.ambiance = wanted if town.ambiances.any? { |a| a.name == wanted }
+    text, layout = generate_world_place(place, bricks, island_seed)
+    return [wp, port_wp, place, text, layout]
+  rescue Error
+    # An island whose bricks never fit is left out, the port keeps its boat
+    # terminal without a boat
+    return nil
+  end
+
+  # The excess of a place off the chain (island, cave, seabed), nil if none:
+  # of that kind, the length and the colossal mountain left aside.
+  def side_excess(world, kind, rng)
+    return nil if rng.rand(100) >= world.excess
+    names = EXCESSES.select { |_name, e| e[:kind] == kind && !e[:long] && !e[:colossal] }.keys
+    return names.sample(random: rng)
+  end
+
+  # [Warps] and [Events] of a ferry terminal: walking into its door takes the
+  # boat, to the pier in front of the other terminal.
+  def ferry_warps(width, height, layout, target, target_layout)
+    x, y = layout.terminal
+    tx, ty = target_layout.terminal
+    events = Array.new(height) { "." * width }
+    events[y][x] = "1"
+    text = +"\n[Warps]\n1 = #{target} #{tx},#{ty - 1} haut\n\n[Events]\n"
+    events.each { |row| text << row << "\n" }
+    return text
+  end
+
+  # A name for an island: « Île » and a name, or a name alone, drawn from
+  # the names of the lore and not taken yet.
+  def island_name(taken, rng)
+    path = File.join(FOLDER, ISLAND_NAMES_FILE)
+    names = []
+    if File.exist?(path)
+      section = nil
+      File.foreach(path, encoding: "UTF-8") do |line|
+        line = line.sub(/#.*/, "").strip
+        if line =~ /\A\[(.+)\]\z/
+          section = $1
+        elsif ISLAND_NAME_SECTIONS.include?(section) && !line.empty?
+          names.concat(line.split(",").map(&:strip))
+        end
+      end
+    end
+    forms = names.shuffle(random: rng).flat_map { |n| (rng.rand(5) < 3) ? ["Île #{n}", n] : [n, "Île #{n}"] }
+    return forms.find { |n| !taken.include?(n) } || "Île générée #{taken.length + 1}"
   end
 
   # A place whose bricks don't fit (a narrow route cut by a wall or water) is
@@ -230,12 +360,13 @@ module MapProceduralGenerator
   # MapGen plan of the seabed under a route: the same size, open around the
   # deep water (the player surfaces where the water above is deep), rock
   # elsewhere, with a few patches of seaweed.
-  def seabed_text(name, place, layout, rng)
+  def seabed_text(name, place, layout, rng, excess = nil)
     w, h = place.width, place.height
     deep = layout.deep.to_h { |cell| [cell, true] }
     dist = distances(layout.deep, w, h)
     # Open within a reach that changes every 5 tiles, then smoothed
-    reach = Array.new((h / 5) + 1) { Array.new((w / 5) + 1) { rng.rand(4..9) } }
+    reach_range = EXCESSES.dig(excess, :reach) || (4..9)
+    reach = Array.new((h / 5) + 1) { Array.new((w / 5) + 1) { rng.rand(reach_range) } }
     open = Array.new(h) do |y|
       Array.new(w) do |x|
         x > 1 && y > 1 && x < w - 2 && y < h - 2 && dist[y][x] && dist[y][x] <= reach[y / 5][x / 5]
@@ -253,9 +384,11 @@ module MapProceduralGenerator
     # Seaweed in a few spots of the open floor, away from the deep water
     floor = (0...h).flat_map { |y| (0...w).select { |x| open[y][x] && !deep[[x, y]] }.map { |x| [x, y] } }
     weed = {}
-    rng.rand(1..3).times do
+    # « forêt d'algues »: far more and bigger spots
+    forest = EXCESSES.dig(excess, :weed)
+    rng.rand(forest ? 8..12 : 1..3).times do
       cx, cy = floor.sample(random: rng) || break
-      r = rng.rand(1.5..3.0)
+      r = rng.rand(forest ? 3.0..5.0 : 1.5..3.0)
       floor.each { |x, y| weed[[x, y]] = true if ((x - cx)**2) + ((y - cy)**2) <= r * r }
     end
     text = +"# Fonds de #{place.name}, générés par MapProceduralGenerator. On y plonge depuis\n"
@@ -333,7 +466,7 @@ module MapProceduralGenerator
     (1...world.towns).each do |i|
       lengths = world.route_length.to_a.shuffle(random: rng)
       # « route interminable »: three times the longest length, when it fits
-      long = rng.rand(100) < world.excess && rng.rand(EXCESSES.length) == 0
+      long = rng.rand(100) < world.excess && rng.rand(EXCESSES.count { |_n, e| CHAIN_KINDS.include?(e[:kind]) }) == 0
       lengths.unshift(world.route_length.max * 3) if long
       found = DIRECTIONS.keys.shuffle(random: rng).product(lengths).find do |side, length|
         rt, nt = route_and_town(current, side, length, rng)
@@ -359,8 +492,57 @@ module MapProceduralGenerator
     towns.each_with_index { |t, i| t.gym = !no_gym.include?(i) }
     places.each_with_index { |p, i| p.index = i }
     choose_crossings(world, places, rng)
+    choose_ports(world, places, rng)
     choose_excesses(world, places, rng)
     return places
+  end
+
+  # Port towns: those named like one (Port, Dock, Harbour), then others drawn
+  # at random. The sea lies on a side with no exit, as far as can be from the
+  # exits of the sides next to it; north only when no other side will do (the
+  # ferry terminal needs the sea south, east or west).
+  def choose_ports(world, places, rng)
+    towns = places.select { |p| p.kind == "ville" }
+    named = towns.select { |t| t.name =~ PORT_NAME }
+    others = (towns - named).shuffle(random: rng).first([rng.rand(world.ports), towns.length].min)
+    (named + others).each do |town|
+      side = port_side(world, town, rng)
+      town.port = side if side
+    end
+    # A boat to an island from the ports with a ferry terminal (not north)
+    taken = places.map(&:name)
+    towns.select { |t| t.port && t.port != "nord" }.each do |town|
+      next if rng.rand(100) >= world.islands
+      town.island = island_name(taken, rng)
+      taken.push(town.island)
+      next if world.island_gyms <= 0 || rng.rand(100) >= world.island_gyms
+      # The island has a gym too: the number of gyms stays the same, so a town
+      # further in the chain gives its own (the gyms between keep at least as
+      # many before them, Surf and Dive stay in their place), else the port
+      donors = towns.select { |t| t.gym && !t.surf && !t.dive && t.index > town.index }
+      donors = [town] if donors.empty? && town.gym && !town.surf && !town.dive
+      donor = donors.sample(random: rng)
+      next if !donor
+      donor.gym = false
+      town.island_gym = donor
+    end
+  end
+
+  # Room left between the sea and the exits on the sides next to it, in tiles.
+  def port_side(world, town, rng)
+    w, h = town.w * world.cell, town.h * world.cell
+    room = lambda do |side|
+      town.exits.filter_map do |exit_side, offset|
+        next if %w[nord sud].include?(side) == %w[nord sud].include?(exit_side)
+        case side
+        when "nord", "ouest" then offset
+        when "sud" then h - offset - STREET_WIDTH
+        else w - offset - STREET_WIDTH
+        end
+      end.min || 99
+    end
+    sides = (SIDES - town.exits.map(&:first)).select { |side| room.call(side) >= PORT_ROOM }
+    return (sides - ["nord"]).sample(random: rng) || sides.first
   end
 
   # Now and then a place goes over the top (« Demesure »): an excess of its
@@ -472,7 +654,7 @@ module MapProceduralGenerator
 
   # MapGen world plan of the generated places. Towns can be flown to, landing
   # in front of their Pokémon Centre.
-  def world_text(world, built, seed, region = world.name)
+  def world_text(world, built, seed, caves = [], seabeds = [], islands = [], region = world.name)
     text = +"# Monde généré par MapProceduralGenerator, graine #{seed}.\n"
     text << "World   = #{region}\n"
     text << "Region  = #{world.region}\n"
@@ -484,6 +666,13 @@ module MapProceduralGenerator
     dive = built.find { |wp, *| wp.dive }
     text << "# Plongée s'obtient à #{dive[0].title}.\n" if dive
     built.each { |wp, *| text << "# Démesure : #{wp.title}, #{wp.excess}.\n" if wp.excess }
+    caves.each { |wp, name, _text, _seed, excess| text << "# Démesure : #{wp.cave_title || name}, #{excess}.\n" if excess }
+    seabeds.each { |wp, _name, _text, excess| text << "# Démesure : fonds de #{wp.title}, #{excess}.\n" if excess }
+    islands.each { |wp, *| text << "# Démesure : #{wp.name}, #{wp.excess}.\n" if wp.excess }
+    built.each { |wp, *| text << "# Port : #{wp.title}, la mer au #{wp.port}.\n" if wp.port }
+    built.each do |wp, *|
+      text << "# Île : #{wp.island}, en bateau depuis #{wp.title}#{wp.island_gym ? ', avec une arène' : ''}.\n" if wp.island
+    end
     text << "\n[Places]\n"
     built.each do |wp, _place, _text, layout|
       line = "#{wp.symbol} = #{wp.name}  type=#{wp.kind}"

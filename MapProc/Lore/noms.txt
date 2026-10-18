@@ -7,7 +7,7 @@
 # égales, jamais deux fois le même. Plusieurs formes séparées par « | » : une
 # est tirée au hasard (française ou anglaise).
 # - Village : la première ville et les villes sans arène ;
-# - Port : les villes au bord d'une route d'eau (chenal, lac) ou lacustres ;
+# - Port : les villes portuaires (au bord de la mer) et les cités lacustres ;
 # - Ville : les autres villes ;
 # - Grotte : les grottes des routes.
 # Les routes sont numérotées (Route 1, Route 2...).

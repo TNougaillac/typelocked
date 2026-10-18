@@ -51,6 +51,16 @@ places.each do |path|
     plan, = M.generate_place(place.dup.tap { |p| p.ambiance = ambiance.name }, bricks, 1)
     MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
   end
+  # A port on each side with no exit, at the size of a world's town
+  next if !place.pier
+  (M::SIDES - place.exits.map(&:first)).each do |side|
+    port = place.dup.tap { |p| p.port = side; p.width = p.height = 40 }
+    SEEDS.each do |seed|
+      plan, = M.generate_place(port, bricks, seed)
+      MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+      check_spill(plan, "#{File.basename(path)} (port #{side}, graine #{seed})")
+    end
+  end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end
@@ -62,9 +72,9 @@ worlds.each do |path|
   town, route = [world.town_file, world.route_file].map do |name|
     M.parse_place(CI.read_text(File.join(folder, name)), name)
   end
-  names = world.names_file && M.parse_names(CI.read_text(File.join(folder, world.names_file)), world.names_file)
+  name_table = world.names_file && M.parse_names(CI.read_text(File.join(folder, world.names_file)), world.names_file)
   (1..3).each do |seed|
-    result = M.generate_world(world, town, route, bricks, seed, {}, names)
+    result = M.generate_world(world, town, route, bricks, seed, {}, name_table)
     plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
     titles = plan.places.values.map(&:display_name)
     raise M::Error, "#{File.basename(path)} (graine #{seed}) : noms affichés en double" if titles.uniq.length != titles.length
@@ -76,9 +86,25 @@ worlds.each do |path|
     result.caves.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])
     end
+    # Each island and its port lead to each other by boat
+    names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
+    result.islands.each do |wp, port, place, text, _layout|
+      plan = MapGenerator.parse(text, place.file)
+      MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
+      check_spill(plan, "#{wp.name} (graine #{seed})")
+      port_text = result.places.find { |p, *| p.equal?(port) }[2]
+      ok = plan.warps.values.map(&:target) == [port.name] &&
+           MapGenerator.parse(port_text, place.file).warps.values.map(&:target) == [wp.name] && !names.include?(wp.name)
+      CI.error(path, nil, "#{wp.name} (graine #{seed}) : le bateau ne relie pas l'île à #{port.name}") if !ok
+    end
     result.seabeds.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::SEABED_TILESET])
     end
+    # Every gym is on a map, in a town of the chain or on an island
+    gyms = (result.places + result.islands.map { |wp, _port, place, text, layout| [wp, place, text, layout] }).sum do |*, layout|
+      layout.doors.count { |_x, _y, brick| brick.kind == "arene" }
+    end
+    CI.error(path, nil, "graine #{seed} : #{gyms} arène(s) posée(s) au lieu de #{world.gyms}") if gyms != world.gyms
   end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
