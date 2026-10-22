@@ -20,6 +20,22 @@ module MapProceduralGenerator
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 
+  # Mountain routes: boundaries between levels (2 bands one level apart) on a
+  # north-south route and on an east-west one, at least FACE_GAP rows apart
+  # (BAND_MIN once wandering);
+  # chance that the next band climbs rather than goes down; how far a
+  # boundary wanders up and down (rows); tall grass patches on the raised
+  # levels per 20x20 tiles of them. A band keeps BAND_MIN rows at least.
+  MOUNTAIN_FACES = { vertical: 5..8, across: 2..3 }.freeze
+  FACE_GAP = 5
+  BAND_MIN = 3
+  MOUNTAIN_CLIMB = 0.7
+  FACE_WAVE = 2
+  MOUNTAIN_GRASS = 1..3
+  # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
+  # stair on their south face. In a town, only that often (%) when drawn.
+  HILL_TOWN_CHANCE = 20
+
   # Caves of a world (2 floors each, see 006_Caves.rb): tileset of their maps
   # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon
   # parameters CAVE_AREA in PBS/dungeon_parameters.txt for the decorations),
@@ -60,7 +76,7 @@ module MapProceduralGenerator
   # outside (see the inventory).
   LAB = "labo"
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
-  NO_INTERIOR = %w[grotte gare montagne].freeze
+  NO_INTERIOR = %w[grotte gare montagne colline].freeze
 
   # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
   # The game only keeps it if it is saved: at the next start, the maps of a

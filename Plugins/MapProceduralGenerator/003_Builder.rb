@@ -81,10 +81,11 @@ module MapProceduralGenerator
         raise_levels
         lay_river
         # Its cave is left out when no spot fits
-        place_brick(CAVE) if @place.cave
+        place_mountain_cave if @place.cave
       end
       place_port_bricks if @port_depth
       place_bricks
+      grow_highland_grass
       plant_border
       check_reachable
       cover_ground
@@ -143,7 +144,7 @@ module MapProceduralGenerator
 
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
-      rock = (level_at(x, y) > 0) ? @place.levels[level_at(x, y) - 1] : nil
+      rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
       return @cells[y][x] || rock || @place.street if @street[y][x]
       return @cells[y][x] || rock || @place.ground
     end
@@ -255,6 +256,7 @@ module MapProceduralGenerator
       order.each_with_index do |kind, i|
         flood_ground if i == required.length
         next if HIGHLAND.include?(kind) && !@level
+        next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if place_brick(kind)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
@@ -667,10 +669,12 @@ module MapProceduralGenerator
     #---------------------------------------------------------------------------
     # Mountain routes
     #---------------------------------------------------------------------------
-    # The map is cut into bands across the rows, each at level 0 (ground), 1 or
-    # 2, two next bands one level apart. The higher one shows a cliff (its
-    # south face) or a rim (its north edge), crossed by stairs where a street
-    # goes through. The bands of the exits stay on the ground.
+    # The map is cut into bands across the rows, two next bands one level apart
+    # (as many levels as « Relief » has symbols, each level its own symbol so
+    # that its edges show). The boundary between two bands wanders up and down
+    # (FACE_WAVE), flat where a street crosses it. The cells of a level next to
+    # a lower one are its cliff (or rim), crossed by stairs where a street
+    # goes through. The bands of the exits and the water stay on the ground.
     def raise_levels
       error("« Relief » et « Escalier » manquants pour une route de montagne") if !@place.levels
       _bw, bh = border_size
@@ -680,8 +684,9 @@ module MapProceduralGenerator
       # The exits and the water stay on the ground
       ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
                     (0...@h).select { |y| @water[y].any? }
-      wanted = vertical_route? ? @rng.rand(3..4) : @rng.rand(1..2)
-      wanted = vertical_route? ? 8 : 3 if excess[:colossal]
+      wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
+      wanted = crossings.length if excess[:colossal]
+      wanted = [wanted, crossings.length].min
       # East-west routes may end up with cliffs and no stairs; a route with no
       # room for levels stays flat
       [true, vertical_route?].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
@@ -689,41 +694,37 @@ module MapProceduralGenerator
       end
     end
 
-    # Draws count boundaries picked among crossings; false if they don't fit.
+    # Draws count boundaries picked among crossings; false if they don't fit
+    # or if they would cut an exit off.
     def try_levels(crossings, ground_rows, count, stairs)
       picks = []
       crossings.keys.shuffle(random: @rng).each do |r|
-        picks.push(r) if picks.none? { |p| (p - r).abs < 5 }
+        picks.push(r) if picks.none? { |p| (p - r).abs < FACE_GAP }
         break if picks.length == count
       end
       return false if picks.length < count
       # Stairs somewhere, even on an east-west route
       return false if stairs && picks.all? { |r| crossings[r] == 0 }
       picks.sort!
-      band = ->(y) { picks.count { |p| p <= y } }
-      ground = ground_rows.map(&band).uniq
-      sequences = level_sequences(count + 1).select do |seq|
-        seq.max > 0 && ground.all? { |i| seq[i] == 0 }
+      ground = ground_rows.map { |y| picks.count { |p| p <= y } }.uniq
+      levels = band_levels(count + 1, ground)
+      return false if !levels
+      waves = []
+      picks.each_with_index { |r, i| waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last)) }
+      level = Array.new(@h) do |y|
+        Array.new(@w) { |x| levels[picks.each_index.count { |i| picks[i] + waves[i][x] <= y }] }
       end
-      return false if sequences.empty?
-      # Up to the 2nd level when possible, most of the time
-      high = sequences.select { |seq| seq.max == 2 }
-      sequences = high if !high.empty? && (excess[:colossal] || @rng.rand(3) > 0)
-      levels = sequences.sample(random: @rng)
-      @level = Array.new(@h) { |y| levels[band.call(y)] }
-      picks.each { |r| draw_face(r) }
-      return true
-    end
-
-    # Level sequences of n bands, one level apart from band to band.
-    def level_sequences(n)
-      sequences = [[0], [1], [2]]
-      (n - 1).times do
-        sequences = sequences.flat_map do |seq|
-          [seq.last - 1, seq.last + 1].select { |l| l.between?(0, 2) }.map { |l| seq + [l] }
+      faces, stairs_at = draw_faces(level)
+      return false if !faces
+      @level, @face, @stairs_at = level, faces, stairs_at
+      @h.times do |y|
+        @w.times do |x|
+          next if !faces[y][x]
+          @cells[y][x] = level_symbol(level_at(x, y))
+          @solid[y][x] = true
         end
       end
-      return sequences
+      return true
     end
 
     # Number of streets going straight across the boundary above row r, or nil
@@ -746,29 +747,139 @@ module MapProceduralGenerator
       return crossings
     end
 
-    # The higher band's row along the boundary above row r: a wall, with
-    # stairs where the streets cross it.
-    def draw_face(r)
-      north, south = @level[r - 1], @level[r]
-      y, level = (north > south) ? [r - 1, north] : [r, south]
-      pair = @place.stairs[((level - 1) * 2) + ((north > south) ? 0 : 1)]
-      @stairs_at ||= {}
-      @w.times do |x|
-        next if @border[y][x] || @low&.[](y)&.[](x)
-        if @street[y][x]
-          @stairs_at[[x, y]] = @street[y][x - 1] ? pair[1] : pair[0]
-        else
-          @cells[y][x] = @place.levels[level - 1]
-          @solid[y][x] = true
+    # Level of each of n bands, one apart from band to band, 0 on the ground
+    # bands, at most one per « Relief » symbol; climbing more often than not.
+    # nil if none fits.
+    def band_levels(n, ground)
+      top = @place.levels.length
+      allowed = Array.new(n) { |i| ground.include?(i) ? [0] : (0..top).to_a }
+      # Levels from which the rest of the bands can still be drawn
+      feasible = Array.new(n)
+      feasible[n - 1] = allowed[n - 1]
+      (n - 2).downto(0) do |i|
+        feasible[i] = allowed[i].select { |l| feasible[i + 1].include?(l - 1) || feasible[i + 1].include?(l + 1) }
+      end
+      return nil if feasible[0].empty?
+      levels = [feasible[0].sample(random: @rng)]
+      (1...n).each do |i|
+        options = [levels.last - 1, levels.last + 1] & feasible[i]
+        up = levels.last + 1
+        levels.push((options.include?(up) && @rng.rand < MOUNTAIN_CLIMB) ? up : options.sample(random: @rng))
+      end
+      return levels.max > 0 ? levels : nil
+    end
+
+    # Offset (rows) of the boundary above row r at each column: it wanders by
+    # one now and then, up to FACE_WAVE, flat around the streets crossing it,
+    # never moves past a street, the water or an exit, and keeps a band of
+    # BAND_MIN rows at least below the boundary above (prev, its wave).
+    def face_wave(r, prev = nil, prev_wave = nil)
+      keep = ->(x, y) { inside?(x, y) && (@street[y][x] || @water[y][x] || exit_at?(x, y)) }
+      crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
+      offset = 0
+      run = 0
+      return Array.new(@w) do |x|
+        # A step every few columns at most, so that the edges stay drawable
+        run += 1
+        if run >= 3 && @rng.rand(3) == 0
+          offset = (offset + [-1, 1].sample(random: @rng)).clamp(-FACE_WAVE, FACE_WAVE)
+          run = 0
+        end
+        offset = 0 if crossing.any? { |c| (c - x).abs <= STREET_WIDTH + 1 }
+        # Back towards r until nothing to keep lies between
+        offset -= (offset <=> 0) while offset != 0 && (offset > 0 ? (r...r + offset) : (r + offset...r)).any? { |y| keep.call(x, y) }
+        offset += 1 while prev && r + offset < prev + prev_wave[x] + BAND_MIN
+        offset
+      end
+    end
+
+    # Cliffs: the cells of a level with a lower cell around them (8
+    # neighbours). Where a street crosses a cliff from north to south, stairs.
+    # Returns [faces, stairs] or nil if a street meets a cliff any other way,
+    # or if the exits are no longer joined.
+    def draw_faces(level)
+      low = ->(x, y) { @low&.[](y)&.[](x) ? 0 : level[y][x] }
+      faces = Array.new(@h) { Array.new(@w, false) }
+      stairs = {}
+      @h.times do |y|
+        @w.times do |x|
+          here = low.call(x, y)
+          next if here == 0 || @border[y][x]
+          next if !NEIGHBOURS8.any? { |ox, oy| inside?(x + ox, y + oy) && low.call(x + ox, y + oy) < here }
+          faces[y][x] = true
+          next if !@street[y][x]
+          south = y + 1 < @h && low.call(x, y + 1) < here
+          north = y > 0 && low.call(x, y - 1) < here
+          side = [[-1, 0], [1, 0]].any? { |ox, _| inside?(x + ox, y) && low.call(x + ox, y) < here && !@street[y][x + ox] }
+          return nil if north == south || side
+          pair = @place.stairs[(([here, 2].min - 1) * 2) + (south ? 0 : 1)]
+          stairs[[x, y]] = (x > 0 && @street[y][x - 1]) ? pair[1] : pair[0]
+        end
+      end
+      # The exits still reach one another, through the stairs
+      seen = walk_levels(@exits[0][1, 2], faces, stairs)
+      return nil if @exits.any? { |_side, x, y| !seen[y][x] }
+      return faces, stairs
+    end
+
+    # Like walk, with the cliffs in the way (stairs excepted).
+    def walk_levels(start, faces, stairs)
+      seen = Array.new(@h) { Array.new(@w, false) }
+      seen[start[1]][start[0]] = true
+      queue = [start]
+      until queue.empty?
+        x, y = queue.shift
+        NEIGHBOURS.each do |ox, oy|
+          nx, ny = x + ox, y + oy
+          next if !inside?(nx, ny) || seen[ny][nx]
+          next if faces[ny][nx] && !stairs[[nx, ny]]
+          next if !@street[ny][nx] && !@water[ny][nx] && (@cells[ny][nx] || @border[ny][nx] || @solid[ny][nx])
+          seen[ny][nx] = true
+          queue.push([nx, ny])
+        end
+      end
+      return seen
+    end
+
+    # Level of a tile (0 on the river and its outer bank).
+    def level_at(x, y)
+      return 0 if !@level || @low&.[](y)&.[](x)
+      return @level[y][x]
+    end
+
+    # The « Relief » symbol of a level.
+    def level_symbol(level)
+      return @place.levels[level - 1]
+    end
+
+    # Tall grass on the raised levels of a mountain route, in a few patches
+    # (MOUNTAIN_GRASS per CASE_SIZE square of raised ground), off the streets
+    # and the cliffs.
+    def grow_highland_grass
+      return if !@level || !@place.high_grass
+      free = ->(x, y) { inside?(x, y) && level_at(x, y) > 0 && !@solid[y][x] && !@street[y][x] && !@cells[y][x] && !@border[y][x] }
+      raised = (0...@h).flat_map { |y| (0...@w).select { |x| free.call(x, y) }.map { |x| [x, y] } }
+      return if raised.empty?
+      (raised.length * @rng.rand(MOUNTAIN_GRASS) / (CASE_SIZE * CASE_SIZE)).ceil.times do
+        cx, cy = raised.sample(random: @rng)
+        r = @rng.rand(1.5..3.0)
+        (cy - 3..cy + 3).each do |y|
+          (cx - 3..cx + 3).each do |x|
+            next if ((x - cx)**2) + ((y - cy)**2) > r * r || !free.call(x, y)
+            @cells[y][x] = @place.high_grass
+            @kinds[y][x] = "herbes"
+          end
         end
       end
     end
 
-    # Level of a tile: that of its band, but the river and its outer bank stay
-    # on the ground.
-    def level_at(x, y)
-      return 0 if !@level || @low&.[](y)&.[](x)
-      return @level[y]
+    # The mountain cave at the foot of a cliff (the cells above it all cliff of
+    # a higher level), anywhere it fits otherwise.
+    def place_mountain_cave
+      foot = lambda do |brick, x, y|
+        next y > 0 && brick.rows[0].length.times.all? { |dx| @face&.[](y - 1)&.[](x + dx) && level_at(x + dx, y - 1) > level_at(x + dx, y) }
+      end
+      place_brick(CAVE, foot) || place_brick(CAVE)
     end
 
     # River alongside a north-south mountain route: a band 3 or 4 tiles wide
@@ -939,8 +1050,28 @@ module MapProceduralGenerator
       return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
     end
 
+    # A hill: a brick of rock in a rough oval made for this spot, a stair in
+    # the middle of its south face (its door, so a path leads to it).
+    def hill_brick
+      rock = @place.levels&.first || "^"
+      stair = @place.stairs&.first&.[](0) || "e"
+      w, h = @rng.rand(5..9), @rng.rand(4..6)
+      rows = Array.new(h) do |y|
+        Array.new(w) do |x|
+          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
+          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
+          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.2)) ? rock : " "
+        end.join
+      end
+      door = w / 2
+      rows[h - 1][door] = stair
+      rows[h - 2][door] = rock
+      return Brick.new(HILL, "Colline", HILL, [door, h - 1], 1, false, rows)
+    end
+
     def pick_brick(kind, shrink = 0)
       return lake_brick(shrink) if kind == LAKE
+      return hill_brick if kind == HILL
       bricks = @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       return bricks.find { |b| (roll -= b.weight) < 0 }
@@ -992,6 +1123,8 @@ module MapProceduralGenerator
             (-1..1).each do |ox|
               nx, ny = cx + ox, cy + oy
               next if !inside?(nx, ny) || !@solid[ny][nx] || @border[ny][nx]
+              # A cave entrance may lean against a cliff
+              next if brick.kind == CAVE && @face&.[](ny)&.[](nx)
               return false if brick.kind != @dense || @kinds[ny][nx] != @dense
             end
           end
@@ -1024,6 +1157,9 @@ module MapProceduralGenerator
       brick.rows.each_with_index do |row, dy|
         row.each_char.with_index do |c, dx|
           next if c == " "
+          # On a raised level, a brick's relief stands that much higher
+          step = HIGHLAND.include?(brick.kind) ? @place.levels&.index(c) : nil
+          c = level_symbol(level_at(x + dx, y + dy) + step) if step && level_at(x + dx, y + dy) + step <= @place.levels.length
           @cells[y + dy][x + dx] = c
           @solid[y + dy][x + dx] = true
           @kinds[y + dy][x + dx] = brick.kind
@@ -1053,6 +1189,7 @@ module MapProceduralGenerator
     end
 
     NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+    NEIGHBOURS8 = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]].freeze
 
     # Brush steps from every street cell outward: distances[y][x] (nil = no
     # path), parents for carve_path.

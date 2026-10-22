@@ -35,6 +35,7 @@ lampe    = 6..10
 arbre    = 3..8
 lac      = 0..1
 montagne = 0..1
+colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
 port     = 0        # entrepôts : posés le long du quai d'un port
 gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 

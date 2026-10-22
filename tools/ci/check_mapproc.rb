@@ -33,7 +33,7 @@ end
 # Symbols a cell of the inventory may show: ground, streets, stairs, planks
 # and the bricks walked through (grass).
 def walkable_symbols(place, bricks)
-  symbols = [place.ground, place.street, place.pier, *place.levels, *place.stairs&.join&.chars]
+  symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
@@ -44,7 +44,7 @@ end
 def check_spots(name, place, bricks, layout)
   spots = layout.spots
   walkable = walkable_symbols(place, bricks)
-  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq
+  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq + [place.high_grass]
   at = ->(x, y) { layout.rows[y]&.[](x) }
   fail = ->(msg) { raise M::Error, "#{name} : inventaire, #{msg}" }
   fail.call("portes différentes de celles posées") if spots[:doors] != layout.doors.map { |x, y, b| [x, y, b.kind] }
@@ -170,8 +170,13 @@ worlds.each do |path|
     M.parse_place(CI.read_text(File.join(folder, name)), name)
   end
   name_table = world.names_file && M.parse_names(CI.read_text(File.join(folder, world.names_file)), world.names_file)
+  highest = 0
   (1..3).each do |seed|
     result = M.generate_world(world, town, route, bricks, seed, {}, name_table)
+    # Levels shown on the mountain routes (each level its own symbol)
+    result.places.each do |wp, place, _text, layout|
+      highest = [highest, (layout.rows.join.chars.uniq & place.levels).length].max if wp.mountain
+    end
     plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
     titles = plan.places.values.map(&:display_name)
     raise M::Error, "#{File.basename(path)} (graine #{seed}) : noms affichés en double" if titles.uniq.length != titles.length
@@ -241,6 +246,7 @@ worlds.each do |path|
     end
     CI.error(path, nil, "graine #{seed} : #{gyms} arène(s) posée(s) au lieu de #{world.gyms}") if gyms != world.gyms
   end
+  CI.error(path, nil, "aucune route de montagne au-delà de 2 niveaux (graines 1..3)") if world.mountains.max > 0 && highest <= 2
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end

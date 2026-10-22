@@ -22,12 +22,16 @@
 #                               blocks a route crossed through a cave)
 #   Caillou = o                (optional: 1x1 [Legend] symbol filling the gaps
 #                               of that wall)
-#   Relief  = ^ &              (optional: [Terrains] symbols of the 1st and 2nd
-#                               levels of a mountain route of a world)
+#   Relief  = ^ & k K          (optional: [Terrains] symbols of the levels of a
+#                               mountain route of a world, from the 1st up, 2
+#                               at least; each joins the higher ones so that
+#                               only the higher level shows its edge)
 #   Escalier = ef gh EF GH     (optional, with Relief: pairs of [Legend]
 #                               symbols for 2-wide stairs, in a south face of
 #                               level 1, a north edge of level 1, then the same
-#                               for level 2)
+#                               for level 2 and up)
+#   HerbeHaute = n             (optional: [Legend] symbol of the tall grass on
+#                               the raised levels)
 #   Ponton  = |                (optional: [Terrains] symbol of the wooden piers
 #                               of a port town, over the water)
 #   Rebord  = (_)              (with Ponton: [Legend] symbols of water with the
@@ -76,7 +80,7 @@ module MapProceduralGenerator
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
-                     :lips, :island, :boat, :reef, :bank, :ferry)
+                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass)
   # island: an island of a world (set by the world, the sea all around);
   # ferry: its ferry terminal leads to an island (set by the world)
   # ground, street: tile text of the ground and street symbols
@@ -84,6 +88,7 @@ module MapProceduralGenerator
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
+  HILL = "colline"   # idem
   SIDES = %w[nord sud est ouest]
 
   module_function
@@ -169,7 +174,8 @@ module MapProceduralGenerator
       when "caillou" then place.pebble = symbol(value, fail_at)
       when "relief"
         place.levels = value.split
-        fail_at.call("attendu deux symboles, ex. « ^ & »") unless place.levels.length == 2 && place.levels.all? { |v| v.length == 1 }
+        fail_at.call("attendu un symbole par niveau, ex. « ^ & k K »") unless place.levels.length >= 2 && place.levels.all? { |v| v.length == 1 }
+      when "herbehaute" then place.high_grass = symbol(value, fail_at)
       when "escalier"
         place.stairs = value.split
         fail_at.call("attendu quatre paires de symboles, ex. « ef gh EF GH »") unless place.stairs.length == 4 && place.stairs.all? { |v| v.length == 2 }
@@ -282,11 +288,12 @@ module MapProceduralGenerator
     place.levels&.each do |sym|
       raise Error, "#{place.file} : « Relief » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
     end
+    raise Error, "#{place.file} : « HerbeHaute = #{place.high_grass} » doit être un symbole de [Legend]" if place.high_grass && !palette.legend[place.high_grass]
     place.stairs&.join&.each_char do |sym|
       raise Error, "#{place.file} : « Escalier » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
     end
     place.counts.each_key do |kind|
-      next if kind == LAKE || bricks.any? { |b| b.kind == kind }
+      next if [LAKE, HILL].include?(kind) || bricks.any? { |b| b.kind == kind }
       raise Error, "#{place.file} : aucune brique de type « #{kind} » dans #{FOLDER}/#{BRICK_FOLDER}/"
     end
     bricks.each do |brick|

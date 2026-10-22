@@ -15,10 +15,13 @@ Eau     = ~
 Profond = %
 Roche   = R
 Caillou = o
-# Routes de montagne (« Montagnes » dans monde.txt) : niveaux 1 et 2, puis les
-# escaliers (2 de large) : face sud et rebord nord du niveau 1, puis du niveau 2.
-Relief   = ^ &
+# Routes de montagne (« Montagnes » dans monde.txt) : un symbole par niveau, du
+# 1er au 6e (chacun a ses bords, dessinés contre le niveau du dessous), puis les
+# escaliers (2 de large) : face sud et rebord nord du niveau 1, puis des
+# niveaux 2 et plus ; enfin les hautes herbes sur les niveaux.
+Relief   = ^ & k K m M
 Escalier = ef gh EF GH
+HerbeHaute = n
 
 [Briques]
 prairie = 1
@@ -27,6 +30,8 @@ arbre  = 1..3 par case
 parc   = 0..1 par case
 montagne = 0..2 par case
 corniche = 0..1 par case
+# Collines : une butte de roche à l'escalier, dessinée pour sa place.
+colline = 0..1 par case
 # Rochers sur les niveaux d'une route de montagne (seulement là).
 rocaille = 2..5 par case
 lac    = 0..1
@@ -78,6 +83,8 @@ E = T793 T777           # escaliers du niveau 2, sur la roche
 F = T793 T778
 G = T793 T769
 H = T793 T770
+z = T793                # dessus d'une montagne (sous les bords des niveaux 3 et 5)
+n = T793 T6             # hautes herbes sur un niveau de montagne
 q = T793 T815           # rochers et cailloux sur la roche d'une montagne
 u = T793 T831
 v = T793 T839
@@ -87,8 +94,15 @@ w = T793 T847
 > = {sol} T814
 
 [Terrains]
-^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&EFGHquvw L2 @.   # montagne, niveau 1 (dessus praticable)
-& = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvw   # niveau 2
+# Les niveaux impairs ont les bords du niveau 1, les pairs ceux du niveau 2 ;
+# chaque niveau rejoint ceux du dessus (with=), pour que seul le plus haut
+# dessine son bord.
+^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnz L2 @.   # montagne, niveau 1 (dessus praticable)
+& = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnz   # niveau 2
+k = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnz L2 @z   # niveau 3
+K = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnz   # niveau 4
+m = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnz L2 @z   # niveau 5
+M = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnz   # niveau 6
 
 [Objects]
 t = T420 2x3         # arbre
