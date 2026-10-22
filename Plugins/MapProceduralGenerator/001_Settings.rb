@@ -146,6 +146,9 @@ module MapProceduralGenerator
   # Which world the maps on disk belong to ({ path:, seed: }), written when a
   # new game draws its world.
   GAME_WORLD_FILE = "Data/MapProcWorld.rxdata"
+  # Priority of the thread drawing the world during the intro (Ruby thread
+  # priority: below 0, shorter time slices, so the intro keeps its frame rate)
+  WORLD_THREAD_PRIORITY = -3
 
   # Excesses (« Demesure » in a world): now and then a place goes over the top.
   # kind: ville or route (an island takes those of a village or of a route),

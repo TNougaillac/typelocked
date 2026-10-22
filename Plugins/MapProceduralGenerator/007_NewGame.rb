@@ -2,7 +2,10 @@
 # MapProceduralGenerator - A new world for each new game
 # Starting a new game draws the world of NEW_GAME_WORLD with a random seed
 # (maps only, no events) and the game starts in its first town, the player
-# only choosing a name. The seed is saved with the game. At each start of
+# only choosing a name. The world is drawn in a thread while the intro plays
+# (IntroScene), then written once it is over, before the first map shows
+# (with the busy screen only if it is not drawn yet). The seed is saved with
+# the game. At each start of
 # the game (load screen), the maps on disk are matched with the save: the
 # maps of a game left without saving are deleted, or the saved world is drawn
 # again from its seed if the save has one. The world's Town Map region (its
@@ -30,15 +33,50 @@ module MapProceduralGenerator
     nil
   end
 
-  # Draws the world of a new game. Returns its seed and start ([map ID, x, y]),
-  # nil if there is none.
-  def new_game_world
+  # Starts drawing the world of a new game in a thread (plain Ruby, nothing
+  # written yet): { path:, seed:, thread: }, nil if there is no world.
+  def begin_new_game_world
     return nil if !NEW_GAME_WORLD
     path = File.join(FOLDER, NEW_GAME_WORLD)
     return nil if !File.exist?(path)
     seed = rand(1_000_000)
-    start = draw_game_world(path, seed)
-    return start ? [seed, start] : nil
+    thread = Thread.new { compute_world(path, seed) }
+    thread.report_on_exception = false
+    # Short time slices: the intro keeps its frame rate
+    thread.priority = WORLD_THREAD_PRIORITY
+    return { path: path, seed: seed, thread: thread }
+  end
+
+  # Once the intro is over, before the first map shows: writes the world begun
+  # by begin_new_game_world and puts the player at its start. Without a world
+  # (drawing failed), the game stays on the editor's start map.
+  def enter_new_game_world
+    pending = $game_temp.mapproc_pending
+    $game_temp.mapproc_pending = nil
+    start = draw_game_world(pending[:path], pending[:seed], thread: pending[:thread])
+    if !start
+      $game_temp.mapproc_name_entry = false
+      return
+    end
+    $mapproc_world = pending[:seed]
+    map_id, x, y = start
+    $map_factory = PokemonMapFactory.new(map_id)
+    $game_player.moveto(x, y)
+    $game_player.refresh
+    $PokemonEncounters.setup(map_id)
+    $game_map.autoplay
+    $game_map.update
+  end
+
+  # What the thread drew, waiting for it with the window alive; nil if it
+  # failed (the world is then drawn here, as without a thread).
+  def thread_world(thread)
+    thread.priority = 0
+    Graphics.update until thread.join(0.05)
+    return thread.value
+  rescue StandardError => e
+    Console.echoln_li(_INTL("Monde : tirage pendant l'intro raté ({1}), tirage maintenant", e.message))
+    return nil
   end
 
   # Called with the seed of the save file (nil = no save, or a save without a
@@ -120,12 +158,16 @@ module MapProceduralGenerator
   end
 
   # prune: also deletes the maps of the unsaved world that this one doesn't
-  # have (more caves...). Returns the world's start, nil if it failed.
-  def draw_game_world(path, seed, prune: false)
-    return with_busy_screen { draw_game_world_now(path, seed, prune) }
+  # have (more caves...); thread: the thread already drawing it (see
+  # begin_new_game_world). Returns the world's start, nil if it failed.
+  def draw_game_world(path, seed, prune: false, thread: nil)
+    return with_busy_screen do
+      computed = thread_world(thread) if thread
+      draw_game_world_now(path, seed, prune, computed)
+    end
   end
 
-  def draw_game_world_now(path, seed, prune)
+  def draw_game_world_now(path, seed, prune, computed = nil)
     # The world rewrites its Town Map region: its lines from before the first
     # game world are kept, and put back before each new world is drawn
     world = load_world(path)
@@ -140,7 +182,7 @@ module MapProceduralGenerator
       image = File.exist?(file) ? File.binread(file) : nil
     end
     begin
-      _export, start = generate_world_maps(path, seed, quiet: true, prune: prune)
+      _export, start = generate_world_maps(path, seed, quiet: true, prune: prune, computed: computed)
     rescue Error, MapGenerator::Error => e
       pbMessage(_INTL("Le monde n'a pas pu être généré : {1}", e.message))
       return nil
@@ -275,21 +317,16 @@ module Game
   class << self
     alias_method :__mapproc_start_new, :start_new
 
-    # The world is drawn before the game starts, so its data is ready. The
-    # game then starts in its first town, without the intro of the editor's
-    # start map: the player only chooses a name (see below).
+    # The world starts drawing in a thread, and the game on the editor's start
+    # map; the player is moved to the world's first town once the intro is
+    # over (Scene_Map#main below), without the intro of the editor's start
+    # map: the player only chooses a name (see below).
     def start_new
-      seed, start = MapProceduralGenerator.new_game_world
-      system = $data_system
-      editor_start = [system.start_map_id, system.start_x, system.start_y]
-      system.start_map_id, system.start_x, system.start_y = start if start
-      begin
-        __mapproc_start_new
-      ensure
-        system.start_map_id, system.start_x, system.start_y = editor_start
-      end
-      $mapproc_world = seed
-      $game_temp.mapproc_name_entry = true if start
+      pending = MapProceduralGenerator.begin_new_game_world
+      __mapproc_start_new
+      $mapproc_world = nil
+      $game_temp.mapproc_pending = pending
+      $game_temp.mapproc_name_entry = !pending.nil?
     end
   end
 end
@@ -297,6 +334,27 @@ end
 class Game_Temp
   # The player of a new game in a generated world still has to be named.
   attr_accessor :mapproc_name_entry
+  # The world of a new game being drawn ({ path:, seed:, thread: })
+  attr_accessor :mapproc_pending
+end
+
+# The world of a new game is written before the map scene draws anything (its
+# map events don't run before update). Messages must not update the scene.
+class Scene_Map
+  alias_method :__mapproc_main, :main
+
+  def main
+    if $game_temp.mapproc_pending
+      scene = $scene
+      $scene = nil
+      begin
+        MapProceduralGenerator.enter_new_game_world
+      ensure
+        $scene = scene
+      end
+    end
+    __mapproc_main
+  end
 end
 
 # Name entry once the map is on screen (character 1, as in the intro). Not in

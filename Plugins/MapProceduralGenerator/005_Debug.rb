@@ -52,18 +52,26 @@ module MapProceduralGenerator
     return read(file).each_line(chomp: true).filter_map { |l| [$2.strip, $1.to_i] if l =~ /\A(\d+)\s*=\s*(.+)\z/ }.to_h
   end
 
-  # Writes every place of the world to its map, then runs the world plan
-  # through MapGen (connections, map metadata, Town Map). Returns the export
-  # and the start of the world ([map ID, x, y], see world_start).
-  # quiet: no message to the player (world made at the start of a game);
-  # prune: deletes the maps of earlier seeds that this one doesn't have.
-  def generate_world_maps(path, seed, quiet: false, prune: false)
+  # The world of that seed, drawn in plain Ruby without writing anything (it
+  # may run in a thread): [World, map IDs of its earlier generations,
+  # WorldResult].
+  def compute_world(path, seed)
     world = load_world(path)
     town = load_place(File.join(FOLDER, world.town_file))
     route = load_place(File.join(FOLDER, world.route_file))
     map_ids = read_world_maps(path)
     names = world.names_file && load_names(File.join(FOLDER, world.names_file))
-    result = generate_world(world, town, route, load_bricks, seed, map_ids, names)
+    return world, map_ids, generate_world(world, town, route, load_bricks, seed, map_ids, names)
+  end
+
+  # Writes every place of the world to its map, then runs the world plan
+  # through MapGen (connections, map metadata, Town Map). Returns the export
+  # and the start of the world ([map ID, x, y], see world_start).
+  # quiet: no message to the player (world made at the start of a game);
+  # prune: deletes the maps of earlier seeds that this one doesn't have;
+  # computed: what compute_world returned for it, if it is already drawn.
+  def generate_world_maps(path, seed, quiet: false, prune: false, computed: nil)
+    world, map_ids, result = computed || compute_world(path, seed)
     # MapGen finds the world's maps by name: another map with the same name
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")

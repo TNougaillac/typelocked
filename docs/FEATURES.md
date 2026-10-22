@@ -219,7 +219,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.19.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.20.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -251,6 +251,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers), le lieu est retiré avec une graine dérivée de la sienne : le monde reste le même pour une même graine.
 - Lancement : menu debug > Autres éditeurs > « Générer un lieu (MapProc) ». Les raccords, les métadonnées, la carte de région et les points de vol sont écrits par MapGen.
 - **Nouvelle partie :** chaque nouvelle partie tire un monde (`NEW_GAME_WORLD`, `monde.txt` par défaut, `nil` = désactivé) avec une graine au hasard. Seules les cartes sont générées, sans événements (pas de MapEvents) ; les rencontres sauvages sont écrites par ProceduralEncounters (F13). La partie commence directement dans la première ville du monde, devant le Centre Pokémon (sinon devant la première porte) : l'intro de l'éditeur (carte 1) est sautée, le joueur choisit seulement son nom (`pbTrainerName`, personnage 1). Sans monde (`NEW_GAME_WORLD = nil` ou génération ratée), l'intro d'origine se joue. Aucun message au joueur : la graine, Surf et Plongée sont écrits dans la console. La graine est gardée dans la sauvegarde.
+- **Génération pendant l'intro :** le tirage du monde (le calcul en Ruby pur de `generate_world`, `compute_world`) tourne dans un thread de basse priorité (`WORLD_THREAD_PRIORITY`, tranches de temps courtes pour garder la fluidité de l'intro) pendant que l'intro (IntroScene, F14) se joue. La partie démarre sur la carte de départ de l'éditeur, puis, avant que la première carte s'affiche (`Scene_Map#main`), les cartes sont écrites et le joueur est déplacé au départ du monde (nouvelle `PokemonMapFactory`, `moveto`, rencontres, musique de la carte). L'écran « Le monde se prépare... » ne reste que le temps d'écrire les cartes, plus la fin du calcul s'il n'est pas fini. Même graine, même monde qu'avant. Si le thread échoue, le monde est tiré à ce moment-là, comme avant (message dans la console).
 - **Partie non sauvegardée :** à la fermeture du jeu (`at_exit`), si aucune sauvegarde ne contient de monde, les fichiers `Data/MapXXX.rxdata` du monde et leurs entrées dans l'arbre des cartes sont supprimés tout de suite (sans compilateur, la fenêtre n'existe plus). Le reste est fait au lancement suivant (écran de chargement), où les cartes sur le disque sont remises d'accord avec la sauvegarde :
   - pas de sauvegarde (ou une sauvegarde sans monde) : les cartes du monde sont supprimées (`Data/MapXXX.rxdata`, arbre des cartes, raccords, métadonnées, points de la carte de région, graines des grottes) la région de `town_map.txt` et son image (`typelocked_proc.png`) sont remises comme avant le premier monde, les plans exportés de ce monde (`MapProc/Export/monde_<graine>.txt` et ses rencontres) supprimés ;
   - sauvegarde d'un autre monde : ce monde est redessiné depuis sa graine (mêmes numéros de carte), les cartes en trop et les plans exportés du monde abandonné sont supprimés.
@@ -262,8 +263,8 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 
 - `RandomDungeon::Dungeon` : sous-classe `MapProceduralGenerator::CaveDungeon` (redéfinit `generate` et `generate_layout`), utilisée seulement à l'écriture des cartes.
-- `Game.start_new` (alias `__mapproc_start_new`) : tire le monde avant le début de la partie, la graine va dans `$mapproc_world` (`SaveData.register(:mapproc_world)`).
-- `Game.start_new` : `$data_system.start_map_id` / `start_x` / `start_y` remplacés le temps de l'appel par la première ville ; `Scene_Map#update` (alias `__mapproc_update`) pour la saisie du nom, une fois la carte affichée.
+- `Game.start_new` (alias `__mapproc_start_new`) : lance le tirage du monde dans un thread ; la graine va dans `$mapproc_world` (`SaveData.register(:mapproc_world)`) une fois le monde écrit.
+- `Scene_Map#main` (alias `__mapproc_main`) : écrit le monde et déplace le joueur à son départ avant que la carte se dessine ; `Scene_Map#update` (alias `__mapproc_update`) pour la saisie du nom (sans IntroScene), une fois la carte affichée.
 - `PokemonLoadScreen#initialize` (alias `__mapproc_initialize`) : compare la graine de la sauvegarde au monde du disque (`Data/MapProcWorld.rxdata`), supprime ou redessine.
 
 ### À vérifier au premier lancement
@@ -275,7 +276,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Traverser la Ligue : entrée, porte du haut, chaque salle jusqu'au Panthéon (arrivée en bas de chaque salle, face au nord). Les dresseurs (Anciens, Parrain, Arceus) viendront de MapEvents.
 - Prendre le bateau dans les deux sens : arrivée sur le ponton devant la gare, face au nord ; non vérifié en jeu.
 - Plonger sur l'eau profonde d'une route, remonter : il faut aussi le badge `Settings::BADGE_FOR_DIVE` et un Pokémon qui connaît Plongée.
-- Nouvelle partie : durée de la génération (environ 6 s hors jeu pour `monde.txt`, écran noir pendant ce temps), puis quitter sans sauvegarder et relancer : plus de « Ville générée » dans l'arbre des cartes.
+- Nouvelle partie : l'intro s'affiche tout de suite et reste fluide pendant le tirage (environ 6 s hors jeu pour `monde.txt`) ; à la fin de l'intro, l'écran « Le monde se prépare... » ne dure que l'écriture des cartes ; on arrive devant le Centre de la première ville, avec sa musique. Si le moteur refuse les threads, le tirage se fait à la fin de l'intro (message dans la console). Puis quitter sans sauvegarder et relancer : plus de « Ville générée » dans l'arbre des cartes.
 - Sauvegarder, lancer une nouvelle partie, quitter sans sauvegarder, relancer puis Continuer : on retrouve son monde, au même endroit.
 - Jouer depuis RPG Maker XP (test) : l'éditeur ne voit pas les cartes écrites par le jeu, ne pas enregistrer le projet après (il écraserait `MapInfos.rxdata`).
 
@@ -468,7 +469,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 **Dossier :** `Plugins/IntroScene/`
 
 ### Règles
-- **Quand :** une nouvelle partie dans un monde généré (F07), avant que la première ville apparaisse. Elle remplace la simple saisie du nom de MapProc. Sans monde généré, l'intro de la carte de départ de l'éditeur reste celle d'Essentials.
+- **Quand :** une nouvelle partie dans un monde généré (F07), avant que la première ville apparaisse. Elle remplace la simple saisie du nom de MapProc. Sans monde généré, l'intro de la carte de départ de l'éditeur reste celle d'Essentials. Pendant l'intro, MapProc tire le monde en arrière-plan (F07, « Génération pendant l'intro ») ; ses cartes sont écrites juste après.
 - **Déroulé :** le Professeur Castellane, affiché sur le fond d'intro, raconte le Pacte dans sa version flatteuse (4 bulles). Le joueur choisit son personnage (Garçon : Red, Fille : Leaf), puis son nom. Viennent ensuite les choix de mode de NewGameSetup (Nuzlocke, difficulté Monotype) en fenêtres neutres. Le professeur annonce enfin le type imposé (« Le Pacte a parlé : type X »), à la place du message « Le hasard a choisi » du Monotype, puis fondu sur la ville.
 - **Pas de bouton pour passer l'intro** (texte court).
 
