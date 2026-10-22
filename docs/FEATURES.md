@@ -100,7 +100,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.5.2, écrit, **non testé**.
+**Statut :** v1.5.3, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -452,6 +452,35 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Pas de rencontres de nuit, Éclate-Roc, Poké Radar ni sous l'eau (fonds marins).
 - Les évolutions de Galar (Perrserker, Obstagoon, Cursola, M. Glaquette…) sont tirées comme les autres, mais leur pré-évolution sauvage reste la forme normale.
 - Ajouter un biome (sol, démesure) demande de compléter `BIOMES`, `GROUND_BIOMES` ou `EXCESS_BIOMES` dans ce plugin.
+
+## F14. Intro du professeur (IntroScene)
+**Statut :** v1.0.0, écrit, **non testé**.
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/IntroScene/`
+
+### Règles
+- **Quand :** une nouvelle partie dans un monde généré (F07), avant que la première ville apparaisse. Elle remplace la simple saisie du nom de MapProc. Sans monde généré, l'intro de la carte de départ de l'éditeur reste celle d'Essentials.
+- **Déroulé :** le Professeur Castellane, affiché sur le fond d'intro, raconte le Pacte dans sa version flatteuse (4 bulles). Le joueur choisit son personnage (Garçon : Red, Fille : Leaf), puis son nom. Viennent ensuite les choix de mode de NewGameSetup (Nuzlocke, difficulté Monotype) en fenêtres neutres. Le professeur annonce enfin le type imposé (« Le Pacte a parlé : type X »), à la place du message « Le hasard a choisi » du Monotype, puis fondu sur la ville.
+- **Pas de bouton pour passer l'intro** (texte court).
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin (requiert MapProceduralGenerator, Monotype, NewGameSetup). |
+| `001_Settings.rb` | `BACKGROUND`, `PROFESSOR` (images de `Graphics/Pictures`), `CHARACTERS` (personnages jouables de `PBS/metadata.txt`), `PICTURE_BASELINE`, `FADE_TIME`. |
+| `002_Scene.rb` | La scène (images, textes, choix du personnage et du nom) et son lancement en fin de `Game.start_new`. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Game.start_new` (après l'alias de MapProc, d'où le `Requires`). Pendant l'intro, `$scene` vaut `nil` pour que les messages ne mettent pas à jour la carte, dont les sprites n'existent pas encore. Côté Monotype : `Monotype.quiet_draw { ... }` masque le message du tirage.
+
+### À vérifier au premier lancement
+- Le professeur, puis Red et Leaf, s'affichent bien au-dessus de la fenêtre de message.
+- Après le fondu, la ville apparaît sans nouvelle demande de nom ni nouveaux choix de mode au premier pas.
+- En mode Facile, le type choisi est bien celui annoncé.
+
+### Limites connues
+- Seuls Red et Leaf ont tous leurs sprites (course, vélo, surf, pêche). Brendan et May pourront s'ajouter avec `[3]` et `[4]` dans `metadata.txt` quand leurs sprites existeront.
+- `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.

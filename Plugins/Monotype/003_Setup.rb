@@ -76,6 +76,15 @@ module Monotype
     end
   end
 
+  # Runs the block without the "Le hasard a choisi" message, for a caller
+  # that announces the type itself (IntroScene).
+  def quiet_draw
+    @quiet_draw = true
+    yield
+  ensure
+    @quiet_draw = false
+  end
+
   def setup_dialog
     type_dialog
     starter_dialog if STARTER_AT_SETUP
@@ -89,7 +98,7 @@ module Monotype
       when 0
         next if !pbConfirmMessage(_INTL("Laisser le hasard choisir ton type ? Ce choix est définitif."))
         activate(available_types.sample)
-        pbMessage(_INTL("Le hasard a choisi : type {1} !", type_name))
+        pbMessage(_INTL("Le hasard a choisi : type {1} !", type_name)) if !@quiet_draw
         return
       when 1
         type = choose_type
