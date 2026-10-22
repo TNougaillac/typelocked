@@ -31,7 +31,7 @@ Les arènes et la Ligue n'acceptent que les Pokémon du **type imposé** : c'est
 
 Le **joueur** est la personne que le Pacte a désignée pour cette génération. Les PNJ l'appellent par le nom qu'il a choisi, jamais par un titre.
 
-- Le **professeur** lui annonce son type imposé (tiré par le Pacte) et lui propose trois **starters** de ce type. Il travaille en secret pour la Famille.
+- Le **professeur**, le Professeur Castellane, lui raconte le Pacte comme un honneur et tait les disparitions. Il lui annonce son type imposé (tiré par le Pacte) et lui propose trois **starters** de ce type. Il travaille en secret pour la Famille.
 - Un parent du joueur est membre de la Famille et savait que le joueur serait désigné.
 - Le joueur croit faire un parcours d'arènes classique. Le jeu révèle petit à petit qu'il est le prix du Pacte.
 

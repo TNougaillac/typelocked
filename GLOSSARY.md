@@ -39,7 +39,7 @@ Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
 _Avoid_ : sbires, Team, grunts
 
 **Professeur** :
-Celui qui annonce au joueur son type imposé et lui propose les trois starters. Il travaille en secret pour la Famille.
+Le Professeur Castellane, le même à chaque graine. Il raconte le Pacte au joueur dans sa version flatteuse, lui annonce son type imposé et lui propose les trois starters. Il travaille en secret pour la Famille.
 _Avoid_ : Prof
 
 **Sceau** :

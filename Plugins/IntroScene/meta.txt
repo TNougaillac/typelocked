@@ -1,0 +1,7 @@
+Name       = IntroScene
+Version    = 1.0.0
+Essentials = 21.1
+Credits    = TypeLocked
+Requires   = MapProceduralGenerator
+Requires   = Monotype
+Requires   = NewGameSetup
