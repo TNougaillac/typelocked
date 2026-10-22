@@ -78,7 +78,7 @@ module MapProceduralGenerator
     # linked after)
     with_id = ->(name, text) { map_ids[name] ? text.sub(/^Tileset/, "MapID   = #{map_ids[name]}\nTileset") : text }
     plans = result.places.map { |_wp, _place, text, _layout| text } +
-            result.caves.map { |_wp, name, text, _seed| with_id.call(name, text) } +
+            result.caves.map { |_wp, name, text, _floor| with_id.call(name, text) } +
             result.seabeds.map { |_wp, name, text| with_id.call(name, text) } +
             result.islands.map { |_wp, _port, _place, text, _layout| text }
     unlinked = []
@@ -89,11 +89,10 @@ module MapProceduralGenerator
       unlinked.push(plan) if !missing.empty?
     end
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
-    result.caves.each { |_wp, name, _text, _seed| dress_cave(map_ids[name]) }
-    save_cave_seeds(result.caves.to_h do |_wp, name, _text, cave_seed, excess|
-      area = EXCESSES.dig(excess, :area)
-      [map_ids[name], area ? [cave_seed, area] : cave_seed]
-    end)
+    result.caves.each do |_wp, name, _text, floor|
+      paint_cave(map_ids[name], floor)
+      busy_update
+    end
     write_extra_metadata(world, result, map_ids)
     if prune
       stale, map_ids = map_ids.partition { |name, _id| !names.include?(name) }.map(&:to_h)
@@ -127,28 +126,17 @@ module MapProceduralGenerator
     return map_ids[wp.name], x, y
   end
 
-  # Shows the cave exits as ladders.
-  def dress_cave(map_id)
-    path = sprintf("Data/Map%03d.rxdata", map_id)
-    map = load_data(path)
-    map.events.each_value do |event|
-      next if event.name != MapGenerator::WARP_EVENT_NAME
-      event.pages[0].graphic.tile_id = CAVE_EXIT_TILE
-    end
-    save_data(map, path)
-  end
-
   # Caves, seabeds and islands are not on the world grid: MapGen doesn't write
-  # their metadata (an island is put on the Town Map where its port is). Dungeon = true makes Essentials draw a cave's layout; DiveMap
-  # links a route to its seabed (MapGen keeps that key when it rewrites the
-  # route's section).
+  # their metadata (an island is put on the Town Map where its port is).
+  # DiveMap links a route to its seabed (MapGen keeps that key when it
+  # rewrites the route's section).
   def write_extra_metadata(world, result, map_ids)
     file = MapGenerator::MAP_METADATA_PBS
     lines = MapGenerator.read_pbs(file)
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
     result.caves.each do |wp, name, *|
       replace_section(lines, map_ids[name], name,
-                      ["Name = #{wp.cave_title || wp.title}", position.call(wp), "Dungeon = true", "BattleBack = cave1", "Environment = Cave"])
+                      ["Name = #{wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"])
     end
     result.seabeds.each do |wp, name, _text|
       replace_section(lines, map_ids[name], name,

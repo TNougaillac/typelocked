@@ -67,9 +67,8 @@
 # place is assembled from its place file with the exits facing its
 # neighbours, then MapGen writes the maps, the connections and the Town Map
 # from the world plan made here. Only routes of 2 squares or more can be
-# crossed by water or a cave. A cave is a map of its own (« Grotte générée
-# N », for route N) whose layout Essentials draws from a seed of the world, so
-# it is the same on every visit.
+# crossed by water or a cave. A cave is two maps of its own (« Grotte générée
+# N » and its « (sous-sol) », for route N), see 006_Caves.rb.
 #===============================================================================
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
@@ -87,7 +86,8 @@ module MapProceduralGenerator
                           :dive, :deep, :mountain, :cave, :excess, :river, :port, :island,
                           :island_gym, :title, :cave_title)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
-  # caves: [WorldPlace of the route, name, MapGen plan text, seed of its layout];
+  # caves: [WorldPlace of the route, name, MapGen plan text, CaveFloor, excess],
+  # one per floor;
   # seabeds: [WorldPlace of the route, name, MapGen plan text];
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
   # MapGen plan text, Layout]
@@ -208,14 +208,15 @@ module MapProceduralGenerator
       place.dive = wp.deep
       [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
     end
-    caves = built.filter_map do |wp, place, text, layout|
-      next if wp.crossing != "grotte" && !wp.cave
-      name = wp.name.sub("Route", "Grotte")
+    caves = built.flat_map do |wp, place, text, layout|
+      next [] if wp.crossing != "grotte" && !wp.cave
       doors = layout.doors.select { |_x, _y, brick| brick.kind == CAVE }
-      next if doors.empty?
-      text << cave_warps(name, doors, place)
-      cave_seed = (seed * 1000) + 500 + wp.index
-      [wp, name, cave_text(name, wp.name, doors), cave_seed, side_excess(world, "grotte", Random.new(cave_seed))]
+      next [] if doors.empty?
+      rng = Random.new((seed * 1000) + 500 + wp.index)
+      excess = side_excess(world, "grotte", rng)
+      floors = cave_floors(wp.name.sub("Route", "Grotte"), wp.name, doors, excess, rng)
+      text << cave_warps(doors, floors, place)
+      floors.map { |floor| [wp, floor.name, cave_floor_text(floor, wp.name), floor, excess] }
     end
     seabeds = built.filter_map do |wp, place, _text, layout|
       next if !wp.deep
@@ -406,36 +407,20 @@ module MapProceduralGenerator
     return text
   end
 
-  # [Warps] and [Events] of a route: each cave entrance leads into the cave
-  # (Essentials puts the player in a random room of it).
-  def cave_warps(cave, doors, place)
+  # [Warps] and [Events] of a route: each cave entrance leads to its floor
+  # (the first one to 1F, the second one to the basement), in front of the
+  # cave's exit.
+  def cave_warps(doors, floors, place)
     text = +"\n[Warps]\n"
     events = Array.new(place.height) { "." * place.width }
     doors.each_with_index do |(x, y, _brick), i|
-      text << "#{i + 1} = #{cave} 1,1\n"
+      floor = floors[i]
+      ex, ey = floor.spots[:exits][0]
+      text << "#{i + 1} = #{floor.name} #{ex},#{ey + 1} bas\n"
       events[y][x] = (i + 1).to_s
     end
     text << "\n[Events]\n"
     events.each { |row| text << row << "\n" }
-    return text
-  end
-
-  # MapGen plan of a cave: an empty floor that Essentials replaces with a random
-  # layout, and one exit to each cave entrance of the route.
-  def cave_text(name, route, doors)
-    text = +"# Grotte de #{route}, générée par MapProceduralGenerator. Essentials\n"
-    text << "# dessine la grotte à l'entrée (Dungeon = true), toujours depuis la même graine.\n"
-    text << "Name    = #{name}\n"
-    text << "Tileset = #{CAVE_TILESET}\n"
-    text << "Ground  = .\n"
-    text << "\n[Legend]\n. = #{CAVE_FLOOR}\n"
-    text << "\n[Warps]\n"
-    doors.each_with_index { |(x, y, _brick), i| text << "#{i + 1} = #{route} #{x},#{y + 1} bas\n" }
-    text << "\n[Map]\n"
-    10.times { text << ("." * 10) << "\n" }
-    text << "\n[Events]\n"
-    exits = (1..doors.length).map { |i| ".#{i}" }.join.ljust(10, ".")
-    10.times { |y| text << ((y == 1) ? exits : "..........") << "\n" }
     return text
   end
 
@@ -666,7 +651,7 @@ module MapProceduralGenerator
     dive = built.find { |wp, *| wp.dive }
     text << "# Plongée s'obtient à #{dive[0].title}.\n" if dive
     built.each { |wp, *| text << "# Démesure : #{wp.title}, #{wp.excess}.\n" if wp.excess }
-    caves.each { |wp, name, _text, _seed, excess| text << "# Démesure : #{wp.cave_title || name}, #{excess}.\n" if excess }
+    caves.each { |wp, name, _text, floor, excess| text << "# Démesure : #{wp.cave_title || name}, #{excess}.\n" if excess && floor.level == 0 }
     seabeds.each { |wp, _name, _text, excess| text << "# Démesure : fonds de #{wp.title}, #{excess}.\n" if excess }
     islands.each { |wp, *| text << "# Démesure : #{wp.name}, #{wp.excess}.\n" if wp.excess }
     built.each { |wp, *| text << "# Port : #{wp.title}, la mer au #{wp.port}.\n" if wp.port }

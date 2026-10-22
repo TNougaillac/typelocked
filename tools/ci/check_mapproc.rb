@@ -6,7 +6,9 @@
 require_relative "lib/ci"
 
 %w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
-%w[001_Settings 002_Parser 003_Builder 004_World 008_Names 009_Atlas].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
+require_relative "lib/essentials"
+Essentials.load_scripts("Overworld_RandomDungeons")
+%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
@@ -55,6 +57,52 @@ def check_spots(name, place, bricks, layout)
   spots[:grass].each { |x, y| fail.call("herbe #{x},#{y} sur « #{at.call(x, y)} »") if !grass.include?(at.call(x, y)) }
   # A route may be all trees or grass (excesses); a town never
   fail.call("aucune case libre au bord des rues") if spots[:street].empty? && place.kind == "ville"
+end
+
+# The dungeon tileset as Essentials' painter sees it (only what draws walls).
+CaveTileset = Struct.new(:snap_to_large_grid, :double_walls, :floor_patch_under_walls) do
+  def has_decoration?(_deco) = false
+end
+CAVE_TILESET = CaveTileset.new(false, true, true)
+
+# Raises if a cave floor is not one piece of 2x2 blocks, if a warp is not on
+# its floor, or if Essentials' painter can't draw its walls (or eats floor).
+def check_cave(name, floor, map_names)
+  rows = floor.rows
+  fail = ->(msg) { raise M::Error, "#{name} : #{msg}" }
+  cells = rows.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] }.map { |x| [x, y] } }
+  seen = { cells[0] => true }
+  queue = [cells[0]]
+  until queue.empty?
+    cx, cy = queue.shift
+    [[0, -1], [1, 0], [0, 1], [-1, 0]].each do |ox, oy|
+      next if !rows[cy + oy]&.[](cx + ox) || seen[[cx + ox, cy + oy]]
+      seen[[cx + ox, cy + oy]] = true
+      queue.push([cx + ox, cy + oy])
+    end
+  end
+  fail.call("étage en plusieurs morceaux") if seen.length != cells.length
+  (rows.length - 1).times do |y|
+    (rows[0].length - 1).times do |x|
+      a, b, c, d = rows[y][x], rows[y][x + 1], rows[y + 1][x], rows[y + 1][x + 1]
+      fail.call("cases reliées en diagonale seulement en #{x},#{y}") if a == d && b == c && a != b
+    end
+  end
+  floor.warps.each do |x, y, target, _tx, _ty|
+    fail.call("sortie #{x},#{y} hors du sol") if !rows[y][x] || !rows[y + 1][x]
+    fail.call("sortie vers « #{target} », carte inconnue") if !map_names.include?(target)
+  end
+  dungeon = M::CaveDungeon.new(rows, CAVE_TILESET, Object.new, floor.seed)   # parameters: decorations only
+  dungeon.instance_exec do
+    Random.srand(@rng_seed)
+    width, height = @usable_width - (@buffer_x * 2), @usable_height - (@buffer_y * 2)
+    generate_layout(width, height)
+    generate_walls(width, height)
+    fail.call("murs impossibles à dessiner par Essentials") if @need_redraw
+    cells.each { |x, y| fail.call("le mur mange le sol en #{x},#{y}") if !coord_is_ground?(x, y) }
+  end
+rescue RuntimeError => e
+  fail.call("murs impossibles à dessiner par Essentials (#{e.message})")
 end
 
 tilesets = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
@@ -122,8 +170,15 @@ worlds.each do |path|
     CI.error(path, nil, "graine #{seed} : inventaire, #{atlas[:gyms].length} arène(s) au lieu de #{world.gyms}") if atlas[:gyms].length != world.gyms
     missing = ([atlas[:start]] + atlas[:gyms]).reject { |name| atlas[:maps][name] }
     CI.error(path, nil, "graine #{seed} : inventaire sans #{missing.join(', ')}") if !missing.empty?
-    result.caves.each do |_wp, name, text|
+    # Caves: two floors each, A -> 1F -> ladder -> basement (-> B)
+    map_names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
+    result.caves.each do |wp, name, text, floor|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])
+      check_cave("#{name} (graine #{seed})", floor, map_names)
+      other = result.caves.find { |w, _n, _t, f| w.equal?(wp) && f.level != floor.level }
+      CI.error(path, nil, "#{name} (graine #{seed}) : pas d'échelle vers l'autre étage") if !other || floor.warps.none? { |w| w[2] == other[1] }
+      exits = (wp.crossing == "grotte") ? 1 : 1 - floor.level
+      CI.error(path, nil, "#{name} (graine #{seed}) : #{exits} sortie(s) vers la route attendue(s)") if floor.warps.count { |w| w[2] == wp.name } != exits
     end
     # Each island and its port lead to each other by boat
     names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }

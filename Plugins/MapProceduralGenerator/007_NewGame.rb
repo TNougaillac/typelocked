@@ -217,7 +217,7 @@ module MapProceduralGenerator
   end
 
   # Deletes these maps, their place in the map tree, their lines in the PBS
-  # files (connections, map metadata, Town Map points) and their cave seeds.
+  # files (connections, map metadata, Town Map points).
   def remove_maps(ids, compile: true)
     return if ids.empty?
     infos = load_data("Data/MapInfos.rxdata")
@@ -258,9 +258,6 @@ module MapProceduralGenerator
       l =~ /\APoint\s*=\s*\d+,\d+,([^,]*)/ && names.include?($1.strip)
     end
     MapGenerator.write_pbs(file, lines)
-    seeds = cave_seeds.reject { |id, _seed| ids.include?(id) }
-    save_data(seeds, CAVE_SEEDS_FILE)
-    @cave_seeds = seeds
     MapGenerator.compile_world_pbs if compile
   end
 end

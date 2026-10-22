@@ -20,17 +20,26 @@ module MapProceduralGenerator
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 
-  # Caves of a world: tileset of their maps (it needs a section in
-  # PBS/dungeon_tilesets.txt) and its floor tile. Essentials draws their layout
-  # when the player walks in (map metadata Dungeon = true), always from the
-  # same seed (see CAVE_SEEDS_FILE).
+  # Caves of a world (2 floors each, see 006_Caves.rb): tileset of their maps
+  # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon
+  # parameters CAVE_AREA in PBS/dungeon_parameters.txt for the decorations),
+  # its floor and rock tiles.
   CAVE_TILESET = 7
+  CAVE_AREA = :cave
   CAVE_FLOOR = "T42"
-  # Graphic of the cave exits (a ladder, as in the example dungeon map).
+  CAVE_ROCK = "T40"
+  # Graphic of the cave exits and ladders (a ladder, as in the example dungeon map).
   CAVE_EXIT_TILE = 384 + 47
-  # Seed of each cave's layout (map ID => seed), so that a cave stays the same
-  # for a given world seed.
-  CAVE_SEEDS_FILE = "Data/MapProcCaves.rxdata"
+  # Rock around the galleries: half the screen, as Essentials' dungeons.
+  CAVE_MARGIN = [8, 6]
+  # Galleries of a floor, by excess (nil = none), on a grid of 2x2-tile
+  # blocks: size in blocks, number of chambers, their radius (blocks), extra
+  # tunnels making loops, tunnel width (blocks).
+  CAVE_SHAPES = {
+    nil              => { size: [24, 19], rooms: 5..7, radius: 1.5..3.2, loops: 1..2, width: 1..2 },
+    "grotte immense" => { size: [36, 28], rooms: 9..12, radius: 2.0..4.5, loops: 2..4, width: 1..2 },
+    "dédale"         => { size: [30, 24], rooms: 10..14, radius: 0.8..1.6, loops: 4..7, width: 1..1 }
+  }.freeze
 
   # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
   # The game only keeps it if it is saved: at the next start, the maps of a
@@ -42,18 +51,17 @@ module MapProceduralGenerator
 
   # Excesses (« Demesure » in a world): now and then a place goes over the top.
   # kind: ville or route (an island takes those of a village or of a route),
-  # grotte (cave) or fonds (seabed); boost: brick type => times its usual most (optional
-  # bricks only, so the place always fits); giant_lake: lakes far bigger;
-  # colossal: a mountain route with as many levels as fit (mountain routes
-  # only); long: a route three times as long as « Longueur » allows; fill: after the
-  # other bricks, that type again wherever it still fits; dense: those may
-  # touch each other; flood: water all over the free ground, the streets kept
-  # dry; carpet: that symbol all over the free ground (over_street: over the
-  # streets too, not the exits); ambiance: that [Ambiance] of the place file
-  # (its ground and streets), if the file has it. Caves: area: the
-  # [section] of PBS/dungeon_parameters.txt that Essentials draws the cave
-  # from. Seabeds: reach: how far the floor opens from the deep water (4..9
-  # otherwise); weed: far more and bigger spots of seaweed.
+  # grotte (cave, its galleries in CAVE_SHAPES) or fonds (seabed); boost:
+  # brick type => times its usual most (optional bricks only, so the place
+  # always fits); giant_lake: lakes far bigger; colossal: a mountain route
+  # with as many levels as fit (mountain routes only); long: a route three
+  # times as long as « Longueur » allows; fill: after the other bricks, that
+  # type again wherever it still fits; dense: those may touch each other;
+  # flood: water all over the free ground, the streets kept dry; carpet: that
+  # symbol all over the free ground (over_street: over the streets too, not
+  # the exits); ambiance: that [Ambiance] of the place file (its ground and
+  # streets), if the file has it. Seabeds: reach: how far the floor opens from
+  # the deep water (4..9 otherwise); weed: far more and bigger spots of seaweed.
   EXCESSES = {
     "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
     "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
@@ -64,8 +72,8 @@ module MapProceduralGenerator
     "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
     "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
     "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" },
-    "grotte immense"     => { kind: "grotte", area: "mapproc_immense" },
-    "dédale"             => { kind: "grotte", area: "mapproc_dedale" },
+    "grotte immense"     => { kind: "grotte" },
+    "dédale"             => { kind: "grotte" },
     "abysse"             => { kind: "fonds", reach: 10..16 },
     "forêt d'algues"     => { kind: "fonds", weed: true }
   }.freeze

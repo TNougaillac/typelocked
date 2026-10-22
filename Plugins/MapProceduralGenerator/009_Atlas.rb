@@ -22,6 +22,8 @@ module MapProceduralGenerator
     maps = {}
     places.each { |wp, _place, _text, layout| maps[wp.name] = map_spots(wp.kind, wp.title, layout.spots) }
     islands.each { |wp, _port, _place, _text, layout| maps[wp.name] = map_spots("ile", wp.title || wp.name, layout.spots) }
+    # A cave floor: exits ([x, y, route]), ladders, floor cells, its far end
+    result.caves.each { |wp, name, _text, floor| maps[name] = map_spots("grotte", wp.cave_title || name, floor.spots).merge(level: floor.level) }
     gyms = []
     places.each do |wp, *|
       gyms.push(wp.name) if wp.gym
