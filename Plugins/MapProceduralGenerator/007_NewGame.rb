@@ -160,6 +160,7 @@ module MapProceduralGenerator
     path = state[:path]
     remove_maps(read_world_maps(path).values, compile: false)
     delete_file(world_maps_path(path))
+    forget_atlas
     delete_exports(path, state[:seed])
     world = load_world(path)
     restore_town_map(world.region, state[:town_map])
@@ -167,10 +168,11 @@ module MapProceduralGenerator
     MapGenerator.compile_world_pbs
   end
 
-  # Plans exported for that seed (world, encounters).
+  # Plans exported for that seed (world, encounters, inventory).
   def delete_exports(path, seed)
     world_plan = export_path(path, seed)
-    [world_plan, world_plan.sub(/\.txt\z/, "_rencontres.txt")].each { |file| delete_file(file) }
+    %w[_rencontres _inventaire].each { |suffix| delete_file(world_plan.sub(/\.txt\z/, "#{suffix}.txt")) }
+    delete_file(world_plan)
   end
 
   # Writes the region image back (nil = there was none).

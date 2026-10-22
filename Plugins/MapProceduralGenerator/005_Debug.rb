@@ -103,6 +103,9 @@ module MapProceduralGenerator
     File.write(world_maps_path(path), map_ids.map { |name, id| "#{id} = #{name}\n" }.join)
     export = export_path(path, seed)
     File.write(export, result.text)
+    atlas = world_atlas(result)
+    save_atlas(atlas, map_ids)
+    File.write(export.sub(/\.txt\z/, "_inventaire.txt"), atlas_text(atlas, map_ids))
     MapGenerator.run_world(export, quiet: quiet)
     surf = result.places.find { |wp, *| wp.surf }
     dive = result.places.find { |wp, *| wp.dive }

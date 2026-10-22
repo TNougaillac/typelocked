@@ -6,7 +6,7 @@
 require_relative "lib/ci"
 
 %w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
-%w[001_Settings 002_Parser 003_Builder 004_World 008_Names].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
+%w[001_Settings 002_Parser 003_Builder 004_World 008_Names 009_Atlas].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
@@ -26,6 +26,35 @@ def check_spill(plan, name)
       end
     end
   end
+end
+
+# Symbols a cell of the inventory may show: ground, streets, stairs, planks
+# and the bricks walked through (grass).
+def walkable_symbols(place, bricks)
+  symbols = [place.ground, place.street, place.pier, *place.levels, *place.stairs&.join&.chars]
+  symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
+  bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
+  return symbols.compact.uniq
+end
+
+# Raises if the inventory of a place doesn't match its map: doors on brick
+# cells, the other spots on walkable cells, grass on grass.
+def check_spots(name, place, bricks, layout)
+  spots = layout.spots
+  walkable = walkable_symbols(place, bricks)
+  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq
+  at = ->(x, y) { layout.rows[y]&.[](x) }
+  fail = ->(msg) { raise M::Error, "#{name} : inventaire, #{msg}" }
+  fail.call("portes différentes de celles posées") if spots[:doors] != layout.doors.map { |x, y, b| [x, y, b.kind] }
+  layout.doors.each do |x, y, b|
+    fail.call("porte #{b.kind} #{x},#{y} hors de sa brique") if at.call(x, y) != b.rows[b.door[1]][b.door[0]]
+  end
+  %i[street grass dead_ends].each do |key|
+    spots[key].each { |x, y| fail.call("#{key} #{x},#{y} sur « #{at.call(x, y)} »") if !walkable.include?(at.call(x, y)) }
+  end
+  spots[:grass].each { |x, y| fail.call("herbe #{x},#{y} sur « #{at.call(x, y)} »") if !grass.include?(at.call(x, y)) }
+  # A route may be all trees or grass (excesses); a town never
+  fail.call("aucune case libre au bord des rues") if spots[:street].empty? && place.kind == "ville"
 end
 
 tilesets = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
@@ -78,20 +107,31 @@ worlds.each do |path|
     plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
     titles = plan.places.values.map(&:display_name)
     raise M::Error, "#{File.basename(path)} (graine #{seed}) : noms affichés en double" if titles.uniq.length != titles.length
-    result.places.each do |wp, place, text, _layout|
+    result.places.each do |wp, place, text, layout|
       plan = MapGenerator.parse(text, place.file)
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
       check_spill(plan, "#{wp.name} (graine #{seed})")
+      check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
     end
+    # The inventory: the same for the same seed, every gym and the start in it
+    atlas = M.world_atlas(result)
+    if seed == 1
+      again = M.world_atlas(M.generate_world(world, town, route, bricks, seed, {}, name_table))
+      CI.error(path, nil, "graine #{seed} : inventaire différent pour la même graine") if Marshal.dump(again) != Marshal.dump(atlas)
+    end
+    CI.error(path, nil, "graine #{seed} : inventaire, #{atlas[:gyms].length} arène(s) au lieu de #{world.gyms}") if atlas[:gyms].length != world.gyms
+    missing = ([atlas[:start]] + atlas[:gyms]).reject { |name| atlas[:maps][name] }
+    CI.error(path, nil, "graine #{seed} : inventaire sans #{missing.join(', ')}") if !missing.empty?
     result.caves.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])
     end
     # Each island and its port lead to each other by boat
     names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
-    result.islands.each do |wp, port, place, text, _layout|
+    result.islands.each do |wp, port, place, text, layout|
       plan = MapGenerator.parse(text, place.file)
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
       check_spill(plan, "#{wp.name} (graine #{seed})")
+      check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       port_text = result.places.find { |p, *| p.equal?(port) }[2]
       ok = plan.warps.values.map(&:target) == [port.name] &&
            MapGenerator.parse(port_text, place.file).warps.values.map(&:target) == [wp.name] && !names.include?(wp.name)

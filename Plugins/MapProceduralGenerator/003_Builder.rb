@@ -19,8 +19,9 @@ module MapProceduralGenerator
   # rows: MapGen [Map] rows; doors: [x, y, brick] (door cells); exits:
   # [side, x, y] (first street cell on the map edge)
   # deep: cells of deep water, where the player can dive; terminal: [x, y] of
-  # the ferry terminal's door (its top middle cell, entered from the pier)
-  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal)
+  # the ferry terminal's door (its top middle cell, entered from the pier);
+  # spots: the place's inventory (see PlaceBuilder#inventory)
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -38,6 +39,10 @@ module MapProceduralGenerator
   PORT_SHARE = 0.28
   # Tiles that make the map side towards the town, for each sea side
   INLAND = { "nord" => [0, 1], "sud" => [0, -1], "ouest" => [1, 0], "est" => [-1, 0] }.freeze
+  # Brick types walked through (grass): their cells count as ground for the
+  # inventory, those of GRASS_KINDS as tall grass
+  WALK_KINDS = %w[herbes prairie].freeze
+  GRASS_KINDS = %w[herbes].freeze
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
@@ -54,6 +59,7 @@ module MapProceduralGenerator
       @kinds = Array.new(@h) { Array.new(@w) }   # brick type of each cell
       @doors = []
       @exits = []
+      @dead_ends = []
     end
 
     def build
@@ -83,7 +89,54 @@ module MapProceduralGenerator
       check_reachable
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
-      return Layout.new(rows, @doors, @exits, @deep || [], @terminal)
+      return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory)
+    end
+
+    # Where the events of the place can go (MapEvents, items, NPCs), every cell
+    # reached on foot from the exits, doors and ferry terminal:
+    #   exits: [side, x, y]; doors: [x, y, type] (door cells);
+    #   street: free cells beside a street; grass: tall grass cells;
+    #   dead_ends: last cell of each dead-end street.
+    def inventory
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts.push([@terminal[0], @terminal[1] - 1]) if @terminal
+      seen = Array.new(@h) { Array.new(@w, false) }
+      starts.each { |start| walk_foot(start, seen) if !seen[start[1]][start[0]] }
+      on_street = ->(x, y) { inside?(x, y) && @street[y][x] && !@stairs_at&.key?([x, y]) }
+      return {
+        exits:     @exits.map(&:dup),
+        doors:     @doors.map { |x, y, brick| [x, y, brick.kind] },
+        street:    cells_where(seen) { |x, y| !@street[y][x] && NEIGHBOURS.any? { |ox, oy| on_street.call(x + ox, y + oy) } },
+        grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
+        dead_ends: @dead_ends.select { |x, y| seen[y][x] }
+      }
+    end
+
+    # [x, y] of the cells marked in grid that pass the block, row by row.
+    def cells_where(grid)
+      return (0...@h).flat_map { |y| (0...@w).select { |x| grid[y][x] && yield(x, y) }.map { |x| [x, y] } }
+    end
+
+    # Like walk, on foot only (no surfing), through grass and carpets; marks
+    # the cells reached in seen.
+    def walk_foot(start, seen)
+      foot = lambda do |x, y|
+        next false if !inside?(x, y) || @water[y][x] || @border[y][x]
+        next true if @street[y][x]
+        next !@cells[y][x] || WALK_KINDS.include?(@kinds[y][x]) || (@cells[y][x] == excess[:carpet] && !@kinds[y][x])
+      end
+      return if !foot.call(*start)
+      seen[start[1]][start[0]] = true
+      queue = [start]
+      until queue.empty?
+        x, y = queue.shift
+        NEIGHBOURS.each do |ox, oy|
+          nx, ny = x + ox, y + oy
+          next if !foot.call(nx, ny) || seen[ny][nx]
+          seen[ny][nx] = true
+          queue.push([nx, ny])
+        end
+      end
     end
 
     private
@@ -174,7 +227,9 @@ module MapProceduralGenerator
         y = @rng.rand(bh + 2..@h - bh - 2 - STREET_WIDTH)
         break if inland.call(x, y)
       end
-      carve_line(hub[0], hub[1], x, y) if inland.call(x, y)
+      return if !inland.call(x, y)
+      carve_line(hub[0], hub[1], x, y)
+      @dead_ends.push([x, y])
     end
 
     def place_bricks
