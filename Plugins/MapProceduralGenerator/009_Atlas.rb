@@ -15,7 +15,8 @@ module MapProceduralGenerator
 
   # Inventory of a world by map name:
   #   { start:, lab: (the start if it has the lab), gyms: [names in the order
-  #     they are beaten], surf:, dive:,
+  #     they are beaten], surf:, dive:, victory: (the Victory Road), league:
+  #     [the rooms of the League, in order],
   #     maps: { name => { kind:, title:, exits:, doors:, street:, grass:, dead_ends: ... } } }
   def world_atlas(result)
     places = result.places.sort_by { |wp, *| wp.index }
@@ -23,13 +24,17 @@ module MapProceduralGenerator
     maps = {}
     places.each { |wp, _place, _text, layout| maps[wp.name] = map_spots(wp.kind, wp.title, layout.spots) }
     islands.each { |wp, _port, _place, _text, layout| maps[wp.name] = map_spots("ile", wp.title || wp.name, layout.spots) }
-    # Each door of a building names its interior: [x, y, type, interior]
-    (result.interiors || []).each do |it|
+    # Each door of a building names its interior: [x, y, type, interior]. A
+    # room of the League names its role and its door to the next room
+    # (onward: [x, y, next room]).
+    interiors = result.interiors || []
+    interiors.each do |it|
       owner = maps[it.owner]
-      door = owner[:doors].find { |x, y, _kind| [x, y] == it.door }
+      door = it.door && owner[:doors].find { |x, y, _kind| [x, y] == it.door }
       door[3] = it.name if door
       maps[it.name] = { kind: "interieur", title: owner[:title], building: it.kind, template: it.template,
-                        owner: it.owner, exits: [[*it.exit, it.owner]], door: it.door.dup }
+                        owner: it.owner, exits: it.exit ? [[*it.exit, it.owner]] : [], door: it.door&.dup,
+                        arrival: it.arrival.dup, role: it.role, onward: it.onward&.first(3) }
     end
     # A cave floor: exits ([x, y, route]), ladders, floor cells, its far end
     result.caves.each { |wp, name, _text, floor| maps[name] = map_spots("grotte", wp.cave_title || name, floor.spots).merge(level: floor.level) }
@@ -49,6 +54,8 @@ module MapProceduralGenerator
       spots[:professor] = spots[:street].min_by { |x, y| [(x - cx).abs + (y - cy - 1).abs, y, x] }
     end
     return { start: start && start[0].name, lab: lab && start[0].name, gyms: gyms,
+             victory: places.find { |wp, *| wp.victory }&.first&.name,
+             league: interiors.select(&:role).map(&:name),
              surf: places.find { |wp, *| wp.surf }&.first&.name,
              dive: places.find { |wp, *| wp.dive }&.first&.name, maps: maps }
   end
@@ -65,6 +72,8 @@ module MapProceduralGenerator
     return atlas.merge(start: atlas[:start] && id.call(atlas[:start]),
                        lab: atlas[:lab] && id.call(atlas[:lab]),
                        gyms: atlas[:gyms].map(&id),
+                       victory: atlas[:victory] && id.call(atlas[:victory]),
+                       league: atlas[:league].map(&id),
                        surf: atlas[:surf] && id.call(atlas[:surf]),
                        dive: atlas[:dive] && id.call(atlas[:dive]),
                        maps: atlas[:maps].to_h { |name, spots| [id.call(name), spots.merge(name: name)] })
@@ -77,6 +86,8 @@ module MapProceduralGenerator
     text << "Depart = #{atlas[:start] && label.call(atlas[:start])}\n"
     text << "Labo   = #{atlas[:lab] ? 'oui' : 'non (professeur dehors)'}\n"
     text << "Arenes = #{atlas[:gyms].map(&label).join(', ')}\n"
+    text << "Victoire = #{label.call(atlas[:victory])}\n" if atlas[:victory]
+    text << "Ligue  = #{atlas[:league].map(&label).join(', ')}\n" if !atlas[:league].empty?
     text << "Surf   = #{atlas[:surf]}\n" if atlas[:surf]
     text << "Plongee = #{atlas[:dive]}\n" if atlas[:dive]
     atlas[:maps].each do |name, spots|

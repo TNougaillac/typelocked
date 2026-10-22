@@ -138,3 +138,4 @@ F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis 
 J = T3344 4x4        # entrepôt du port
 b = T1096 5x3 L3 @~  # bateau amarré, sur l'eau
 L = T3088 8x5        # labo du Professeur (posé par le monde dans la ville de départ)
+I = T3136 8x5        # bâtiment de la Ligue (posé par le monde sur le plateau)

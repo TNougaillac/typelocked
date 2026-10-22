@@ -78,6 +78,31 @@ module MapProceduralGenerator
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze
 
+  # The end of every world's chain, after its last town: the Victory Road (a
+  # mountain route of the longest « Longueur », with a cave) and the League's
+  # plateau, a town with only these bricks. Names shown in game.
+  VICTORY_ROAD = "Route Victoire"
+  VICTORY_CAVE = "Grotte Victoire"
+  PLATEAU = "Plateau de la Ligue"
+  PLATEAU_BRICKS = { "centre" => 1..1, "ligue" => 1..1, "lampe" => 2..4, "arbre" => 2..5, "parc" => 0..1 }.freeze
+  # The League's building (brick type): its door leads to the rooms of the
+  # League, one after the other, copies of the demo's League maps: [role,
+  # map ID, x, y where the player arrives, x, y of the door to the next room
+  # (none in the last one)]. Only the entrance has a way out (LEAGUE_EXIT,
+  # its door mat), back to the plateau.
+  LEAGUE = "ligue"
+  LEAGUE_ROOMS = [
+    ["Entrée",   36, 11, 16, 4, 1],
+    ["Ancien 1", 37, 6, 12, 6, 2],
+    ["Ancien 2", 37, 6, 12, 6, 2],
+    ["Ancien 3", 37, 6, 12, 6, 2],
+    ["Ancien 4", 37, 6, 12, 6, 2],
+    ["Parrain",  37, 6, 12, 6, 2],
+    ["Arceus",   37, 6, 12, 6, 2],
+    ["Panthéon", 38, 5, 12]
+  ].freeze
+  LEAGUE_EXIT = [11, 17].freeze
+
   # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
   # The game only keeps it if it is saved: at the next start, the maps of a
   # game left without saving are deleted (or the saved world is drawn again).

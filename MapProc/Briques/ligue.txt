@@ -1,0 +1,12 @@
+# Bâtiment de la Ligue : posé par le monde sur le plateau, au bout de la Route
+# Victoire (pas dans [Briques] de ville.txt). Sa porte mène aux salles de la
+# Ligue (entrée, Anciens, Parrain, Arceus, Panthéon).
+Brique = Ligue
+Type   = ligue
+Porte  = 4,4
+[Map]
+IIIIIIII
+IIIIIIII
+IIIIIIII
+IIIIIIII
+IIIIIIII

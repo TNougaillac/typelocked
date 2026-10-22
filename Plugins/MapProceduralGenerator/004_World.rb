@@ -68,7 +68,9 @@
 # neighbours, then MapGen writes the maps, the connections and the Town Map
 # from the world plan made here. Only routes of 2 squares or more can be
 # crossed by water or a cave. A cave is two maps of its own (« Grotte générée
-# N » and its « (sous-sol) », for route N), see 006_Caves.rb.
+# N » and its « (sous-sol) », for route N), see 006_Caves.rb. After the last
+# town, every world ends with the Victory Road and the League's plateau
+# (« Plateau généré »), see VICTORY_ROAD.
 #===============================================================================
 module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
@@ -83,10 +85,11 @@ module MapProceduralGenerator
   # its boat goes to; island_gym: the town whose gym went to that island;
   # title, cave_title: names shown in game (see 008_Names); professor: the
   # first town, drawn without its lab (it didn't fit): the professor waits
-  # outside
+  # outside; victory: the Victory Road; league: the League's plateau, at the
+  # end of the chain (see VICTORY_ROAD)
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
                           :dive, :deep, :mountain, :cave, :excess, :river, :port, :island,
-                          :island_gym, :title, :cave_title, :professor)
+                          :island_gym, :title, :cave_title, :professor, :victory, :league)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, CaveFloor, excess],
   # one per floor;
@@ -96,6 +99,8 @@ module MapProceduralGenerator
   WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors)
 
   TOWN_SIZE = 2
+  # Map name of the League's plateau (its route is « Route générée N »)
+  PLATEAU_NAME = "Plateau généré"
   TOWN_SYMBOLS = ("A".."Z").to_a
   ROUTE_SYMBOLS = ("1".."9").to_a + ("a".."z").to_a
   DIRECTIONS = { "est" => [1, 0], "ouest" => [-1, 0], "sud" => [0, 1], "nord" => [0, -1] }
@@ -168,7 +173,8 @@ module MapProceduralGenerator
     if (world.no_gym | [1]).length > world.towns - world.gyms
       raise Error, "#{file} : « SansArene » et la première ville dépassent Villes - Arenes (#{world.towns - world.gyms})"
     end
-    raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length}" if !(1..TOWN_SYMBOLS.length).include?(world.towns)
+    # One more town symbol for the League's plateau
+    raise Error, "#{file} : « Villes » doit être entre 1 et #{TOWN_SYMBOLS.length - 1}" if !(1...TOWN_SYMBOLS.length).include?(world.towns)
     raise Error, "#{file} : « Longueur » doit commencer à 1 au moins" if world.route_length.min < 1
     raise Error, "#{file} : « Surf » doit valoir 1 au moins" if world.surf < 1
     raise Error, "#{file} : « Plongee » doit dépasser « Surf » (il faut Surf pour plonger)" if world.dive <= world.surf
@@ -188,7 +194,10 @@ module MapProceduralGenerator
     raise Error, "#{world.file} (graine #{seed}) : impossible de placer #{world.towns} villes dans #{world.width}x#{world.height} cases ; agrandis « Taille »" if !places
     # Own random numbers: the names don't change the rest of the world
     region = names ? name_world(world, places, names, Random.new((seed * 1000) + 999)) : world.name
-    places.each { |wp| wp.title ||= wp.name }
+    places.each do |wp|
+      wp.title ||= (wp.victory && VICTORY_ROAD) || (wp.league && PLATEAU) || wp.name
+      wp.cave_title ||= VICTORY_CAVE if wp.victory
+    end
     built = places.map do |wp|
       base = (wp.kind == "ville") ? town : route
       place = base.dup
@@ -208,6 +217,10 @@ module MapProceduralGenerator
       wanted = EXCESSES.dig(wp.excess, :ambiance)
       place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
       place.dive = wp.deep
+      if wp.league
+        place.counts = PLATEAU_BRICKS.select { |k, _| bricks.any? { |b| b.kind == k } }
+        place.per_case = []
+      end
       # The professor's lab in the first town, left out if it doesn't fit
       place.counts[LAB] = 1..1 if wp.index == 0 && bricks.any? { |b| b.kind == LAB }
       begin
@@ -262,7 +275,7 @@ module MapProceduralGenerator
     end
     interiors = place_interiors(built.map { |wp, _place, _text, layout| [wp, layout, wp.index] } +
                                 islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed)
-    interiors.each { |it| warps[it.owner].push([*it.door, it.name, it.exit[0], it.exit[1] - 1, 8]) }
+    interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8]) if it.door }
     built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region), built, caves, seabeds, islands, interiors)
@@ -452,25 +465,30 @@ module MapProceduralGenerator
     y = rng.rand(0..world.height - TOWN_SIZE)
     current = WorldPlace.new(TOWN_SYMBOLS[0], "ville", town_name.call(0), x, y, TOWN_SIZE, TOWN_SIZE, [], false)
     take.call(current)
+    # The i-th route and town of the chain, on the first of those sides and
+    # lengths that fits; nil if none does
+    extend_chain = lambda do |i, sides, lengths, town|
+      sides.product(lengths).each do |side, length|
+        rt, nt = route_and_town(current, side, length, rng)
+        # The route only touches the current town, the new town only its route
+        # (not laid yet, so nothing may be around the new town)
+        next if !free.call(rt.x, rt.y, rt.w, rt.h, [current]) || !free.call(nt.x, nt.y, nt.w, nt.h, [])
+        take.call(rt.tap { |r| r.symbol = ROUTE_SYMBOLS[i - 1]; r.name = "Route générée #{i}" })
+        take.call(nt.tap { |t| t.symbol = TOWN_SYMBOLS[i]; t.name = town })
+        link(world, current, rt, side, rng)
+        link(world, rt, nt, side, rng)
+        current = nt
+        return rt
+      end
+      nil
+    end
     (1...world.towns).each do |i|
       lengths = world.route_length.to_a.shuffle(random: rng)
       # « route interminable »: three times the longest length, when it fits
       long = rng.rand(100) < world.excess && rng.rand(EXCESSES.count { |_n, e| CHAIN_KINDS.include?(e[:kind]) }) == 0
       lengths.unshift(world.route_length.max * 3) if long
-      found = DIRECTIONS.keys.shuffle(random: rng).product(lengths).find do |side, length|
-        rt, nt = route_and_town(current, side, length, rng)
-        # The route only touches the current town, the new town only its route
-        # (not laid yet, so nothing may be around the new town)
-        next false if !free.call(rt.x, rt.y, rt.w, rt.h, [current]) || !free.call(nt.x, nt.y, nt.w, nt.h, [])
-        take.call(rt.tap { |r| r.symbol = ROUTE_SYMBOLS[i - 1]; r.name = "Route générée #{i}" })
-        rt.excess = "route interminable" if long && length > world.route_length.max
-        take.call(nt.tap { |t| t.symbol = TOWN_SYMBOLS[i]; t.name = town_name.call(i) })
-        link(world, current, rt, side, rng)
-        link(world, rt, nt, side, rng)
-        current = nt
-        true
-      end
-      return nil if !found
+      rt = extend_chain.call(i, DIRECTIONS.keys.shuffle(random: rng), lengths, town_name.call(i)) || (return nil)
+      rt.excess = "route interminable" if long && [rt.w, rt.h].max > world.route_length.max
     end
     towns = places.select { |p| p.kind == "ville" }
     # The towns without a gym: the first one and the listed ones, then others
@@ -483,6 +501,13 @@ module MapProceduralGenerator
     choose_crossings(world, places, rng)
     choose_ports(world, places, rng)
     choose_excesses(world, places, rng)
+    # Then the Victory Road, north-south (only these climb level after level),
+    # and the plateau: after the draws above, which leave them alone
+    sides = %w[nord sud].shuffle(random: rng)
+    victory = extend_chain.call(world.towns, sides, [world.route_length.max], PLATEAU_NAME) || (return nil)
+    victory.mountain = victory.cave = victory.victory = true
+    current.league = true
+    places.each_with_index { |p, i| p.index ||= i }
     return places
   end
 

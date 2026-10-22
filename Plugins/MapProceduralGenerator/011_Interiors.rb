@@ -8,8 +8,11 @@
 #===============================================================================
 module MapProceduralGenerator
   # owner: name of the map with the door; door: [x, y] of the door; exit:
-  # [x, y] of the exit in the copy of template (a map ID of the demo)
-  Interior = Struct.new(:name, :owner, :kind, :template, :door, :exit)
+  # [x, y] of the exit in the copy of template (a map ID of the demo);
+  # arrival: [x, y] where the player lands inside; a room of the League (see
+  # LEAGUE_ROOMS): role, onward ([x, y, next room's name, tx, ty]: its door to
+  # the next room), and no door nor exit but in the entrance
+  Interior = Struct.new(:name, :owner, :kind, :template, :door, :exit, :arrival, :role, :onward)
   # Symbols of the warps in a plan's [Events] (one per warp of a place)
   WARP_SYMBOLS = (("1".."9").to_a + ("a".."z").to_a + ("A".."Z").to_a).freeze
   WARP_FACING = { 2 => "bas", 4 => "gauche", 6 => "droite", 8 => "haut" }.freeze
@@ -22,13 +25,24 @@ module MapProceduralGenerator
     return places.flat_map do |wp, layout, salt|
       rng = Random.new((seed * 1000) + 300 + salt)
       count = Hash.new(0)
-      layout.doors.filter_map do |x, y, brick|
+      layout.doors.flat_map do |x, y, brick|
+        next league_rooms(wp.name, [x, y]) if brick.kind == LEAGUE
         templates = INTERIORS[brick.kind]
-        next if !templates || NO_INTERIOR.include?(brick.kind)
+        next [] if !templates || NO_INTERIOR.include?(brick.kind)
         count[brick.kind] += 1
         template, ex, ey = templates.sample(random: rng)
-        Interior.new("#{wp.name} - #{brick.kind} #{count[brick.kind]}", wp.name, brick.kind, template, [x, y], [ex, ey])
+        [Interior.new("#{wp.name} - #{brick.kind} #{count[brick.kind]}", wp.name, brick.kind, template, [x, y], [ex, ey], [ex, ey - 1])]
       end
+    end
+  end
+
+  # The rooms of the League behind that door, in order, each one's door
+  # leading to the next.
+  def league_rooms(owner, door)
+    names = LEAGUE_ROOMS.map { |role, *| "#{owner} - #{role}" }
+    return LEAGUE_ROOMS.each_with_index.map do |(role, template, ax, ay, nx, ny), i|
+      onward = nx && [nx, ny, names[i + 1], *LEAGUE_ROOMS[i + 1][2, 2]]
+      Interior.new(names[i], owner, LEAGUE, template, (i == 0) ? door : nil, (i == 0) ? LEAGUE_EXIT : nil, [ax, ay], role, onward)
     end
   end
 
@@ -52,21 +66,29 @@ module MapProceduralGenerator
   # In game
   #-----------------------------------------------------------------------------
   # Writes the interior as a copy of its template (same map ID as before if
-  # it had one), its exit back to the door. Returns its map ID.
+  # it had one), its exit back to the door, its door to the next room (that
+  # room written first). Returns its map ID.
   def write_interior(interior, map_ids)
     template = load_data(sprintf("Data/Map%03d.rxdata", interior.template))
     map = Marshal.load(Marshal.dump(template))
     map.events = {}
     owner = map_ids[interior.owner]
-    event = RPG::Event.new(*interior.exit)
-    event.id = 1
-    event.name = MapGenerator::WARP_EVENT_NAME
-    event.pages[0].trigger = 1   # Player touch
-    event.pages[0].list = [
-      RPG::EventCommand.new(201, 0, [0, owner, interior.door[0], interior.door[1] + 1, 2, 0]),
-      RPG::EventCommand.new(0, 0, [])
-    ]
-    map.events[event.id] = event
+    add_warp = lambda do |x, y, target, tx, ty, facing|
+      event = RPG::Event.new(x, y)
+      event.id = map.events.length + 1
+      event.name = MapGenerator::WARP_EVENT_NAME
+      event.pages[0].trigger = 1   # Player touch
+      event.pages[0].list = [
+        RPG::EventCommand.new(201, 0, [0, target, tx, ty, facing, 0]),
+        RPG::EventCommand.new(0, 0, [])
+      ]
+      map.events[event.id] = event
+    end
+    add_warp.call(*interior.exit, owner, interior.door[0], interior.door[1] + 1, 2) if interior.exit
+    if interior.onward
+      x, y, target, tx, ty = interior.onward
+      add_warp.call(x, y, map_ids[target], tx, ty, 8)
+    end
     infos = load_data("Data/MapInfos.rxdata")
     id = map_ids[interior.name]
     id = nil if id && !infos[id]

@@ -89,8 +89,9 @@ module MapProceduralGenerator
       busy_update
       unlinked.push(plan) if !missing.empty?
     end
-    # The interiors, copied once their places exist; then the doors lead in
-    result.interiors.each do |interior|
+    # The interiors, copied once their places exist; then the doors lead in.
+    # Backwards: a room of the League leads to the next one, already written
+    result.interiors.reverse_each do |interior|
       map_ids[interior.name] = write_interior(interior, map_ids)
       busy_update
     end

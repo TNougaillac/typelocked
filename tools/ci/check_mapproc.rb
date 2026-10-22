@@ -106,13 +106,18 @@ rescue RuntimeError => e
 end
 
 # Interiors: every building type with a door has templates, each template
-# map has its exit (a transfer event) where INTERIORS says.
+# map has its exit (a transfer event) where INTERIORS says; the League's
+# rooms have their doors where LEAGUE_ROOMS says.
 def check_interiors(bricks)
+  settings = File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb")
   bricks.select(&:door).map(&:kind).uniq.each do |kind|
-    next if M::NO_INTERIOR.include?(kind) || M::INTERIORS[kind]
-    CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "INTERIORS : aucun gabarit pour les bâtiments « #{kind} »")
+    next if M::NO_INTERIOR.include?(kind) || M::INTERIORS[kind] || kind == M::LEAGUE
+    CI.error(settings, nil, "INTERIORS : aucun gabarit pour les bâtiments « #{kind} »")
   end
-  M::INTERIORS.values.flatten(1).uniq.each do |id, x, y|
+  transfers = M::INTERIORS.values.flatten(1).map { |id, x, y| ["INTERIORS", id, x, y] }
+  transfers.push(["LEAGUE_EXIT", M::LEAGUE_ROOMS[0][1], *M::LEAGUE_EXIT])
+  M::LEAGUE_ROOMS.each { |_role, id, _ax, _ay, x, y| transfers.push(["LEAGUE_ROOMS", id, x, y]) if x }
+  transfers.uniq.each do |key, id, x, y|
     file = File.join(ROOT, format("Data/Map%03d.rxdata", id))
     exits = File.exist?(file) ? load_rxdata(file).instance_variable_get(:@events).values.select do |event|
       event.instance_variable_get(:@pages).any? do |page|
@@ -120,7 +125,7 @@ def check_interiors(bricks)
       end
     end : []
     next if exits.any? { |e| [e.instance_variable_get(:@x), e.instance_variable_get(:@y)] == [x, y] }
-    CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "INTERIORS : la carte #{id} n'a pas de sortie en #{x},#{y}")
+    CI.error(settings, nil, "#{key} : la carte #{id} n'a pas de sortie en #{x},#{y}")
   end
 end
 
@@ -234,11 +239,24 @@ worlds.each do |path|
     plans = (result.places.map { |wp, place, text, _layout| [wp.name, MapGenerator.parse(text, place.file)] } +
              result.islands.map { |wp, _port, place, text, _layout| [wp.name, MapGenerator.parse(text, place.file)] }).to_h
     result.interiors.each do |it|
+      next if !it.door   # a room of the League after the entrance
       plan = plans[it.owner]
       symbol = plan.events[it.door[1]]&.[](it.door[0])
       warp = plan.warps[symbol]
-      next if warp && warp.target == it.name && [warp.x, warp.y] == [it.exit[0], it.exit[1] - 1]
+      next if warp && warp.target == it.name && [warp.x, warp.y] == it.arrival
       CI.error(path, nil, "#{it.name} (graine #{seed}) : la porte #{it.door.join(',')} ne mène pas à l'intérieur")
+    end
+    # The chain ends with the Victory Road (a mountain with a cave), then the
+    # plateau, whose League leads from room to room in order
+    victory, plateau = result.places.max_by(2) { |wp, *| wp.index }.reverse.map(&:first)
+    if !victory&.victory || !victory.mountain || result.caves.none? { |wp, *| wp.equal?(victory) } || !plateau.league
+      CI.error(path, nil, "graine #{seed} : la chaîne ne finit pas par la Route Victoire (avec sa grotte) et le plateau")
+    end
+    rooms = atlas[:league].map { |name| atlas[:maps][name] }
+    roles = M::LEAGUE_ROOMS.map(&:first)
+    chained = rooms.each_with_index.all? { |room, i| room&.[](:onward)&.[](2) == atlas[:league][i + 1] }
+    if rooms.map { |room| room&.[](:role) } != roles || !chained || rooms[0][:owner] != plateau.name
+      CI.error(path, nil, "graine #{seed} : salles de la Ligue mal enchaînées (#{rooms.map { |room| room&.[](:role) }.join(' > ')})")
     end
     # Every gym is on a map, in a town of the chain or on an island
     gyms = (result.places + result.islands.map { |wp, _port, place, text, layout| [wp, place, text, layout] }).sum do |*, layout|

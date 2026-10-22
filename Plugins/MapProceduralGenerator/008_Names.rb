@@ -75,7 +75,9 @@ module MapProceduralGenerator
     first = places.select { |p| p.kind == "ville" }.min_by(&:index)
     route_number = 0
     places.sort_by(&:index).each do |wp|
-      if wp.kind == "route"
+      if wp.victory || wp.league
+        next   # named in every world alike (VICTORY_ROAD)
+      elsif wp.kind == "route"
         route_number += 1
         wp.title = "Route #{route_number}"
         wp.cave_title = form.call("Grotte") if wp.crossing == "grotte" || wp.cave
