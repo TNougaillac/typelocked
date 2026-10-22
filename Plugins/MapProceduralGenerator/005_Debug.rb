@@ -100,6 +100,9 @@ module MapProceduralGenerator
       paint_cave(map_ids[name], floor)
       busy_update
     end
+    (result.places + result.islands.map { |wp, _port, *rest| [wp, *rest] }).each do |wp, _place, _text, layout|
+      write_nook_events(map_ids[wp.name], layout.spots[:nooks])
+    end
     write_extra_metadata(world, result, map_ids)
     if prune
       stale, map_ids = map_ids.partition { |name, _id| !names.include?(name) }.map(&:to_h)
@@ -142,9 +145,10 @@ module MapProceduralGenerator
     file = MapGenerator::MAP_METADATA_PBS
     lines = MapGenerator.read_pbs(file)
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
-    result.caves.each do |wp, name, *|
-      replace_section(lines, map_ids[name], name,
-                      ["Name = #{wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"])
+    result.caves.each do |wp, name, _text, floor|
+      body = ["Name = #{floor.dark ? wp.title : wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"]
+      body.push("DarkMap = true") if floor.dark
+      replace_section(lines, map_ids[name], name, body)
     end
     result.seabeds.each do |wp, name, _text|
       replace_section(lines, map_ids[name], name,

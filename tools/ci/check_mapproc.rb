@@ -59,6 +59,44 @@ def check_spots(name, place, bricks, layout)
   fail.call("aucune case libre au bord des rues") if spots[:street].empty? && place.kind == "ville"
 end
 
+# Cells walked to from the exits of a place over its walkable symbols (a
+# level only through its stairs, water by surfing when surf), the cell
+# blocked (a nook's obstacle) left out.
+def reached(place, bricks, layout, surf:, blocked: nil)
+  stairs = place.stairs&.join&.chars || []
+  walkable = walkable_symbols(place, bricks) - stairs
+  walkable += [place.water, place.deep].compact if surf
+  height = ->(c) { place.levels&.index(c) || -1 }
+  rows = layout.rows
+  ok = ->(x, y) { y >= 0 && x >= 0 && rows[y] && x < rows[y].length && [x, y] != blocked && (walkable.include?(rows[y][x]) || stairs.include?(rows[y][x])) }
+  seen = {}
+  queue = layout.exits.map { |_side, x, y| [x, y] }.select { |x, y| ok.call(x, y) }
+  queue.each { |cell| seen[cell] = true }
+  until queue.empty?
+    x, y = queue.shift
+    [[0, -1], [1, 0], [0, 1], [-1, 0]].each do |ox, oy|
+      nx, ny = x + ox, y + oy
+      next if seen[[nx, ny]] || !ok.call(nx, ny)
+      a, b = rows[y][x], rows[ny][nx]
+      next if height.call(a) != height.call(b) && !stairs.include?(a) && !stairs.include?(b)
+      seen[[nx, ny]] = true
+      queue.push([nx, ny])
+    end
+  end
+  return seen
+end
+
+# Raises if the loot of a nook can be reached without its obstacle (opened
+# or surfed), or not with it.
+def check_nooks(name, place, bricks, layout)
+  layout.spots[:nooks].each do |x, y, obstacle, ox, oy|
+    next if obstacle == "sombre"   # the loot is in the dark cave
+    closed = (obstacle == "ilot") ? reached(place, bricks, layout, surf: false) : reached(place, bricks, layout, surf: true, blocked: [ox, oy])
+    raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) s'atteint sans son obstacle" if closed[[x, y]]
+    raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) ne s'atteint pas avec son objet" if !reached(place, bricks, layout, surf: true)[[x, y]]
+  end
+end
+
 # The dungeon tileset as Essentials' painter sees it (only what draws walls).
 CaveTileset = Struct.new(:snap_to_large_grid, :double_walls, :floor_patch_under_walls) do
   def has_decoration?(_deco) = false
@@ -190,6 +228,28 @@ worlds.each do |path|
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
       check_spill(plan, "#{wp.name} (graine #{seed})")
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
+      check_nooks("#{wp.name} (graine #{seed})", place, bricks, layout)
+    end
+    # Field items: in towns with a gym, in the order of their minimums, each
+    # at its minimum gym or later; a nook only after the town of its item
+    gyms = result.places.select { |wp, *| wp.gym }.map(&:first)
+    obtained = result.places.flat_map { |wp, *| (wp.items || []).map { |item| [item, wp] } }.to_h
+    order = world.field_items.sort_by.with_index { |(_n, min), i| [min, i] }
+    order.each_cons(2) do |(a, _), (b, _)|
+      ta, tb = obtained[M::FIELD_ITEMS[a][0]], obtained[M::FIELD_ITEMS[b][0]]
+      CI.error(path, nil, "graine #{seed} : #{b} obtenu avant #{a}") if ta && tb && tb.index < ta.index
+    end
+    order.each do |name, min|
+      giver = obtained[M::FIELD_ITEMS[name][0]]
+      next CI.error(path, nil, "graine #{seed} : #{name} sans ville d'obtention") if !giver && gyms.length >= min
+      CI.error(path, nil, "graine #{seed} : #{name} avant la #{min}e arène") if giver && gyms.index(giver).to_i < min - 1
+    end
+    atlas_items = M.world_atlas(result)[:items]
+    result.places.each do |wp, _place, _text, layout|
+      layout.spots[:nooks].each do |_x, _y, obstacle|
+        giver = result.places.find { |p, *| p.name == atlas_items[M::NOOKS[obstacle]] }&.first
+        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} avant la ville de son objet") if !giver || giver.index >= wp.index
+      end
     end
     # The inventory: the same for the same seed, every gym and the start in it
     atlas = M.world_atlas(result)
@@ -214,6 +274,13 @@ worlds.each do |path|
     result.caves.each do |wp, name, text, floor|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])
       check_cave("#{name} (graine #{seed})", floor, map_names)
+      # A dark cave: one floor, its way out to its route, its loot
+      if floor.dark
+        door = result.places.find { |p, *| p.equal?(wp) }[3].spots[:nooks].find { |*, obstacle| obstacle == "sombre" }
+        ok = door && floor.warps.map { |w| w[2, 3] } == [[wp.name, door[0], door[1] + 1]] && floor.spots[:loot]
+        CI.error(path, nil, "#{name} (graine #{seed}) : grotte sombre mal reliée à #{wp.name}") if !ok
+        next
+      end
       other = result.caves.find { |w, _n, _t, f| w.equal?(wp) && f.level != floor.level }
       CI.error(path, nil, "#{name} (graine #{seed}) : pas d'échelle vers l'autre étage") if !other || floor.warps.none? { |w| w[2] == other[1] }
       exits = (wp.crossing == "grotte") ? 1 : 1 - floor.level

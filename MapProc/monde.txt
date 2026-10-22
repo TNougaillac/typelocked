@@ -55,6 +55,19 @@ IlesArene = 50
 # plonge depuis l'eau profonde.
 Plongee  = 3
 Fonds    = 1
+# Objets de terrain : chacun s'obtient dans une ville à arène, celle de la
+# n-ième arène ou la suivante, dans l'ordre de ces numéros (Surf et Plongée
+# ont leurs clés plus haut).
+Machette = 1
+Lanterne = 2
+Pioche   = 3
+Harnais  = 4
+Grappin  = 5
+Vol      = 6
+# Recoins : chance (en %) qu'un lieu ait un recoin facultatif, fermé par un
+# obstacle qu'ouvre un objet obtenu plus tôt : arbre à couper, rocher fissuré,
+# rocher à pousser, îlot dans un étang (Surf), grotte sombre (Lanterne).
+Recoins  = 30
 # Démesure : chance (en %) qu'un lieu soit hors norme : forêt profonde, mer
 # d'herbes, chaos rocheux, lac géant, montagne colossale, route interminable,
 # ville-jardin, cité lacustre, grande foire ; et hors de la chaîne, une île

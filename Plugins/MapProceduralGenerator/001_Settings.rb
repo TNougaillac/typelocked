@@ -103,6 +103,42 @@ module MapProceduralGenerator
   ].freeze
   LEAGUE_EXIT = [11, 17].freeze
 
+  # Field items (plugin FieldItems), each obtained in a town with a gym: that
+  # gym's or a later one (world key: its name, e.g. « Pioche = 3 »), drawn in
+  # the order of these minimums. Surf and Dive keep their own keys (Surf,
+  # Plongee).
+  FIELD_ITEMS = {
+    "Machette" => [:MACHETE, 1],
+    "Lanterne" => [:LANTERN, 2],
+    "Pioche"   => [:PICKAXE, 3],
+    "Harnais"  => [:HARNESS, 4],
+    "Grappin"  => [:GRAPPLINGHOOK, 5],
+    "Vol"      => [:FLYINGSADDLE, 6]
+  }.freeze
+  SURF_ITEM = :SURFSADDLE
+  DIVE_ITEM = :DIVINGSUIT
+  # Optional nooks (« Recoins » in a world, % per place), each behind an
+  # obstacle opened by a field item obtained earlier in the chain: a cut
+  # tree, a cracked rock or a boulder at the mouth of a pocket in the rock,
+  # an islet in a pond (Surf), a dark cave (Lantern, routes only). Their loot
+  # is in the inventory.
+  NOOKS = {
+    "arbre"  => :MACHETE,
+    "rocher" => :PICKAXE,
+    "bloc"   => :HARNESS,
+    "ilot"   => SURF_ITEM,
+    "sombre" => :LANTERN
+  }.freeze
+  # The obstacle events, copied from the demo: [map ID, event ID]. Their name
+  # keeps what Essentials looks for (CutTree, SmashRock, StrengthBoulder).
+  NOOK_EVENTS = {
+    "arbre"  => [31, 1],
+    "rocher" => [31, 22],
+    "bloc"   => [34, 5]
+  }.freeze
+  # Galleries of a dark cave (one floor, see CAVE_SHAPES)
+  DARK_CAVE_SHAPE = { size: [14, 11], rooms: 2..3, radius: 1.2..2.2, loops: 0..1, width: 1..1 }.freeze
+
   # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
   # The game only keeps it if it is saved: at the next start, the maps of a
   # game left without saving are deleted (or the saved world is drawn again).

@@ -43,11 +43,18 @@ module MapProceduralGenerator
   # inventory, those of GRASS_KINDS as tall grass
   WALK_KINDS = %w[herbes prairie].freeze
   GRASS_KINDS = %w[herbes].freeze
+  # Brick types of the nooks, drawn by the builder: a pocket of ground in the
+  # rock behind an obstacle (its door), an islet in a pond, a dark cave
+  # (the entrance of a cave brick)
+  NOOK = "recoin"
+  ISLET = "ilot"
+  DARK_CAVE = "grotte sombre"
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
       @place = place
-      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && (place.crossing == "grotte" || place.cave)) }
+      cave = place.crossing == "grotte" || place.cave || place.nook == "sombre"
+      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && cave) }
       @palette = palette
       @seed = seed
       @rng = Random.new(seed)
@@ -60,6 +67,7 @@ module MapProceduralGenerator
       @doors = []
       @exits = []
       @dead_ends = []
+      @nooks = []
     end
 
     def build
@@ -97,7 +105,10 @@ module MapProceduralGenerator
     # reached on foot from the exits, doors and ferry terminal:
     #   exits: [side, x, y]; doors: [x, y, type] (door cells);
     #   street: free cells beside a street; grass: tall grass cells;
-    #   dead_ends: last cell of each dead-end street.
+    #   dead_ends: last cell of each dead-end street;
+    #   nooks: [x, y, obstacle (a key of NOOKS), ox, oy]: the loot cell and
+    #   the obstacle's cell (a pocket); for an islet the loot only; for a dark
+    #   cave its entrance (the loot is in the cave).
     def inventory
       starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
       starts.push([@terminal[0], @terminal[1] - 1]) if @terminal
@@ -109,7 +120,8 @@ module MapProceduralGenerator
         doors:     @doors.map { |x, y, brick| [x, y, brick.kind] },
         street:    cells_where(seen) { |x, y| !@street[y][x] && NEIGHBOURS.any? { |ox, oy| on_street.call(x + ox, y + oy) } },
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
-        dead_ends: @dead_ends.select { |x, y| seen[y][x] }
+        dead_ends: @dead_ends.select { |x, y| seen[y][x] },
+        nooks:     @nooks.map(&:dup)
       }
     end
 
@@ -255,6 +267,8 @@ module MapProceduralGenerator
       @dense = excess[:fill] if excess[:dense]
       order.each_with_index do |kind, i|
         flood_ground if i == required.length
+        # The nook right after the buildings, before the decoration
+        place_nook if with_door.call(kind) == 1
         next if HIGHLAND.include?(kind) && !@level
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if place_brick(kind)
@@ -266,8 +280,74 @@ module MapProceduralGenerator
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
       flood_ground
+      place_nook
       fill_with(excess[:fill]) if excess[:fill]
       @dense = nil
+    end
+
+    #---------------------------------------------------------------------------
+    # Nooks (optional, behind an obstacle opened by a field item)
+    #---------------------------------------------------------------------------
+    # The place's nook, once its required bricks are in; left out if it
+    # doesn't fit.
+    def place_nook
+      return if !@place.nook || @nook_tried
+      @nook_tried = true
+      case @place.nook
+      when "ilot"
+        return if !@place.water
+        # Its pond must lie by ground walked to, to be surfed across
+        ground = reachable_ground
+        shore = lambda do |brick, x, y|
+          w, h = brick.rows[0].length, brick.rows.length
+          next (x...x + w).any? { |cx| (y > 0 && ground[y - 1][cx]) || ground[y + h]&.[](cx) } ||
+               (y...y + h).any? { |cy| (x > 0 && ground[cy][x - 1]) || ground[cy][x + w] }
+        end
+        brick, loot = islet_brick
+        spot = put_brick(brick, shore) || return
+        @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @place.nook])
+      when "sombre"
+        cave = @bricks.select { |b| b.kind == CAVE }.min_by(&:name) || return
+        brick = Brick.new(DARK_CAVE, "Grotte sombre", DARK_CAVE, cave.door, 1, false, cave.rows)
+        spot = put_brick(brick) || return
+        @nooks.push([spot[0] + brick.door[0], spot[1] + brick.door[1], @place.nook])
+      else
+        brick, loot = nook_brick
+        spot = put_brick(brick) || return
+        @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @place.nook, spot[0] + brick.door[0], spot[1] + brick.door[1]])
+      end
+    end
+
+    # A pocket of ground at the back of a block of rock, reached by a corridor
+    # one tile wide from the south: the obstacle stands at its mouth (the
+    # door, so a path leads to it). Three tiles wide, so that a pushed boulder
+    # can be walked around. Returns the brick and the loot cell (a back
+    # corner).
+    def nook_brick
+      rock = @place.levels&.first || "^"
+      ground = @place.ground
+      depth = @rng.rand(2..3)
+      rows = [" #{rock * 5} ", rock * 7]
+      depth.times { rows.push("#{rock * 2}#{ground * 3}#{rock * 2}") }
+      2.times { rows.push("#{rock * 3}#{ground}#{rock * 3}") }
+      brick = Brick.new(NOOK, "Recoin", NOOK, [3, rows.length - 1], 1, false, rows)
+      return brick, [(@rng.rand(2) == 0) ? 2 : 4, 2]
+    end
+
+    # An islet of ground (3x2) in a rough oval pond, two tiles of water
+    # around it at least. Returns the brick and the loot cell (its middle).
+    def islet_brick
+      w, h = @rng.rand(7..9), @rng.rand(6..7)
+      ix, iy = (w - 3) / 2, (h - 2) / 2
+      rows = Array.new(h) do |y|
+        Array.new(w) do |x|
+          next @place.ground if (ix...ix + 3).include?(x) && (iy...iy + 2).include?(y)
+          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
+          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
+          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.25)) ? @place.water : " "
+        end.join
+      end
+      return Brick.new(ISLET, "Îlot", ISLET, nil, 1, false, rows), [ix + 1, iy]
     end
 
     # Excess « fill »: more bricks of that type wherever they still fit.

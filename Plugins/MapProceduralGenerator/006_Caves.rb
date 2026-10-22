@@ -14,9 +14,10 @@
 #===============================================================================
 module MapProceduralGenerator
   # rows: true = floor, map size (margin included); spots: inventory of the
-  # floor (exits, ladders, floor, far); warps: [[x, y, target map name, tx, ty]];
-  # seed: of the walls and decorations drawn by the painter
-  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed)
+  # floor (exits, ladders, floor, far; loot in a dark cave); warps: [[x, y,
+  # target map name, tx, ty]]; seed: of the walls and decorations drawn by
+  # the painter; dark: a dark cave (a nook, see NOOKS)
+  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark)
 
   module_function
 
@@ -214,6 +215,23 @@ module MapProceduralGenerator
     return floors
   end
 
+  # A dark cave behind that door of a route ([x, y, brick]): one small floor,
+  # its loot at the far end from the entrance.
+  def dark_cave_floor(name, route, door, rng)
+    grid = cave_blocks(DARK_CAVE_SHAPE, rng)
+    start = grid.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] }.map { |x| [x, y] } }.sample(random: rng)
+    entrance = farthest_block(grid, start)
+    far = farthest_block(grid, entrance)
+    spots = {
+      exits: [[*block_cell(entrance), route]],
+      floor: grid.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] && [x, y] != entrance }.map { |x| block_cell([x, y]) } },
+      far:   [block_cell(far)],
+      loot:  block_cell(far)
+    }
+    warps = [[*block_cell(entrance), route, door[0], door[1] + 1]]
+    return CaveFloor.new(name, 0, cave_rows(grid), spots, warps, rng.rand(1_000_000), true)
+  end
+
   # Full map rows of a floor: the blocks doubled, with the margin around.
   def cave_rows(grid)
     mx, my = CAVE_MARGIN
@@ -229,7 +247,7 @@ module MapProceduralGenerator
   # MapGen plan of a cave floor: floor and rock (the painter draws the walls
   # when the map is written), and its warps (exit to the route, ladder).
   def cave_floor_text(floor, route)
-    text = +"# Grotte de #{route}, générée par MapProceduralGenerator (#{floor.level == 0 ? '1er étage' : 'sous-sol'}).\n"
+    text = +"# Grotte de #{route}, générée par MapProceduralGenerator (#{floor.dark ? 'grotte sombre' : (floor.level == 0) ? '1er étage' : 'sous-sol'}).\n"
     text << "# Les murs sont dessinés par le générateur de donjon d'Essentials quand la carte est écrite.\n"
     text << "Name    = #{floor.name}\n"
     text << "Tileset = #{CAVE_TILESET}\n"

@@ -16,7 +16,7 @@ module MapProceduralGenerator
   # Inventory of a world by map name:
   #   { start:, lab: (the start if it has the lab), gyms: [names in the order
   #     they are beaten], surf:, dive:, victory: (the Victory Road), league:
-  #     [the rooms of the League, in order],
+  #     [the rooms of the League, in order], items: { field item => town },
   #     maps: { name => { kind:, title:, exits:, doors:, street:, grass:, dead_ends: ... } } }
   def world_atlas(result)
     places = result.places.sort_by { |wp, *| wp.index }
@@ -37,7 +37,10 @@ module MapProceduralGenerator
                         arrival: it.arrival.dup, role: it.role, onward: it.onward&.first(3) }
     end
     # A cave floor: exits ([x, y, route]), ladders, floor cells, its far end
-    result.caves.each { |wp, name, _text, floor| maps[name] = map_spots("grotte", wp.cave_title || name, floor.spots).merge(level: floor.level) }
+    result.caves.each do |wp, name, _text, floor|
+      maps[name] = map_spots("grotte", floor.dark ? wp.title : wp.cave_title || name, floor.spots).merge(level: floor.level)
+      maps[name][:dark] = true if floor.dark
+    end
     gyms = []
     places.each do |wp, *|
       gyms.push(wp.name) if wp.gym
@@ -55,9 +58,21 @@ module MapProceduralGenerator
     end
     return { start: start && start[0].name, lab: lab && start[0].name, gyms: gyms,
              victory: places.find { |wp, *| wp.victory }&.first&.name,
+             items: field_towns(places),
              league: interiors.select(&:role).map(&:name),
              surf: places.find { |wp, *| wp.surf }&.first&.name,
              dive: places.find { |wp, *| wp.dive }&.first&.name, maps: maps }
+  end
+
+  # Town where each field item is obtained: { item => name }
+  def field_towns(places)
+    towns = {}
+    places.each do |wp, *|
+      (wp.items || []).each { |item| towns[item] = wp.name }
+      towns[SURF_ITEM] = wp.name if wp.surf
+      towns[DIVE_ITEM] = wp.name if wp.dive
+    end
+    return towns
   end
 
   def map_spots(kind, title, spots)
@@ -74,6 +89,7 @@ module MapProceduralGenerator
                        gyms: atlas[:gyms].map(&id),
                        victory: atlas[:victory] && id.call(atlas[:victory]),
                        league: atlas[:league].map(&id),
+                       items: atlas[:items].transform_values(&id),
                        surf: atlas[:surf] && id.call(atlas[:surf]),
                        dive: atlas[:dive] && id.call(atlas[:dive]),
                        maps: atlas[:maps].to_h { |name, spots| [id.call(name), spots.merge(name: name)] })
@@ -87,6 +103,7 @@ module MapProceduralGenerator
     text << "Labo   = #{atlas[:lab] ? 'oui' : 'non (professeur dehors)'}\n"
     text << "Arenes = #{atlas[:gyms].map(&label).join(', ')}\n"
     text << "Victoire = #{label.call(atlas[:victory])}\n" if atlas[:victory]
+    atlas[:items].each { |item, town| text << "#{item} = #{label.call(town)}\n" }
     text << "Ligue  = #{atlas[:league].map(&label).join(', ')}\n" if !atlas[:league].empty?
     text << "Surf   = #{atlas[:surf]}\n" if atlas[:surf]
     text << "Plongee = #{atlas[:dive]}\n" if atlas[:dive]
