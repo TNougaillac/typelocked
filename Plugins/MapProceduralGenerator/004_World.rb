@@ -81,10 +81,12 @@ module MapProceduralGenerator
   # route climbing by levels (with a crossing or not); cave: a mountain route
   # with a cave; port: the sea side of a port town; island: name of the island
   # its boat goes to; island_gym: the town whose gym went to that island;
-  # title, cave_title: names shown in game (see 008_Names)
+  # title, cave_title: names shown in game (see 008_Names); professor: the
+  # first town, drawn without its lab (it didn't fit): the professor waits
+  # outside
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
                           :dive, :deep, :mountain, :cave, :excess, :river, :port, :island,
-                          :island_gym, :title, :cave_title)
+                          :island_gym, :title, :cave_title, :professor)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, CaveFloor, excess],
   # one per floor;
@@ -206,7 +208,15 @@ module MapProceduralGenerator
       wanted = EXCESSES.dig(wp.excess, :ambiance)
       place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
       place.dive = wp.deep
-      [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+      # The professor's lab in the first town, left out if it doesn't fit
+      place.counts[LAB] = 1..1 if wp.index == 0 && bricks.any? { |b| b.kind == LAB }
+      begin
+        [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+      rescue Error
+        raise if !place.counts.delete(LAB)
+        wp.professor = true
+        [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+      end
     end
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }

@@ -52,8 +52,13 @@ module MapProceduralGenerator
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
-    "special"  => [[30, 5, 9], [11, 7, 10]]
+    "special"  => [[30, 5, 9], [11, 7, 10]],
+    "labo"     => [[4, 6, 13]]
   }.freeze
+  # The professor's lab (brick type), only in the first town of a world. When
+  # it doesn't fit, the town is drawn without it and the professor waits
+  # outside (see the inventory).
+  LAB = "labo"
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne].freeze
 

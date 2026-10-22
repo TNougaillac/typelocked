@@ -14,7 +14,8 @@ module MapProceduralGenerator
   module_function
 
   # Inventory of a world by map name:
-  #   { start:, gyms: [names in the order they are beaten], surf:, dive:,
+  #   { start:, lab: (the start if it has the lab), gyms: [names in the order
+  #     they are beaten], surf:, dive:,
   #     maps: { name => { kind:, title:, exits:, doors:, street:, grass:, dead_ends: ... } } }
   def world_atlas(result)
     places = result.places.sort_by { |wp, *| wp.index }
@@ -39,7 +40,15 @@ module MapProceduralGenerator
       gyms.push(wp.island) if wp.island_gym && islands.any? { |iwp, *| iwp.name == wp.island }
     end
     start = places.find { |wp, *| wp.kind == "ville" }
-    return { start: start && start[0].name, gyms: gyms,
+    # The lab of the first town, else where the professor waits outside: the
+    # free cell by a street closest to the Pokémon Centre's door
+    lab = start && start[3].doors.find { |_x, _y, brick| brick.kind == LAB }
+    if start && !lab
+      spots = maps[start[0].name]
+      cx, cy = (spots[:doors].find { |_x, _y, kind| kind == "centre" } || spots[:doors].first || spots[:exits].first[1, 2])
+      spots[:professor] = spots[:street].min_by { |x, y| [(x - cx).abs + (y - cy - 1).abs, y, x] }
+    end
+    return { start: start && start[0].name, lab: lab && start[0].name, gyms: gyms,
              surf: places.find { |wp, *| wp.surf }&.first&.name,
              dive: places.find { |wp, *| wp.dive }&.first&.name, maps: maps }
   end
@@ -54,6 +63,7 @@ module MapProceduralGenerator
   def atlas_by_id(atlas, map_ids)
     id = ->(name) { map_ids[name] || name }
     return atlas.merge(start: atlas[:start] && id.call(atlas[:start]),
+                       lab: atlas[:lab] && id.call(atlas[:lab]),
                        gyms: atlas[:gyms].map(&id),
                        surf: atlas[:surf] && id.call(atlas[:surf]),
                        dive: atlas[:dive] && id.call(atlas[:dive]),
@@ -65,6 +75,7 @@ module MapProceduralGenerator
     label = ->(name) { map_ids[name] ? sprintf("%03d %s", map_ids[name], name) : name }
     text = +"# Inventaire du monde, écrit par MapProceduralGenerator.\n"
     text << "Depart = #{atlas[:start] && label.call(atlas[:start])}\n"
+    text << "Labo   = #{atlas[:lab] ? 'oui' : 'non (professeur dehors)'}\n"
     text << "Arenes = #{atlas[:gyms].map(&label).join(', ')}\n"
     text << "Surf   = #{atlas[:surf]}\n" if atlas[:surf]
     text << "Plongee = #{atlas[:dive]}\n" if atlas[:dive]

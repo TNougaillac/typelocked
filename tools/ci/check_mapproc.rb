@@ -188,6 +188,15 @@ worlds.each do |path|
       CI.error(path, nil, "graine #{seed} : inventaire différent pour la même graine") if Marshal.dump(again) != Marshal.dump(atlas)
     end
     CI.error(path, nil, "graine #{seed} : inventaire, #{atlas[:gyms].length} arène(s) au lieu de #{world.gyms}") if atlas[:gyms].length != world.gyms
+    # The first town has the professor's lab (leading to the demo's lab), or a
+    # spot where the professor waits outside, never neither nor both
+    first = atlas[:maps][atlas[:start]]
+    lab_door = first[:doors].find { |_x, _y, kind| kind == M::LAB }
+    if !lab_door == !first[:professor]
+      CI.error(path, nil, "graine #{seed} : la première ville a #{lab_door ? 'un labo et' : 'ni labo ni'} une place de professeur")
+    elsif lab_door && atlas[:maps][lab_door[3]]&.[](:template) != M::INTERIORS[M::LAB][0][0]
+      CI.error(path, nil, "graine #{seed} : le labo ne mène pas à l'intérieur du labo de la démo")
+    end
     missing = ([atlas[:start]] + atlas[:gyms]).reject { |name| atlas[:maps][name] }
     CI.error(path, nil, "graine #{seed} : inventaire sans #{missing.join(', ')}") if !missing.empty?
     # Caves: two floors each, A -> 1F -> ladder -> basement (-> B)
