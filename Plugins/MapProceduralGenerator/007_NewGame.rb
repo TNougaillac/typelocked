@@ -56,6 +56,35 @@ module MapProceduralGenerator
     end
   end
 
+  # When the game closes: the map files of a world that no save holds are
+  # deleted at once (they no longer pile up in Data/). The rest (PBS lines,
+  # compiled data, Town Map) is left to sync_game_world at the next start: it
+  # needs the compiler, which refreshes the window, gone by then.
+  def remove_unsaved_maps
+    world = game_world
+    return if !world || saved_world_seed
+    ids = read_world_maps(world[:path]).values
+    return if ids.empty?
+    infos = load_data("Data/MapInfos.rxdata")
+    ids.each do |id|
+      infos.delete(id)
+      delete_file(sprintf("Data/Map%03d.rxdata", id))
+    end
+    save_data(infos, "Data/MapInfos.rxdata")
+  rescue StandardError => e
+    echoln("MapProc : nettoyage à la fermeture impossible (#{e.message})")
+  end
+
+  # Seed of the world in the save file, nil if none (no save, or no world).
+  def saved_world_seed
+    return nil if !SaveData.exists?
+    # Read only: read_from_file could rewrite the save (conversions)
+    data = SaveData.get_data_from_file(SaveData::FILE_PATH)
+    return data.is_a?(Hash) ? data[:mapproc_world] : nil
+  rescue StandardError
+    return nil
+  end
+
   # Shows a message on a black screen while the block runs (the window would
   # stay blank otherwise), then puts the PBS files written meanwhile just
   # before their compiled data: Essentials recompiles everything at the next
@@ -233,6 +262,9 @@ module MapProceduralGenerator
     MapGenerator.compile_world_pbs if compile
   end
 end
+
+# Closing the window ends the scripts with SystemExit: the at_exit blocks run.
+at_exit { MapProceduralGenerator.remove_unsaved_maps }
 
 SaveData.register(:mapproc_world) do
   save_value { $mapproc_world }

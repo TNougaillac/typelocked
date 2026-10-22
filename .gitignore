@@ -2,3 +2,6 @@
 # MapProceduralGenerator: plans exported by the debug menu, world of the current game
 MapProc/Export/
 Data/MapProcWorld.rxdata
+
+# Maps of the generated worlds (the demo maps already in the repo stay tracked)
+Data/Map[0-9]*.rxdata
