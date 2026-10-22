@@ -41,6 +41,22 @@ module MapProceduralGenerator
     "dédale"         => { size: [30, 24], rooms: 10..14, radius: 0.8..1.6, loops: 4..7, width: 1..1 }
   }.freeze
 
+  # Interiors: each door of a building leads to a copy of a map of the demo,
+  # drawn among those of its brick type: [map ID, x, y of its exit (the door
+  # mat, the player arrives just above it)]. The copy keeps the map's tiles,
+  # not its events. A centre's copy is the healing spot of its town.
+  INTERIORS = {
+    "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
+    "boutique" => [[25, 4, 8], [54, 4, 8]],
+    "maison"   => [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]],
+    "immeuble" => [[12, 6, 10], [11, 7, 10]],
+    "arene"    => [[10, 6, 15]],
+    "port"     => [[27, 4, 8]],
+    "special"  => [[30, 5, 9], [11, 7, 10]]
+  }.freeze
+  # Doors that lead elsewhere than an interior (caves, ferry, stairs)
+  NO_INTERIOR = %w[grotte gare montagne].freeze
+
   # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
   # The game only keeps it if it is saved: at the next start, the maps of a
   # game left without saving are deleted (or the saved world is drawn again).

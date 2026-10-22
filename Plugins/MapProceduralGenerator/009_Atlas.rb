@@ -22,6 +22,14 @@ module MapProceduralGenerator
     maps = {}
     places.each { |wp, _place, _text, layout| maps[wp.name] = map_spots(wp.kind, wp.title, layout.spots) }
     islands.each { |wp, _port, _place, _text, layout| maps[wp.name] = map_spots("ile", wp.title || wp.name, layout.spots) }
+    # Each door of a building names its interior: [x, y, type, interior]
+    (result.interiors || []).each do |it|
+      owner = maps[it.owner]
+      door = owner[:doors].find { |x, y, _kind| [x, y] == it.door }
+      door[3] = it.name if door
+      maps[it.name] = { kind: "interieur", title: owner[:title], building: it.kind, template: it.template,
+                        owner: it.owner, exits: [[*it.exit, it.owner]], door: it.door.dup }
+    end
     # A cave floor: exits ([x, y, route]), ladders, floor cells, its far end
     result.caves.each { |wp, name, _text, floor| maps[name] = map_spots("grotte", wp.cave_title || name, floor.spots).merge(level: floor.level) }
     gyms = []
@@ -37,7 +45,8 @@ module MapProceduralGenerator
   end
 
   def map_spots(kind, title, spots)
-    return { kind: kind, title: title }.merge(spots || {})
+    # A copy: the world's inventory is completed without touching the layouts
+    return { kind: kind, title: title }.merge(Marshal.load(Marshal.dump(spots || {})))
   end
 
   # The same inventory with map IDs in place of map names (names left out

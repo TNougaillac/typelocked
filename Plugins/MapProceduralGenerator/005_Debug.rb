@@ -68,7 +68,8 @@ module MapProceduralGenerator
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")
     names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name } +
-            result.seabeds.map { |_wp, name, _text| name } + result.islands.map { |wp, *| wp.name }
+            result.seabeds.map { |_wp, name, _text| name } + result.islands.map { |wp, *| wp.name } +
+            result.interiors.map(&:name)
     names.each do |name|
       clash = infos.find { |id, info| info.name == name && map_ids[name] != id }
       next if !clash
@@ -87,6 +88,11 @@ module MapProceduralGenerator
       map_ids[plan.name], _notes, missing = MapGenerator.generate(plan)
       busy_update
       unlinked.push(plan) if !missing.empty?
+    end
+    # The interiors, copied once their places exist; then the doors lead in
+    result.interiors.each do |interior|
+      map_ids[interior.name] = write_interior(interior, map_ids)
+      busy_update
     end
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
     result.caves.each do |_wp, name, _text, floor|
@@ -126,8 +132,9 @@ module MapProceduralGenerator
     return map_ids[wp.name], x, y
   end
 
-  # Caves, seabeds and islands are not on the world grid: MapGen doesn't write
-  # their metadata (an island is put on the Town Map where its port is).
+  # Caves, seabeds, islands and interiors are not on the world grid: MapGen
+  # doesn't write their metadata (an island is put on the Town Map where its
+  # port is, an interior where its place is).
   # DiveMap links a route to its seabed (MapGen keeps that key when it
   # rewrites the route's section).
   def write_extra_metadata(world, result, map_ids)
@@ -145,6 +152,13 @@ module MapProceduralGenerator
     result.islands.each do |wp, port, *|
       replace_section(lines, map_ids[wp.name], wp.name,
                       ["Name = #{wp.name}", "Outdoor = true", "ShowArea = true", position.call(port)])
+    end
+    titles = (result.places.map { |wp, *| [wp.name, [wp.title, wp]] } +
+              result.islands.map { |wp, port, *| [wp.name, [wp.name, port]] }).to_h
+    result.interiors.each do |interior|
+      title, wp = titles[interior.owner]
+      body = interior_metadata(interior, title, map_ids[interior.owner], lines)
+      replace_section(lines, map_ids[interior.name], interior.name, body + [position.call(wp)])
     end
     seabeds = result.seabeds.to_h { |wp, name, _text| [wp.name, map_ids[name]] }
     result.places.each do |wp, *|

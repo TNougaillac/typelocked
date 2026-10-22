@@ -8,7 +8,7 @@ require_relative "lib/ci"
 %w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
 require_relative "lib/essentials"
 Essentials.load_scripts("Overworld_RandomDungeons")
-%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
+%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
@@ -105,6 +105,25 @@ rescue RuntimeError => e
   fail.call("murs impossibles à dessiner par Essentials (#{e.message})")
 end
 
+# Interiors: every building type with a door has templates, each template
+# map has its exit (a transfer event) where INTERIORS says.
+def check_interiors(bricks)
+  bricks.select(&:door).map(&:kind).uniq.each do |kind|
+    next if M::NO_INTERIOR.include?(kind) || M::INTERIORS[kind]
+    CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "INTERIORS : aucun gabarit pour les bâtiments « #{kind} »")
+  end
+  M::INTERIORS.values.flatten(1).uniq.each do |id, x, y|
+    file = File.join(ROOT, format("Data/Map%03d.rxdata", id))
+    exits = File.exist?(file) ? load_rxdata(file).instance_variable_get(:@events).values.select do |event|
+      event.instance_variable_get(:@pages).any? do |page|
+        (page.instance_variable_get(:@list) || []).any? { |c| c.instance_variable_get(:@code) == 201 }
+      end
+    end : []
+    next if exits.any? { |e| [e.instance_variable_get(:@x), e.instance_variable_get(:@y)] == [x, y] }
+    CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "INTERIORS : la carte #{id} n'a pas de sortie en #{x},#{y}")
+  end
+end
+
 tilesets = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
 folder = File.join(ROOT, M::FOLDER)
 bricks = Dir.glob(File.join(folder, M::BRICK_FOLDER, "*.txt")).sort.filter_map do |path|
@@ -114,6 +133,7 @@ rescue M::Error => e
   nil
 end
 
+check_interiors(bricks)
 paths = Dir.glob(File.join(folder, "*.txt")).sort
 worlds, places = paths.partition { |path| M.world_file?(path) }
 places.each do |path|
@@ -188,12 +208,23 @@ worlds.each do |path|
       check_spill(plan, "#{wp.name} (graine #{seed})")
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       port_text = result.places.find { |p, *| p.equal?(port) }[2]
-      ok = plan.warps.values.map(&:target) == [port.name] &&
-           MapGenerator.parse(port_text, place.file).warps.values.map(&:target) == [wp.name] && !names.include?(wp.name)
+      inside = result.interiors.map(&:name)
+      ok = (plan.warps.values.map(&:target) - inside) == [port.name] &&
+           (MapGenerator.parse(port_text, place.file).warps.values.map(&:target) - inside) == [wp.name] && !names.include?(wp.name)
       CI.error(path, nil, "#{wp.name} (graine #{seed}) : le bateau ne relie pas l'île à #{port.name}") if !ok
     end
     result.seabeds.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::SEABED_TILESET])
+    end
+    # Each building door leads to its interior, whose exit leads back
+    plans = (result.places.map { |wp, place, text, _layout| [wp.name, MapGenerator.parse(text, place.file)] } +
+             result.islands.map { |wp, _port, place, text, _layout| [wp.name, MapGenerator.parse(text, place.file)] }).to_h
+    result.interiors.each do |it|
+      plan = plans[it.owner]
+      symbol = plan.events[it.door[1]]&.[](it.door[0])
+      warp = plan.warps[symbol]
+      next if warp && warp.target == it.name && [warp.x, warp.y] == [it.exit[0], it.exit[1] - 1]
+      CI.error(path, nil, "#{it.name} (graine #{seed}) : la porte #{it.door.join(',')} ne mène pas à l'intérieur")
     end
     # Every gym is on a map, in a town of the chain or on an island
     gyms = (result.places + result.islands.map { |wp, _port, place, text, layout| [wp, place, text, layout] }).sum do |*, layout|

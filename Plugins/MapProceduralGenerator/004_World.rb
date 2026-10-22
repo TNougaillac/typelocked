@@ -90,8 +90,8 @@ module MapProceduralGenerator
   # one per floor;
   # seabeds: [WorldPlace of the route, name, MapGen plan text];
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
-  # MapGen plan text, Layout]
-  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands)
+  # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors)
 
   TOWN_SIZE = 2
   TOWN_SYMBOLS = ("A".."Z").to_a
@@ -208,14 +208,16 @@ module MapProceduralGenerator
       place.dive = wp.deep
       [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
     end
-    caves = built.flat_map do |wp, place, text, layout|
+    # Warps of each place by name, written once all are known
+    warps = Hash.new { |hash, name| hash[name] = [] }
+    caves = built.flat_map do |wp, _place, _text, layout|
       next [] if wp.crossing != "grotte" && !wp.cave
       doors = layout.doors.select { |_x, _y, brick| brick.kind == CAVE }
       next [] if doors.empty?
       rng = Random.new((seed * 1000) + 500 + wp.index)
       excess = side_excess(world, "grotte", rng)
       floors = cave_floors(wp.name.sub("Route", "Grotte"), wp.name, doors, excess, rng)
-      text << cave_warps(doors, floors, place)
+      warps[wp.name].concat(cave_warps(doors, floors))
       floors.map { |floor| [wp, floor.name, cave_floor_text(floor, wp.name), floor, excess] }
     end
     seabeds = built.filter_map do |wp, place, _text, layout|
@@ -224,7 +226,7 @@ module MapProceduralGenerator
       excess = side_excess(world, "fonds", Random.new((seed * 1000) + 800 + wp.index))
       [wp, name, seabed_text(name, place, layout, Random.new((seed * 1000) + 700 + wp.index), excess), excess]
     end
-    islands = built.each_with_index.filter_map do |(wp, place, text, layout), i|
+    islands = built.each_with_index.filter_map do |(wp, place, _text, layout), i|
       next if !wp.island
       island = build_island(world, town, bricks, wp, layout, (seed * 1000) + 900 + wp.index, map_ids)
       if !island
@@ -244,11 +246,16 @@ module MapProceduralGenerator
         end
         next
       end
-      text << ferry_warps(wp.w * world.cell, wp.h * world.cell, layout, island[0].name, island[4])
-      island[3] << ferry_warps(island[2].width, island[2].height, island[4], wp.name, layout)
+      warps[wp.name].push(ferry_warp(layout, island[0].name, island[4]))
+      warps[island[0].name].push(ferry_warp(island[4], wp.name, layout))
       island
     end
-    return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region), built, caves, seabeds, islands)
+    interiors = place_interiors(built.map { |wp, _place, _text, layout| [wp, layout, wp.index] } +
+                                islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed)
+    interiors.each { |it| warps[it.owner].push([*it.door, it.name, it.exit[0], it.exit[1] - 1, 8]) }
+    built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
+    islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
+    return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region), built, caves, seabeds, islands, interiors)
   end
 
   # The island that the boat of that port town goes to, nil if the town got
@@ -297,16 +304,11 @@ module MapProceduralGenerator
     return names.sample(random: rng)
   end
 
-  # [Warps] and [Events] of a ferry terminal: walking into its door takes the
-  # boat, to the pier in front of the other terminal.
-  def ferry_warps(width, height, layout, target, target_layout)
-    x, y = layout.terminal
+  # Warp of a ferry terminal: walking into its door takes the boat, to the
+  # pier in front of the other terminal.
+  def ferry_warp(layout, target, target_layout)
     tx, ty = target_layout.terminal
-    events = Array.new(height) { "." * width }
-    events[y][x] = "1"
-    text = +"\n[Warps]\n1 = #{target} #{tx},#{ty - 1} haut\n\n[Events]\n"
-    events.each { |row| text << row << "\n" }
-    return text
+    return [*layout.terminal, target, tx, ty - 1, 8]
   end
 
   # A name for an island: « Île » and a name, or a name alone, drawn from
@@ -407,21 +409,13 @@ module MapProceduralGenerator
     return text
   end
 
-  # [Warps] and [Events] of a route: each cave entrance leads to its floor
-  # (the first one to 1F, the second one to the basement), in front of the
-  # cave's exit.
-  def cave_warps(doors, floors, place)
-    text = +"\n[Warps]\n"
-    events = Array.new(place.height) { "." * place.width }
-    doors.each_with_index do |(x, y, _brick), i|
-      floor = floors[i]
-      ex, ey = floor.spots[:exits][0]
-      text << "#{i + 1} = #{floor.name} #{ex},#{ey + 1} bas\n"
-      events[y][x] = (i + 1).to_s
+  # Warps of a route's cave entrances: the first one to 1F, the second one
+  # to the basement, in front of the cave's exit.
+  def cave_warps(doors, floors)
+    return doors.each_with_index.map do |(x, y, _brick), i|
+      ex, ey = floors[i].spots[:exits][0]
+      [x, y, floors[i].name, ex, ey + 1, 2]
     end
-    text << "\n[Events]\n"
-    events.each { |row| text << row << "\n" }
-    return text
   end
 
   # Returns the WorldPlaces of a chain of towns and routes, or nil if the chain
