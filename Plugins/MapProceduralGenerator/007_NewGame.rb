@@ -27,11 +27,10 @@ module MapProceduralGenerator
     delete_file(GAME_WORLD_FILE)
   end
 
-  # Checked first: the debug console prints every exception, even a rescued one
-  # (the map files of an unsaved world are already gone, see remove_unsaved_maps)
   def delete_file(file)
-    return if !File.exist?(file)
     File.delete(file)
+  rescue Errno::ENOENT
+    nil
   end
 
   # Starts drawing the world of a new game in a thread (plain Ruby, nothing
@@ -266,7 +265,8 @@ module MapProceduralGenerator
     infos = load_data("Data/MapInfos.rxdata")
     names = ids.filter_map { |id| infos[id]&.name }
     ids.each do |id|
-      infos.delete(id)
+      # Not in the map tree: its file went when the game closed (remove_unsaved_maps)
+      next if !infos.delete(id)
       delete_file(sprintf("Data/Map%03d.rxdata", id))
     end
     save_data(infos, "Data/MapInfos.rxdata")
