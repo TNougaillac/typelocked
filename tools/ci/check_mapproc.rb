@@ -207,10 +207,17 @@ places.each do |path|
     MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
     check_spill(plan, "#{File.basename(path)} (graine #{seed})")
   end
-  # Every ambiance at least once
+  # Every ambiance on a few seeds, its decor and quantities with it
   place.ambiances.each do |ambiance|
-    plan, = M.generate_place(place.dup.tap { |p| p.ambiance = ambiance.name }, bricks, 1)
-    MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+    (1..3).each do |seed|
+      themed = place.dup.tap { |p| p.ambiance = ambiance.name }
+      plan, _text, layout = M.generate_place(themed, bricks, seed)
+      name = "#{File.basename(path)} (ambiance #{ambiance.name}, graine #{seed})"
+      MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+      check_spill(plan, name)
+      check_water(plan, name, themed)
+      check_spots(name, themed, bricks, layout)
+    end
   end
   # A port on each side with no exit, at the size of a world's town
   next if !place.pier

@@ -1478,6 +1478,7 @@ module MapProceduralGenerator
       place = place.dup
       place.ambiance = draw_ambiance(place, Random.new(seed + 7919))
     end
+    place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
     layout = PlaceBuilder.new(place, bricks, palette, seed).build
     text = plan_text(place, seed, layout.rows)

@@ -219,7 +219,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.21.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.22.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -231,6 +231,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Collines (`colline` dans `[Briques]`) : une butte de roche de forme ovale dessinée pour sa place, avec un escalier au milieu de sa face sud (un chemin y mène). Sur les routes (0 à 1 par case de 20×20) et rarement en ville (`HILL_TOWN_CHANCE`, 20 % des fois où elle est tirée).
 - Relief : des montagnes (massifs de roche, terrain `^`) se posent sur les routes et parfois dans les villes ; certaines ont un escalier taillé dans leur face sud qui mène sur le dessus. Les routes ont aussi des corniches, que l'on saute vers le sud sans pouvoir les remonter. Ces briques ne barrent jamais le passage.
 - Ambiances (`[Ambiance nom]` dans `ville.txt` et `route.txt`) : chaque lieu tire son sol et ses rues selon un poids. L'herbe reste la plus courante ; quelques villes ont des chemins de terre, un sol de prairie, de sable, minéral ou de terre battue, quelques routes un sol de prairie, de sable ou de terre battue.
+  - **Décor par ambiance :** une ambiance peut redéfinir un symbole de la palette (une ligne `t = T520 2x3` dans la section de l'ambiance, avec la syntaxe de sa section d'origine, `{sol}` compris) et changer la quantité d'un type de `[Briques]` (`arbre = 0..1 par case`). Seuls les lieux qui tirent l'ambiance en tiennent compte ; le plateau de la Ligue et les îles gardent les quantités fixées par le monde (le décor redéfini s'applique quand même). Symbole ou type inconnu : erreur avec le fichier et la ligne. La CI génère chaque ambiance sur 3 graines.
 - Un monde (`monde.txt`) tire une chaîne de villes reliées par des routes :
   - au plus une arène par ville, jamais dans la ville de départ ;
   - la ville où l'on obtient Surf est tirée parmi les villes à arène, à partir de la 2e arène au minimum (`Surf`) ;
