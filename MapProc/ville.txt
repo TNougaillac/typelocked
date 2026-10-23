@@ -11,6 +11,9 @@ Bordure = t
 Sorties = nord sud ouest
 Rues    = 1..2
 Eau     = ~
+# Rive : le rebord du bas de l'eau, dessiné sur la rangée de sol en dessous
+# (bout gauche, milieu, bout droit).
+Rive    = !'?
 # Ville portuaire : la mer d'un côté sans sortie, un quai en bois, des pontons,
 # une gare maritime sur pilotis au bout de l'un d'eux (port au sud, à l'est ou
 # à l'ouest) et des entrepôts le long du quai. Dans un monde, c'est le monde qui choisit ses ports.
@@ -35,6 +38,7 @@ lampe    = 6..10
 arbre    = 3..8
 lac      = 0..1
 montagne = 0..1
+colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
 port     = 0        # entrepôts : posés le long du quai d'un port
 gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 
@@ -60,6 +64,7 @@ Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T28
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+Rive  = T833 T833 T833
 Rue   = T274
 
 [Ambiance minérale]
@@ -70,10 +75,14 @@ Rue   = T274
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+Rive  = T841 T841 T841
 Rue   = T218
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
+! = T849               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit : la même tuile droite, comme la mare de Cedolan City)
+' = T849
+? = T849
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
 : = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
@@ -132,7 +141,9 @@ s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T420 2x3         # arbre
 l = T1029 1x2        # lampadaire
-p = T984 2x1         # jardinière
+p = T997 1x1         # jardinière (une par case, posée sur le sol)
 F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)
 J = T3344 4x4        # entrepôt du port
 b = T1096 5x3 L3 @~  # bateau amarré, sur l'eau
+L = T3088 8x5        # labo du Professeur (posé par le monde dans la ville de départ)
+I = T3136 8x5        # bâtiment de la Ligue (posé par le monde sur le plateau)

@@ -19,8 +19,9 @@ module MapProceduralGenerator
   # rows: MapGen [Map] rows; doors: [x, y, brick] (door cells); exits:
   # [side, x, y] (first street cell on the map edge)
   # deep: cells of deep water, where the player can dive; terminal: [x, y] of
-  # the ferry terminal's door (its top middle cell, entered from the pier)
-  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal)
+  # the ferry terminal's door (its top middle cell, entered from the pier);
+  # spots: the place's inventory (see PlaceBuilder#inventory)
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -38,11 +39,25 @@ module MapProceduralGenerator
   PORT_SHARE = 0.28
   # Tiles that make the map side towards the town, for each sea side
   INLAND = { "nord" => [0, 1], "sud" => [0, -1], "ouest" => [1, 0], "est" => [-1, 0] }.freeze
+  # Brick types walked through (grass): their cells count as ground for the
+  # inventory, those of GRASS_KINDS as tall grass
+  WALK_KINDS = %w[herbes prairie].freeze
+  GRASS_KINDS = %w[herbes].freeze
+  # Brick types of the nooks, drawn by the builder: a pocket of ground in the
+  # rock behind an obstacle (its door), an islet in a pond, a dark cave
+  # (the entrance of a cave brick)
+  # The sea autotile (A1), whose bottom edge is drawn by the bank below it
+  # (« Rive » of the place file) on the ground of the row underneath
+  SEA_TILES = (48...96).freeze
+  NOOK = "recoin"
+  ISLET = "ilot"
+  DARK_CAVE = "grotte sombre"
 
   class PlaceBuilder
     def initialize(place, bricks, palette, seed)
       @place = place
-      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && (place.crossing == "grotte" || place.cave)) }
+      cave = place.crossing == "grotte" || place.cave || place.nook == "sombre"
+      @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && cave) }
       @palette = palette
       @seed = seed
       @rng = Random.new(seed)
@@ -54,6 +69,8 @@ module MapProceduralGenerator
       @kinds = Array.new(@h) { Array.new(@w) }   # brick type of each cell
       @doors = []
       @exits = []
+      @dead_ends = []
+      @nooks = []
     end
 
     def build
@@ -75,22 +92,78 @@ module MapProceduralGenerator
         raise_levels
         lay_river
         # Its cave is left out when no spot fits
-        place_brick(CAVE) if @place.cave
+        place_mountain_cave if @place.cave
       end
+      reserve_banks
       place_port_bricks if @port_depth
       place_bricks
+      grow_highland_grass
+      trim_thin_water
+      clear_banks
       plant_border
       check_reachable
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
-      return Layout.new(rows, @doors, @exits, @deep || [], @terminal)
+      draw_banks(rows) if @place.banks
+      return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory)
+    end
+
+    # Where the events of the place can go (MapEvents, items, NPCs), every cell
+    # reached on foot from the exits, doors and ferry terminal:
+    #   exits: [side, x, y]; doors: [x, y, type] (door cells);
+    #   street: free cells beside a street; grass: tall grass cells;
+    #   dead_ends: last cell of each dead-end street;
+    #   nooks: [x, y, obstacle (a key of NOOKS), ox, oy]: the loot cell and
+    #   the obstacle's cell (a pocket); for an islet the loot only; for a dark
+    #   cave its entrance (the loot is in the cave).
+    def inventory
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts.push([@terminal[0], @terminal[1] - 1]) if @terminal
+      seen = Array.new(@h) { Array.new(@w, false) }
+      starts.each { |start| walk_foot(start, seen) if !seen[start[1]][start[0]] }
+      on_street = ->(x, y) { inside?(x, y) && @street[y][x] && !@stairs_at&.key?([x, y]) }
+      return {
+        exits:     @exits.map(&:dup),
+        doors:     @doors.map { |x, y, brick| [x, y, brick.kind] },
+        street:    cells_where(seen) { |x, y| !@street[y][x] && NEIGHBOURS.any? { |ox, oy| on_street.call(x + ox, y + oy) } },
+        grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
+        dead_ends: @dead_ends.select { |x, y| seen[y][x] },
+        nooks:     @nooks.map(&:dup)
+      }
+    end
+
+    # [x, y] of the cells marked in grid that pass the block, row by row.
+    def cells_where(grid)
+      return (0...@h).flat_map { |y| (0...@w).select { |x| grid[y][x] && yield(x, y) }.map { |x| [x, y] } }
+    end
+
+    # Like walk, on foot only (no surfing), through grass and carpets; marks
+    # the cells reached in seen.
+    def walk_foot(start, seen)
+      foot = lambda do |x, y|
+        next false if !inside?(x, y) || @water[y][x] || @border[y][x]
+        next true if @street[y][x]
+        next !@cells[y][x] || WALK_KINDS.include?(@kinds[y][x]) || (@cells[y][x] == excess[:carpet] && !@kinds[y][x])
+      end
+      return if !foot.call(*start)
+      seen[start[1]][start[0]] = true
+      queue = [start]
+      until queue.empty?
+        x, y = queue.shift
+        NEIGHBOURS.each do |ox, oy|
+          nx, ny = x + ox, y + oy
+          next if !foot.call(nx, ny) || seen[ny][nx]
+          seen[ny][nx] = true
+          queue.push([nx, ny])
+        end
+      end
     end
 
     private
 
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
-      rock = (level_at(x, y) > 0) ? @place.levels[level_at(x, y) - 1] : nil
+      rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
       return @cells[y][x] || rock || @place.street if @street[y][x]
       return @cells[y][x] || rock || @place.ground
     end
@@ -174,7 +247,9 @@ module MapProceduralGenerator
         y = @rng.rand(bh + 2..@h - bh - 2 - STREET_WIDTH)
         break if inland.call(x, y)
       end
-      carve_line(hub[0], hub[1], x, y) if inland.call(x, y)
+      return if !inland.call(x, y)
+      carve_line(hub[0], hub[1], x, y)
+      @dead_ends.push([x, y])
     end
 
     def place_bricks
@@ -199,7 +274,10 @@ module MapProceduralGenerator
       @dense = excess[:fill] if excess[:dense]
       order.each_with_index do |kind, i|
         flood_ground if i == required.length
+        # The nook right after the buildings, before the decoration
+        place_nook if with_door.call(kind) == 1
         next if HIGHLAND.include?(kind) && !@level
+        next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if place_brick(kind)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
@@ -209,8 +287,74 @@ module MapProceduralGenerator
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
       flood_ground
+      place_nook
       fill_with(excess[:fill]) if excess[:fill]
       @dense = nil
+    end
+
+    #---------------------------------------------------------------------------
+    # Nooks (optional, behind an obstacle opened by a field item)
+    #---------------------------------------------------------------------------
+    # The place's nook, once its required bricks are in; left out if it
+    # doesn't fit.
+    def place_nook
+      return if !@place.nook || @nook_tried
+      @nook_tried = true
+      case @place.nook
+      when "ilot"
+        return if !@place.water
+        # Its pond must lie by ground walked to, to be surfed across
+        ground = reachable_ground
+        shore = lambda do |brick, x, y|
+          w, h = brick.rows[0].length, brick.rows.length
+          next (x...x + w).any? { |cx| (y > 0 && ground[y - 1][cx]) || ground[y + h]&.[](cx) } ||
+               (y...y + h).any? { |cy| (x > 0 && ground[cy][x - 1]) || ground[cy][x + w] }
+        end
+        brick, loot = islet_brick
+        spot = put_brick(brick, shore) || return
+        @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @place.nook])
+      when "sombre"
+        cave = @bricks.select { |b| b.kind == CAVE }.min_by(&:name) || return
+        brick = Brick.new(DARK_CAVE, "Grotte sombre", DARK_CAVE, cave.door, 1, false, cave.rows)
+        spot = put_brick(brick) || return
+        @nooks.push([spot[0] + brick.door[0], spot[1] + brick.door[1], @place.nook])
+      else
+        brick, loot = nook_brick
+        spot = put_brick(brick) || return
+        @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @place.nook, spot[0] + brick.door[0], spot[1] + brick.door[1]])
+      end
+    end
+
+    # A pocket of ground at the back of a block of rock, reached by a corridor
+    # one tile wide from the south: the obstacle stands at its mouth (the
+    # door, so a path leads to it). Three tiles wide, so that a pushed boulder
+    # can be walked around. Returns the brick and the loot cell (a back
+    # corner).
+    def nook_brick
+      rock = @place.levels&.first || "^"
+      ground = @place.ground
+      depth = @rng.rand(2..3)
+      rows = [" #{rock * 5} ", rock * 7]
+      depth.times { rows.push("#{rock * 2}#{ground * 3}#{rock * 2}") }
+      2.times { rows.push("#{rock * 3}#{ground}#{rock * 3}") }
+      brick = Brick.new(NOOK, "Recoin", NOOK, [3, rows.length - 1], 1, false, rows)
+      return brick, [(@rng.rand(2) == 0) ? 2 : 4, 2]
+    end
+
+    # An islet of ground (3x2) in a rough oval pond, two tiles of water
+    # around it at least. Returns the brick and the loot cell (its middle).
+    def islet_brick
+      w, h = @rng.rand(7..9), @rng.rand(6..7)
+      ix, iy = (w - 3) / 2, (h - 2) / 2
+      rows = Array.new(h) do |y|
+        Array.new(w) do |x|
+          next @place.ground if (ix...ix + 3).include?(x) && (iy...iy + 2).include?(y)
+          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
+          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
+          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.25)) ? @place.water : " "
+        end.join
+      end
+      return Brick.new(ISLET, "Îlot", ISLET, nil, 1, false, rows), [ix + 1, iy]
     end
 
     # Excess « fill »: more bricks of that type wherever they still fit.
@@ -289,6 +433,82 @@ module MapProceduralGenerator
           @cells[y][x] = @place.water
           @water[y][x] = @solid[y][x] = true
         end
+      end
+      reserve_banks
+    end
+
+    #---------------------------------------------------------------------------
+    # Banks: the row of ground below the water, where its bottom edge is drawn
+    #---------------------------------------------------------------------------
+    # Symbols showing the sea autotile.
+    def sea_symbols
+      @sea_symbols ||= @palette.legend.select { |_c, layers| layers.flatten.any? { |t| SEA_TILES.include?(t) } }.keys
+    end
+
+    # The sea and what stands on it with its own edges (piers, boats...).
+    def wet_symbols
+      @wet_symbols ||= sea_symbols + @palette.objects.select { |_c, o| sea_symbols.include?(o.ground) }.keys +
+                       @palette.terrains.select { |_c, t| sea_symbols.include?(t.ground) }.keys
+    end
+
+    def sea_at?(x, y)
+      return @water[y][x] || sea_symbols.include?(@cells[y][x])
+    end
+
+    def wet_at?(x, y)
+      return @water[y][x] || wet_symbols.include?(@cells[y][x])
+    end
+
+    # The ground below the bottom of the sea ([x, y] of each cell).
+    def bank_cells
+      return (1...@h).flat_map do |y|
+        (0...@w).select { |x| sea_at?(x, y - 1) && !wet_at?(x, y) }.map { |x| [x, y] }
+      end
+    end
+
+    # Keeps the free ground below the water for its bank: no brick nor path
+    # goes there (it stays walkable).
+    def reserve_banks
+      bank_cells.each { |x, y| @solid[y][x] = true if !@cells[y][x] && !@street[y][x] && !@border[y][x] }
+    end
+
+    # Sea too thin for its autotile (a cell in no 2x2 block of water, the map
+    # edges counting as water) goes back to ground, until none is left.
+    def trim_thin_water
+      wet = ->(x, y) { !inside?(x, y) || wet_at?(x, y) }
+      loop do
+        thin = (0...@h).flat_map do |y|
+          (0...@w).select do |x|
+            sea_at?(x, y) && [[-1, -1], [0, -1], [-1, 0], [0, 0]].none? do |ox, oy|
+              wet.call(x + ox, y + oy) && wet.call(x + ox + 1, y + oy) && wet.call(x + ox, y + oy + 1) && wet.call(x + ox + 1, y + oy + 1)
+            end
+          end.map { |x| [x, y] }
+        end
+        break if thin.empty?
+        thin.each do |x, y|
+          @cells[y][x] = @kinds[y][x] = nil
+          @water[y][x] = @solid[y][x] = false
+        end
+      end
+    end
+
+    # No tree below the water: the border gives way to the bank.
+    def clear_banks
+      bank_cells.each do |x, y|
+        next if !@border[y][x] || @cells[y][x]
+        @border[y][x] = false
+      end
+    end
+
+    # Draws the banks: the left end, middle and right end symbols of « Rive »
+    # on the ground below the water.
+    def draw_banks(rows)
+      # On the ground (an islet's too) or a carpet of grass
+      cells = bank_cells.select { |x, y| [@place.ground, excess[:carpet]].include?(rows[y][x]) }.to_h { |cell| [cell, true] }
+      cells.each_key do |x, y|
+        left, right = cells[[x - 1, y]], cells[[x + 1, y]]
+        part = (left == right) ? 1 : (left ? 2 : 0)
+        rows[y][x] = @place.banks[part]
       end
     end
 
@@ -612,10 +832,12 @@ module MapProceduralGenerator
     #---------------------------------------------------------------------------
     # Mountain routes
     #---------------------------------------------------------------------------
-    # The map is cut into bands across the rows, each at level 0 (ground), 1 or
-    # 2, two next bands one level apart. The higher one shows a cliff (its
-    # south face) or a rim (its north edge), crossed by stairs where a street
-    # goes through. The bands of the exits stay on the ground.
+    # The map is cut into bands across the rows, two next bands one level apart
+    # (as many levels as « Relief » has symbols, each level its own symbol so
+    # that its edges show). The boundary between two bands wanders up and down
+    # (FACE_WAVE), flat where a street crosses it. The cells of a level next to
+    # a lower one are its cliff (or rim), crossed by stairs where a street
+    # goes through. The bands of the exits and the water stay on the ground.
     def raise_levels
       error("« Relief » et « Escalier » manquants pour une route de montagne") if !@place.levels
       _bw, bh = border_size
@@ -625,8 +847,9 @@ module MapProceduralGenerator
       # The exits and the water stay on the ground
       ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
                     (0...@h).select { |y| @water[y].any? }
-      wanted = vertical_route? ? @rng.rand(3..4) : @rng.rand(1..2)
-      wanted = vertical_route? ? 8 : 3 if excess[:colossal]
+      wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
+      wanted = crossings.length if excess[:colossal]
+      wanted = [wanted, crossings.length].min
       # East-west routes may end up with cliffs and no stairs; a route with no
       # room for levels stays flat
       [true, vertical_route?].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
@@ -634,41 +857,37 @@ module MapProceduralGenerator
       end
     end
 
-    # Draws count boundaries picked among crossings; false if they don't fit.
+    # Draws count boundaries picked among crossings; false if they don't fit
+    # or if they would cut an exit off.
     def try_levels(crossings, ground_rows, count, stairs)
       picks = []
       crossings.keys.shuffle(random: @rng).each do |r|
-        picks.push(r) if picks.none? { |p| (p - r).abs < 5 }
+        picks.push(r) if picks.none? { |p| (p - r).abs < FACE_GAP }
         break if picks.length == count
       end
       return false if picks.length < count
       # Stairs somewhere, even on an east-west route
       return false if stairs && picks.all? { |r| crossings[r] == 0 }
       picks.sort!
-      band = ->(y) { picks.count { |p| p <= y } }
-      ground = ground_rows.map(&band).uniq
-      sequences = level_sequences(count + 1).select do |seq|
-        seq.max > 0 && ground.all? { |i| seq[i] == 0 }
+      ground = ground_rows.map { |y| picks.count { |p| p <= y } }.uniq
+      levels = band_levels(count + 1, ground)
+      return false if !levels
+      waves = []
+      picks.each_with_index { |r, i| waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last)) }
+      level = Array.new(@h) do |y|
+        Array.new(@w) { |x| levels[picks.each_index.count { |i| picks[i] + waves[i][x] <= y }] }
       end
-      return false if sequences.empty?
-      # Up to the 2nd level when possible, most of the time
-      high = sequences.select { |seq| seq.max == 2 }
-      sequences = high if !high.empty? && (excess[:colossal] || @rng.rand(3) > 0)
-      levels = sequences.sample(random: @rng)
-      @level = Array.new(@h) { |y| levels[band.call(y)] }
-      picks.each { |r| draw_face(r) }
-      return true
-    end
-
-    # Level sequences of n bands, one level apart from band to band.
-    def level_sequences(n)
-      sequences = [[0], [1], [2]]
-      (n - 1).times do
-        sequences = sequences.flat_map do |seq|
-          [seq.last - 1, seq.last + 1].select { |l| l.between?(0, 2) }.map { |l| seq + [l] }
+      faces, stairs_at = draw_faces(level)
+      return false if !faces
+      @level, @face, @stairs_at = level, faces, stairs_at
+      @h.times do |y|
+        @w.times do |x|
+          next if !faces[y][x]
+          @cells[y][x] = level_symbol(level_at(x, y))
+          @solid[y][x] = true
         end
       end
-      return sequences
+      return true
     end
 
     # Number of streets going straight across the boundary above row r, or nil
@@ -691,29 +910,139 @@ module MapProceduralGenerator
       return crossings
     end
 
-    # The higher band's row along the boundary above row r: a wall, with
-    # stairs where the streets cross it.
-    def draw_face(r)
-      north, south = @level[r - 1], @level[r]
-      y, level = (north > south) ? [r - 1, north] : [r, south]
-      pair = @place.stairs[((level - 1) * 2) + ((north > south) ? 0 : 1)]
-      @stairs_at ||= {}
-      @w.times do |x|
-        next if @border[y][x] || @low&.[](y)&.[](x)
-        if @street[y][x]
-          @stairs_at[[x, y]] = @street[y][x - 1] ? pair[1] : pair[0]
-        else
-          @cells[y][x] = @place.levels[level - 1]
-          @solid[y][x] = true
+    # Level of each of n bands, one apart from band to band, 0 on the ground
+    # bands, at most one per « Relief » symbol; climbing more often than not.
+    # nil if none fits.
+    def band_levels(n, ground)
+      top = @place.levels.length
+      allowed = Array.new(n) { |i| ground.include?(i) ? [0] : (0..top).to_a }
+      # Levels from which the rest of the bands can still be drawn
+      feasible = Array.new(n)
+      feasible[n - 1] = allowed[n - 1]
+      (n - 2).downto(0) do |i|
+        feasible[i] = allowed[i].select { |l| feasible[i + 1].include?(l - 1) || feasible[i + 1].include?(l + 1) }
+      end
+      return nil if feasible[0].empty?
+      levels = [feasible[0].sample(random: @rng)]
+      (1...n).each do |i|
+        options = [levels.last - 1, levels.last + 1] & feasible[i]
+        up = levels.last + 1
+        levels.push((options.include?(up) && @rng.rand < MOUNTAIN_CLIMB) ? up : options.sample(random: @rng))
+      end
+      return levels.max > 0 ? levels : nil
+    end
+
+    # Offset (rows) of the boundary above row r at each column: it wanders by
+    # one now and then, up to FACE_WAVE, flat around the streets crossing it,
+    # never moves past a street, the water or an exit, and keeps a band of
+    # BAND_MIN rows at least below the boundary above (prev, its wave).
+    def face_wave(r, prev = nil, prev_wave = nil)
+      keep = ->(x, y) { inside?(x, y) && (@street[y][x] || @water[y][x] || exit_at?(x, y)) }
+      crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
+      offset = 0
+      run = 0
+      return Array.new(@w) do |x|
+        # A step every few columns at most, so that the edges stay drawable
+        run += 1
+        if run >= 3 && @rng.rand(3) == 0
+          offset = (offset + [-1, 1].sample(random: @rng)).clamp(-FACE_WAVE, FACE_WAVE)
+          run = 0
+        end
+        offset = 0 if crossing.any? { |c| (c - x).abs <= STREET_WIDTH + 1 }
+        # Back towards r until nothing to keep lies between
+        offset -= (offset <=> 0) while offset != 0 && (offset > 0 ? (r...r + offset) : (r + offset...r)).any? { |y| keep.call(x, y) }
+        offset += 1 while prev && r + offset < prev + prev_wave[x] + BAND_MIN
+        offset
+      end
+    end
+
+    # Cliffs: the cells of a level with a lower cell around them (8
+    # neighbours). Where a street crosses a cliff from north to south, stairs.
+    # Returns [faces, stairs] or nil if a street meets a cliff any other way,
+    # or if the exits are no longer joined.
+    def draw_faces(level)
+      low = ->(x, y) { @low&.[](y)&.[](x) ? 0 : level[y][x] }
+      faces = Array.new(@h) { Array.new(@w, false) }
+      stairs = {}
+      @h.times do |y|
+        @w.times do |x|
+          here = low.call(x, y)
+          next if here == 0 || @border[y][x]
+          next if !NEIGHBOURS8.any? { |ox, oy| inside?(x + ox, y + oy) && low.call(x + ox, y + oy) < here }
+          faces[y][x] = true
+          next if !@street[y][x]
+          south = y + 1 < @h && low.call(x, y + 1) < here
+          north = y > 0 && low.call(x, y - 1) < here
+          side = [[-1, 0], [1, 0]].any? { |ox, _| inside?(x + ox, y) && low.call(x + ox, y) < here && !@street[y][x + ox] }
+          return nil if north == south || side
+          pair = @place.stairs[(([here, 2].min - 1) * 2) + (south ? 0 : 1)]
+          stairs[[x, y]] = (x > 0 && @street[y][x - 1]) ? pair[1] : pair[0]
+        end
+      end
+      # The exits still reach one another, through the stairs
+      seen = walk_levels(@exits[0][1, 2], faces, stairs)
+      return nil if @exits.any? { |_side, x, y| !seen[y][x] }
+      return faces, stairs
+    end
+
+    # Like walk, with the cliffs in the way (stairs excepted).
+    def walk_levels(start, faces, stairs)
+      seen = Array.new(@h) { Array.new(@w, false) }
+      seen[start[1]][start[0]] = true
+      queue = [start]
+      until queue.empty?
+        x, y = queue.shift
+        NEIGHBOURS.each do |ox, oy|
+          nx, ny = x + ox, y + oy
+          next if !inside?(nx, ny) || seen[ny][nx]
+          next if faces[ny][nx] && !stairs[[nx, ny]]
+          next if !@street[ny][nx] && !@water[ny][nx] && (@cells[ny][nx] || @border[ny][nx] || @solid[ny][nx])
+          seen[ny][nx] = true
+          queue.push([nx, ny])
+        end
+      end
+      return seen
+    end
+
+    # Level of a tile (0 on the river and its outer bank).
+    def level_at(x, y)
+      return 0 if !@level || @low&.[](y)&.[](x)
+      return @level[y][x]
+    end
+
+    # The « Relief » symbol of a level.
+    def level_symbol(level)
+      return @place.levels[level - 1]
+    end
+
+    # Tall grass on the raised levels of a mountain route, in a few patches
+    # (MOUNTAIN_GRASS per CASE_SIZE square of raised ground), off the streets
+    # and the cliffs.
+    def grow_highland_grass
+      return if !@level || !@place.high_grass
+      free = ->(x, y) { inside?(x, y) && level_at(x, y) > 0 && !@solid[y][x] && !@street[y][x] && !@cells[y][x] && !@border[y][x] }
+      raised = (0...@h).flat_map { |y| (0...@w).select { |x| free.call(x, y) }.map { |x| [x, y] } }
+      return if raised.empty?
+      (raised.length * @rng.rand(MOUNTAIN_GRASS) / (CASE_SIZE * CASE_SIZE)).ceil.times do
+        cx, cy = raised.sample(random: @rng)
+        r = @rng.rand(1.5..3.0)
+        (cy - 3..cy + 3).each do |y|
+          (cx - 3..cx + 3).each do |x|
+            next if ((x - cx)**2) + ((y - cy)**2) > r * r || !free.call(x, y)
+            @cells[y][x] = @place.high_grass
+            @kinds[y][x] = "herbes"
+          end
         end
       end
     end
 
-    # Level of a tile: that of its band, but the river and its outer bank stay
-    # on the ground.
-    def level_at(x, y)
-      return 0 if !@level || @low&.[](y)&.[](x)
-      return @level[y]
+    # The mountain cave at the foot of a cliff (the cells above it all cliff of
+    # a higher level), anywhere it fits otherwise.
+    def place_mountain_cave
+      foot = lambda do |brick, x, y|
+        next y > 0 && brick.rows[0].length.times.all? { |dx| @face&.[](y - 1)&.[](x + dx) && level_at(x + dx, y - 1) > level_at(x + dx, y) }
+      end
+      place_brick(CAVE, foot) || place_brick(CAVE)
     end
 
     # River alongside a north-south mountain route: a band 3 or 4 tiles wide
@@ -754,6 +1083,7 @@ module MapProceduralGenerator
           @water[y][x] = @solid[y][x] = true
         end
       end
+      reserve_banks
     end
 
     # On an east-west mountain route, a hub row away from the exits, so that the
@@ -884,8 +1214,28 @@ module MapProceduralGenerator
       return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
     end
 
+    # A hill: a brick of rock in a rough oval made for this spot, a stair in
+    # the middle of its south face (its door, so a path leads to it).
+    def hill_brick
+      rock = @place.levels&.first || "^"
+      stair = @place.stairs&.first&.[](0) || "e"
+      w, h = @rng.rand(5..9), @rng.rand(4..6)
+      rows = Array.new(h) do |y|
+        Array.new(w) do |x|
+          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
+          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
+          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.2)) ? rock : " "
+        end.join
+      end
+      door = w / 2
+      rows[h - 1][door] = stair
+      rows[h - 2][door] = rock
+      return Brick.new(HILL, "Colline", HILL, [door, h - 1], 1, false, rows)
+    end
+
     def pick_brick(kind, shrink = 0)
       return lake_brick(shrink) if kind == LAKE
+      return hill_brick if kind == HILL
       bricks = @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       return bricks.find { |b| (roll -= b.weight) < 0 }
@@ -937,17 +1287,33 @@ module MapProceduralGenerator
             (-1..1).each do |ox|
               nx, ny = cx + ox, cy + oy
               next if !inside?(nx, ny) || !@solid[ny][nx] || @border[ny][nx]
+              # A cave entrance may lean against a cliff
+              next if brick.kind == CAVE && @face&.[](ny)&.[](nx)
               return false if brick.kind != @dense || @kinds[ny][nx] != @dense
             end
           end
         end
       end
+      return false if !bank_free?(brick, x, y)
       return true if !brick.door
       # The path under the door must be free or already a street
       fx, fy = x + brick.door[0], y + brick.rows.length
       return false if !inside?(fx + STREET_WIDTH - 1, fy + STREET_WIDTH - 1)
       STREET_WIDTH.times do |oy|
         STREET_WIDTH.times { |ox| return false if @solid[fy + oy][fx + ox] }
+      end
+      return true
+    end
+
+    # A brick of water keeps the cells below its bottom edge off the streets
+    # of a town (their paving can't show the bank).
+    def bank_free?(brick, x, y)
+      return true if @place.street == @place.ground
+      brick.rows.each_with_index do |row, dy|
+        row.each_char.with_index do |c, dx|
+          next if !sea_symbols.include?(c) || wet_symbols.include?(brick.rows[dy + 1]&.[](dx))
+          return false if inside?(x + dx, y + dy + 1) && @street[y + dy + 1][x + dx]
+        end
       end
       return true
     end
@@ -969,11 +1335,15 @@ module MapProceduralGenerator
       brick.rows.each_with_index do |row, dy|
         row.each_char.with_index do |c, dx|
           next if c == " "
+          # On a raised level, a brick's relief stands that much higher
+          step = HIGHLAND.include?(brick.kind) ? @place.levels&.index(c) : nil
+          c = level_symbol(level_at(x + dx, y + dy) + step) if step && level_at(x + dx, y + dy) + step <= @place.levels.length
           @cells[y + dy][x + dx] = c
           @solid[y + dy][x + dx] = true
           @kinds[y + dy][x + dx] = brick.kind
         end
       end
+      reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]
       @doors.push([dx, dy, brick])
@@ -998,6 +1368,7 @@ module MapProceduralGenerator
     end
 
     NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+    NEIGHBOURS8 = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]].freeze
 
     # Brush steps from every street cell outward: distances[y][x] (nil = no
     # path), parents for carve_path.

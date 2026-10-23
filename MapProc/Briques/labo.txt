@@ -1,0 +1,11 @@
+# Labo du Professeur Castellane : posé par le monde dans la ville de départ
+# (pas dans [Briques] de ville.txt). Son intérieur est le labo de la démo.
+Brique = Labo du Professeur
+Type   = labo
+Porte  = 3,4
+[Map]
+LLLLLLLL
+LLLLLLLL
+LLLLLLLL
+LLLLLLLL
+LLLLLLLL

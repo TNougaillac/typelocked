@@ -52,23 +52,32 @@ module MapProceduralGenerator
     return read(file).each_line(chomp: true).filter_map { |l| [$2.strip, $1.to_i] if l =~ /\A(\d+)\s*=\s*(.+)\z/ }.to_h
   end
 
-  # Writes every place of the world to its map, then runs the world plan
-  # through MapGen (connections, map metadata, Town Map). Returns the export
-  # and the start of the world ([map ID, x, y], see world_start).
-  # quiet: no message to the player (world made at the start of a game);
-  # prune: deletes the maps of earlier seeds that this one doesn't have.
-  def generate_world_maps(path, seed, quiet: false, prune: false)
+  # The world of that seed, drawn in plain Ruby without writing anything (it
+  # may run in a thread): [World, map IDs of its earlier generations,
+  # WorldResult].
+  def compute_world(path, seed)
     world = load_world(path)
     town = load_place(File.join(FOLDER, world.town_file))
     route = load_place(File.join(FOLDER, world.route_file))
     map_ids = read_world_maps(path)
     names = world.names_file && load_names(File.join(FOLDER, world.names_file))
-    result = generate_world(world, town, route, load_bricks, seed, map_ids, names)
+    return world, map_ids, generate_world(world, town, route, load_bricks, seed, map_ids, names)
+  end
+
+  # Writes every place of the world to its map, then runs the world plan
+  # through MapGen (connections, map metadata, Town Map). Returns the export
+  # and the start of the world ([map ID, x, y], see world_start).
+  # quiet: no message to the player (world made at the start of a game);
+  # prune: deletes the maps of earlier seeds that this one doesn't have;
+  # computed: what compute_world returned for it, if it is already drawn.
+  def generate_world_maps(path, seed, quiet: false, prune: false, computed: nil)
+    world, map_ids, result = computed || compute_world(path, seed)
     # MapGen finds the world's maps by name: another map with the same name
     # would be taken instead
     infos = load_data("Data/MapInfos.rxdata")
     names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name } +
-            result.seabeds.map { |_wp, name, _text| name } + result.islands.map { |wp, *| wp.name }
+            result.seabeds.map { |_wp, name, _text| name } + result.islands.map { |wp, *| wp.name } +
+            result.interiors.map(&:name)
     names.each do |name|
       clash = infos.find { |id, info| info.name == name && map_ids[name] != id }
       next if !clash
@@ -78,7 +87,7 @@ module MapProceduralGenerator
     # linked after)
     with_id = ->(name, text) { map_ids[name] ? text.sub(/^Tileset/, "MapID   = #{map_ids[name]}\nTileset") : text }
     plans = result.places.map { |_wp, _place, text, _layout| text } +
-            result.caves.map { |_wp, name, text, _seed| with_id.call(name, text) } +
+            result.caves.map { |_wp, name, text, _floor| with_id.call(name, text) } +
             result.seabeds.map { |_wp, name, text| with_id.call(name, text) } +
             result.islands.map { |_wp, _port, _place, text, _layout| text }
     unlinked = []
@@ -88,12 +97,20 @@ module MapProceduralGenerator
       busy_update
       unlinked.push(plan) if !missing.empty?
     end
+    # The interiors, copied once their places exist; then the doors lead in.
+    # Backwards: a room of the League leads to the next one, already written
+    result.interiors.reverse_each do |interior|
+      map_ids[interior.name] = write_interior(interior, map_ids)
+      busy_update
+    end
     unlinked.each { |plan| MapGenerator.relink_warps(plan, map_ids[plan.name]) }
-    result.caves.each { |_wp, name, _text, _seed| dress_cave(map_ids[name]) }
-    save_cave_seeds(result.caves.to_h do |_wp, name, _text, cave_seed, excess|
-      area = EXCESSES.dig(excess, :area)
-      [map_ids[name], area ? [cave_seed, area] : cave_seed]
-    end)
+    result.caves.each do |_wp, name, _text, floor|
+      paint_cave(map_ids[name], floor)
+      busy_update
+    end
+    (result.places + result.islands.map { |wp, _port, *rest| [wp, *rest] }).each do |wp, _place, _text, layout|
+      write_nook_events(map_ids[wp.name], layout.spots[:nooks])
+    end
     write_extra_metadata(world, result, map_ids)
     if prune
       stale, map_ids = map_ids.partition { |name, _id| !names.include?(name) }.map(&:to_h)
@@ -103,6 +120,9 @@ module MapProceduralGenerator
     File.write(world_maps_path(path), map_ids.map { |name, id| "#{id} = #{name}\n" }.join)
     export = export_path(path, seed)
     File.write(export, result.text)
+    atlas = world_atlas(result)
+    save_atlas(atlas, map_ids)
+    File.write(export.sub(/\.txt\z/, "_inventaire.txt"), atlas_text(atlas, map_ids))
     MapGenerator.run_world(export, quiet: quiet)
     surf = result.places.find { |wp, *| wp.surf }
     dive = result.places.find { |wp, *| wp.dive }
@@ -124,28 +144,19 @@ module MapProceduralGenerator
     return map_ids[wp.name], x, y
   end
 
-  # Shows the cave exits as ladders.
-  def dress_cave(map_id)
-    path = sprintf("Data/Map%03d.rxdata", map_id)
-    map = load_data(path)
-    map.events.each_value do |event|
-      next if event.name != MapGenerator::WARP_EVENT_NAME
-      event.pages[0].graphic.tile_id = CAVE_EXIT_TILE
-    end
-    save_data(map, path)
-  end
-
-  # Caves, seabeds and islands are not on the world grid: MapGen doesn't write
-  # their metadata (an island is put on the Town Map where its port is). Dungeon = true makes Essentials draw a cave's layout; DiveMap
-  # links a route to its seabed (MapGen keeps that key when it rewrites the
-  # route's section).
+  # Caves, seabeds, islands and interiors are not on the world grid: MapGen
+  # doesn't write their metadata (an island is put on the Town Map where its
+  # port is, an interior where its place is).
+  # DiveMap links a route to its seabed (MapGen keeps that key when it
+  # rewrites the route's section).
   def write_extra_metadata(world, result, map_ids)
     file = MapGenerator::MAP_METADATA_PBS
     lines = MapGenerator.read_pbs(file)
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
-    result.caves.each do |wp, name, *|
-      replace_section(lines, map_ids[name], name,
-                      ["Name = #{wp.cave_title || wp.title}", position.call(wp), "Dungeon = true", "BattleBack = cave1", "Environment = Cave"])
+    result.caves.each do |wp, name, _text, floor|
+      body = ["Name = #{floor.dark ? wp.title : wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"]
+      body.push("DarkMap = true") if floor.dark
+      replace_section(lines, map_ids[name], name, body)
     end
     result.seabeds.each do |wp, name, _text|
       replace_section(lines, map_ids[name], name,
@@ -154,6 +165,13 @@ module MapProceduralGenerator
     result.islands.each do |wp, port, *|
       replace_section(lines, map_ids[wp.name], wp.name,
                       ["Name = #{wp.name}", "Outdoor = true", "ShowArea = true", position.call(port)])
+    end
+    titles = (result.places.map { |wp, *| [wp.name, [wp.title, wp]] } +
+              result.islands.map { |wp, port, *| [wp.name, [wp.name, port]] }).to_h
+    result.interiors.each do |interior|
+      title, wp = titles[interior.owner]
+      body = interior_metadata(interior, title, map_ids[interior.owner], lines)
+      replace_section(lines, map_ids[interior.name], interior.name, body + [position.call(wp)])
     end
     seabeds = result.seabeds.to_h { |wp, name, _text| [wp.name, map_ids[name]] }
     result.places.each do |wp, *|

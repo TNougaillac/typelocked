@@ -28,35 +28,3 @@ ExtraConnections = 2
 FloorPatches = 3,75,25
 FloorDecorations = 50,200
 VoidDecorations = 50,200
-#-------------------------------
-# Grotte « grotte immense » d'un monde MapProceduralGenerator
-[mapproc_immense]
-DungeonSize = 9,7
-CellSize = 10,10
-MinRoomSize = 5,5
-MaxRoomSize = 9,9
-CorridorWidth = 2
-ShiftCorridors = true
-NodeLayout = full
-RoomLayout = full
-RoomChance = 75
-ExtraConnections = 4
-FloorPatches = 2,50,25
-FloorDecorations = 50,200
-VoidDecorations = 50,200
-#-------------------------------
-# Grotte « dédale » d'un monde MapProceduralGenerator : presque que des couloirs
-[mapproc_dedale]
-DungeonSize = 7,6
-CellSize = 10,10
-MinRoomSize = 5,5
-MaxRoomSize = 6,6
-CorridorWidth = 2
-ShiftCorridors = true
-NodeLayout = full
-RoomLayout = full
-RoomChance = 15
-ExtraConnections = 8
-FloorPatches = 2,50,25
-FloorDecorations = 50,200
-VoidDecorations = 50,200

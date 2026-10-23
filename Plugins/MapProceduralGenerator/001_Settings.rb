@@ -20,17 +20,124 @@ module MapProceduralGenerator
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 
-  # Caves of a world: tileset of their maps (it needs a section in
-  # PBS/dungeon_tilesets.txt) and its floor tile. Essentials draws their layout
-  # when the player walks in (map metadata Dungeon = true), always from the
-  # same seed (see CAVE_SEEDS_FILE).
+  # Mountain routes: boundaries between levels (2 bands one level apart) on a
+  # north-south route and on an east-west one, at least FACE_GAP rows apart
+  # (BAND_MIN once wandering);
+  # chance that the next band climbs rather than goes down; how far a
+  # boundary wanders up and down (rows); tall grass patches on the raised
+  # levels per 20x20 tiles of them. A band keeps BAND_MIN rows at least.
+  MOUNTAIN_FACES = { vertical: 5..8, across: 2..3 }.freeze
+  FACE_GAP = 5
+  BAND_MIN = 3
+  MOUNTAIN_CLIMB = 0.7
+  FACE_WAVE = 2
+  MOUNTAIN_GRASS = 1..3
+  # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
+  # stair on their south face. In a town, only that often (%) when drawn.
+  HILL_TOWN_CHANCE = 20
+
+  # Caves of a world (2 floors each, see 006_Caves.rb): tileset of their maps
+  # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon
+  # parameters CAVE_AREA in PBS/dungeon_parameters.txt for the decorations),
+  # its floor and rock tiles.
   CAVE_TILESET = 7
+  CAVE_AREA = :cave
   CAVE_FLOOR = "T42"
-  # Graphic of the cave exits (a ladder, as in the example dungeon map).
+  CAVE_ROCK = "T40"
+  # Graphic of the cave exits and ladders (a ladder, as in the example dungeon map).
   CAVE_EXIT_TILE = 384 + 47
-  # Seed of each cave's layout (map ID => seed), so that a cave stays the same
-  # for a given world seed.
-  CAVE_SEEDS_FILE = "Data/MapProcCaves.rxdata"
+  # Rock around the galleries: half the screen, as Essentials' dungeons.
+  CAVE_MARGIN = [8, 6]
+  # Galleries of a floor, by excess (nil = none), on a grid of 2x2-tile
+  # blocks: size in blocks, number of chambers, their radius (blocks), extra
+  # tunnels making loops, tunnel width (blocks).
+  CAVE_SHAPES = {
+    nil              => { size: [24, 19], rooms: 5..7, radius: 1.5..3.2, loops: 1..2, width: 1..2 },
+    "grotte immense" => { size: [36, 28], rooms: 9..12, radius: 2.0..4.5, loops: 2..4, width: 1..2 },
+    "dédale"         => { size: [30, 24], rooms: 10..14, radius: 0.8..1.6, loops: 4..7, width: 1..1 }
+  }.freeze
+
+  # Interiors: each door of a building leads to a copy of a map of the demo,
+  # drawn among those of its brick type: [map ID, x, y of its exit (the door
+  # mat, the player arrives just above it)]. The copy keeps the map's tiles,
+  # not its events. A centre's copy is the healing spot of its town.
+  INTERIORS = {
+    "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
+    "boutique" => [[25, 4, 8], [54, 4, 8]],
+    "maison"   => [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]],
+    "immeuble" => [[12, 6, 10], [11, 7, 10]],
+    "arene"    => [[10, 6, 15]],
+    "port"     => [[27, 4, 8]],
+    "special"  => [[30, 5, 9], [11, 7, 10]],
+    "labo"     => [[4, 6, 13]]
+  }.freeze
+  # The professor's lab (brick type), only in the first town of a world. When
+  # it doesn't fit, the town is drawn without it and the professor waits
+  # outside (see the inventory).
+  LAB = "labo"
+  # Doors that lead elsewhere than an interior (caves, ferry, stairs)
+  NO_INTERIOR = %w[grotte gare montagne colline].freeze
+
+  # The end of every world's chain, after its last town: the Victory Road (a
+  # mountain route of the longest « Longueur », with a cave) and the League's
+  # plateau, a town with only these bricks. Names shown in game.
+  VICTORY_ROAD = "Route Victoire"
+  VICTORY_CAVE = "Grotte Victoire"
+  PLATEAU = "Plateau de la Ligue"
+  PLATEAU_BRICKS = { "centre" => 1..1, "ligue" => 1..1, "lampe" => 2..4, "arbre" => 2..5, "parc" => 0..1 }.freeze
+  # The League's building (brick type): its door leads to the rooms of the
+  # League, one after the other, copies of the demo's League maps: [role,
+  # map ID, x, y where the player arrives, x, y of the door to the next room
+  # (none in the last one)]. Only the entrance has a way out (LEAGUE_EXIT,
+  # its door mat), back to the plateau.
+  LEAGUE = "ligue"
+  LEAGUE_ROOMS = [
+    ["Entrée",   36, 11, 16, 4, 1],
+    ["Ancien 1", 37, 6, 12, 6, 2],
+    ["Ancien 2", 37, 6, 12, 6, 2],
+    ["Ancien 3", 37, 6, 12, 6, 2],
+    ["Ancien 4", 37, 6, 12, 6, 2],
+    ["Parrain",  37, 6, 12, 6, 2],
+    ["Arceus",   37, 6, 12, 6, 2],
+    ["Panthéon", 38, 5, 12]
+  ].freeze
+  LEAGUE_EXIT = [11, 17].freeze
+
+  # Field items (plugin FieldItems), each obtained in a town with a gym: that
+  # gym's or a later one (world key: its name, e.g. « Pioche = 3 »), drawn in
+  # the order of these minimums. Surf and Dive keep their own keys (Surf,
+  # Plongee).
+  FIELD_ITEMS = {
+    "Machette" => [:MACHETE, 1],
+    "Lanterne" => [:LANTERN, 2],
+    "Pioche"   => [:PICKAXE, 3],
+    "Harnais"  => [:HARNESS, 4],
+    "Grappin"  => [:GRAPPLINGHOOK, 5],
+    "Vol"      => [:FLYINGSADDLE, 6]
+  }.freeze
+  SURF_ITEM = :SURFSADDLE
+  DIVE_ITEM = :DIVINGSUIT
+  # Optional nooks (« Recoins » in a world, % per place), each behind an
+  # obstacle opened by a field item obtained earlier in the chain: a cut
+  # tree, a cracked rock or a boulder at the mouth of a pocket in the rock,
+  # an islet in a pond (Surf), a dark cave (Lantern, routes only). Their loot
+  # is in the inventory.
+  NOOKS = {
+    "arbre"  => :MACHETE,
+    "rocher" => :PICKAXE,
+    "bloc"   => :HARNESS,
+    "ilot"   => SURF_ITEM,
+    "sombre" => :LANTERN
+  }.freeze
+  # The obstacle events, copied from the demo: [map ID, event ID]. Their name
+  # keeps what Essentials looks for (CutTree, SmashRock, StrengthBoulder).
+  NOOK_EVENTS = {
+    "arbre"  => [31, 1],
+    "rocher" => [31, 22],
+    "bloc"   => [34, 5]
+  }.freeze
+  # Galleries of a dark cave (one floor, see CAVE_SHAPES)
+  DARK_CAVE_SHAPE = { size: [14, 11], rooms: 2..3, radius: 1.2..2.2, loops: 0..1, width: 1..1 }.freeze
 
   # World file (in FOLDER) drawn with a new seed at each new game, nil = none.
   # The game only keeps it if it is saved: at the next start, the maps of a
@@ -39,21 +146,23 @@ module MapProceduralGenerator
   # Which world the maps on disk belong to ({ path:, seed: }), written when a
   # new game draws its world.
   GAME_WORLD_FILE = "Data/MapProcWorld.rxdata"
+  # Priority of the thread drawing the world during the intro (Ruby thread
+  # priority: below 0, shorter time slices, so the intro keeps its frame rate)
+  WORLD_THREAD_PRIORITY = -3
 
   # Excesses (« Demesure » in a world): now and then a place goes over the top.
   # kind: ville or route (an island takes those of a village or of a route),
-  # grotte (cave) or fonds (seabed); boost: brick type => times its usual most (optional
-  # bricks only, so the place always fits); giant_lake: lakes far bigger;
-  # colossal: a mountain route with as many levels as fit (mountain routes
-  # only); long: a route three times as long as « Longueur » allows; fill: after the
-  # other bricks, that type again wherever it still fits; dense: those may
-  # touch each other; flood: water all over the free ground, the streets kept
-  # dry; carpet: that symbol all over the free ground (over_street: over the
-  # streets too, not the exits); ambiance: that [Ambiance] of the place file
-  # (its ground and streets), if the file has it. Caves: area: the
-  # [section] of PBS/dungeon_parameters.txt that Essentials draws the cave
-  # from. Seabeds: reach: how far the floor opens from the deep water (4..9
-  # otherwise); weed: far more and bigger spots of seaweed.
+  # grotte (cave, its galleries in CAVE_SHAPES) or fonds (seabed); boost:
+  # brick type => times its usual most (optional bricks only, so the place
+  # always fits); giant_lake: lakes far bigger; colossal: a mountain route
+  # with as many levels as fit (mountain routes only); long: a route three
+  # times as long as « Longueur » allows; fill: after the other bricks, that
+  # type again wherever it still fits; dense: those may touch each other;
+  # flood: water all over the free ground, the streets kept dry; carpet: that
+  # symbol all over the free ground (over_street: over the streets too, not
+  # the exits); ambiance: that [Ambiance] of the place file (its ground and
+  # streets), if the file has it. Seabeds: reach: how far the floor opens from
+  # the deep water (4..9 otherwise); weed: far more and bigger spots of seaweed.
   EXCESSES = {
     "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
     "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
@@ -64,8 +173,8 @@ module MapProceduralGenerator
     "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
     "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
     "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" },
-    "grotte immense"     => { kind: "grotte", area: "mapproc_immense" },
-    "dédale"             => { kind: "grotte", area: "mapproc_dedale" },
+    "grotte immense"     => { kind: "grotte" },
+    "dédale"             => { kind: "grotte" },
     "abysse"             => { kind: "fonds", reach: 10..16 },
     "forêt d'algues"     => { kind: "fonds", weed: true }
   }.freeze

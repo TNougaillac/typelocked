@@ -37,10 +37,9 @@ class Icon
     SIZE.times do |y|
       SIZE.times do |x|
         if mask[y][x]
-          tone = if !inside.call(x - 1, y) || !inside.call(x, y - 1) then 0
-                 elsif !inside.call(x + 1, y) || !inside.call(x, y + 1) then 2
-                 else 1
-                 end
+          lit  = !inside.call(x - 1, y) || !inside.call(x, y - 1)
+          dark = !inside.call(x + 1, y) || !inside.call(x, y + 1)
+          tone = lit ? 0 : (dark ? 2 : 1)
           @pixels[y][x] = tones[tone]
         elsif outline && [[1, 0], [-1, 0], [0, 1], [0, -1]].any? { |dx, dy| inside.call(x + dx, y + dy) }
           @pixels[y][x] = OUTLINE
