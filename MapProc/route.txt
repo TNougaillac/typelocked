@@ -12,6 +12,9 @@ Bordure = t
 Sorties = nord sud
 Rues    = 0..1
 Eau     = ~
+# Rive : le rebord du bas de l'eau, dessiné sur la rangée de sol en dessous
+# (bout gauche, milieu, bout droit).
+Rive    = !'?
 Profond = %
 Roche   = R
 Caillou = o
@@ -52,13 +55,18 @@ Sol   = T50
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+Rive  = T832 T833 T834
 
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+Rive  = T840 T841 T842
 
 # Palette MapGen (tileset Outside).
 [Legend]
+! = T848               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit)
+' = T849
+? = T850
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
 : = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe

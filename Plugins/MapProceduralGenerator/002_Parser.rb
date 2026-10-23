@@ -34,6 +34,10 @@
 #                               the raised levels)
 #   Ponton  = |                (optional: [Terrains] symbol of the wooden piers
 #                               of a port town, over the water)
+#   Rive    = !'?              (optional: [Legend] symbols of the bank drawn
+#                               on the ground below the water, left end,
+#                               middle and right end; an [Ambiance] may give
+#                               its own tiles: « Rive = T832 T833 T834 »)
 #   Rebord  = (_)              (with Ponton: [Legend] symbols of water with the
 #                               south lip of a pier drawn on it, left, middle
 #                               and right: the row below the last planks)
@@ -80,12 +84,14 @@ module MapProceduralGenerator
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
-                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook)
+                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks)
   # island: an island of a world (set by the world, the sea all around);
   # ferry: its ferry terminal leads to an island (set by the world); nook:
-  # the obstacle of its optional nook, a key of NOOKS (set by the world)
-  # ground, street: tile text of the ground and street symbols
-  Ambiance = Struct.new(:name, :weight, :ground, :street)
+  # the obstacle of its optional nook, a key of NOOKS (set by the world);
+  # banks: « Rive », the 3 symbols of the bank below the water
+  # ground, street: tile text of the ground and street symbols; banks: tiles
+  # of the 3 bank symbols on that ground (nil = those of the palette)
+  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
@@ -112,7 +118,7 @@ module MapProceduralGenerator
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       if raw.strip =~ /\A\[Ambiance\s+(.+?)\]\z/i
-        place.ambiances.push(Ambiance.new($1.strip, 1, nil, nil))
+        place.ambiances.push(Ambiance.new($1.strip, 1, nil, nil, nil))
         section = :ambiance
         next
       elsif raw.strip =~ /\A\[(\w+)\]\z/
@@ -137,7 +143,10 @@ module MapProceduralGenerator
         when "poids" then ambiance.weight = integer(value, fail_at)
         when "sol"   then ambiance.ground = value
         when "rue"   then ambiance.street = value
-        else fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue)")
+        when "rive"
+          ambiance.banks = value.split
+          fail_at.call("3 tuiles attendues (gauche, milieu, droite), ex. « T832 T833 T834 »") unless ambiance.banks.length == 3
+        else fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive)")
         end
         next
       end
@@ -164,6 +173,9 @@ module MapProceduralGenerator
       when "bateau"  then place.boat = symbol(value, fail_at)
       when "recif"   then place.reef = symbol(value, fail_at)
       when "banc"    then place.bank = symbol(value, fail_at)
+      when "rive"
+        fail_at.call("3 symboles attendus (gauche, milieu, droite), trouvé « #{value} »") unless value.length == 3
+        place.banks = value
       when "rebord"
         fail_at.call("3 symboles attendus (gauche, milieu, droite), trouvé « #{value} »") unless value.length == 3
         place.lips = value
@@ -275,6 +287,9 @@ module MapProceduralGenerator
       raise Error, "#{place.file} : « Ponton = #{place.pier} » doit être un symbole de [Terrains]"
     end
     raise Error, "#{place.file} : « Port » demande « Eau », « Ponton » et « Rebord »" if place.port && (!place.water || !place.pier || !place.lips)
+    place.banks&.each_char do |sym|
+      raise Error, "#{place.file} : « Rive » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
+    end
     place.lips&.each_char do |sym|
       raise Error, "#{place.file} : « Rebord » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
     end
@@ -330,6 +345,10 @@ module MapProceduralGenerator
     if chosen.street && place.street != place.ground
       section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
       text << "[#{section}]\n#{place.street} = #{chosen.street}\n"
+    end
+    if chosen.banks && place.banks
+      text << "[Legend]\n"
+      place.banks.each_char.with_index { |sym, i| text << "#{sym} = #{chosen.banks[i]}\n" }
     end
     return text
   end

@@ -30,11 +30,32 @@ def check_spill(plan, name)
   end
 end
 
-# Symbols a cell of the inventory may show: ground, streets, stairs, planks
+# Raises on a sea cell (autotile A1) with a dirty edge: below it, only more
+# water, the place's bank tiles, a mountain level (it draws its own top) or
+# the map's edge; and every sea cell in some 2x2 block of water (edges count).
+def check_water(plan, name, place)
+  sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.cover?(t) } }.keys
+  wet = sea + plan.objects.select { |_c, o| sea.include?(o.ground) }.keys + plan.terrains.select { |_c, t| sea.include?(t.ground) }.keys
+  clean = wet + place.banks.to_s.chars + place.levels.to_a
+  rows = plan.rows
+  at = ->(x, y) { y < 0 || y >= rows.length || x < 0 || x >= rows[y].length || wet.include?(rows[y][x]) }
+  rows.each_with_index do |row, y|
+    row.each_char.with_index do |c, x|
+      next if !sea.include?(c)
+      below = rows[y + 1]&.[](x)
+      raise MapGenerator::Error, "#{name} : eau colonne #{x + 1}, ligne #{y + 1} sans rive dessous (#{below.inspect})" if below && !clean.include?(below)
+      block = [[-1, -1], [0, -1], [-1, 0], [0, 0]].any? { |ox, oy| [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |dx, dy| at.call(x + ox + dx, y + oy + dy) } }
+      raise MapGenerator::Error, "#{name} : eau trop fine colonne #{x + 1}, ligne #{y + 1}" if !block
+    end
+  end
+end
+
+# Symbols a cell of the inventory may show: ground, streets, banks, stairs, planks
 # and the bricks walked through (grass).
 def walkable_symbols(place, bricks)
   symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
+  symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
 end
@@ -227,6 +248,7 @@ worlds.each do |path|
       plan = MapGenerator.parse(text, place.file)
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
       check_spill(plan, "#{wp.name} (graine #{seed})")
+      check_water(plan, "#{wp.name} (graine #{seed})", place)
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       check_nooks("#{wp.name} (graine #{seed})", place, bricks, layout)
     end
@@ -292,6 +314,7 @@ worlds.each do |path|
       plan = MapGenerator.parse(text, place.file)
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])
       check_spill(plan, "#{wp.name} (graine #{seed})")
+      check_water(plan, "#{wp.name} (graine #{seed})", place)
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       port_text = result.places.find { |p, *| p.equal?(port) }[2]
       inside = result.interiors.map(&:name)

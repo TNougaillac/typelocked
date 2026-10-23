@@ -11,6 +11,9 @@ Bordure = t
 Sorties = nord sud ouest
 Rues    = 1..2
 Eau     = ~
+# Rive : le rebord du bas de l'eau, dessiné sur la rangée de sol en dessous
+# (bout gauche, milieu, bout droit).
+Rive    = !'?
 # Ville portuaire : la mer d'un côté sans sortie, un quai en bois, des pontons,
 # une gare maritime sur pilotis au bout de l'un d'eux (port au sud, à l'est ou
 # à l'ouest) et des entrepôts le long du quai. Dans un monde, c'est le monde qui choisit ses ports.
@@ -61,6 +64,7 @@ Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T28
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+Rive  = T832 T833 T834
 Rue   = T274
 
 [Ambiance minérale]
@@ -71,10 +75,14 @@ Rue   = T274
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+Rive  = T840 T841 T842
 Rue   = T218
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
+! = T848               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit)
+' = T849
+? = T850
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
 : = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe

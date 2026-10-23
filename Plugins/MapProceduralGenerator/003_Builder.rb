@@ -46,6 +46,9 @@ module MapProceduralGenerator
   # Brick types of the nooks, drawn by the builder: a pocket of ground in the
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
+  # The sea autotile (A1), whose bottom edge is drawn by the bank below it
+  # (« Rive » of the place file) on the ground of the row underneath
+  SEA_TILES = (48...96).freeze
   NOOK = "recoin"
   ISLET = "ilot"
   DARK_CAVE = "grotte sombre"
@@ -91,13 +94,17 @@ module MapProceduralGenerator
         # Its cave is left out when no spot fits
         place_mountain_cave if @place.cave
       end
+      reserve_banks
       place_port_bricks if @port_depth
       place_bricks
       grow_highland_grass
+      trim_thin_water
+      clear_banks
       plant_border
       check_reachable
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
+      draw_banks(rows) if @place.banks
       return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory)
     end
 
@@ -426,6 +433,82 @@ module MapProceduralGenerator
           @cells[y][x] = @place.water
           @water[y][x] = @solid[y][x] = true
         end
+      end
+      reserve_banks
+    end
+
+    #---------------------------------------------------------------------------
+    # Banks: the row of ground below the water, where its bottom edge is drawn
+    #---------------------------------------------------------------------------
+    # Symbols showing the sea autotile.
+    def sea_symbols
+      @sea_symbols ||= @palette.legend.select { |_c, layers| layers.flatten.any? { |t| SEA_TILES.include?(t) } }.keys
+    end
+
+    # The sea and what stands on it with its own edges (piers, boats...).
+    def wet_symbols
+      @wet_symbols ||= sea_symbols + @palette.objects.select { |_c, o| sea_symbols.include?(o.ground) }.keys +
+                       @palette.terrains.select { |_c, t| sea_symbols.include?(t.ground) }.keys
+    end
+
+    def sea_at?(x, y)
+      return @water[y][x] || sea_symbols.include?(@cells[y][x])
+    end
+
+    def wet_at?(x, y)
+      return @water[y][x] || wet_symbols.include?(@cells[y][x])
+    end
+
+    # The ground below the bottom of the sea ([x, y] of each cell).
+    def bank_cells
+      return (1...@h).flat_map do |y|
+        (0...@w).select { |x| sea_at?(x, y - 1) && !wet_at?(x, y) }.map { |x| [x, y] }
+      end
+    end
+
+    # Keeps the free ground below the water for its bank: no brick nor path
+    # goes there (it stays walkable).
+    def reserve_banks
+      bank_cells.each { |x, y| @solid[y][x] = true if !@cells[y][x] && !@street[y][x] && !@border[y][x] }
+    end
+
+    # Sea too thin for its autotile (a cell in no 2x2 block of water, the map
+    # edges counting as water) goes back to ground, until none is left.
+    def trim_thin_water
+      wet = ->(x, y) { !inside?(x, y) || wet_at?(x, y) }
+      loop do
+        thin = (0...@h).flat_map do |y|
+          (0...@w).select do |x|
+            sea_at?(x, y) && [[-1, -1], [0, -1], [-1, 0], [0, 0]].none? do |ox, oy|
+              wet.call(x + ox, y + oy) && wet.call(x + ox + 1, y + oy) && wet.call(x + ox, y + oy + 1) && wet.call(x + ox + 1, y + oy + 1)
+            end
+          end.map { |x| [x, y] }
+        end
+        break if thin.empty?
+        thin.each do |x, y|
+          @cells[y][x] = @kinds[y][x] = nil
+          @water[y][x] = @solid[y][x] = false
+        end
+      end
+    end
+
+    # No tree below the water: the border gives way to the bank.
+    def clear_banks
+      bank_cells.each do |x, y|
+        next if !@border[y][x] || @cells[y][x]
+        @border[y][x] = false
+      end
+    end
+
+    # Draws the banks: the left end, middle and right end symbols of « Rive »
+    # on the ground below the water.
+    def draw_banks(rows)
+      # On the ground (an islet's too) or a carpet of grass
+      cells = bank_cells.select { |x, y| [@place.ground, excess[:carpet]].include?(rows[y][x]) }.to_h { |cell| [cell, true] }
+      cells.each_key do |x, y|
+        left, right = cells[[x - 1, y]], cells[[x + 1, y]]
+        part = (left == right) ? 1 : (left ? 2 : 0)
+        rows[y][x] = @place.banks[part]
       end
     end
 
@@ -1000,6 +1083,7 @@ module MapProceduralGenerator
           @water[y][x] = @solid[y][x] = true
         end
       end
+      reserve_banks
     end
 
     # On an east-west mountain route, a hub row away from the exits, so that the
@@ -1210,12 +1294,26 @@ module MapProceduralGenerator
           end
         end
       end
+      return false if !bank_free?(brick, x, y)
       return true if !brick.door
       # The path under the door must be free or already a street
       fx, fy = x + brick.door[0], y + brick.rows.length
       return false if !inside?(fx + STREET_WIDTH - 1, fy + STREET_WIDTH - 1)
       STREET_WIDTH.times do |oy|
         STREET_WIDTH.times { |ox| return false if @solid[fy + oy][fx + ox] }
+      end
+      return true
+    end
+
+    # A brick of water keeps the cells below its bottom edge off the streets
+    # of a town (their paving can't show the bank).
+    def bank_free?(brick, x, y)
+      return true if @place.street == @place.ground
+      brick.rows.each_with_index do |row, dy|
+        row.each_char.with_index do |c, dx|
+          next if !sea_symbols.include?(c) || wet_symbols.include?(brick.rows[dy + 1]&.[](dx))
+          return false if inside?(x + dx, y + dy + 1) && @street[y + dy + 1][x + dx]
+        end
       end
       return true
     end
@@ -1245,6 +1343,7 @@ module MapProceduralGenerator
           @kinds[y + dy][x + dx] = brick.kind
         end
       end
+      reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]
       @doors.push([dx, dy, brick])
