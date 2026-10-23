@@ -16,7 +16,12 @@
 #   L = Lac  type=lieu              type=ville|route|lieu = drawing on the
 #   B = Ville 2  nom=Port Lucca     Town Map, guessed from the name and vol;
 #                                   nom=... = name shown in game, the map's
-#                                   name by default)
+#                                   name by default; masque=10/11 = the
+#                                   squares of its rectangle it covers, row
+#                                   by row, the others left out of the Town
+#                                   Map; trace=1,1/3,1/3,4 = the line of a
+#                                   route on the Town Map, in half squares
+#                                   from the top-left of its rectangle)
 #   [World]
 #   ..1..                      (one char per Town Map square, "." = nothing;
 #   AAB..                       each place is one solid rectangle, places that
@@ -30,10 +35,17 @@ module MapGenerator
   WorldPlan = Struct.new(:file, :name, :region, :cell, :origin, :image, :tileset_id,
                          :ground, :places, :rows, :no_links)
   # x, y, width, height in world cells
-  # title: name shown in game (map metadata, Town Map), nil = the map's name
-  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id, :title) do
+  # title: name shown in game (map metadata, Town Map), nil = the map's name;
+  # mask: rows of "1" (square covered) and "0", nil = the whole rectangle;
+  # trace: [[x, y]...] the route's line on the Town Map, in half squares
+  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id, :title, :mask, :trace) do
     def display_name
       return title || name
+    end
+
+    # True if the square dx, dy of its rectangle is part of the place.
+    def covers?(dx, dy)
+      return !mask || mask[dy]&.[](dx) == "1"
     end
   end
   WORLD_EMPTY = "."
@@ -72,7 +84,7 @@ module MapGenerator
         fail_at.call("attendu « symbole = nom de la carte [vol=x,y] »") unless content =~ /\A(\S)\s*=\s*(.+)\z/
         symbol, rest = $1, $2
         fail_at.call("« #{WORLD_EMPTY} » est réservé aux cases vides") if symbol == WORLD_EMPTY
-        fly = kind = title = nil
+        fly = kind = title = mask = trace = nil
         # Options from the end; a value may hold spaces (nom=Port Lucca)
         while rest =~ /\A(.+?)\s+(\w+)=(\S+(?:\s+[^\s=]+)*)\z/
           rest, key, value = $1, $2, $3
@@ -85,11 +97,19 @@ module MapGenerator
             kind = value
           when "nom"
             title = value
-          else fail_at.call("option « #{key} » inconnue (vol, type, nom)")
+          when "masque"
+            fail_at.call("attendu « masque=10/11 »") unless value =~ %r{\A[01]+(/[01]+)*\z}
+            mask = value.split("/")
+          when "trace"
+            fail_at.call("attendu « trace=x,y/x,y... »") unless value =~ %r{\A\d+,\d+(/\d+,\d+)+\z}
+            trace = value.split("/").map { |point| point.split(",").map(&:to_i) }
+          else fail_at.call("option « #{key} » inconnue (vol, type, nom, masque, trace)")
           end
         end
         plan.places[symbol] = Place.new(symbol, rest.strip, fly, kind)
         plan.places[symbol].title = title
+        plan.places[symbol].mask = mask
+        plan.places[symbol].trace = trace
       when :nolinks
         fail_at.call("attendu deux symboles, par exemple « A B »") unless content =~ /\A(\S)\s+(\S)\z/
         plan.no_links.push([$1, $2].sort)
@@ -138,6 +158,10 @@ module MapGenerator
       place.width, place.height = xs.max - xs.min + 1, ys.max - ys.min + 1
       if list.length != place.width * place.height
         raise Error, "#{plan.file} : « #{place.symbol} » (#{place.name}) doit former un seul rectangle plein"
+      end
+      next if !place.mask
+      if place.mask.length != place.height || place.mask.any? { |row| row.length != place.width } || place.mask.join.count("1") == 0
+        raise Error, "#{plan.file} : le masque de « #{place.symbol} » (#{place.name}) ne couvre pas son rectangle (#{place.width}x#{place.height})"
       end
     end
     plan.no_links.each do |pair|
@@ -262,7 +286,7 @@ module MapGenerator
         "Outdoor"     => "true",
         "ShowArea"    => "true",
         "MapPosition" => "#{plan.region},#{x},#{y}",
-        "MapSize"     => (place.width * place.height > 1) ? "#{place.width},#{'1' * (place.width * place.height)}" : nil
+        "MapSize"     => (place.width * place.height > 1) ? "#{place.width},#{place.mask&.join || ('1' * (place.width * place.height))}" : nil
       }
       start = lines.index { |l| l =~ /\A\[0*#{place.map_id}\]/ }
       if !start
@@ -293,6 +317,7 @@ module MapGenerator
     plan.places.each_value do |place|
       place.height.times do |dy|
         place.width.times do |dx|
+          next if !place.covers?(dx, dy)
           squares[[plan.origin[0] + place.x + dx, plan.origin[1] + place.y + dy]] = place
         end
       end

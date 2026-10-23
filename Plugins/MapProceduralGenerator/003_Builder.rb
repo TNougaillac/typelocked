@@ -6,6 +6,9 @@
 # 3. Bricks with a door (buildings), required ones first, each linked to the
 #    nearest street by a path; then bricks without a door (decoration).
 # 4. Every door and exit must be reachable, or the generation fails.
+# A place of a world with a mask (a route in L) only covers some squares of
+# its rectangle: the others are border, and the streets meet in its joints
+# (its corners) so that they never leave its squares.
 # A route of a world may be crossed by water (chenal: a straight channel, lac:
 # a lake from side to side), reached only by surfing, or by a rock wall with a
 # cave entrance on each side (grotte); the exits then lie on both sides of it.
@@ -67,6 +70,8 @@ module MapProceduralGenerator
       @seed = seed
       @rng = Random.new(seed)
       @w, @h = place.width, place.height
+      @mask = place.mask
+      @cell = @mask && @w / @mask[0].length
       @cells = Array.new(@h) { Array.new(@w) }          # brick or border symbols
       @solid = Array.new(@h) { Array.new(@w, false) }   # nothing else may go there
       @street = Array.new(@h) { Array.new(@w, false) }
@@ -84,7 +89,16 @@ module MapProceduralGenerator
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
       hub[1] = climbing_hub_row || hub[1] if @place.mountain
       hub = port_hub(hub) if @place.port
+      if @mask
+        # One square near the middle of each joint, the streets go through them
+        @hubs = @place.joints.map do |jx, jy, jw, jh|
+          [@rng.rand(((jx + (jw * 0.35)) * @cell).to_i..((jx + (jw * 0.65)) * @cell).to_i - STREET_WIDTH),
+           @rng.rand(((jy + (jh * 0.35)) * @cell).to_i..((jy + (jh * 0.65)) * @cell).to_i - STREET_WIDTH)]
+        end
+        hub = @hubs[0]
+      end
       @place.exits.each { |side, offset| carve_exit(side, offset, hub) }
+      @hubs&.each_cons(2) { |a, b| carve_line(*a, *b) }
       @water = Array.new(@h) { Array.new(@w, false) }
       lay_port(hub) if @place.port
       lay_shore if @place.island
@@ -186,6 +200,11 @@ module MapProceduralGenerator
       return x >= 0 && y >= 0 && x < @w && y < @h
     end
 
+    # Inside the map and on a square its mask covers.
+    def covered?(x, y)
+      return inside?(x, y) && (!@mask || @mask[y / @cell][x / @cell] == "1")
+    end
+
     def border_size
       object = @place.border && @palette.objects[@place.border]
       return object ? [object.width, object.height] : [0, 0]
@@ -193,9 +212,11 @@ module MapProceduralGenerator
 
     def reserve_border
       bw, bh = border_size
+      # Within the border's size of the map's edge or of a square left out
+      off = [[0, 0], [-bw, 0], [bw, 0], [0, -bh], [0, bh], [-bw, -bh], [bw, -bh], [-bw, bh], [bw, bh]]
       @h.times do |y|
         @w.times do |x|
-          next unless x < bw || x >= @w - bw || y < bh || y >= @h - bh
+          next unless off.any? { |ox, oy| !covered?(x + ox, y + oy) }
           @border[y][x] = @solid[y][x] = true
         end
       end
@@ -213,16 +234,27 @@ module MapProceduralGenerator
     end
 
     # L-shaped street, bending at a random end (at the far end on an
-    # east-west mountain route, so that the street climbs at the hub).
+    # east-west mountain route, so that the street climbs at the hub; at the
+    # end that keeps it on the squares of a mask).
     def carve_line(x0, y0, x1, y1)
       far_bend = @rng.rand(2) == 0
       far_bend = true if @place.mountain && !vertical_route?
-      if far_bend
-        (x0 < x1 ? x0.upto(x1) : x0.downto(x1)).each { |x| paint(x, y0) }
-        (y0 < y1 ? y0.upto(y1) : y0.downto(y1)).each { |y| paint(x1, y) }
-      else
-        (y0 < y1 ? y0.upto(y1) : y0.downto(y1)).each { |y| paint(x0, y) }
-        (x0 < x1 ? x0.upto(x1) : x0.downto(x1)).each { |x| paint(x, y1) }
+      far_bend = !far_bend if @mask && !line_covered?(x0, y0, x1, y1, far_bend)
+      line_steps(x0, y0, x1, y1, far_bend).each { |x, y| paint(x, y) }
+    end
+
+    # Brush steps of an L-shaped street, bending at the far end or not.
+    def line_steps(x0, y0, x1, y1, far_bend)
+      xs = (x0 < x1 ? x0.upto(x1) : x0.downto(x1)).to_a
+      ys = (y0 < y1 ? y0.upto(y1) : y0.downto(y1)).to_a
+      return xs.map { |x| [x, y0] } + ys.map { |y| [x1, y] } if far_bend
+      return ys.map { |y| [x0, y] } + xs.map { |x| [x, y1] }
+    end
+
+    # True if that street stays on the squares the mask covers.
+    def line_covered?(x0, y0, x1, y1, far_bend)
+      return line_steps(x0, y0, x1, y1, far_bend).all? do |x, y|
+        (0...STREET_WIDTH).all? { |oy| (0...STREET_WIDTH).all? { |ox| covered?(x + ox, y + oy) } }
       end
     end
 
@@ -237,6 +269,12 @@ module MapProceduralGenerator
              when "est"   then [@w - STREET_WIDTH, along.call(@h)]
              end
       @exits.push([side, x, y])
+      # With a mask, to the closest joint the street can reach on its squares
+      if @mask
+        hub = @hubs.sort_by { |hx, hy| (hx - x).abs + (hy - y).abs }.find do |hx, hy|
+          line_covered?(x, y, hx, hy, true) || line_covered?(x, y, hx, hy, false)
+        end || hub
+      end
       carve_line(x, y, hub[0], hub[1])
     end
 
@@ -246,13 +284,15 @@ module MapProceduralGenerator
       bw, bh = border_size
       bw = bh = ISLAND_SHORE.max + 2 if @place.island
       inland = ->(x, y) { !@port_depth || port_depth_at(x, y) >= @port_depth + STREET_WIDTH }
+      # With a mask, the street must stay on its squares
+      covered = ->(x, y) { !@mask || line_covered?(hub[0], hub[1], x, y, true) || line_covered?(hub[0], hub[1], x, y, false) }
       x, y = nil
       10.times do
         x = @rng.rand(bw + 2..@w - bw - 2 - STREET_WIDTH)
         y = @rng.rand(bh + 2..@h - bh - 2 - STREET_WIDTH)
-        break if inland.call(x, y)
+        break if inland.call(x, y) && covered.call(x, y)
       end
-      return if !inland.call(x, y)
+      return if !inland.call(x, y) || !covered.call(x, y)
       carve_line(hub[0], hub[1], x, y)
       @dead_ends.push([x, y])
     end
@@ -260,7 +300,8 @@ module MapProceduralGenerator
     def place_bricks
       required = []
       optional = []
-      area = @w * @h / (CASE_SIZE * CASE_SIZE).to_f
+      # The squares of a mask only
+      area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
       @place.counts.each do |kind, range|
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = @rng.rand(range)

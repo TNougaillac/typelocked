@@ -132,6 +132,20 @@ def check_nooks(name, place, bricks, layout)
   end
 end
 
+# Raises if a place with a mask can be walked outside the squares it covers,
+# or has an exit off them.
+def check_mask(name, place, bricks, layout)
+  return if !place.mask
+  cell = place.width / place.mask[0].length
+  covered = ->(x, y) { place.mask[y / cell]&.[](x / cell) == "1" }
+  layout.exits.each do |side, x, y|
+    next if (0...M::STREET_WIDTH).all? { |o| covered.call(x + o, y) && covered.call(x, y + o) }
+    raise M::Error, "#{name} : sortie #{side} (#{x},#{y}) hors du tracé"
+  end
+  outside = reached(place, bricks, layout, surf: true).keys.find { |x, y| !covered.call(x, y) }
+  raise M::Error, "#{name} : case #{outside.join(',')} atteinte hors du tracé" if outside
+end
+
 # The dungeon tileset as Essentials' painter sees it (only what draws walls).
 CaveTileset = Struct.new(:snap_to_large_grid, :double_walls, :floor_patch_under_walls) do
   def has_decoration?(_deco) = false
@@ -284,6 +298,7 @@ worlds.each do |path|
       check_water(plan, "#{wp.name} (graine #{seed})", place)
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       check_nooks("#{wp.name} (graine #{seed})", place, bricks, layout)
+      check_mask("#{wp.name} (graine #{seed})", place, bricks, layout)
     end
     # Field items: in towns with a gym, in the order of their minimums, each
     # at its minimum gym or later; a nook only after the town of its item

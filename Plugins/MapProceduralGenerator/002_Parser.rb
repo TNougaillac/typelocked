@@ -90,7 +90,10 @@ module MapProceduralGenerator
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
-                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts)
+                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
+                     :mask, :joints)
+  # mask, joints: the squares of its rectangle a place of a world covers and
+  # where its streets meet (see WorldPlace), nil = the whole rectangle;
   # island: an island of a world (set by the world, the sea all around);
   # ferry: its ferry terminal leads to an island (set by the world); nook:
   # the obstacle of its optional nook, a key of NOOKS (set by the world);

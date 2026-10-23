@@ -20,6 +20,10 @@ Arenes   = 8
 # La première ville n'a jamais d'arène. Les autres villes sans arène sont tirées
 # au hasard dans la chaîne, ou imposées par leur numéro, ex. « SansArene = 5 ».
 Longueur = 2..3
+# Formes des routes : droites, ou en L (un virage ; 3 cases de long au moins).
+# Une route en L garde tout son rectangle sur la grille du monde ; les cases
+# hors de son tracé sont remplies d'arbres.
+FormesRoutes = droite, L
 # L'eau qui barre une route (chenal tout droit ou lac d'un bord à l'autre) ne se
 # traverse qu'avec Surf : elle n'apparaît qu'après la ville de la 2e arène.
 # Les lacs posés dans les villes et les routes ne bloquent jamais le passage.

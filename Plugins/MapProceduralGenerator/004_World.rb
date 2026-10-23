@@ -18,6 +18,9 @@
 #                               of the chain, have no gym either; the others
 #                               without one are still drawn at random)
 #   Longueur = 2..4            (route length in squares, 2..4 by default)
+#   FormesRoutes = droite, L   (route shapes drawn from, droite by default:
+#                               straight, or in L, turning once; an L needs a
+#                               length of 3 squares at least)
 #   Surf     = 2               (Surf is obtained in a town with a gym, drawn
 #                               from the town of that gym onwards, 2 by
 #                               default; water that blocks a route only
@@ -69,7 +72,10 @@
 #                               seed from this file, see 008_Names; the map
 #                               names otherwise)
 # The towns (2x2 squares) form a chain linked by routes (1 square wide), each
-# town a little further from the start, so the gyms come in that order. Each
+# town a little further from the start, so the gyms come in that order. A
+# route in L keeps its whole rectangle on the grid (MapGen needs one per map)
+# with a mask of the squares it covers: the others are filled like the map's
+# border, and the exits only lie on the edges of its squares. Each
 # place is assembled from its place file with the exits facing its
 # neighbours, then MapGen writes the maps, the connections and the Town Map
 # from the world plan made here. Only routes of 2 squares or more can be
@@ -82,7 +88,7 @@ module MapProceduralGenerator
   World = Struct.new(:file, :name, :region, :image, :origin, :width, :height, :cell,
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
                      :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river,
-                     :ports, :islands, :island_gyms, :names_file, :field_items, :nooks)
+                     :ports, :islands, :island_gyms, :names_file, :field_items, :nooks, :route_shapes)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
@@ -93,10 +99,15 @@ module MapProceduralGenerator
   # first town, drawn without its lab (it didn't fit): the professor waits
   # outside; victory: the Victory Road; league: the League's plateau, at the
   # end of the chain (see VICTORY_ROAD); items: the field items obtained in
-  # that town; nook: the obstacle of its nook (a key of NOOKS)
+  # that town; nook: the obstacle of its nook (a key of NOOKS); shape: of a
+  # route (see ROUTE_SHAPES); mask: rows of "1" (square covered) and "0" of
+  # its rectangle, nil = all of it; joints: [x, y, w, h] the blocks of squares
+  # where its streets meet (its corners), from its top-left; trace: its line
+  # on the Town Map, in half squares from its top-left
   WorldPlace = Struct.new(:symbol, :kind, :name, :x, :y, :w, :h, :exits, :gym, :index, :crossing, :surf,
                           :dive, :deep, :mountain, :cave, :excess, :river, :port, :island,
-                          :island_gym, :title, :cave_title, :professor, :victory, :league, :items, :nook)
+                          :island_gym, :title, :cave_title, :professor, :victory, :league, :items, :nook,
+                          :shape, :mask, :joints, :trace)
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, CaveFloor, excess],
   # one per floor;
@@ -106,6 +117,10 @@ module MapProceduralGenerator
   WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors)
 
   TOWN_SIZE = 2
+  # Times the world is laid out again when a place can't be assembled
+  WORLD_TRIES = 10
+  # Route shapes: straight, in L (one turn)
+  ROUTE_SHAPES = %w[droite L].freeze
   # Map name of the League's plateau (its route is « Route générée N »)
   PLATEAU_NAME = "Plateau généré"
   TOWN_SYMBOLS = ("A".."Z").to_a
@@ -125,7 +140,7 @@ module MapProceduralGenerator
 
   def parse_world(text, file = "monde")
     world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, 0..0, 0, 0, nil,
-                      FIELD_ITEMS.transform_values(&:last), 0)
+                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"])
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -148,6 +163,7 @@ module MapProceduralGenerator
       when "villes"   then world.towns = integer(value, fail_at)
       when "arenes"   then world.gyms = integer(value, fail_at)
       when "longueur" then world.route_length = range(value, fail_at)
+      when "formesroutes" then world.route_shapes = choices(value, ROUTE_SHAPES, fail_at)
       when "noms"     then world.names = value.split(",").map(&:strip)
       when "toponymie" then world.names_file = value
       when "sansarene" then world.no_gym = value.split(",").map { |n| integer(n.strip, fail_at) }
@@ -193,57 +209,37 @@ module MapProceduralGenerator
     return world
   end
 
+  # Values of a list key among those allowed (« FormesRoutes = droite, L »).
+  def choices(value, allowed, fail_at)
+    list = value.split(",").map(&:strip).uniq
+    list.each { |v| fail_at.call("« #{v} » inconnu (#{allowed.join(', ')})") if !allowed.include?(v) }
+    return list
+  end
+
   # Lays the towns and routes on the grid, then assembles every place.
   # map_ids: name => map ID to overwrite (places of an earlier world); names:
   # NameTable of the names shown in game (nil = the map names).
   def generate_world(world, town, route, bricks, seed, map_ids = {}, names = nil)
     rng = Random.new(seed)
-    places = nil
-    50.times do
-      places = lay_out_world(world, rng)
-      break if places
-    end
-    raise Error, "#{world.file} (graine #{seed}) : impossible de placer #{world.towns} villes dans #{world.width}x#{world.height} cases ; agrandis « Taille »" if !places
-    # Own random numbers: the names don't change the rest of the world
-    region = names ? name_world(world, places, names, Random.new((seed * 1000) + 999)) : world.name
-    places.each do |wp|
-      wp.title ||= (wp.victory && VICTORY_ROAD) || (wp.league && PLATEAU) || wp.name
-      wp.cave_title ||= VICTORY_CAVE if wp.victory
-    end
-    built = places.map do |wp|
-      base = (wp.kind == "ville") ? town : route
-      place = base.dup
-      place.name = wp.name
-      place.width, place.height = wp.w * world.cell, wp.h * world.cell
-      place.exits = wp.exits
-      place.map_id = map_ids[wp.name]
-      place.counts = base.counts.dup
-      place.counts["arene"] = wp.gym ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
-      place.crossing = wp.crossing
-      place.mountain = wp.mountain
-      place.cave = wp.cave
-      place.river = wp.river
-      place.port = wp.port
-      place.ferry = !wp.island.nil?
-      place.excess = wp.excess
-      wanted = EXCESSES.dig(wp.excess, :ambiance)
-      place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
-      place.dive = wp.deep
-      place.nook = wp.nook
-      if wp.league
-        place.counts = PLATEAU_BRICKS.select { |k, _| bricks.any? { |b| b.kind == k } }
-        place.per_case = []
-        place.fixed_counts = true
+    places = built = region = nil
+    # A place whose bricks never fit (a short route with a wide channel...)
+    # lays the whole world out again, further on in the seed's numbers
+    WORLD_TRIES.times do |attempt|
+      50.times do
+        places = lay_out_world(world, rng)
+        break if places
       end
-      # The professor's lab in the first town, left out if it doesn't fit
-      place.counts[LAB] = 1..1 if wp.index == 0 && bricks.any? { |b| b.kind == LAB }
-      begin
-        [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
-      rescue Error
-        raise if !place.counts.delete(LAB)
-        wp.professor = true
-        [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+      raise Error, "#{world.file} (graine #{seed}) : impossible de placer #{world.towns} villes dans #{world.width}x#{world.height} cases ; agrandis « Taille »" if !places
+      # Own random numbers: the names don't change the rest of the world
+      region = names ? name_world(world, places, names, Random.new((seed * 1000) + 999)) : world.name
+      places.each do |wp|
+        wp.title ||= (wp.victory && VICTORY_ROAD) || (wp.league && PLATEAU) || wp.name
+        wp.cave_title ||= VICTORY_CAVE if wp.victory
       end
+      built = build_world_places(world, places, town, route, bricks, seed, map_ids)
+      break
+    rescue Error
+      raise if attempt == WORLD_TRIES - 1
     end
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }
@@ -302,6 +298,48 @@ module MapProceduralGenerator
     built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region), built, caves, seabeds, islands, interiors)
+  end
+
+  # Assembles each place of the world: [WorldPlace, Place, MapGen plan text,
+  # Layout].
+  def build_world_places(world, places, town, route, bricks, seed, map_ids)
+    return places.map do |wp|
+      base = (wp.kind == "ville") ? town : route
+      place = base.dup
+      place.name = wp.name
+      place.width, place.height = wp.w * world.cell, wp.h * world.cell
+      place.exits = wp.exits
+      place.mask = wp.mask
+      place.joints = wp.joints
+      place.map_id = map_ids[wp.name]
+      place.counts = base.counts.dup
+      place.counts["arene"] = wp.gym ? 1..1 : 0..0 if wp.kind == "ville" && base.counts.key?("arene")
+      place.crossing = wp.crossing
+      place.mountain = wp.mountain
+      place.cave = wp.cave
+      place.river = wp.river
+      place.port = wp.port
+      place.ferry = !wp.island.nil?
+      place.excess = wp.excess
+      wanted = EXCESSES.dig(wp.excess, :ambiance)
+      place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
+      place.dive = wp.deep
+      place.nook = wp.nook
+      if wp.league
+        place.counts = PLATEAU_BRICKS.select { |k, _| bricks.any? { |b| b.kind == k } }
+        place.per_case = []
+        place.fixed_counts = true
+      end
+      # The professor's lab in the first town, left out if it doesn't fit
+      place.counts[LAB] = 1..1 if wp.index == 0 && bricks.any? { |b| b.kind == LAB }
+      begin
+        [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+      rescue Error
+        raise if !place.counts.delete(LAB)
+        wp.professor = true
+        [wp, place, *generate_world_place(place, bricks, (seed * 1000) + wp.index)]
+      end
+    end
   end
 
   # The island that the boat of that port town goes to, nil if the town got
@@ -491,16 +529,17 @@ module MapProceduralGenerator
     take.call(current)
     # The i-th route and town of the chain, on the first of those sides and
     # lengths that fits; nil if none does
-    extend_chain = lambda do |i, sides, lengths, town|
+    extend_chain = lambda do |i, sides, lengths, town, shapes = world.route_shapes|
       sides.product(lengths).each do |side, length|
-        rt, nt = route_and_town(current, side, length, rng)
+        rt, nt, out = route_and_town(current, side, length, shapes, rng)
+        next if !rt
         # The route only touches the current town, the new town only its route
         # (not laid yet, so nothing may be around the new town)
         next if !free.call(rt.x, rt.y, rt.w, rt.h, [current]) || !free.call(nt.x, nt.y, nt.w, nt.h, [])
         take.call(rt.tap { |r| r.symbol = ROUTE_SYMBOLS[i - 1]; r.name = "Route générée #{i}" })
         take.call(nt.tap { |t| t.symbol = TOWN_SYMBOLS[i]; t.name = town })
         link(world, current, rt, side, rng)
-        link(world, rt, nt, side, rng)
+        link(world, rt, nt, out, rng)
         current = nt
         return rt
       end
@@ -529,7 +568,7 @@ module MapProceduralGenerator
     # Then the Victory Road, north-south (only these climb level after level),
     # and the plateau: after the draws above, which leave them alone
     sides = %w[nord sud].shuffle(random: rng)
-    victory = extend_chain.call(world.towns, sides, [world.route_length.max], PLATEAU_NAME) || (return nil)
+    victory = extend_chain.call(world.towns, sides, [world.route_length.max], PLATEAU_NAME, ["droite"]) || (return nil)
     victory.mountain = victory.cave = victory.victory = true
     current.league = true
     places.each_with_index { |p, i| p.index ||= i }
@@ -631,7 +670,8 @@ module MapProceduralGenerator
   # water only blocks routes after that town, so that the player can always go
   # on without surfing before. Caves anywhere.
   def choose_crossings(world, places, rng)
-    routes = places.select { |p| p.kind == "route" && [p.w, p.h].max >= 2 }
+    # Only straight routes are crossed or climb
+    routes = places.select { |p| p.kind == "route" && [p.w, p.h].max >= 2 && !p.mask }
     gyms = places.select { |p| p.kind == "ville" && p.gym }
     route_after = ->(town) { routes.any? { |r| r.index > town.index } }
     candidates = gyms.drop(world.surf - 1)
@@ -690,33 +730,143 @@ module MapProceduralGenerator
     return dive_town
   end
 
-  # Route of that length leaving the town on that side, and the next town at
-  # its far end (both shifted at random along the side).
-  def route_and_town(town, side, length, rng)
-    dx, dy = DIRECTIONS[side]
-    if dx != 0
-      ry = town.y + rng.rand(TOWN_SIZE)
-      rx = (dx > 0) ? town.x + TOWN_SIZE : town.x - length
-      route = WorldPlace.new(nil, "route", nil, rx, ry, length, 1, [], false)
-      nx = (dx > 0) ? rx + length : rx - TOWN_SIZE
-      ny = ry - rng.rand(TOWN_SIZE)
-    else
-      rx = town.x + rng.rand(TOWN_SIZE)
-      ry = (dy > 0) ? town.y + TOWN_SIZE : town.y - length
-      route = WorldPlace.new(nil, "route", nil, rx, ry, 1, length, [], false)
-      ny = (dy > 0) ? ry + length : ry - TOWN_SIZE
-      nx = rx - rng.rand(TOWN_SIZE)
+  # Route of that length leaving the town on that side, of a shape drawn
+  # among those, and the next town at its far end (both shifted at random
+  # along the side, fully against the place they touch when they can).
+  # Returns [route, town, side of the route towards the town], nil if no
+  # spot fits.
+  def route_and_town(town, side, length, shapes, rng)
+    shape = (shapes.length > 1) ? shapes[rng.rand(shapes.length)] : shapes[0]
+    width = 1
+    # An L turns after a first leg longer than the route is wide
+    shape = "droite" if shape == "L" && length < width + 2
+    turns = DIRECTIONS.keys.select { |k| DIRECTIONS[k].map(&:abs) != DIRECTIONS[side].map(&:abs) }
+    # A straight route turns nowhere: across it, towards the east or south
+    turn = (shape == "droite") ? turns.find { |k| DIRECTIONS[k].sum > 0 } : turns[rng.rand(2)]
+    first = (shape == "droite") ? length : rng.rand(width + 1..length - 1)
+    frame = route_frame(shape, first, length - first, width)
+    spots = route_spots(town, side, turn, frame)
+    return nil if spots.empty?
+    route, ends, out = spots[rng.rand(spots.length)]
+    route.shape = shape
+    spots = town_spots(ends, out, TOWN_SIZE, TOWN_SIZE)
+    return nil if spots.empty?
+    return route, spots[rng.rand(spots.length)], out
+  end
+
+  # A route of that shape in its own frame: u away from the place it leaves
+  # (u = 0 against it), v across, each leg width squares thick; a: length of
+  # the first leg (u), b: of the second (v). Returns [squares [u, v], squares
+  # of its far end, way out (:ahead, :turn), joints [u, v, du, dv], line on
+  # the Town Map (half squares, nil if straight)].
+  def route_frame(shape, a, b, width)
+    rect = ->(u, v, du, dv) { (u...u + du).flat_map { |cu| (v...v + dv).map { |cv| [cu, cv] } } }
+    return [rect.call(0, 0, a, width), (0...width).map { |v| [a - 1, v] }, :ahead, [], nil] if shape == "droite"
+    middle = (2 * a) - width
+    return [rect.call(0, 0, a, width) | rect.call(a - width, width, width, b),
+            (a - width...a).map { |u| [u, width + b - 1] }, :turn,
+            [[a - width, 0, width, width]], [[0, width], [middle, width], [middle, 2 * (width + b)]]]
+  end
+
+  # The routes of that frame against place a on that side, the frame's v
+  # going towards turn: [route, far squares, side towards the next place] for
+  # each spot along the side, those fully against a first, then those that
+  # only touch it, from the top or left.
+  def route_spots(a, side, turn, frame)
+    squares, ends, way, joints, trace = frame
+    du, dv = DIRECTIONS[side], DIRECTIONS[turn]
+    horizontal = du[1] == 0
+    entry = squares.select { |u, _v| u == 0 }
+    # Origin along the side, then the shift across
+    base = case side
+           when "est" then a.x + a.w
+           when "ouest" then a.x - 1
+           when "sud" then a.y + a.h
+           else a.y - 1
+           end
+    lo, hi = horizontal ? [a.y, a.y + a.h] : [a.x, a.x + a.w]
+    width = entry.length
+    spots = (lo - width..hi + width).filter_map do |t|
+      origin = horizontal ? [base, t] : [t, base]
+      cell = ->(u, v) { [origin[0] + (u * du[0]) + (v * dv[0]), origin[1] + (u * du[1]) + (v * dv[1])] }
+      facing = entry.map { |u, v| x, y = cell.call(u, v); on_place?(a, x - du[0], y - du[1]) }
+      next if facing.none?
+      cells = squares.map { |u, v| cell.call(u, v) }
+      xs, ys = cells.map(&:first), cells.map(&:last)
+      route = WorldPlace.new(nil, "route", nil, xs.min, ys.min, xs.max - xs.min + 1, ys.max - ys.min + 1, [], false)
+      if cells.length < route.w * route.h
+        route.mask = Array.new(route.h) { |y| Array.new(route.w) { |x| cells.include?([route.x + x, route.y + y]) ? "1" : "0" }.join }
+      end
+      route.joints = joints.map do |ju, jv, jdu, jdv|
+        corners = [cell.call(ju, jv), cell.call(ju + jdu - 1, jv + jdv - 1)]
+        jx, jy = corners.map(&:first).min, corners.map(&:last).min
+        horizontal ? [jx - route.x, jy - route.y, jdu, jdv] : [jx - route.x, jy - route.y, jdv, jdu]
+      end
+      route.trace = trace&.map do |pu, pv|
+        px = (2 * origin[0]) + half_step(pu, du[0]) + half_step(pv, dv[0])
+        py = (2 * origin[1]) + half_step(pu, du[1]) + half_step(pv, dv[1])
+        [px - (2 * route.x), py - (2 * route.y)]
+      end
+      out = (way == :ahead) ? side : turn
+      first = horizontal ? ys.min : xs.min
+      [facing.all? ? 0 : 1, first, route, ends.map { |u, v| cell.call(u, v) }, out]
     end
-    return route, WorldPlace.new(nil, "ville", nil, nx, ny, TOWN_SIZE, TOWN_SIZE, [], false)
+    return spots.sort_by { |full, first, *| [full, first] }.map { |_full, _first, *spot| spot }
+  end
+
+  # A coordinate in half squares of the frame (p) along an axis of the grid,
+  # where the frame goes that way (d: 1 or -1; 0 if it goes across).
+  def half_step(p, d)
+    return p if d > 0
+    return 2 - p if d < 0
+    return 0
+  end
+
+  # The w x h towns beyond those far squares of a route, on that side: those
+  # fully against the route first, then those that only touch it, from the
+  # bottom or right.
+  def town_spots(ends, side, w, h)
+    dx, dy = DIRECTIONS[side]
+    horizontal = dy == 0
+    xs, ys = ends.map(&:first), ends.map(&:last)
+    near = case side
+           when "est" then xs.max + 1
+           when "ouest" then xs.min - w
+           when "sud" then ys.max + 1
+           else ys.min - h
+           end
+    lo, hi = horizontal ? [ys.min, ys.max] : [xs.min, xs.max]
+    size = horizontal ? h : w
+    spots = (lo - size + 1..hi).to_a.reverse.filter_map do |t|
+      town = WorldPlace.new(nil, "ville", nil, horizontal ? near : t, horizontal ? t : near, w, h, [], false)
+      facing = ends.map { |x, y| on_place?(town, x + dx, y + dy) }
+      next if facing.none?
+      [facing.all? ? 0 : 1, town]
+    end
+    return spots.sort_by.with_index { |(full, _town), i| [full, i] }.map(&:last)
+  end
+
+  # True if the square x, y of the grid is part of that place (its
+  # rectangle, and its mask if it has one).
+  def on_place?(wp, x, y)
+    return false if x < wp.x || y < wp.y || x >= wp.x + wp.w || y >= wp.y + wp.h
+    return !wp.mask || wp.mask[y - wp.y][x - wp.x] == "1"
   end
 
   # One opening on the edge shared by a and b (b lies on that side of a), at
-  # the same spot for both: offsets count from each map's own top/left.
+  # the same spot for both: offsets count from each map's own top/left. With
+  # a mask, only where both places cover their squares.
   def link(world, a, b, side, rng)
     horizontal = %w[est ouest].include?(side)
-    # The shared stretch of edge, in squares, is the overlap of the two places
-    from = horizontal ? [a.y, b.y].max : [a.x, b.x].max
-    to = horizontal ? [a.y + a.h, b.y + b.h].min : [a.x + a.w, b.x + b.w].min
+    dx, dy = DIRECTIONS[side]
+    edge = horizontal ? ((dx > 0) ? a.x + a.w - 1 : a.x) : ((dy > 0) ? a.y + a.h - 1 : a.y)
+    shared = (horizontal ? (a.y...a.y + a.h) : (a.x...a.x + a.w)).select do |k|
+      x, y = horizontal ? [edge, k] : [k, edge]
+      on_place?(a, x, y) && on_place?(b, x + dx, y + dy)
+    end
+    runs = shared.slice_when { |i, j| j != i + 1 }.to_a
+    run = (runs.length > 1) ? runs[rng.rand(runs.length)] : runs[0]
+    from, to = run.first, run.last + 1
     at = (from * world.cell) + rng.rand(4..((to - from) * world.cell) - 4 - STREET_WIDTH)
     a.exits.push([side, at - ((horizontal ? a.y : a.x) * world.cell)])
     b.exits.push([OPPOSITE[side], at - ((horizontal ? b.y : b.x) * world.cell)])
@@ -751,6 +901,8 @@ module MapProceduralGenerator
       line += "  nom=#{wp.title}" if wp.title != wp.name
       centre = layout.doors.find { |_x, _y, brick| brick.kind == "centre" }
       line += "  vol=#{centre[0]},#{centre[1] + 1}" if centre
+      line += "  masque=#{wp.mask.join('/')}" if wp.mask
+      line += "  trace=#{wp.trace.map { |point| point.join(',') }.join('/')}" if wp.trace
       text << line << "\n"
     end
     text << "\n[World]\n"
