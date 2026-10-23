@@ -28,8 +28,9 @@ class Tone
   def _dump(_level) = @raw
 end
 
+# Loaded by Marshal (its fields are read as instance variables)
 module RPG
-  class Tileset; end
+  Tileset = Class.new
 end
 
 file = "Data/Tilesets.rxdata"
