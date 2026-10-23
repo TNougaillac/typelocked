@@ -15,6 +15,19 @@ SEEDS = 1..10
 # that no half plant shows (very tall grass T7 needs itself or its base T15).
 SPILL_BELOW = { 384 + 7 => [384 + 7, 384 + 15] }.freeze
 
+# Records the bricks each builder lays (with its place), to check that a
+# brick kept for some ambiances is never laid elsewhere.
+module LaidBricks
+  def put_brick(brick, *rest)
+    spot = super
+    if spot && brick.ambiances && !brick.ambiances.include?(@place.ambiance)
+      raise M::Error, "#{@place.name} : brique « #{brick.name} » (#{brick.ambiances.join(', ')}) posée en ambiance « #{@place.ambiance} »"
+    end
+    return spot
+  end
+end
+M::PlaceBuilder.prepend(LaidBricks)
+
 # Raises if a tile of SPILL_BELOW lacks its lower part on the row below.
 def check_spill(plan, name)
   tiles = ->(c) { (plan.legend[c] || []).flatten }
@@ -200,6 +213,18 @@ end
 check_interiors(bricks)
 paths = Dir.glob(File.join(folder, "*.txt")).sort
 worlds, places = paths.partition { |path| M.world_file?(path) }
+# A brick names only ambiances of the place files
+ambiance_names = places.flat_map do |path|
+  M.parse_place(CI.read_text(path), File.basename(path)).ambiances.map(&:name)
+rescue M::Error
+  []
+end
+bricks.each do |brick|
+  (brick.ambiances || []).each do |name|
+    next if ambiance_names.include?(name)
+    CI.error(File.join(folder, M::BRICK_FOLDER, brick.file), nil, "ambiance « #{name} » inconnue (#{ambiance_names.uniq.join(', ')})")
+  end
+end
 places.each do |path|
   place = M.parse_place(CI.read_text(path), File.basename(path))
   SEEDS.each do |seed|

@@ -78,6 +78,8 @@
 #                               bricks of its type, 1 by default)
 #   Contre = rue               (optional: the brick touches a street, for
 #                               lamps, benches, signs)
+#   Ambiances = sable minérale (optional: only drawn in places of one of
+#                               these [Ambiance], everywhere otherwise)
 #   [Map]
 #   CCCCC                      (palette symbols; " " = not part of the brick)
 #===============================================================================
@@ -100,7 +102,7 @@ module MapProceduralGenerator
   # palette: symbol => its definition for this ambiance; counts, per_case:
   # quantities of brick types for this ambiance, as in [Briques]
   Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case)
-  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
+  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
@@ -253,6 +255,7 @@ module MapProceduralGenerator
       when "contre"
         fail_at.call("seule valeur possible : « Contre = rue »") unless value == "rue"
         brick.by_street = true
+      when "ambiances" then brick.ambiances = value.split(/[\s,]+/)
       else fail_at.call("clé inconnue « #{key} »")
       end
     end

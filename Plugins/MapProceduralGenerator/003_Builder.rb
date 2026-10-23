@@ -58,6 +58,11 @@ module MapProceduralGenerator
       @place = place
       cave = place.crossing == "grotte" || place.cave || place.nook == "sombre"
       @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && cave) }
+      # Bricks kept for some ambiances; a type left with none of its bricks
+      # is skipped
+      @left_out = @bricks.map(&:kind).uniq
+      @bricks.select! { |b| !b.ambiances || b.ambiances.include?(place.ambiance) }
+      @left_out -= @bricks.map(&:kind)
       @palette = palette
       @seed = seed
       @rng = Random.new(seed)
@@ -278,6 +283,7 @@ module MapProceduralGenerator
         place_nook if with_door.call(kind) == 1
         next if HIGHLAND.include?(kind) && !@level
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
+        next if @left_out.include?(kind)
         next if place_brick(kind)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
