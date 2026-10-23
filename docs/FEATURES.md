@@ -466,7 +466,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Ajouter un biome (sol, démesure) demande de compléter `BIOMES`, `GROUND_BIOMES` ou `EXCESS_BIOMES` dans ce plugin.
 
 ## F14. Intro du professeur (IntroScene)
-**Statut :** v1.0.0, écrit, **non testé**.
+**Statut :** v1.0.0, écrit, testé en jeu par le joueur.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/IntroScene/`
 
