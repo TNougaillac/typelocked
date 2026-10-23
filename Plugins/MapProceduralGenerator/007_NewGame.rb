@@ -30,7 +30,8 @@ module MapProceduralGenerator
   # Checked first: the debug console prints every exception, even a rescued one
   # (the map files of an unsaved world are already gone, see remove_unsaved_maps)
   def delete_file(file)
-    File.delete(file) if File.exist?(file)
+    return if !File.exist?(file)
+    File.delete(file)
   end
 
   # Starts drawing the world of a new game in a thread (plain Ruby, nothing
