@@ -94,10 +94,20 @@ Rue   = T218
 arbre = 1..4
 decor = 2..4
 
+[Ambiance automne]
+Poids = 1
+Sol   = T1|T1|T1|T2|T3
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+arbre = 0..2
+decor = 3..5
+
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
 à = {sol} T475          # buisson
 ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)
+ù = {sol} T532          # cime de l'arbre jaune (au-dessus de ü)
+â = {sol} T523          # buisson jaune
+ï = {sol} T606          # buisson tropical
 c = {sol} T847          # rocher brun (désert)
 d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
@@ -140,6 +150,8 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ê = T470 1x3         # cyprès
 ë = T502 1x2         # arbrisseau
 ô = T617 2x2         # champ labouré
+ü = T539 3x3         # arbre jaune (automne)
+ç = T563 3x7         # arbre tropical
 î = T669 2x2         # haie carrée
 û = T685 3x1         # haie
 a = T836 2x4         # flèche rocheuse brune (désert)
