@@ -64,7 +64,7 @@ Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T28
 [Ambiance sable]
 Poids = 1
 Sol   = T162
-Rive  = T832 T833 T834
+Rive  = T833 T833 T833
 Rue   = T274
 
 [Ambiance minérale]
@@ -75,14 +75,14 @@ Rue   = T274
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
-Rive  = T840 T841 T842
+Rive  = T841 T841 T841
 Rue   = T218
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
-! = T848               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit)
+! = T849               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit : la même tuile droite, comme la mare de Cedolan City)
 ' = T849
-? = T850
+? = T849
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
 : = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
