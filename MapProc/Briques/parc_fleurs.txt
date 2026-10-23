@@ -1,5 +1,7 @@
 Brique = Massif de fleurs
 Type   = parc
+# Fleurs : seulement sur l'herbe
+Ambiances = verdoyante, chemins de terre, prairie, automne, forêt tropicale
 [Map]
 *****
 *****

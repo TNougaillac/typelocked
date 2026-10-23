@@ -1,6 +1,8 @@
 # Maison avec un jardin fleuri à sa droite et une jardinière.
 Brique = Maison et jardin
 Type   = maison
+# Fleurs : seulement sur l'herbe
+Ambiances = verdoyante, chemins de terre, prairie, automne, forêt tropicale
 Porte  = 1,3
 [Map]
 hhhh***
