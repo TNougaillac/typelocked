@@ -398,6 +398,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `001_Settings.rb` | `ITEMS` : capacité de terrain → objet clé. |
 | `002_FieldItems.rb` | Remplacement des capacités par les objets, utilisation depuis le Sac. |
 | `PBS/items.txt` | CS01 à CS06 retirées, CT101 Plongée et les 8 objets clés ajoutés. |
+| `Graphics/Items/` | Icônes des 8 objets clés (48×48), dessinées par `tools/art/field_item_icons.rb` (pixel art 24×24 doublé, contour et trois tons comme les icônes d'Essentials). Relancer `ruby tools/art/field_item_icons.rb` après une retouche. |
 
 ### Intégration
 - PNJ qui remet un objet : commande Script `pbReceiveItem(:MACHETE)` dans l'événement (ou `Script = pbReceiveItem(:MACHETE)` dans un plan MapEvents). Un lieutenant peut aussi la donner après sa victoire avec `Gift = MACHETE`.
@@ -408,6 +409,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Limites connues
 - En mode test (lancement depuis l'éditeur), Essentials autorise déjà toutes les capacités de terrain : tester le blocage en lançant `Game.exe` directement.
 - Les messages d'utilisation restent ceux d'Essentials, en anglais.
+- Les obstacles sur la carte gardent les graphismes d'Essentials (`Object tree 1`, `Object rock`, `Object boulder`, copiés des événements de la démo).
 
 ## F13. Rencontres sauvages générées (ProceduralEncounters)
 **Statut :** v1.1.1, écrit, testé hors jeu (CI), **non testé en jeu**.
