@@ -1,0 +1,8 @@
+# Verdoyante : un grand pin, un buisson.
+Brique    = Grand pin
+Type      = decor
+Ambiances = verdoyante, chemins de terre
+[Map]
+ééé
+ééé
+éééà

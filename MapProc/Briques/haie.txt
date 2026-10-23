@@ -1,0 +1,8 @@
+# Terre battue : une haie le long d'un champ.
+Brique    = Haie
+Type      = decor
+Ambiances = terre battue, chemins de terre
+[Map]
+ûûûûûû
+ôôôô
+ôôôô

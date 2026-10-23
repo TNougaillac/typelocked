@@ -1,0 +1,10 @@
+# Verdoyante, prairie, chemins de terre : un arbre rond isolé.
+Brique    = Arbre rond
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre
+Poids     = 2
+[Map]
+ ò
+èèè
+èèè
+èèè

@@ -1,0 +1,10 @@
+# Terre battue : un champ labouré, quatre carrés de terre.
+Brique    = Champ labouré
+Type      = decor
+Ambiances = terre battue, chemins de terre
+Poids     = 2
+[Map]
+ôô ôô
+ôô ôô
+ôô ôô
+ôô ôô
