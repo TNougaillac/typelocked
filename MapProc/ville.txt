@@ -69,6 +69,7 @@ decor = 2..4
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 Rive  = T833 T833 T833
 Rue   = T274
 arbre = 0..2
@@ -78,6 +79,7 @@ decor = 3..6
 [Ambiance minérale]
 Poids = 1
 Sol   = T218
+" = T133                # hautes herbes sur le gravier
 Rue   = T274
 arbre = 0..2
 lac   = 0
@@ -89,6 +91,7 @@ decor = 3..6
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+" = T125                # hautes herbes sur la terre
 Rive  = T841 T841 T841
 Rue   = T218
 arbre = 1..4
