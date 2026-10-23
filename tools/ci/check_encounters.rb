@@ -24,6 +24,12 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
   town, route = [world.town_file, world.route_file].map do |name|
     M.parse_place(CI.read_text(File.join(folder, name)), name)
   end
+  # Each ambiance biome names an ambiance of the route file and a biome
+  settings = File.join(ROOT, "Plugins/ProceduralEncounters/001_Settings.rb")
+  E::AMBIANCE_BIOMES.each do |name, biome|
+    CI.error(settings, nil, "AMBIANCE_BIOMES : ambiance « #{name} » absente de #{world.route_file}") if route.ambiances.none? { |a| a.name == name }
+    CI.error(settings, nil, "AMBIANCE_BIOMES : biome « #{biome} » absent de BIOMES") if !E::BIOMES.key?(biome)
+  end
   SEEDS.each do |seed|
     where = "#{File.basename(path)} (graine #{seed})"
     result = M.generate_world(world, town, route, bricks, seed)

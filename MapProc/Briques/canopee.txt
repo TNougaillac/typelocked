@@ -1,0 +1,13 @@
+# Forêt tropicale : deux arbres à canopée serrés, des buissons au pied.
+Brique    = Canopée
+Type      = decor
+Ambiances = forêt tropicale
+[Map]
+ççç
+çççççç
+çççççç
+çççççç
+çççççç
+çççççç
+çççççç
+ïï ççç

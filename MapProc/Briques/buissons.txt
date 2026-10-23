@@ -1,0 +1,8 @@
+# Prairie : buissons et arbrisseaux.
+Brique    = Buissons
+Type      = decor
+Ambiances = prairie, verdoyante
+Poids     = 2
+[Map]
+à ë
+ àë

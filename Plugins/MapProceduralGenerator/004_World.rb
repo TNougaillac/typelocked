@@ -233,6 +233,7 @@ module MapProceduralGenerator
       if wp.league
         place.counts = PLATEAU_BRICKS.select { |k, _| bricks.any? { |b| b.kind == k } }
         place.per_case = []
+        place.fixed_counts = true
       end
       # The professor's lab in the first town, left out if it doesn't fit
       place.counts[LAB] = 1..1 if wp.index == 0 && bricks.any? { |b| b.kind == LAB }
@@ -326,6 +327,7 @@ module MapProceduralGenerator
     [PORT, TERMINAL].each { |k| place.counts[k] = 0..0 if town.counts.key?(k) }
     place.counts["arene"] = 1..1 if wp.gym && town.counts.key?("arene")
     place.per_case = []
+    place.fixed_counts = true
     place.crossing = place.river = nil
     place.mountain = place.cave = place.dive = false
     place.ambiance = (rng.rand(2) == 0 && town.ambiances.any? { |a| a.name == ISLAND_AMBIANCE }) ? ISLAND_AMBIANCE : nil

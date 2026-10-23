@@ -1,0 +1,9 @@
+# Prairie : un massif de fleurs.
+Brique    = Massif de fleurs
+Type      = decor
+Ambiances = prairie, chemins de terre
+Poids     = 2
+[Map]
+ **
+****
+ **

@@ -41,6 +41,7 @@ montagne = 0..1
 colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
 port     = 0        # entrepôts : posés le long du quai d'un port
 gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
+decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
 
 # Ambiances : chaque ville en tire une selon son poids. L'herbe et ses rues
 # pavées restent le plus courant, quelques villes changent de sol.
@@ -50,36 +51,118 @@ gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 Poids = 8
 Sol   = T1|T1|T1|T2|T3
 Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+decor = 1..3
 
 [Ambiance chemins de terre]
 Poids = 2
 Sol   = T1|T1|T1|T2|T3
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
+decor = 2..4
 
 [Ambiance prairie]
 Poids = 1
 Sol   = T50
-Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+" = T143                # hautes herbes sur la prairie
+: = T151 T7             # herbes très hautes, leur pied sur la prairie
+; = T151
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T4016 2x3
+é = T4018 3x3
+è = T4021 3x3
+î = T4040 2x2
+û = T4042 3x1
+à = {sol} T4045
+ê = T4192 1x3
+ë = T4193 1x2
+* = T4046                # fleurs sur la prairie (image fixe : l'autotile a un fond vert)
+Rive  = T4047 T4047 T4047
+Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
+arbre = 1..4
+decor = 2..4
 
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
+: = T175 T7             # herbes très hautes, leur pied sur le sable
+; = T175
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T4056 2x3
+é = T4058 3x3
+è = T4061 3x3
+î = T4080 2x2
+û = T4082 3x1
+à = {sol} T4085
+ê = T4194 1x3
+ë = T4195 1x2
 Rive  = T833 T833 T833
 Rue   = T274
+arbre = 0..2
+parc  = 0..1
+decor = 3..6
 
 [Ambiance minérale]
 Poids = 1
 Sol   = T218
+" = T133                # hautes herbes sur le gravier
+: = T189 T7             # herbes très hautes, leur pied sur le gravier
+; = T189
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T4136 2x3
+é = T4138 3x3
+è = T4141 3x3
+î = T4160 2x2
+û = T4162 3x1
+à = {sol} T4165
+ê = T4198 1x3
+ë = T4199 1x2
 Rue   = T274
+arbre = 0..2
+lac   = 0
+decor = 3..6
+# La roche grise remplace la brune (montagnes, rochers, corniches)
+^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+
 
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+" = T125                # hautes herbes sur la terre
+: = T181 T7             # herbes très hautes, leur pied sur la terre
+; = T181
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T4096 2x3
+é = T4098 3x3
+è = T4101 3x3
+î = T4120 2x2
+û = T4122 3x1
+à = {sol} T4125
+ê = T4196 1x3
+ë = T4197 1x2
 Rive  = T841 T841 T841
 Rue   = T218
+arbre = 1..4
+decor = 2..4
+
+[Ambiance automne]
+Poids = 1
+Sol   = T1|T1|T1|T2|T3
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+arbre = 0..2
+decor = 3..5
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
+à = {sol} T475          # buisson
+ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)
+ù = {sol} T532          # cime de l'arbre jaune (au-dessus de ü)
+â = {sol} T523          # buisson jaune
+ï = {sol} T606          # buisson tropical
+c = {sol} T847          # rocher brun (désert)
+d = {sol} T839          # cailloux bruns
+j = {sol} T927          # rocher gris (minéral)
+x = {sol} T919          # cailloux gris
+, = {sol} T895          # bloc gris
 ! = T849               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit : la même tuile droite, comme la mare de Cedolan City)
 ' = T849
 ? = T849
@@ -112,6 +195,17 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
 [Objects]
+é = T440 3x3         # grand pin
+è = T491 3x3         # arbre rond (sous sa cime ò)
+ê = T470 1x3         # cyprès
+ë = T502 1x2         # arbrisseau
+ô = T617 2x2         # champ labouré
+ü = T539 3x3         # arbre jaune (automne)
+ç = T563 3x7         # arbre tropical
+î = T669 2x2         # haie carrée
+û = T685 3x1         # haie
+a = T836 2x4         # flèche rocheuse brune (désert)
+i = T916 2x4         # flèche rocheuse grise (minéral)
 C = T2608 5x5        # Centre Pokémon
 M = T2648 4x4        # Boutique (porte à droite)
 N = T2652 4x4        # Boutique (porte à gauche)

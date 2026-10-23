@@ -1,0 +1,12 @@
+# Désert : deux flèches de roche brune décalées.
+Brique    = Flèches rocheuses brunes
+Type      = decor
+Ambiances = sable
+Poids     = 2
+[Map]
+aa
+aa
+aaaa
+aaaa
+ caa
+  aa

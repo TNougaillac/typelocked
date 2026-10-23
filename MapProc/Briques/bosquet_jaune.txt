@@ -1,0 +1,10 @@
+# Automne : deux arbres jaunes et un buisson.
+Brique    = Bosquet jaune
+Type      = decor
+Ambiances = automne
+[Map]
+ ù
+üüü ù
+üüüüüü
+üüüüüü
+   üüüâ

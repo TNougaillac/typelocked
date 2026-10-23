@@ -1,0 +1,9 @@
+# Verdoyante : un bois mêlé de grands pins, d'arbres ronds et de cyprès.
+Brique    = Bois mélangé
+Type      = decor
+Ambiances = verdoyante
+[Map]
+ééé  ò
+éééêèèè
+éééêèèè
+   êèèè à

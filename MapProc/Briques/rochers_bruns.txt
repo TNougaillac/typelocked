@@ -1,0 +1,8 @@
+# Désert : rochers et cailloux bruns.
+Brique    = Rochers bruns
+Type      = decor
+Ambiances = sable
+Poids     = 2
+[Map]
+cd
+ c

@@ -61,6 +61,10 @@
 #   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
 #                               with edges N=..., else as in [Legend]; not
 #                               needed when Rue and Sol are the same symbol)
+#   t     = T520 2x3           (a symbol of the palette below redefined for
+#                               this ambiance, in its own section's syntax)
+#   arbre = 0..1 par case      (a type of [Briques] with another quantity for
+#                               this ambiance)
 #   [Legend] [Terrains] [Objects]
 #   ...                        (MapGen palette, shared by every brick; with
 #                               ambiances, « {sol} » stands for the first tile
@@ -74,6 +78,8 @@
 #                               bricks of its type, 1 by default)
 #   Contre = rue               (optional: the brick touches a street, for
 #                               lamps, benches, signs)
+#   Ambiances = sable, minérale (optional: only drawn in places of one of
+#                               these [Ambiance], comma-separated)
 #   [Map]
 #   CCCCC                      (palette symbols; " " = not part of the brick)
 #===============================================================================
@@ -84,15 +90,19 @@ module MapProceduralGenerator
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
-                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks)
+                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts)
   # island: an island of a world (set by the world, the sea all around);
   # ferry: its ferry terminal leads to an island (set by the world); nook:
   # the obstacle of its optional nook, a key of NOOKS (set by the world);
-  # banks: « Rive », the 3 symbols of the bank below the water
+  # banks: « Rive », the 3 symbols of the bank below the water;
+  # fixed_counts: quantities set by the world (plateau, islands), which the
+  # ambiance doesn't change
   # ground, street: tile text of the ground and street symbols; banks: tiles
-  # of the 3 bank symbols on that ground (nil = those of the palette)
-  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks)
-  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows)
+  # of the 3 bank symbols on that ground (nil = those of the palette);
+  # palette: symbol => its definition for this ambiance; counts, per_case:
+  # quantities of brick types for this ambiance, as in [Briques]
+  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case)
+  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
@@ -118,7 +128,7 @@ module MapProceduralGenerator
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       if raw.strip =~ /\A\[Ambiance\s+(.+?)\]\z/i
-        place.ambiances.push(Ambiance.new($1.strip, 1, nil, nil, nil))
+        place.ambiances.push(Ambiance.new($1.strip, 1, nil, nil, nil, {}, {}, []))
         section = :ambiance
         next
       elsif raw.strip =~ /\A\[(\w+)\]\z/
@@ -130,6 +140,11 @@ module MapProceduralGenerator
       end
       content = raw.chomp.sub(/#.*\z/, "").strip
       next if content.empty? || content =~ /\A\[\w+\]\z/
+      # A palette symbol redefined by an ambiance (one character, then « = »)
+      if section == :ambiance && content =~ /\A(\S)\s+=\s*(.+)\z/
+        place.ambiances.last.palette[$1] = [$2.strip, lineno]
+        next
+      end
       fail_at.call("attendu « Clé = valeur »") unless content =~ /\A(\w+)\s*=\s*(.+)\z/
       key, value = $1, $2.strip
       if section == :bricks
@@ -146,7 +161,10 @@ module MapProceduralGenerator
         when "rive"
           ambiance.banks = value.split
           fail_at.call("3 tuiles attendues (gauche, milieu, droite), ex. « T832 T833 T834 »") unless ambiance.banks.length == 3
-        else fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive)")
+        else
+          fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive, un type de [Briques] ou un symbole)") if !place.counts.key?(key)
+          ambiance.per_case.push(key) if value.sub!(/\s+par\s+case\z/, "")
+          ambiance.counts[key] = range(value, fail_at)
         end
         next
       end
@@ -237,6 +255,7 @@ module MapProceduralGenerator
       when "contre"
         fail_at.call("seule valeur possible : « Contre = rue »") unless value == "rue"
         brick.by_street = true
+      when "ambiances" then brick.ambiances = value.split(",").map(&:strip)
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -257,6 +276,12 @@ module MapProceduralGenerator
   # Checks the bricks against the palette of a place, through MapGen's own
   # parser: returns the palette as a parsed MapGen plan.
   def check_palette(place, bricks)
+    place.ambiances.each do |ambiance|
+      ambiance.palette.each do |sym, (_value, lineno)|
+        next if palette_section(place, sym)
+        raise Error, "#{place.file}, ligne #{lineno} : [Ambiance #{ambiance.name}] redéfinit « #{sym} », absent de la palette"
+      end
+    end
     palette = MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
     # With ambiances, the ground and street are defined by each ambiance only
     if place.ambiances.any?
@@ -340,7 +365,8 @@ module MapProceduralGenerator
   def palette_text(place)
     chosen = ambiance(place)
     return place.palette if !chosen
-    text = place.palette.gsub("{sol}", chosen.ground.split("|").first.split.first)
+    ground = chosen.ground.split("|").first.split.first
+    text = place.palette.gsub("{sol}", ground)
     text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
     if chosen.street && place.street != place.ground
       section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
@@ -350,7 +376,39 @@ module MapProceduralGenerator
       text << "[Legend]\n"
       place.banks.each_char.with_index { |sym, i| text << "#{sym} = #{chosen.banks[i]}\n" }
     end
+    chosen.palette.each do |sym, (value, _lineno)|
+      text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground)}\n"
+    end
     return text
+  end
+
+  # Section of the place's palette ([Legend], [Objects], [Terrains]) where
+  # that symbol is defined; nil if it isn't.
+  def palette_section(place, sym)
+    section = nil
+    place.palette.each_line do |line|
+      if line.strip =~ /\A\[(\w+)\]\z/ then section = $1
+      elsif line.start_with?("#{sym} ") || line.start_with?("#{sym}=") then return section
+      end
+    end
+    return nil
+  end
+
+  # The place with its ambiance's quantities of bricks (only the types it
+  # still has: a world may have changed the quantities first).
+  def with_ambiance_counts(place)
+    chosen = ambiance(place)
+    return place if !chosen || chosen.counts.empty? || place.fixed_counts
+    place = place.dup
+    place.counts = place.counts.dup
+    place.per_case = place.per_case.dup
+    chosen.counts.each do |kind, range|
+      next if !place.counts.key?(kind)
+      place.counts[kind] = range
+      place.per_case.delete(kind)
+      place.per_case.push(kind) if chosen.per_case.include?(kind)
+    end
+    return place
   end
 
   # MapGen plan text of a place: header, palette, then the assembled rows.

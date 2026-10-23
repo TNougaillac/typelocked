@@ -1,0 +1,8 @@
+# Verdoyante et prairie : une rangée de cyprès.
+Brique    = Cyprès
+Type      = decor
+Ambiances = verdoyante, prairie
+[Map]
+ê ê ê
+ê ê ê
+ê ê ê

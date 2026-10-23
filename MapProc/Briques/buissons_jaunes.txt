@@ -1,0 +1,7 @@
+# Automne : buissons jaunes.
+Brique    = Buissons jaunes
+Type      = decor
+Ambiances = automne
+[Map]
+â â
+ â

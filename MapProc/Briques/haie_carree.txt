@@ -1,0 +1,7 @@
+# Terre battue : deux haies taillées.
+Brique    = Haies taillées
+Type      = decor
+Ambiances = terre battue, chemins de terre, prairie
+[Map]
+îî îî
+îî îî

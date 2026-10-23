@@ -1,0 +1,8 @@
+# Forêt tropicale : buissons serrés.
+Brique    = Buissons tropicaux
+Type      = decor
+Ambiances = forêt tropicale
+Poids     = 2
+[Map]
+ïïï
+ï ïï

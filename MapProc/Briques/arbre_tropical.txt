@@ -1,0 +1,13 @@
+# Forêt tropicale : un grand arbre à canopée.
+Brique    = Arbre tropical
+Type      = decor
+Ambiances = forêt tropicale
+Poids     = 2
+[Map]
+ççç
+ççç
+ççç
+ççç
+ççç
+ççç
+ççç
