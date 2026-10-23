@@ -642,7 +642,21 @@ module MapProceduralGenerator
     places.each_with_index { |p, i| p.index ||= i }
     notes = add_extra_routes(world, places, free, take, rng)
     choose_nooks(world, places, rng)
+    center_world(world, places)
     return places, notes
+  end
+
+  # Moves every place so that the world lies in the middle of its grid (the
+  # Town Map), whatever corner the chain wandered to.
+  def center_world(world, places)
+    x0, y0 = places.map(&:x).min, places.map(&:y).min
+    x1, y1 = places.map { |p| p.x + p.w }.max, places.map { |p| p.y + p.h }.max
+    dx = ((world.width - (x1 - x0)) / 2) - x0
+    dy = ((world.height - (y1 - y0)) / 2) - y0
+    places.each do |p|
+      p.x += dx
+      p.y += dy
+    end
   end
 
   # Routes added off the chain, once it is laid: loops (« Boucles »), open
