@@ -95,20 +95,25 @@ module MapProceduralGenerator
   end
 
   # When the game closes: the map files of a world that no save holds are
-  # deleted at once (they no longer pile up in Data/). The rest (PBS lines,
-  # compiled data, Town Map) is left to sync_game_world at the next start: it
-  # needs the compiler, which refreshes the window, gone by then.
+  # deleted at once (they no longer pile up in Data/), and their PBS lines. The
+  # rest (compiled data, Town Map) is left to sync_game_world at the next
+  # start: it needs the compiler, which refreshes the window, gone by then.
   def remove_unsaved_maps
     world = game_world
     return if !world || saved_world_seed
     ids = read_world_maps(world[:path]).values
     return if ids.empty?
     infos = load_data("Data/MapInfos.rxdata")
+    names = ids.filter_map { |id| infos[id]&.name }
     ids.each do |id|
       infos.delete(id)
       delete_file(sprintf("Data/Map%03d.rxdata", id))
     end
     save_data(infos, "Data/MapInfos.rxdata")
+    # Their PBS lines too, or a compile at the next start (Ctrl held) warns
+    # about the missing maps
+    pbs = [MapGenerator::CONNECTIONS_PBS, MapGenerator::MAP_METADATA_PBS, MapGenerator::TOWN_MAP_PBS]
+    keeping_times(pbs) { remove_map_lines(ids, names) }
   rescue StandardError => e
     echoln("MapProc : nettoyage à la fermeture impossible (#{e.message})")
   end
@@ -271,6 +276,13 @@ module MapProceduralGenerator
     end
     save_data(infos, "Data/MapInfos.rxdata")
     $game_temp.map_infos = nil if $game_temp
+    remove_map_lines(ids, names)
+    MapGenerator.compile_world_pbs if compile
+  end
+
+  # Lines of these maps in the PBS files (connections, map metadata, Town Map
+  # points named after them).
+  def remove_map_lines(ids, names)
     # Connections (and the comment line above each one)
     file = MapGenerator::CONNECTIONS_PBS
     kept = []
@@ -301,7 +313,14 @@ module MapProceduralGenerator
       l =~ /\APoint\s*=\s*\d+,\d+,([^,]*)/ && names.include?($1.strip)
     end
     MapGenerator.write_pbs(file, lines)
-    MapGenerator.compile_world_pbs if compile
+  end
+
+  # Runs the block, then puts these files' times back: the compiler sees no
+  # change at the next start, and sync_game_world compiles them later.
+  def keeping_times(files)
+    times = files.to_h { |f| [f, File.mtime(f)] if File.exist?(f) }.compact
+    yield
+    times.each { |f, t| File.utime(t, t, f) }
   end
 end
 
