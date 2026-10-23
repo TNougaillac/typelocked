@@ -12,8 +12,9 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
-# that no half plant shows (very tall grass T7 needs itself or its base T15).
-SPILL_BELOW = { 384 + 7 => [384 + 7, 384 + 15] }.freeze
+# that no half plant shows (very tall grass T7 needs itself or its base: T15, or
+# T151, T175, T181, T189 on the meadow, sand, dirt and gravel).
+SPILL_BELOW = { 384 + 7 => [7, 15, 151, 175, 181, 189].map { |n| 384 + n } }.freeze
 
 # Records the bricks each builder lays (with its place), to check that a
 # brick kept for some ambiances is never laid elsewhere.
