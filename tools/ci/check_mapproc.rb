@@ -11,6 +11,9 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
+# Seeds of the worlds (WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others
+# locally)
+WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
 # that no half plant shows (very tall grass T7 needs itself or its base: T15, or
 # T151, T175, T181, T189 on the meadow, sand, dirt and gravel).
@@ -96,16 +99,20 @@ end
 
 # Cells walked to from the exits of a place over its walkable symbols (a
 # level only through its stairs, water by surfing when surf), the cell
-# blocked (a nook's obstacle) left out.
-def reached(place, bricks, layout, surf:, blocked: nil)
+# blocked (a nook's obstacle) left out, the cells through (a wall crossed
+# with the Grappling Hook) walked.
+def reached(place, bricks, layout, surf:, blocked: nil, exits: layout.exits, through: [])
   stairs = place.stairs&.join&.chars || []
   walkable = walkable_symbols(place, bricks) - stairs
   walkable += [place.water, place.deep].compact if surf
   height = ->(c) { place.levels&.index(c) || -1 }
   rows = layout.rows
-  ok = ->(x, y) { y >= 0 && x >= 0 && rows[y] && x < rows[y].length && [x, y] != blocked && (walkable.include?(rows[y][x]) || stairs.include?(rows[y][x])) }
+  ok = lambda do |x, y|
+    next true if through.include?([x, y])
+    y >= 0 && x >= 0 && rows[y] && x < rows[y].length && [x, y] != blocked && (walkable.include?(rows[y][x]) || stairs.include?(rows[y][x]))
+  end
   seen = {}
-  queue = layout.exits.map { |_side, x, y| [x, y] }.select { |x, y| ok.call(x, y) }
+  queue = exits.map { |_side, x, y| [x, y] }.select { |x, y| ok.call(x, y) }
   queue.each { |cell| seen[cell] = true }
   until queue.empty?
     x, y = queue.shift
@@ -113,7 +120,7 @@ def reached(place, bricks, layout, surf:, blocked: nil)
       nx, ny = x + ox, y + oy
       next if seen[[nx, ny]] || !ok.call(nx, ny)
       a, b = rows[y][x], rows[ny][nx]
-      next if height.call(a) != height.call(b) && !stairs.include?(a) && !stairs.include?(b)
+      next if height.call(a) != height.call(b) && !stairs.include?(a) && !stairs.include?(b) && !through.include?([nx, ny]) && !through.include?([x, y])
       seen[[nx, ny]] = true
       queue.push([nx, ny])
     end
@@ -124,12 +131,34 @@ end
 # Raises if the loot of a nook can be reached without its obstacle (opened
 # or surfed), or not with it.
 def check_nooks(name, place, bricks, layout)
-  layout.spots[:nooks].each do |x, y, obstacle, ox, oy|
+  layout.spots[:nooks].each do |x, y, obstacle, ox, oy, fx, fy|
     next if obstacle == "sombre"   # the loot is in the dark cave
     closed = (obstacle == "ilot") ? reached(place, bricks, layout, surf: false) : reached(place, bricks, layout, surf: true, blocked: [ox, oy])
     raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) s'atteint sans son obstacle" if closed[[x, y]]
-    raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) ne s'atteint pas avec son objet" if !reached(place, bricks, layout, surf: true)[[x, y]]
+    wall = (obstacle == M::GRAPPLE) ? grapple_wall(ox, oy, fx, fy) : []
+    raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) ne s'atteint pas avec son objet" if !reached(place, bricks, layout, surf: true, through: wall)[[x, y]]
   end
+end
+
+# The cells of a wall crossed with the Grappling Hook, from one face to the
+# other.
+def grapple_wall(ox, oy, fx, fy)
+  return (([ox, fx].min..[ox, fx].max).to_a.product(([oy, fy].min..[oy, fy].max).to_a))
+end
+
+# Raises if a shortcut's lock lets the player through from its exit without
+# its obstacle (opened or surfed), or not with it.
+def check_lock(name, place, bricks, layout)
+  return if !place.lock
+  raise M::Error, "#{name} : raccourci sans obstacle" if !layout.spots[:lock]
+  obstacle, x, y, fx, fy = layout.spots[:lock]
+  from = [layout.exits[place.lock[1]]]
+  others = layout.exits - from
+  closed = (obstacle == "eau") ? reached(place, bricks, layout, surf: false, exits: from) : reached(place, bricks, layout, surf: true, blocked: [x, y], exits: from)
+  raise M::Error, "#{name} : le raccourci se passe sans son obstacle #{obstacle}" if others.any? { |_side, ex, ey| closed[[ex, ey]] }
+  wall = (obstacle == M::GRAPPLE) ? grapple_wall(x, y, fx, fy) : []
+  open = reached(place, bricks, layout, surf: true, exits: from, through: wall)
+  raise M::Error, "#{name} : le raccourci ne se passe pas avec son objet" if !others.all? { |_side, ex, ey| open[[ex, ey]] }
 end
 
 # Raises if a place with a mask can be walked outside the squares it covers,
@@ -144,6 +173,52 @@ def check_mask(name, place, bricks, layout)
   end
   outside = reached(place, bricks, layout, surf: true).keys.find { |x, y| !covered.call(x, y) }
   raise M::Error, "#{name} : case #{outside.join(',')} atteinte hors du tracé" if outside
+end
+
+# Raises (as CI errors) if a route off the chain lets the player skip a gym:
+# every place is reached from the start without the shortcuts (places touch
+# on the world grid only where they are linked); no town with a gym between
+# the ends of a loop; a shortcut opens with an item obtained no earlier than
+# the last gym before its far end, and its tier is where it can first be
+# walked.
+def check_extra_routes(path, seed, result)
+  places = result.places.map(&:first)
+  touch = lambda do |a, b|
+    (a.x + a.w == b.x || b.x + b.w == a.x) && a.y < b.y + b.h && b.y < a.y + a.h ||
+      (a.y + a.h == b.y || b.y + b.h == a.y) && a.x < b.x + b.w && b.x < a.x + a.w
+  end
+  open = places.reject(&:lock)
+  seen = [places.find { |wp| wp.index == 0 }]
+  queue = seen.dup
+  until queue.empty?
+    a = queue.shift
+    open.each do |b|
+      next if seen.include?(b) || !touch.call(a, b)
+      seen.push(b)
+      queue.push(b)
+    end
+  end
+  (open - seen).each { |wp| CI.error(path, nil, "#{wp.name} (graine #{seed}) : inaccessible sans les raccourcis") }
+  gyms = places.select { |wp| wp.kind == "ville" && (wp.gym || wp.island_gym) }.map(&:index)
+  obtained = {}
+  places.each do |wp|
+    (wp.items || []).each { |item| obtained[item] = wp.index }
+    obtained[M::SURF_ITEM] = wp.index if wp.surf
+  end
+  places.select(&:extra).each do |wp|
+    a, b = wp.ends
+    where = "#{wp.name} (graine #{seed}), #{wp.extra}"
+    CI.error(path, nil, "#{where} : ne touche pas ses deux bouts") if !touch.call(wp, a) || !touch.call(wp, b)
+    if !wp.lock
+      CI.error(path, nil, "#{where} : une ville à arène entre ses bouts") if gyms.any? { |g| g > a.index && g < b.index }
+      CI.error(path, nil, "#{where} : palier #{wp.tier} au lieu de #{a.index}") if wp.tier != a.index
+      next
+    end
+    giver = obtained[M::LOCKS[wp.lock]]
+    last = gyms.select { |g| g < b.index }.max
+    CI.error(path, nil, "#{where} : #{M::LOCKS[wp.lock]} obtenu avant la dernière arène avant #{b.name}") if !giver || (last && giver < last)
+    CI.error(path, nil, "#{where} : palier #{wp.tier} au lieu de #{[giver, b.index].compact.min}") if wp.tier != [giver, b.index].compact.min
+  end
 end
 
 # The dungeon tileset as Essentials' painter sees it (only what draws walls).
@@ -282,7 +357,7 @@ worlds.each do |path|
   end
   name_table = world.names_file && M.parse_names(CI.read_text(File.join(folder, world.names_file)), world.names_file)
   highest = 0
-  (1..3).each do |seed|
+  WORLD_SEEDS.each do |seed|
     result = M.generate_world(world, town, route, bricks, seed, {}, name_table)
     # Levels shown on the mountain routes (each level its own symbol)
     result.places.each do |wp, place, _text, layout|
@@ -299,6 +374,19 @@ worlds.each do |path|
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       check_nooks("#{wp.name} (graine #{seed})", place, bricks, layout)
       check_mask("#{wp.name} (graine #{seed})", place, bricks, layout)
+      check_lock("#{wp.name} (graine #{seed})", place, bricks, layout)
+    end
+    check_extra_routes(path, seed, result)
+    # Every town has its Pokémon Centre and Mart, and its gym if it has one;
+    # a town with a gym covers 2 squares at least (a village has none)
+    result.places.each do |wp, _place, _text, layout|
+      next if wp.kind != "ville" || wp.league
+      kinds = layout.doors.map { |_x, _y, brick| brick.kind }
+      missing = %w[centre boutique].reject { |kind| kinds.include?(kind) }
+      missing.push("arene") if wp.gym && !kinds.include?("arene")
+      CI.error(path, nil, "#{wp.name} (graine #{seed}) : sans #{missing.join(', ')}") if !missing.empty?
+      covered = wp.mask ? wp.mask.join.count("1") : wp.w * wp.h
+      CI.error(path, nil, "#{wp.name} (graine #{seed}) : ville à arène d'une seule case") if wp.gym && covered < 2
     end
     # Field items: in towns with a gym, in the order of their minimums, each
     # at its minimum gym or later; a nook only after the town of its item
@@ -318,7 +406,7 @@ worlds.each do |path|
     result.places.each do |wp, _place, _text, layout|
       layout.spots[:nooks].each do |_x, _y, obstacle|
         giver = result.places.find { |p, *| p.name == atlas_items[M::NOOKS[obstacle]] }&.first
-        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} avant la ville de son objet") if !giver || giver.index >= wp.index
+        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} avant la ville de son objet") if !giver || giver.index >= (wp.tier || wp.index)
       end
     end
     # The inventory: the same for the same seed, every gym and the start in it
@@ -386,7 +474,8 @@ worlds.each do |path|
     end
     # The chain ends with the Victory Road (a mountain with a cave), then the
     # plateau, whose League leads from room to room in order
-    victory, plateau = result.places.max_by(2) { |wp, *| wp.index }.reverse.map(&:first)
+    chain = result.places.map(&:first).reject(&:extra)
+    victory, plateau = chain.max_by(2, &:index).reverse
     if !victory&.victory || !victory.mountain || result.caves.none? { |wp, *| wp.equal?(victory) } || !plateau.league
       CI.error(path, nil, "graine #{seed} : la chaîne ne finit pas par la Route Victoire (avec sa grotte) et le plateau")
     end
@@ -402,7 +491,7 @@ worlds.each do |path|
     end
     CI.error(path, nil, "graine #{seed} : #{gyms} arène(s) posée(s) au lieu de #{world.gyms}") if gyms != world.gyms
   end
-  CI.error(path, nil, "aucune route de montagne au-delà de 2 niveaux (graines 1..3)") if world.mountains.max > 0 && highest <= 2
+  CI.error(path, nil, "aucune route de montagne au-delà de 2 niveaux (graines #{WORLD_SEEDS})") if world.mountains.max > 0 && highest <= 2
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end

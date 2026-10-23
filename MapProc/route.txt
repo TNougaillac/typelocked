@@ -9,6 +9,9 @@ Taille  = 20x60
 Sol     = .
 Rue     = .
 Bordure = t
+# Comble : bouche les trous que laissent les arbres de bordure hors du tracé
+# d'un lieu en L ou en U (un buisson).
+Comble  = à
 Sorties = nord sud
 Rues    = 0..1
 Eau     = ~

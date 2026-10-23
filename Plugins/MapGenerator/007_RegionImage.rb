@@ -51,8 +51,9 @@ module MapGenerator
     if File.exist?(path) && !drawn_by_mapgen?(path)
       return _INTL("Image {1} gardée : elle n'a pas été dessinée par MapGen (choisis un autre nom avec Image).", path)
     end
-    width = [REGION_SIZE[0], plan.origin[0] + plan.rows.map(&:length).max + 1].max * REGION_SQUARE
-    height = [REGION_SIZE[1], plan.origin[1] + plan.rows.length + 1].max * REGION_SQUARE
+    # No margin past the plan: 32x24 squares fill the Town Map screen
+    width = [REGION_SIZE[0], plan.origin[0] + plan.rows.map(&:length).max].max * REGION_SQUARE
+    height = [REGION_SIZE[1], plan.origin[1] + plan.rows.length].max * REGION_SQUARE
     canvas = RegionCanvas.new(width, height, REGION_COLORS[:sea])
     paint_region(canvas, plan, links)
     canvas.save(path)

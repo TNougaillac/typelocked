@@ -105,6 +105,7 @@ module MapProceduralGenerator
       moor_boat if @terminal && (@place.ferry || @place.island)
       scatter_reefs if @place.island
       @rng.rand(@place.spurs).times { carve_spur(hub) }
+      close_lock if @place.lock
       cross if @place.crossing
       if @place.mountain
         choose_river if @place.river
@@ -147,7 +148,8 @@ module MapProceduralGenerator
         street:    cells_where(seen) { |x, y| !@street[y][x] && NEIGHBOURS.any? { |ox, oy| on_street.call(x + ox, y + oy) } },
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
         dead_ends: @dead_ends.select { |x, y| seen[y][x] },
-        nooks:     @nooks.map(&:dup)
+        nooks:     @nooks.map(&:dup),
+        lock:      @lock&.dup
       }
     end
 
@@ -269,6 +271,13 @@ module MapProceduralGenerator
              when "est"   then [@w - STREET_WIDTH, along.call(@h)]
              end
       @exits.push([side, x, y])
+      # A shortcut's lock: the street first goes straight in across its band
+      if @place.lock && @place.lock[1] == @exits.length - 1
+        dx, dy = INLAND[side]
+        reach = lock_band[0] + lock_band[1] + STREET_WIDTH
+        line_steps(x, y, x + (dx * reach), y + (dy * reach), true).each { |cx, cy| paint(cx, cy) }
+        x, y = x + (dx * reach), y + (dy * reach)
+      end
       # With a mask, to the closest joint the street can reach on its squares
       if @mask
         hub = @hubs.sort_by { |hx, hy| (hx - x).abs + (hy - y).abs }.find do |hx, hy|
@@ -368,22 +377,26 @@ module MapProceduralGenerator
       else
         brick, loot = nook_brick
         spot = put_brick(brick) || return
-        @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @place.nook, spot[0] + brick.door[0], spot[1] + brick.door[1]])
+        ox, oy = spot[0] + brick.door[0], spot[1] + brick.door[1]
+        @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @place.nook, ox, oy])
+        # The Grappling Hook's wall: from its mouth to its inner face
+        @nooks[-1].push(ox, oy - 1) if @place.nook == GRAPPLE
       end
     end
 
     # A pocket of ground at the back of a block of rock, reached by a corridor
     # one tile wide from the south: the obstacle stands at its mouth (the
     # door, so a path leads to it). Three tiles wide, so that a pushed boulder
-    # can be walked around. Returns the brick and the loot cell (a back
-    # corner).
+    # can be walked around. For the Grappling Hook, the corridor is rock too.
+    # Returns the brick and the loot cell (a back corner).
     def nook_brick
       rock = @place.levels&.first || "^"
       ground = @place.ground
       depth = @rng.rand(2..3)
       rows = [" #{rock * 5} ", rock * 7]
       depth.times { rows.push("#{rock * 2}#{ground * 3}#{rock * 2}") }
-      2.times { rows.push("#{rock * 3}#{ground}#{rock * 3}") }
+      corridor = (@place.nook == GRAPPLE) ? rock : ground
+      2.times { rows.push("#{rock * 3}#{corridor}#{rock * 3}") }
       brick = Brick.new(NOOK, "Recoin", NOOK, [3, rows.length - 1], 1, false, rows)
       return brick, [(@rng.rand(2) == 0) ? 2 : 4, 2]
     end
@@ -1208,6 +1221,12 @@ module MapProceduralGenerator
       across = vertical_route? ? @w : @h
       wall = {}
       depth.times { |a| across.times { |b| wall[band_cell(start + a, b)] = true } }
+      fill_wall(wall)
+    end
+
+    # Rock on those cells ({[x, y] => true}): the rock objects where they fit,
+    # pebbles in the gaps.
+    def fill_wall(wall)
       wall.each_key do |x, y|
         @cells[y][x] = nil
         @solid[y][x] = true
@@ -1223,6 +1242,77 @@ module MapProceduralGenerator
         end
       end
       wall.each_key { |x, y| @cells[y][x] ||= @place.pebble }
+    end
+
+    #---------------------------------------------------------------------------
+    # Shortcut locks (« Raccourcis » in a world)
+    #---------------------------------------------------------------------------
+    # [tiles from the edge of the lock's exit to its band, thickness of the
+    # band]: past the border, water 4 tiles thick or rock as thick as its
+    # objects.
+    def lock_band
+      bw, bh = border_size
+      across = %w[nord sud].include?(@exits[@place.lock[1]][0])
+      return [(across ? bh : bw) + 2, 4] if @place.lock[0] == "eau"
+      rock = @place.rock && @palette.objects[@place.rock] ? rock_size : [2, 2]
+      return [(across ? bh : bw) + 2, across ? rock[1] : rock[0]]
+    end
+
+    # A band across the leg of the locked exit, from border to border, that
+    # only its obstacle opens: water to surf, or rock with a corridor one tile
+    # wide on the street where the obstacle's event stands (a cut tree, a
+    # cracked rock, a boulder pushed through the corridor), or with no gap
+    # for the Grappling Hook. lock: [obstacle, x, y (its event), and for the
+    # Grappling Hook x, y of the wall's other face].
+    def close_lock
+      obstacle, exit = @place.lock
+      side, ex, ey = @exits[exit]
+      start, thickness = lock_band
+      dx, dy = INLAND[side]
+      # Across the band: perpendicular to the way in
+      ax, ay = dy.abs, dx.abs
+      edge_x = (dx < 0) ? @w - 1 : ex
+      edge_y = (dy < 0) ? @h - 1 : ey
+      band = {}
+      thickness.times do |t|
+        d = start + t
+        x0, y0 = (dx == 0) ? [ex, edge_y + (dy * d)] : [edge_x + (dx * d), ey]
+        [-1, 1].each do |dir|
+          x, y = x0, y0
+          # Through the border too, which may leave gaps on a mask's squares;
+          # water keeps the row under it (its bank) on the squares
+          while covered?(x, y) && (obstacle != "eau" || !inside?(x, y + 1) || covered?(x, y + 1))
+            band[[x, y]] = true
+            x += ax * dir
+            y += ay * dir
+          end
+        end
+      end
+      if obstacle == "eau"
+        error("« Eau » manquant pour fermer un raccourci") if !@place.water
+        band.each_key do |x, y|
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
+          @street[y][x] = @border[y][x] = false
+        end
+        first = band.keys.min_by { |x, y| ((x - ex).abs + (y - ey).abs) }
+        @lock = [obstacle, *first]
+        return
+      end
+      error("« Roche » et « Caillou » manquants pour fermer un raccourci") if !@place.rock || !@place.pebble
+      # The corridor: on the street's first column (or row), through the band
+      # (none for the Grappling Hook: its events stand on both faces)
+      gap = (0...thickness).map do |t|
+        d = start + t
+        (dx == 0) ? [ex, edge_y + (dy * d)] : [edge_x + (dx * d), ey]
+      end
+      gap.each { |cell| band.delete(cell) } if obstacle != GRAPPLE
+      fill_wall(band)
+      # The event stands at the mouth of the corridor, on the exit's side
+      @lock = [obstacle, *gap[0]]
+      return if obstacle != GRAPPLE
+      @lock.push(*gap[-1])
+      @grapple = gap
     end
 
     # One cave entrance on each side of the wall, linked to that side's street.
@@ -1450,7 +1540,9 @@ module MapProceduralGenerator
       end
     end
 
-    # Fills the border with copies of the border object; leftovers stay ground.
+    # Fills the border with copies of the border object; leftovers stay
+    # ground, but off the squares of a mask they take « Comble », so that no
+    # way leads there.
     def plant_border
       return if !@place.border
       bw, bh = border_size
@@ -1460,6 +1552,8 @@ module MapProceduralGenerator
           bh.times { |dy| bw.times { |dx| @cells[y + dy][x + dx] = @place.border } }
         end
       end
+      return if !@mask || !@place.filler
+      @h.times { |y| @w.times { |x| @cells[y][x] = @place.filler if free_border?(x, y) && !covered?(x, y) } }
     end
 
     def free_border?(x, y)
@@ -1497,8 +1591,9 @@ module MapProceduralGenerator
     end
 
     def walk(start)
+      # The wall of a Grappling Hook lock is crossed
       walkable = lambda do |x, y|
-        inside?(x, y) && (@street[y][x] || @water[y][x] || (!@cells[y][x] && !@border[y][x]))
+        inside?(x, y) && (@street[y][x] || @water[y][x] || (!@cells[y][x] && !@border[y][x]) || @grapple&.include?([x, y]))
       end
       seen = Array.new(@h) { Array.new(@w, false) }
       seen[start[1]][start[0]] = true

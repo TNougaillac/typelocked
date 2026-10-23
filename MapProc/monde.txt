@@ -7,23 +7,48 @@
 Monde    = TypeLocked
 Region   = 0
 Image    = typelocked_proc.png
-Origin   = 1,1
-Taille   = 28x18
+# 32x24 cases : tout l'écran de la carte de la région (512x384, cases de 16).
+Origin   = 0,0
+Taille   = 32x24
 Cell     = 20
+# Marge : cases laissées libres au bord de la grille, pour que la côte de la
+# carte de région ne soit pas coupée par le bord de l'écran (0 par défaut).
+Marge    = 1
 Ville    = ville.txt
 Route    = route.txt
 # Noms affichés en jeu (villes, grottes, région), tirés avec la graine. Les
 # cartes gardent leur nom généré dans l'arbre des cartes.
 Toponymie = Lore/noms.txt
-Villes   = 9
+Villes   = 11
 Arenes   = 8
 # La première ville n'a jamais d'arène. Les autres villes sans arène sont tirées
 # au hasard dans la chaîne, ou imposées par leur numéro, ex. « SansArene = 5 ».
-Longueur = 2..3
-# Formes des routes : droites, ou en L (un virage ; 3 cases de long au moins).
+# 11 villes pour 8 arènes : deux villes sans arène en plus de la première,
+# qui peuvent être des villages (1x1, voir TaillesVilles).
+# Routes de 1 à 4 cases de long, de 1 ou 2 cases de large (herbes, eau et
+# grottes s'étalent sur toute la largeur).
+Longueur = 1..4
+Largeur  = 1..2
+# Tailles des villes, en cases : 1x1 (village, jamais d'arène), 1x2 (ou 2x1),
+# 2x2 et L (3 cases d'un carré 2x2, les rues passent par le coude). La première
+# ville fait au moins 1x2 (le labo du Professeur).
+TaillesVilles = 1x1, 1x2, 2x2, L
+# Formes des routes : droites, en L (un virage ; au moins la largeur + 2 cases
+# de long) ou en U (elle revient vers une ville posée à côté de celle qu'elle
+# quitte, du même côté ; des branches de sa longueur).
 # Une route en L garde tout son rectangle sur la grille du monde ; les cases
 # hors de son tracé sont remplies d'arbres.
-FormesRoutes = droite, L
+FormesRoutes = droite, L, U
+# Boucles : routes de plus entre deux zones de la chaîne sans ville à arène
+# entre elles, ouvertes dès le début (0 = aucune). Une route ajoutée fait
+# jusqu'à 6 cases de long pour contourner la chaîne.
+Boucles  = 1..3
+# Raccourcis : routes entre deux zones plus éloignées, fermées du côté du départ
+# par un obstacle (arbre à couper, rocher fissuré, rocher à pousser, eau à
+# surfer). L'objet qui l'ouvre s'obtient au plus tôt dans la dernière ville à
+# arène avant l'autre bout : un raccourci ne fait jamais sauter d'arène.
+# Ce qui ne trouve pas de place est écrit dans la console (0 = aucun).
+Raccourcis = 1..3
 # L'eau qui barre une route (chenal tout droit ou lac d'un bord à l'autre) ne se
 # traverse qu'avec Surf : elle n'apparaît qu'après la ville de la 2e arène.
 # Les lacs posés dans les villes et les routes ne bloquent jamais le passage.

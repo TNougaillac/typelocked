@@ -8,6 +8,9 @@ Taille  = 40x34
 Sol     = .
 Rue     = P
 Bordure = t
+# Comble : bouche les trous que laissent les arbres de bordure hors du tracé
+# d'un lieu en L ou en U (un buisson).
+Comble  = à
 Sorties = nord sud ouest
 Rues    = 1..2
 Eau     = ~
@@ -31,11 +34,13 @@ centre   = 1
 boutique = 1
 arene    = 1
 immeuble = 0..2
-maison   = 4..7
+# « par case » : pour 20x20 tuiles, une ville de 2x2 cases en a 4 fois plus
+# qu'un village de 1x1.
+maison   = 1..2 par case
 foire    = 0..2
-parc     = 1..3
-lampe    = 6..10
-arbre    = 3..8
+parc     = 0..1 par case
+lampe    = 0..2 par case
+arbre    = 0..2 par case
 lac      = 0..1
 montagne = 0..1
 colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
@@ -51,13 +56,13 @@ decor    = 0        # décor propre à une ambiance : quantité donnée par l'am
 Poids = 8
 Sol   = T1|T1|T1|T2|T3
 Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
-decor = 1..3
+decor = 0..1 par case
 
 [Ambiance chemins de terre]
 Poids = 2
 Sol   = T1|T1|T1|T2|T3
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
-decor = 2..4
+decor = 0..1 par case
 
 [Ambiance prairie]
 Poids = 1
@@ -77,8 +82,8 @@ t = T4016 2x3
 * = T4046                # fleurs sur la prairie (image fixe : l'autotile a un fond vert)
 Rive  = T4047 T4047 T4047
 Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
-arbre = 1..4
-decor = 2..4
+arbre = 0..1 par case
+decor = 0..1 par case
 
 [Ambiance sable]
 Poids = 1
@@ -97,9 +102,9 @@ t = T4056 2x3
 ë = T4195 1x2
 Rive  = T833 T833 T833
 Rue   = T274
-arbre = 0..2
-parc  = 0..1
-decor = 3..6
+arbre = 0..1 par case
+parc  = 0..1 par case
+decor = 1..2 par case
 
 [Ambiance minérale]
 Poids = 1
@@ -117,9 +122,9 @@ t = T4136 2x3
 ê = T4198 1x3
 ë = T4199 1x2
 Rue   = T274
-arbre = 0..2
+arbre = 0..1 par case
 lac   = 0
-decor = 3..6
+decor = 1..2 par case
 # La roche grise remplace la brune (montagnes, rochers, corniches)
 ^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
 
@@ -141,15 +146,15 @@ t = T4096 2x3
 ë = T4197 1x2
 Rive  = T841 T841 T841
 Rue   = T218
-arbre = 1..4
-decor = 2..4
+arbre = 0..1 par case
+decor = 0..1 par case
 
 [Ambiance automne]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
 Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
-arbre = 0..2
-decor = 3..5
+arbre = 0..1 par case
+decor = 1..1 par case
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]

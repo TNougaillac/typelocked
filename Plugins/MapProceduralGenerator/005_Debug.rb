@@ -109,7 +109,9 @@ module MapProceduralGenerator
       busy_update
     end
     (result.places + result.islands.map { |wp, _port, *rest| [wp, *rest] }).each do |wp, _place, _text, layout|
-      write_nook_events(map_ids[wp.name], layout.spots[:nooks])
+      # A shortcut's obstacle is written like those of the nooks
+      lock = layout.spots[:lock]
+      write_nook_events(map_ids[wp.name], layout.spots[:nooks] + (lock ? [[lock[1], lock[2], *lock]] : []))
     end
     write_extra_metadata(world, result, map_ids)
     if prune
@@ -126,6 +128,8 @@ module MapProceduralGenerator
     MapGenerator.run_world(export, quiet: quiet)
     surf = result.places.find { |wp, *| wp.surf }
     dive = result.places.find { |wp, *| wp.dive }
+    # The loops and shortcuts drawn, and those that found no room
+    result.notes.each { |note| Console.echoln_li(note) }
     if quiet
       Console.echoln_li(_INTL("Surf : {1}, Plongée : {2}", surf&.first&.title || "-", dive&.first&.title || "-"))
       return export, world_start(result, map_ids)
