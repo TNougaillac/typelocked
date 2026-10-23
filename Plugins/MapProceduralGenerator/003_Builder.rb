@@ -21,7 +21,7 @@ module MapProceduralGenerator
   # deep: cells of deep water, where the player can dive; terminal: [x, y] of
   # the ferry terminal's door (its top middle cell, entered from the pier);
   # spots: the place's inventory (see PlaceBuilder#inventory)
-  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots)
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -110,7 +110,7 @@ module MapProceduralGenerator
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       draw_banks(rows) if @place.banks
-      return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory)
+      return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory, @place.ambiance)
     end
 
     # Where the events of the place can go (MapEvents, items, NPCs), every cell

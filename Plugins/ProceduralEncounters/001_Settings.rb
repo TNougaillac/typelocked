@@ -18,8 +18,10 @@ module ProceduralEncounters
   GRASS_TILES = [384 + 6, 384 + 7].freeze
   WATER_TILES = [48].freeze
 
-  # Ground tile of a place (its ambiance) => land biome, « herbe » otherwise.
-  GROUND_BIOMES = { 384 + 50 => "prairie", 384 + 162 => "sable", 384 + 106 => "terre" }.freeze
+  # Ambiance of a route (MapProc, [Ambiance] of route.txt) => land biome,
+  # « herbe » otherwise.
+  AMBIANCE_BIOMES = { "prairie" => "prairie", "sable" => "sable", "terre battue" => "terre",
+                      "minérale" => "minéral", "automne" => "automne", "forêt tropicale" => "tropical" }.freeze
 
   # Biome => type => weight (0 or absent = never there). A Pokémon takes the
   # best weight among its own types.
@@ -34,6 +36,12 @@ module ProceduralEncounters
                     POISON: 1 },
     "foret"    => { BUG: 3, GRASS: 3, GHOST: 2, FAIRY: 2, POISON: 2, DARK: 2, PSYCHIC: 1,
                     NORMAL: 1, FLYING: 1 },
+    "minéral"  => { ROCK: 3, STEEL: 3, GROUND: 2, FIGHTING: 2, ELECTRIC: 1, ICE: 1, DRAGON: 1,
+                    NORMAL: 1 },
+    "automne"  => { GRASS: 3, BUG: 3, GHOST: 2, DARK: 2, NORMAL: 2, FLYING: 2, FIRE: 1,
+                    POISON: 1, PSYCHIC: 1 },
+    "tropical" => { GRASS: 3, BUG: 3, POISON: 3, DRAGON: 2, FLYING: 2, FAIRY: 1, ELECTRIC: 1,
+                    FIGHTING: 1, NORMAL: 1 },
     "montagne" => { ROCK: 3, GROUND: 3, FIGHTING: 3, FLYING: 2, STEEL: 2, DRAGON: 2, ICE: 2,
                     FIRE: 1, NORMAL: 1 },
     "ville"    => { NORMAL: 3, POISON: 2, ELECTRIC: 2, STEEL: 2, PSYCHIC: 2, DARK: 2, FAIRY: 2,
