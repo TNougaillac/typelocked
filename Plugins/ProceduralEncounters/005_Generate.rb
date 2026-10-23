@@ -85,8 +85,10 @@ module MapProceduralGenerator
       return @encounters_world
     end
 
-    def generate_world_maps(path, seed, quiet: false, prune: false)
-      export, start = __encounters_generate_world_maps(path, seed, quiet: quiet, prune: prune)
+    # computed: the world drawn beforehand (compute_world, during the intro)
+    def generate_world_maps(path, seed, quiet: false, prune: false, computed: nil)
+      @encounters_world = computed[2] if computed
+      export, start = __encounters_generate_world_maps(path, seed, quiet: quiet, prune: prune, computed: computed)
       ProceduralEncounters.write_world(@encounters_world, read_world_maps(path), seed, export, quiet: quiet)
       return export, start
     end
