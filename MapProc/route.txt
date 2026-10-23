@@ -41,6 +41,9 @@ lac    = 0..1
 # Entrées de grotte : posées seulement sur les routes que le monde fait passer
 # par une grotte (« Grottes » dans monde.txt).
 grotte = 0
+# Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
+# donnée par chaque ambiance.
+decor  = 0
 
 # Ambiances : chaque route en tire une selon son poids (l'herbe le plus souvent).
 # « {sol} » dans la palette = la première tuile du sol tiré.
@@ -56,6 +59,50 @@ Sol   = T50
 Poids = 1
 Sol   = T162
 Rive  = T832 T833 T834
+arbre = 0..1 par case
+parc  = 0
+decor = 2..4 par case
+
+# Zone minérale : gravier, rochers gris, pas de lac
+[Ambiance minérale]
+Poids = 1
+Sol   = T218
+arbre = 0..1 par case
+parc  = 0
+lac   = 0
+decor = 2..4 par case
+# La roche grise remplace la brune (montagnes, rochers, corniches)
+^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnz L2 @.
+& = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnz
+k = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnz L2 @z
+K = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnz
+m = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=MEFGHquvwnz L2 @z
+M = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=EFGHquvwnz
+z = T873
+E = T873 T777
+F = T873 T778
+G = T873 T769
+H = T873 T770
+n = T873 T6
+q = T873 T895
+u = T873 T911
+v = T873 T919
+w = T873 T927
+1 = T867
+2 = T870
+3 = T869
+4 = T875
+5 = T878
+6 = T877
+7 = T883
+8 = T886
+9 = T885
+R = T864 3x3
+o = {sol} T895
+< = {sol} T890
+- = {sol} T908
+> = {sol} T894
+
 
 [Ambiance terre battue]
 Poids = 1
@@ -64,6 +111,11 @@ Rive  = T840 T841 T842
 
 # Palette MapGen (tileset Outside).
 [Legend]
+c = {sol} T847          # rocher brun (désert)
+d = {sol} T839          # cailloux bruns
+j = {sol} T927          # rocher gris (minéral)
+x = {sol} T919          # cailloux gris
+, = {sol} T895          # bloc gris
 ! = T848               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit)
 ' = T849
 ? = T850
@@ -113,5 +165,7 @@ m = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iN
 M = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnz   # niveau 6
 
 [Objects]
+a = T836 2x4         # flèche rocheuse brune (désert)
+i = T916 2x4         # flèche rocheuse grise (minéral)
 t = T420 2x3         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)

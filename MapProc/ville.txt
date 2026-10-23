@@ -41,6 +41,7 @@ montagne = 0..1
 colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
 port     = 0        # entrepôts : posés le long du quai d'un port
 gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
+decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
 
 # Ambiances : chaque ville en tire une selon son poids. L'herbe et ses rues
 # pavées restent le plus courant, quelques villes changent de sol.
@@ -66,11 +67,20 @@ Poids = 1
 Sol   = T162
 Rive  = T832 T833 T834
 Rue   = T274
+arbre = 0..2
+parc  = 0..1
+decor = 3..6
 
 [Ambiance minérale]
 Poids = 1
 Sol   = T218
 Rue   = T274
+arbre = 0..2
+lac   = 0
+decor = 3..6
+# La roche grise remplace la brune (montagnes, rochers, corniches)
+^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+
 
 [Ambiance terre battue]
 Poids = 1
@@ -80,6 +90,11 @@ Rue   = T218
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
+c = {sol} T847          # rocher brun (désert)
+d = {sol} T839          # cailloux bruns
+j = {sol} T927          # rocher gris (minéral)
+x = {sol} T919          # cailloux gris
+, = {sol} T895          # bloc gris
 ! = T848               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit)
 ' = T849
 ? = T850
@@ -112,6 +127,8 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
 [Objects]
+a = T836 2x4         # flèche rocheuse brune (désert)
+i = T916 2x4         # flèche rocheuse grise (minéral)
 C = T2608 5x5        # Centre Pokémon
 M = T2648 4x4        # Boutique (porte à droite)
 N = T2652 4x4        # Boutique (porte à gauche)

@@ -1,0 +1,9 @@
+# Minéral : un éboulis de blocs gris.
+Brique    = Éboulis gris
+Type      = decor
+Ambiances = minérale
+Poids     = 2
+[Map]
+ ,x
+,j,
+x,
