@@ -70,7 +70,8 @@ module WorldEvents
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
-  FEMALE_TYPES = %i[LEADER_Misty LEADER_Erika LEADER_Sabrina LASS PICNICKER POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
+  FEMALE_TYPES = %i[LEADER_Misty LEADER_Erika LEADER_Sabrina ELITEFOUR_Lorelei ELITEFOUR_Agatha LASS PICNICKER
+                    POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
                Matteo Dario Nico Sonny Ray Jack Bobby Lucien Marcel Gino Carlo Franco Angelo Victor],
@@ -122,6 +123,9 @@ module WorldEvents
   GYM_SWITCH = 3
   # A TM is « useful »: at least this power, or a status move of this list.
   TM_MIN_POWER = 70
+  # Early in the game (the first EARLY_GYMS lieutenants): this power is enough.
+  EARLY_GYMS = 3
+  EARLY_TM_MIN_POWER = 50
   TM_STATUS = %i[SWORDSDANCE CALMMIND BULKUP DRAGONDANCE NASTYPLOT TOXIC WILLOWISP THUNDERWAVE
                  PROTECT SUBSTITUTE LIGHTSCREEN REFLECT ROOST TAILWIND TRICKROOM SPIKES STEALTHROCK
                  TOXICSPIKES QUIVERDANCE SHELLSMASH AGILITY ROCKPOLISH IRONDEFENSE AMNESIA
@@ -135,6 +139,27 @@ module WorldEvents
     "La Famille garde cette arène. Montre ce que tu vaux."
   ].freeze
   MEMBER_ENDS = ["Le lieutenant t'attend.", "Va, il est au fond."].freeze
+
+  # The rooms of the League (LEAGUE_ROOMS of MapProceduralGenerator), by
+  # template: where the fighter stands, and the cell in front of the door to
+  # the next room, closed until the room is won.
+  LEAGUE_LAYOUTS = { 37 => { boss: [6, 6], gate: [6, 3] } }.freeze
+  # Game switch turned on by the n-th fight of the League (Anciens 1 to 4,
+  # Parrain, Arceus): LEAGUE_SWITCH + n, 59 to 64.
+  LEAGUE_SWITCH = 58
+  # The four Anciens: their trainer types (Elite Four for the Monotype), one
+  # drawn type each, never the same; their Pokémon.
+  ELDER_TYPES = %i[ELITEFOUR_Lorelei ELITEFOUR_Bruno ELITEFOUR_Agatha ELITEFOUR_Lance].freeze
+  ELDER_PARTY_SIZES = [5, 5, 6, 6].freeze
+  # The Parrain (Champion for the Monotype): no type, the most evolved
+  # Pokémon of the roster, the strongest at the cap with every seal.
+  PARRAIN_TYPE = :CHAMPION
+  PARRAIN_PARTY_SIZE = 6
+  # Arceus, boss of OverworldBoss: this many levels above the Parrain's top.
+  ARCEUS_GRAPHIC = "boss_ARCEUS"
+  ARCEUS_LEVEL_BONUS = 5
+  ARCEUS_BOSS = { stats: { HP: 3, ATTACK: 1.2, SPECIAL_ATTACK: 1.2 },
+                  moves: %i[JUDGMENT EXTREMESPEED RECOVER COSMICPOWER] }.freeze
 
   # Items of a world. How many: per square of a route, per town (islands
   # too), per floor of a cave (not the dark ones), plus the loot of each nook.
@@ -193,6 +218,29 @@ module WorldEvents
   PROFESSOR_AFTER = "Prends soin de ton Pokémon. La Famille garde un œil sur toi, \\PN."
   BALL_TEXT       = "Une Poké Ball du professeur."
   GATE_TEXT       = "Tu ne peux pas partir sans Pokémon. Le professeur t'attend."
+  ELDER_BATTLES = [
+    "Je suis le premier des Anciens. Personne ne monte voir le Parrain sans nous.",
+    "Le Pacte t'a mené jusqu'ici. Voyons s'il avait raison.",
+    "J'ai vu passer d'autres désignés avant toi. Aucun n'est redescendu.",
+    "Dernière porte avant le Parrain. Elle ne s'ouvre pas pour n'importe qui."
+  ].freeze
+  ELDER_ENDS = [
+    "Monte. Les autres t'attendent.",
+    "Tu es plus coriace que les précédents.",
+    "Peut-être que toi, tu redescendras.",
+    "Le Parrain t'attend. Il t'attend depuis longtemps."
+  ].freeze
+  PARRAIN_BATTLE = "Alors c'est toi, le prix du Pacte. Montre-moi ce que la Famille a payé si cher."
+  PARRAIN_END    = "Tu crois avoir gagné ? Derrière cette porte, quelqu'un t'attend. Il attend chaque génération."
+  ARCEUS_INTRO = [
+    "Une lumière immense remplit la salle.",
+    "Arceus. Celui avec qui la Famille a passé le Pacte. Celui à qui tu devais être remis."
+  ].freeze
+  ARCEUS_END = [
+    "La lumière vacille, puis s'éteint.",
+    "Le Pacte est brisé. La Famille n'a plus rien à offrir, ni personne à livrer."
+  ].freeze
+  LEAGUE_DOOR_TEXT = "La porte est fermée. Il faut d'abord gagner ici."
   GIFT_TEXTS = [
     "Tiens, prends ça. Moi, je n'en ai plus l'usage.",
     "Tu as l'air d'en avoir besoin plus que moi.",

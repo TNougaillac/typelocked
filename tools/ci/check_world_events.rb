@@ -96,7 +96,7 @@ def check_gyms(atlas, plans, leaders, tms)
     drawn = leaders.find { |l| l[:map] == map }
     raise MapEvents::Error, "#{map} : niveau #{tops[leaders.index(drawn)]} au lieu du plafond #{E::CAPS[i]}" if tops[leaders.index(drawn)] != E::CAPS[i]
     tm = tms.find { |item, *| item.to_s == leader.value("Gift") }
-    if !tm || !W.useful_tms(tms, drawn[:type]).include?(tm)
+    if !tm || !W.useful_tms(tms, drawn[:type], drawn[:gym] - 1).include?(tm)
       raise MapEvents::Error, "#{map} : CT #{leader.value('Gift')} absente ou inutile pour le type #{drawn[:type]}"
     end
     members = events.select { |e| e.kind == :trainer && e.label.start_with?("Membre") }
@@ -272,6 +272,43 @@ def check_items(atlas, zones, plans, items)
   end
 end
 
+# The League: in the order of its rooms, the four Anciens (types all
+# different), the Parrain and Arceus, each door closed until its room is
+# won; the Anciens stronger than the last lieutenant, one after the other,
+# the Parrain at the cap with every seal, Arceus above.
+def check_league(atlas, plans, fights, leaders)
+  rooms = atlas[:league].reject { |name| %w[Entrée Panthéon].include?(atlas[:maps][name][:role]) }
+  return if rooms.empty?
+  roles = rooms.map { |name| atlas[:maps][name][:role] }
+  raise MapEvents::Error, "Ligue : salles #{roles.join(', ')}" if roles != ["Ancien 1", "Ancien 2", "Ancien 3", "Ancien 4", "Parrain", "Arceus"]
+  raise MapEvents::Error, "Ligue : combats #{fights.map { |f| f[:role] }.join(', ')}" if fights.map { |f| f[:role] } != roles
+  rooms.each_with_index do |name, i|
+    events = plans[name]&.events || []
+    switch = W::LEAGUE_SWITCH + i + 1
+    door = events.find { |e| e.label == "Porte" }
+    if !door || door.value("Hide") != "S#{switch}" || door.value("Trigger") != "contact"
+      raise MapEvents::Error, "#{name} : porte absente ou pas fermée par l'interrupteur #{switch}"
+    end
+    fight = events.find { |e| e.label == roles[i].delete(" ") }
+    raise MapEvents::Error, "#{name} : pas de #{roles[i]}" if !fight
+    won = (fight.kind == :trainer) ? fight.value("Switch").to_i : fight.value("Script")[/, (\d+)\)\z/, 1].to_i
+    raise MapEvents::Error, "#{name} : la victoire n'ouvre pas la porte (#{won} au lieu de #{switch})" if won != switch
+  end
+  elders = fights.first(4)
+  raise MapEvents::Error, "Ligue : deux Anciens du même type" if elders.map { |f| f[:type] }.uniq.length != 4
+  tops = fights.map { |f| f[:team].map(&:last).max }
+  last = leaders.map { |l| l[:team].map(&:last).max }.max
+  top = E::CAPS[atlas[:gyms].length] || E::CAPS.last
+  raise MapEvents::Error, "Ligue : niveaux #{tops.join(', ')} pas croissants" if tops.each_cons(2).any? { |a, b| b < a }
+  raise MapEvents::Error, "Ligue : premier Ancien (#{tops[0]}) pas plus fort que le dernier lieutenant (#{last})" if tops[0] <= last
+  raise MapEvents::Error, "Ligue : Parrain au niveau #{tops[4]} au lieu du plafond #{top}" if tops[4] != top
+  raise MapEvents::Error, "Ligue : Arceus (#{tops[5]}) pas au-dessus du Parrain" if tops[5] <= top
+  elders.each do |f|
+    next if f[:team].all? { |sp, _| ROSTER[sp].types.include?(f[:type]) }
+    raise MapEvents::Error, "Ligue : #{f[:name]} a des Pokémon hors de son type #{f[:type]}"
+  end
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
 W::CENTRE_EVENTS.each do |template, events|
@@ -290,7 +327,7 @@ species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\
 types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
 ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
 genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES).uniq.each do |type|
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
   female = W::FEMALE_TYPES.include?(type)
   CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
@@ -309,6 +346,8 @@ tms = CI.read_text(File.join(ROOT, "PBS", "items.txt")).split(/^\[/).drop(1).fil
   [sec[/\A(\w+)/, 1].to_sym, move, *moves[move]]
 end
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
+W::ARCEUS_BOSS[:moves].each { |move| CI.error(settings, nil, "ARCEUS_BOSS : capacité #{move} absente de moves.txt") if !moves[move] }
+ROSTER = roster
 W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
 { "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE }.each do |key, table|
   CI.error(settings, nil, "#{key} : pas de ligne à 0 sceau") if !table[0]
@@ -317,7 +356,7 @@ W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK :
   end
 end
 CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
-[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
+[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
   CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
 end
 
@@ -357,6 +396,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
+      check_league(atlas, plans, events[:league], events[:leaders])
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")

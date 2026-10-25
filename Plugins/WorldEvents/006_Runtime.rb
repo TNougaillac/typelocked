@@ -55,4 +55,20 @@ module WorldEvents
     $bag.remove(HEART_SCALE)
     pbMessage(_INTL(RELEARNER_DONE))
   end
+
+  # The door of a room of the League, before its fight is won.
+  def league_door
+    pbMessage(_INTL(LEAGUE_DOOR_TEXT))
+    pbMoveRoute($game_player, [PBMoveRoute::BACKWARD], true)
+  end
+
+  # Arceus (interpreter: the event's, for OverworldBoss): beaten or caught,
+  # the Pact is broken and the door of its room opens.
+  def arceus(interpreter, level, switch)
+    outcome = interpreter.boss_battle(:ARCEUS, level, **ARCEUS_BOSS)
+    return if ![1, 4].include?(outcome)
+    $game_switches[switch] = true
+    $game_map.need_refresh = true
+    ARCEUS_END.each { |line| pbMessage(_INTL(line)) }
+  end
 end

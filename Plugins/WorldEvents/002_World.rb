@@ -8,8 +8,8 @@ module WorldEvents
   module_function
 
   # { plans: { map name => MapEvents plan text }, trainers: [sections of
-  # PBS/trainers.txt], leaders: [the lieutenants, see gym_events], items:
-  # [the items, see item_events] }.
+  # PBS/trainers.txt], leaders: [the lieutenants, see gym_events], league:
+  # [its fights, see league_events], items: [the items, see item_events] }.
   # zones and encounters: ProceduralEncounters' world_zones and
   # world_encounters (its second value) of that world, for the trainers;
   # species (the roster), tms ([[item, move, type, power, status?]]) and
@@ -23,16 +23,18 @@ module WorldEvents
     service_events(atlas, seals_at(result), plans)
     trainers = []
     leaders = []
+    league = []
     names = Hash.new { |hash, type| hash[type] = [] }
     if species && tms && caps
       leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, Random.new((seed * 1000) + 720))
+      league = league_events(atlas, species, caps, plans, trainers, names, Random.new((seed * 1000) + 740))
     end
     if zones && encounters
       trainer_events(result, atlas, zones, encounters, plans, trainers, names, Random.new((seed * 1000) + 710))
     end
     items = zones && tms ? item_events(result, atlas, zones, tms, leaders, plans, Random.new((seed * 1000) + 730)) : []
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
-             items: items }
+             league: league, items: items }
   end
 
   def plan_text(name, events)
