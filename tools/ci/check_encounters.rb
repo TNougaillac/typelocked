@@ -34,6 +34,15 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     where = "#{File.basename(path)} (graine #{seed})"
     result = M.generate_world(world, town, route, bricks, seed)
     lines, generated = E.world_encounters(result, species, E::CAPS, seed)
+    # A route off the chain has the seals and levels of the place of its tier
+    zones = E.world_zones(result, E::CAPS).to_h { |zone| [zone.name, zone] }
+    result.places.each do |wp, *|
+      next if !wp.extra
+      tier = result.places.find { |other, *| other.index == wp.tier && !other.extra }[0]
+      zone, at = zones[wp.name], zones[tier.name]
+      next if zone.seals == at.seals && zone.levels == at.levels
+      CI.error(path, nil, "#{where}, #{wp.name} : rencontres hors du palier #{tier.name}")
+    end
     lines.each do |name, body|
       total = nil
       check_total = lambda do

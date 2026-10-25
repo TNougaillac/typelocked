@@ -51,8 +51,9 @@ module MapGenerator
     if File.exist?(path) && !drawn_by_mapgen?(path)
       return _INTL("Image {1} gardée : elle n'a pas été dessinée par MapGen (choisis un autre nom avec Image).", path)
     end
-    width = [REGION_SIZE[0], plan.origin[0] + plan.rows.map(&:length).max + 1].max * REGION_SQUARE
-    height = [REGION_SIZE[1], plan.origin[1] + plan.rows.length + 1].max * REGION_SQUARE
+    # No margin past the plan: 32x24 squares fill the Town Map screen
+    width = [REGION_SIZE[0], plan.origin[0] + plan.rows.map(&:length).max].max * REGION_SQUARE
+    height = [REGION_SIZE[1], plan.origin[1] + plan.rows.length].max * REGION_SQUARE
     canvas = RegionCanvas.new(width, height, REGION_COLORS[:sea])
     paint_region(canvas, plan, links)
     canvas.save(path)
@@ -64,32 +65,21 @@ module MapGenerator
     box = proc do |place|
       [(plan.origin[0] + place.x) * sq, (plan.origin[1] + place.y) * sq, place.width * sq, place.height * sq]
     end
-    paint_coast(canvas, plan.places.values.map { |place| box.call(place) })
+    paint_coast(canvas, plan.places.values.flat_map { |place| square_boxes(plan, place) })
     # Routes: a dark 16-pixel band with a white 8-pixel core, along each route
-    # and from each connection to the places it joins
+    # (its trace if it has one) and from each connection to the places it joins
     segments = []
     plan.places.each_value do |place|
       next if place_kind(place) != "route"
-      x, y, w, h = box.call(place)
-      if w >= h
-        segments.push([x + (sq / 2), y + (h / 2), x + w - (sq / 2), y + (h / 2)])
-      else
-        segments.push([x + (w / 2), y + (sq / 2), x + (w / 2), y + h - (sq / 2)])
-      end
+      line = route_line(plan, place)
+      line.each_cons(2) { |a, b| segments.push(a + b) }
     end
     links.each do |a, edge, _pa, b, _eb, _pb|
-      ax, ay, aw, ah = box.call(a)
-      bx, by, bw, bh = box.call(b)
-      if edge == "E"
-        point = [ax + aw, ([ay, by].max + [ay + ah, by + bh].min) / 2]
-      else
-        point = [([ax, bx].max + [ax + aw, bx + bw].min) / 2, ay + ah]
-      end
+      point = link_point(plan, a, edge, b)
       [a, b].each do |place|
-        # To the route's middle line (or the block's centre), in two straight
-        # pieces that leave the edge at a right angle
-        x, y, w, h = box.call(place)
-        target = (place_kind(place) == "route") ? route_point([x, y, w, h], point) : [x + (w / 2), y + (h / 2)]
+        # To the route's line (or the block's centre), in two straight pieces
+        # that leave the edge at a right angle
+        target = (place_kind(place) == "route") ? route_point(route_line(plan, place), point) : place_centre(plan, place, point)
         corner = (edge == "E") ? [target[0], point[1]] : [point[0], target[1]]
         segments.push(point + corner, corner + target)
       end
@@ -97,8 +87,64 @@ module MapGenerator
     segments.each { |s| canvas.segment(*s, sq / 2, REGION_COLORS[:outline]) }
     segments.each { |s| canvas.segment(*s, sq / 4, REGION_COLORS[:route]) }
     # Other places: dark squares with a green spot, towns: red blocks
-    plan.places.each_value { |place| paint_spots(canvas, *box.call(place)) if place_kind(place) == "lieu" }
-    plan.places.each_value { |place| paint_town(canvas, *box.call(place)) if place_kind(place) == "ville" }
+    plan.places.each_value do |place|
+      next if place_kind(place) != "lieu"
+      square_boxes(plan, place).each { |b| paint_spots(canvas, *b) }
+    end
+    plan.places.each_value do |place|
+      next if place_kind(place) != "ville"
+      if place.mask
+        paint_town_squares(canvas, square_boxes(plan, place))
+      else
+        paint_town(canvas, *box.call(place))
+      end
+    end
+  end
+
+  # Pixel boxes of a place: its rectangle, or one per square of its mask.
+  def square_boxes(plan, place)
+    sq = REGION_SQUARE
+    x0, y0 = (plan.origin[0] + place.x) * sq, (plan.origin[1] + place.y) * sq
+    return [[x0, y0, place.width * sq, place.height * sq]] if !place.mask
+    return (0...place.height).flat_map do |dy|
+      (0...place.width).select { |dx| place.covers?(dx, dy) }.map { |dx| [x0 + (dx * sq), y0 + (dy * sq), sq, sq] }
+    end
+  end
+
+  # The line of a route in pixels: its trace, else along its longer side.
+  def route_line(plan, place)
+    sq = REGION_SQUARE
+    x, y = (plan.origin[0] + place.x) * sq, (plan.origin[1] + place.y) * sq
+    return place.trace.map { |tx, ty| [x + (tx * sq / 2), y + (ty * sq / 2)] } if place.trace
+    w, h = place.width * sq, place.height * sq
+    return [[x + (sq / 2), y + (h / 2)], [x + w - (sq / 2), y + (h / 2)]] if w >= h
+    return [[x + (w / 2), y + (sq / 2)], [x + (w / 2), y + h - (sq / 2)]]
+  end
+
+  # Middle of the edge shared by a and b (b east or south of a), in pixels:
+  # of the squares both cover when they have a mask.
+  def link_point(plan, a, edge, b)
+    sq = REGION_SQUARE
+    east = (edge == "E")
+    from = east ? [a.y, b.y].max : [a.x, b.x].max
+    to = east ? [a.y + a.height, b.y + b.height].min : [a.x + a.width, b.x + b.width].min
+    if a.mask || b.mask
+      shared = (from...to).select do |k|
+        east ? a.covers?(a.width - 1, k - a.y) && b.covers?(0, k - b.y) : a.covers?(k - a.x, a.height - 1) && b.covers?(k - b.x, 0)
+      end
+      from, to = shared.first, shared.first + 1 if !shared.empty?
+      to += 1 while shared.include?(to)
+    end
+    middle = ((from + to) * sq / 2) + ((east ? plan.origin[1] : plan.origin[0]) * sq)
+    return east ? [(plan.origin[0] + a.x + a.width) * sq, middle] : [middle, (plan.origin[1] + a.y + a.height) * sq]
+  end
+
+  # Centre of a block, or of its square closest to that point with a mask.
+  def place_centre(plan, place, point)
+    x, y, w, h = square_boxes(plan, place).min_by do |bx, by, bw, bh|
+      ((bx + (bw / 2) - point[0])**2) + ((by + (bh / 2) - point[1])**2)
+    end
+    return [x + (w / 2), y + (h / 2)]
   end
 
   # Land, sand and shallow sea by distance to the nearest place, in 2-pixel
@@ -147,12 +193,26 @@ module MapGenerator
     end
   end
 
-  # Closest point of a route's middle line to a point.
-  def route_point(box, point)
-    x, y, w, h = box
-    half = REGION_SQUARE / 2
-    return [point[0].clamp(x + half, x + w - half), y + (h / 2)] if w >= h
-    return [x + (w / 2), point[1].clamp(y + half, y + h - half)]
+  # Closest point of a route's line (axis-aligned pieces) to a point.
+  def route_point(line, point)
+    return line.each_cons(2).map do |(x1, y1), (x2, y2)|
+      [point[0].clamp(*[x1, x2].minmax), point[1].clamp(*[y1, y2].minmax)]
+    end.min_by { |px, py| ((px - point[0])**2) + ((py - point[1])**2) }
+  end
+
+  # A town of several squares (a mask): the frame around each square, then
+  # each square red, so that no frame shows between two squares.
+  def paint_town_squares(canvas, boxes)
+    c = REGION_COLORS
+    boxes.each do |x, y, w, h|
+      canvas.fill(x - 4, y - 2, w + 8, h + 4, c[:outline])
+      canvas.fill(x - 2, y - 4, w + 4, h + 8, c[:outline])
+    end
+    boxes.each do |x, y, w, _h|
+      canvas.fill(x, y, w, 8, c[:town])
+      canvas.fill(x, y + 8, w, 2, c[:town_mid])
+      canvas.fill(x, y + 10, w, 6, c[:town_low])
+    end
   end
 
   #-----------------------------------------------------------------------------

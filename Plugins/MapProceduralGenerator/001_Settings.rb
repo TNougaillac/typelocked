@@ -119,16 +119,35 @@ module MapProceduralGenerator
   DIVE_ITEM = :DIVINGSUIT
   # Optional nooks (« Recoins » in a world, % per place), each behind an
   # obstacle opened by a field item obtained earlier in the chain: a cut
-  # tree, a cracked rock or a boulder at the mouth of a pocket in the rock,
-  # an islet in a pond (Surf), a dark cave (Lantern, routes only). Their loot
-  # is in the inventory.
+  # tree, a cracked rock or a boulder at the mouth of a pocket in the rock, a
+  # rock wall to cross with the Grappling Hook, an islet in a pond (Surf), a
+  # dark cave (Lantern, routes only). Their loot is in the inventory.
   NOOKS = {
-    "arbre"  => :MACHETE,
-    "rocher" => :PICKAXE,
-    "bloc"   => :HARNESS,
-    "ilot"   => SURF_ITEM,
-    "sombre" => :LANTERN
+    "arbre"   => :MACHETE,
+    "rocher"  => :PICKAXE,
+    "bloc"    => :HARNESS,
+    "ilot"    => SURF_ITEM,
+    "sombre"  => :LANTERN,
+    "grappin" => :GRAPPLINGHOOK
   }.freeze
+  # Obstacles closing a shortcut (« Raccourcis » in a world) at its end nearer
+  # the start, and the field item that opens each: a cut tree, a cracked rock,
+  # a boulder (in a gap of a wall across the route), a wall with no gap to
+  # cross with the Grappling Hook, water to surf.
+  LOCKS = {
+    "arbre"   => :MACHETE,
+    "rocher"  => :PICKAXE,
+    "bloc"    => :HARNESS,
+    "grappin" => :GRAPPLINGHOOK,
+    "eau"     => SURF_ITEM
+  }.freeze
+  # The obstacle crossed with the Grappling Hook: events on both faces of its
+  # wall, named so (see pbMapProcGrapple)
+  GRAPPLE = "grappin"
+  GRAPPLE_EVENT = "Grapple"
+  # Squares at most between the two ends of a route off the chain, and its
+  # length at most (and the gap between the legs of a U)
+  EXTRA_REACH = 6
   # The obstacle events, copied from the demo: [map ID, event ID]. Their name
   # keeps what Essentials looks for (CutTree, SmashRock, StrengthBoulder).
   NOOK_EVENTS = {

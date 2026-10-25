@@ -90,7 +90,13 @@ module MapProceduralGenerator
                      :border, :exits, :spurs, :map_id, :counts, :per_case, :palette,
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
-                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts)
+                     :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
+                     :mask, :joints, :filler, :lock)
+  # mask, joints: the squares of its rectangle a place of a world covers and
+  # where its streets meet (see WorldPlace), nil = the whole rectangle;
+  # filler: « Comble », a symbol of one cell that blocks the way, for the
+  # gaps the border objects leave off the squares of a mask; lock: [obstacle
+  # (a key of LOCKS), index of the exit it closes] (a shortcut of a world);
   # island: an island of a world (set by the world, the sea all around);
   # ferry: its ferry terminal leads to an island (set by the world); nook:
   # the obstacle of its optional nook, a key of NOOKS (set by the world);
@@ -180,6 +186,7 @@ module MapProceduralGenerator
       when "sol"     then place.ground = symbol(value, fail_at)
       when "rue"     then place.street = symbol(value, fail_at)
       when "bordure" then place.border = symbol(value, fail_at)
+      when "comble"  then place.filler = symbol(value, fail_at)
       when "sorties"
         bad = value.split - SIDES
         fail_at.call("sortie « #{bad[0]} » inconnue (#{SIDES.join(', ')})") unless bad.empty?

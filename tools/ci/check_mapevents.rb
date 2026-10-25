@@ -32,9 +32,15 @@ paths.each do |path|
   CI.error(path, nil, "Map = #{plan.target} : cette carte n'existe pas et aucun plan MapGen ne la crée") if !known
   plan.events.each do |entry|
     where = "[#{entry.kind.capitalize} #{entry.label}]"
-    %w[Item Gift].each do |key|
-      value = entry.value(key)
-      CI.error(path, entry.lineno, "#{where} : objet « #{value} » inconnu") if value && !items.include?(value)
+    entry.fields.each do |key, value|
+      next if !%w[Item Gift].include?(key) || items.include?(value)
+      CI.error(path, entry.lineno, "#{where} : objet « #{value} » inconnu")
+    end
+    if entry.kind == :copy
+      map_id, event_id = MapEvents.copy_source(entry)
+      file = File.join(ROOT, "Data", format("Map%03d.rxdata", map_id))
+      events = File.exist?(file) && load_rxdata(file).instance_variable_get(:@events)
+      CI.error(path, entry.lineno, "#{where} : pas d'événement #{event_id} sur la carte #{map_id}") if !events || !events[event_id]
     end
     next if entry.kind != :trainer
     type, name = entry.value("Type"), entry.value("Name")

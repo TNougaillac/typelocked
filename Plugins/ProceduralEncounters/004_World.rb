@@ -10,9 +10,11 @@ module ProceduralEncounters
 
   module_function
 
-  # Zones of the world, in the chain's order (each cave after its route).
+  # Zones of the world, in the chain's order (each cave after its route). A
+  # route off the chain (a loop, a shortcut) takes the seals and levels of
+  # the place of its tier, where it can first be walked.
   def world_zones(result, caps)
-    places = result.places.sort_by { |wp, *| wp.index }
+    places, extras = result.places.sort_by { |wp, *| wp.index }.partition { |wp, *| !wp.extra }
     # An island's gym counts at the place of its port
     gym_indexes = places.filter_map { |wp, *| wp.index if wp.gym } +
                   (result.islands || []).filter_map { |wp, *| wp.index if wp.gym }
@@ -30,6 +32,14 @@ module ProceduralEncounters
       types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
       surf = surf_town && wp.index >= surf_town.index
       zones[wp.name] = Zone.new(wp.name, wp.index, seals.call(wp), levels, land_biome(wp, layout), types, surf)
+    end
+    extras.each do |wp, place, text, layout|
+      plan = MapGenerator.parse(text, place.file)
+      types = []
+      types.push("Land") if cells?(plan, GRASS_TILES)
+      types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+      tier = zones[places.find { |other, *| other.index == wp.tier }[0].name]
+      zones[wp.name] = Zone.new(wp.name, wp.tier, tier.seals, tier.levels, land_biome(wp, layout), types, tier.surf)
     end
     result.caves.each do |wp, name, *|
       route = zones[wp.name]
