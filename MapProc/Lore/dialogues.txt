@@ -1,0 +1,213 @@
+# Textes des événements des mondes générés (plugin WorldEvents, voir
+# docs/LORE.md pour le ton). Une section par rôle ; une ligne = une réplique.
+# Chaque PNJ tire une ligne de sa section, sans répétition dans une partie tant
+# qu'il en reste. « | » coupe une réplique en plusieurs boîtes de message.
+#
+# Jetons remplacés (seulement ceux permis par la section, sinon erreur) :
+#   {joueur} = le nom du joueur ;  {ville} = la ville (ou le lieu) du PNJ ;
+#   {region} = le nom de la région ;  {type} = le type imposé (professeur).
+# Les répliques dites en combat (sections *_fin) ne peuvent pas nommer le
+# joueur : Essentials n'y remplace pas son nom.
+
+#-------------------------------------------------------------------------------
+# Habitants : dans les rues et les maisons
+#-------------------------------------------------------------------------------
+[habitant]
+Bienvenue à {ville}, {joueur}. Ici, on ne pose pas de questions à la Famille.
+Les Cousins passent chaque semaine. On paie, et on dort tranquille.
+On raconte que le Pacte est plus vieux que {region} elle-même.
+Mon grand-père a connu un désigné, avant toi. Il n'est jamais revenu de la Ligue.
+Tu es {joueur}, c'est ça ? Tout le monde parle de toi, à {ville}.
+La Famille a fait goudronner la route. Elle n'oublie jamais de nous le rappeler.
+Un seul type de Pokémon, toute une vie... Je ne voudrais pas être à ta place.
+Le lieutenant de la région est passé hier. Il a laissé un pourboire. Ça m'inquiète.
+Si tu croises un Cousin, baisse les yeux. C'est un conseil.
+À {ville}, les murs ont des oreilles. Et les oreilles ont un patron.
+Le Parrain ? Personne ne l'a vu depuis des années. Mais tout le monde lui obéit.
+Les Anciens étaient des désignés, comme toi. C'est ce qu'on murmure, en tout cas.
+J'avais un Pokémon, avant. La Famille l'a « emprunté ». Il y a dix ans.
+Les gens de {region} aiment leurs Pokémon. Ils aiment encore plus leur tranquillité.
+Il paraît que le professeur Castellane dîne avec les lieutenants. Drôle de professeur.
+Le marché de {ville} ferme tôt. Les affaires de la Famille, elles, ne ferment jamais.
+Tu vas jusqu'à la Ligue, {joueur} ? Alors profite bien du voyage.
+Un conseil : garde tes Écailles Cœur. Le Maître des Capacités n'accepte rien d'autre.
+On dit qu'Arceus regarde chaque désigné monter. Et qu'il attend.
+Ma fille voulait devenir dresseuse. Je lui ai dit de choisir un vrai métier. Cousine, par exemple.
+Les routes sont plus sûres depuis que la Famille les surveille. Plus chères, aussi.
+J'ai entendu dire que les termes du Pacte sont écrits quelque part. Personne ne sait où.
+Fais attention aux dresseurs du bord de la route. Ils n'aiment pas qu'on passe devant eux sans s'arrêter.
+Ici, on respecte trois choses : la Famille, les Pokémon, et la Famille.
+Tu as l'air fatigué. Le Centre Pokémon est gratuit. Pour l'instant.
+Les lieutenants portent tous la même chevalière. Toi aussi, bientôt.
+Avant, {ville} avait un maire. Maintenant, elle a un lieutenant.
+Le Pacte a choisi {joueur}... Je me demande ce qu'il a vu en toi.
+
+#-------------------------------------------------------------------------------
+# Dresseurs des routes et des grottes, Cousins de la Famille
+#-------------------------------------------------------------------------------
+[dresseur_combat]
+Hé, toi ! On ne passe pas sans se battre.
+Je t'ai vu arriver. Montre-moi ce que vaut ton équipe.
+Un combat ? Ce n'est pas comme si j'avais le choix.
+Toi, tu es le désigné ? Je veux voir ça de près.
+Tu marches sur ma route. Ça se paie en combat.
+J'attendais quelqu'un d'intéressant. Tu feras l'affaire.
+Personne ne traverse sans me montrer ses Pokémon.
+Un seul type ? Voyons si ça suffit.
+
+[dresseur_fin]
+Bien joué...
+Tu es plus fort que tu n'en as l'air.
+D'accord, d'accord. Passe.
+Le Pacte a bien choisi, peut-être.
+J'aurais dû rester chez moi.
+Tu iras loin. Ou pas.
+
+[cousin_combat]
+La Famille surveille la route. Et toi, je te surveille.
+Le Parrain veut savoir de quoi tu es capable.
+Un désigné qui se promène seul ? Mauvaise idée.
+Tu travailles pour nous, même si tu ne le sais pas encore.
+On m'a demandé de te tester. Rien de personnel.
+
+[cousin_fin]
+Le Parrain en entendra parler.
+Tu as de la chance. Pour l'instant.
+La Famille n'oublie pas.
+Va. On se reverra plus haut.
+Pas mal. Le lieutenant sera moins tendre.
+
+#-------------------------------------------------------------------------------
+# Professeur Castellane, Poké Balls du labo, garde des sorties (dits en jeu)
+#-------------------------------------------------------------------------------
+[professeur_intro]
+Te voilà, {joueur}. Comme promis, j'ai trois Pokémon de type {type} pour toi.
+
+[professeur_balls]
+Ces trois Poké Balls contiennent des Pokémon de ton type. Choisis celui qui t'accompagnera.
+
+[professeur_apres]
+Prends soin de ton Pokémon. La Famille garde un œil sur toi, {joueur}.
+
+[ball]
+Une Poké Ball du professeur.
+
+[garde]
+Tu ne peux pas partir sans Pokémon. Le professeur t'attend.
+
+#-------------------------------------------------------------------------------
+# Boutiques (dit en jeu) et Maître des Capacités
+#-------------------------------------------------------------------------------
+[vendeur]
+Bienvenue. La Famille tient ce commerce, comme les autres. Que veux-tu ?
+Entre. Ici, les prix sont fixés par qui tu sais.
+La Famille te souhaite de bonnes affaires. Elle y tient.
+
+[maitre_intro]
+Je suis le Maître des Capacités. Une Écaille Cœur, et ton Pokémon se souviendra d'une capacité oubliée.
+
+[maitre_sans_ecaille]
+Tu n'as pas d'Écaille Cœur. Reviens quand tu en auras une.
+
+[maitre_aucun]
+Aucun de tes Pokémon n'a de capacité à retrouver.
+
+[maitre_fin]
+Voilà. Merci pour l'Écaille Cœur.
+
+#-------------------------------------------------------------------------------
+# Dons d'objets : habitants, et membres de la Famille pour les objets de terrain
+#-------------------------------------------------------------------------------
+[don]
+Tiens, prends ça. Moi, je n'en ai plus l'usage.
+Tu as l'air d'en avoir besoin plus que moi, {joueur}.
+La Famille prend tout, alors autant que ce soit toi qui l'aies.
+Je l'ai trouvé près de la route. Il est à toi.
+Ne le dis à personne, mais j'ai ça en trop. Prends.
+C'est un cadeau. À {ville}, on aide les désignés. Discrètement.
+Mon fils voulait te le donner lui-même. Il est trop timide.
+Garde-le. Tu en auras plus besoin que moi là où tu vas.
+
+[don_apres]
+Fais-en bon usage.
+Bonne route.
+Ne dis pas à la Famille que ça vient de moi.
+Reviens nous voir, {joueur}. Si tu peux.
+
+[terrain_attente]
+Tant que le lieutenant de {ville} ne t'a pas reconnu, je n'ai rien pour toi.
+Bats d'abord le lieutenant. Ensuite, on parlera.
+
+[terrain_don]
+Le lieutenant t'a remis sa chevalière. La Famille t'ouvre la route avec ceci.
+Tu portes la chevalière de {ville}. Alors ceci te revient.
+
+[terrain_apres]
+Ne déçois pas la Famille.
+Avec ça, rien ne t'arrêtera. Sauf nous.
+
+#-------------------------------------------------------------------------------
+# Arènes : lieutenants et membres de la Famille
+#-------------------------------------------------------------------------------
+[lieutenant_combat]
+Tu es arrivé jusqu'à moi. Le Pacte veut que je te mette à l'épreuve.
+Le désigné en personne. {ville} t'attendait.
+Je tiens {ville} pour la Famille. Voyons si tu mérites de la traverser.
+Un seul type contre le mien. Le Pacte aime les paris.
+
+[lieutenant_fin]
+La Famille t'a vu combattre. Le territoire suivant t'est ouvert.
+Tu as gagné ma chevalière. Porte-la avec respect.
+Le Parrain sera content. Ou inquiet.
+Bien. Monte. Le Pacte t'attend.
+
+[lieutenant_victoire]
+\me[Badge get]Le lieutenant te remet la chevalière de la Famille. Tu la passes à ton doigt.
+
+[lieutenant_ct]
+Prends aussi cette CT. Elle te servira.
+Et ceci. La Famille récompense ceux qui la servent.
+
+[membre_combat]
+Personne ne voit le lieutenant sans passer par moi.
+La Famille garde cette arène. Montre ce que tu vaux.
+Le lieutenant ne reçoit pas n'importe qui.
+Encore un désigné ? On va voir combien de temps tu tiens.
+
+[membre_fin]
+Le lieutenant t'attend.
+Va, il est au fond.
+Tu as gagné le droit d'avancer.
+Il ne sera pas aussi gentil que moi.
+
+#-------------------------------------------------------------------------------
+# Ligue : Anciens, Parrain, Arceus, portes
+#-------------------------------------------------------------------------------
+[ancien_combat]
+Personne ne monte voir le Parrain sans passer par les Anciens.
+Le Pacte t'a mené jusqu'ici. Voyons s'il avait raison.
+J'ai vu passer d'autres désignés avant toi. Aucun n'est redescendu.
+J'étais comme toi, autrefois. Lié à un seul type. Regarde ce que j'en ai fait.
+Les Anciens gardent l'escalier. Et l'escalier garde un secret.
+
+[ancien_fin]
+Monte. Les autres t'attendent.
+Tu es plus coriace que les précédents.
+Peut-être que toi, tu redescendras.
+Le Parrain t'attend. Il t'attend depuis longtemps.
+Va. Ce que tu trouveras là-haut n'est pas ce que tu crois.
+
+[parrain_combat]
+Alors c'est toi, le prix du Pacte. Montre-moi ce que la Famille a payé si cher.
+
+[parrain_fin]
+Tu crois avoir gagné ? Derrière cette porte, quelqu'un attend. Il attend chaque génération.
+
+[arceus_intro]
+Une lumière immense remplit la salle. | Arceus. Celui avec qui la Famille a passé le Pacte. Celui à qui tu devais être remis.
+
+[arceus_fin]
+La lumière vacille, puis s'éteint. | Le Pacte est brisé, {joueur}. La Famille n'a plus rien à offrir, ni personne à livrer.
+
+[porte_ligue]
+La porte est fermée. Il faut d'abord gagner ici.

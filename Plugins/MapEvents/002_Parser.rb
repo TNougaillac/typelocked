@@ -16,6 +16,16 @@
 #   Through = oui               attendre <frames>), it implies Move = ronde and
 #                               must come back to Pos; Speed and Frequency =
 #                               1-6; Through = oui walks through the others)
+#   Trigger = contact          (NPC: action (default) or contact, run when the
+#                               player steps on it or bumps into it)
+#   Hide = V7>=1               (NPC: gone once the condition holds: A to D =
+#                               its self switch, S25 = game switch 25 on,
+#                               V7>=1 = game variable 7 at least 1)
+#   When = S4                  (NPC: Text, Script and Gift only once S4 or
+#   Wait = Reviens plus tard.   V7>=1 holds, Wait = what it says before;
+#   Gift = MACHETE              Gift = item given, in file order with the
+#   Once = Bonne route !        texts; Once = what it says ever after, the
+#                               NPC talks only once, required with a Gift)
 #   [Trainer B]                (Essentials trainer: Type, Name and Battle are
 #   Pos = 10,3                  required; Sight = how far it sees, 3 by
 #   Sight = 4                   default; Graphic is taken from the trainer
@@ -27,6 +37,10 @@
 #   Win = \me[Badge get]Badge !  Gym leader: Badge = n gives badge n (1-8),
 #   Gift = TM39                 Win = text after a win, Gift = item given,
 #   Switch = 25                 Switch = game switch turned on)
+#   [Copy N]                   (a copy of event 2 of map 24, as it is there:
+#   Pos = 7,2                   pages, graphics, commands; it keeps its ID when
+#   From = 24,2                 free, for the events that name it, such as a
+#                               nurse and her healing machine)
 #   [Item C]                   (Poké Ball on the ground, Hidden = oui for a
 #   Pos = 2,2                   hidden item)
 #   Item = POTION
@@ -57,20 +71,31 @@ module MapEvents
     "regard_droite" => [18, [0, 0]], "regard_haut" => [19, [0, 0]]
   }
   MOVE_KEYS = %w[Move Route Speed Frequency Through]
+  TRIGGERS = { "action" => 0, "contact" => 1 }   # RMXP triggers
+  # Hide conditions: self switch, game switch, game variable at least n
+  HIDE_PATTERN = /\A(?:[A-D]|S\d+|V\d+>=\d+)\z/
+  # When conditions: game switch, game variable at least n
+  WHEN_PATTERN = /\A(?:S\d+|V\d+>=\d+)\z/
   # Keys written as comments for Compiler.convert_to_trainer_event
   TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
-    npc:     %w[Pos Graphic Facing Text Script] + MOVE_KEYS,
+    npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide] + MOVE_KEYS,
     trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + MOVE_KEYS + TRAINER_COMMENTS,
-    item:    %w[Pos Item Hidden]
+    item:    %w[Pos Item Hidden],
+    copy:    %w[Pos From]
   }
-  REQUIRED = { npc: %w[Pos], trainer: %w[Pos Type Name Battle], item: %w[Pos Item] }
+  REQUIRED = { npc: %w[Pos], trainer: %w[Pos Type Name Battle], item: %w[Pos Item], copy: %w[Pos From] }
   NUMBER_KEYS = %w[Sight Badge Switch BattleID EndIfSwitch VanishIfSwitch Outcome]
   YES_NO_KEYS = %w[DoubleBattle Continue Hidden Through]
   ID_KEYS     = %w[Type Item Gift]
 
   module_function
+
+  # [map ID, event ID] of a [Copy]'s From
+  def copy_source(entry)
+    return entry.value("From").split(",").map(&:to_i)
+  end
 
   def yes?(value)
     return %w[oui true].include?(value.to_s.downcase)
@@ -98,7 +123,7 @@ module MapEvents
           entry = Entry.new(section, label, nil, nil, [], lineno)
           plan.events.push(entry)
         elsif ![:metadata, :encounters].include?(section) || label
-          fail_at.call("section inconnue [#{$1}] (Npc, Trainer, Item, Metadata, Encounters)")
+          fail_at.call("section inconnue [#{$1}] (Npc, Trainer, Item, Copy, Metadata, Encounters)")
         end
         next
       end
@@ -137,6 +162,14 @@ module MapEvents
       fail_at.call("direction « #{value} » inconnue (#{FACINGS.keys.join(', ')})")
     elsif key == "Move" && !MOVES[value]
       fail_at.call("déplacement « #{value} » inconnu (#{MOVES.keys.join(', ')})")
+    elsif key == "From" && value !~ /\A\d+\s*,\s*\d+\z/
+      fail_at.call("attendu « From = carte,événement », par exemple 24,2")
+    elsif key == "Trigger" && !TRIGGERS[value]
+      fail_at.call("déclenchement « #{value} » inconnu (#{TRIGGERS.keys.join(', ')})")
+    elsif key == "Hide" && value !~ HIDE_PATTERN
+      fail_at.call("condition « #{value} » inconnue (A à D, S25, V7>=1)")
+    elsif key == "When" && value !~ WHEN_PATTERN
+      fail_at.call("condition « #{value} » inconnue (S25, V7>=1)")
     elsif NUMBER_KEYS.include?(key) && value !~ /\A\d+\z/
       fail_at.call("nombre attendu pour « #{key} », trouvé « #{value} »")
     elsif YES_NO_KEYS.include?(key) && !%w[oui non true false].include?(value.downcase)
@@ -187,8 +220,11 @@ module MapEvents
       REQUIRED[entry.kind].each do |key|
         raise Error, "#{where} : « #{key} » manquant" if !entry.value(key)
       end
-      if entry.kind == :npc && !entry.value("Text") && !entry.value("Script")
-        raise Error, "#{where} : « Text » ou « Script » manquant"
+      if entry.kind == :npc
+        raise Error, "#{where} : « Text », « Script » ou « Gift » manquant" if !%w[Text Script Gift].any? { |k| entry.value(k) }
+        raise Error, "#{where} : « Wait » demande « When »" if entry.value("Wait") && !entry.value("When")
+        raise Error, "#{where} : « Gift » demande « Once » (sinon il redonne)" if entry.value("Gift") && !entry.value("Once")
+        raise Error, "#{where} : « Once » utilise déjà l'interrupteur local A de « Hide »" if entry.value("Once") && entry.value("Hide") == "A"
       end
       if entry.value("Move") == "ronde" && !entry.value("Route")
         raise Error, "#{where} : « Move = ronde » demande une « Route »"

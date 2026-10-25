@@ -304,6 +304,16 @@ Name = Team Rocket
 Gender = Female
 BaseMoney = 32
 #-------------------------------
+[COUSIN_M]
+Name = Cousin
+Gender = Male
+BaseMoney = 40
+#-------------------------------
+[COUSIN_F]
+Name = Cousine
+Gender = Female
+BaseMoney = 40
+#-------------------------------
 [ROCKETBOSS]
 Name = Rocket Boss
 Gender = Male

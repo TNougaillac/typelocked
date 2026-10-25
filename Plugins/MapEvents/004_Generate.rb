@@ -27,7 +27,8 @@ module MapEvents
     map.events.delete_if { |_id, event| event.name[TAG_PATTERN] }
     notes = []
     checker = Compiler::TrainerChecker.new
-    plan.events.each do |entry|
+    # Copies first, to keep their IDs while they are free
+    plan.events.each_with_index.sort_by { |entry, i| [(entry.kind == :copy) ? 0 : 1, i] }.each do |entry, _i|
       label = "[#{entry.kind.capitalize} #{entry.label}]"
       if entry.x >= map.width || entry.y >= map.height
         raise Error, "#{plan.file} : #{label} en #{entry.x},#{entry.y}, hors de la carte (#{map.width}x#{map.height})"
@@ -38,7 +39,9 @@ module MapEvents
       end
       other = map.events.values.find { |event| event.x == entry.x && event.y == entry.y }
       notes.push(_INTL("{1} : {2} est sur la même case que l'événement « {3} ».", plan.file, label, other.name)) if other
-      event = build_event(entry, (map.events.keys.max || 0) + 1, checker)
+      id = (map.events.keys.max || 0) + 1
+      id = copy_source(entry)[1] if entry.kind == :copy && !map.events[copy_source(entry)[1]]
+      event = build_event(entry, id, checker)
       map.events[event.id] = event
     end
     set_bgm(map, plan.bgm) if plan.bgm

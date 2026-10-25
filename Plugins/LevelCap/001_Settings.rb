@@ -14,7 +14,7 @@ module LevelCap
   ]
   # Used when LEADERS[n] is nil or missing from trainers.txt. nil = no cap.
   # Placeholder: Kanto gym leaders of the demo.
-  FALLBACK_CAPS = [14, 21, 24, 29, 43, 43, 47, 50, 63]
+  FALLBACK_CAPS = [14, 21, 24, 29, 36, 43, 47, 50, 63]
   # Items that give levels or Exp. outside battle, blocked at the cap.
   LEVEL_ITEMS = %i[RARECANDY EXPCANDYXS EXPCANDYS EXPCANDYM EXPCANDYL EXPCANDYXL]
 end

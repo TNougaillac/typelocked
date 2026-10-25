@@ -131,7 +131,9 @@ module MapProceduralGenerator
     # Where the events of the place can go (MapEvents, items, NPCs), every cell
     # reached on foot from the exits, doors and ferry terminal:
     #   exits: [side, x, y]; doors: [x, y, type] (door cells);
-    #   street: free cells beside a street; grass: tall grass cells;
+    #   street: free cells beside a street; facing: [x, y, direction] of
+    #   each, towards its street (haut, bas, gauche, droite); grass: tall
+    #   grass cells;
     #   dead_ends: last cell of each dead-end street;
     #   nooks: [x, y, obstacle (a key of NOOKS), ox, oy]: the loot cell and
     #   the obstacle's cell (a pocket); for an islet the loot only; for a dark
@@ -142,10 +144,12 @@ module MapProceduralGenerator
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each { |start| walk_foot(start, seen) if !seen[start[1]][start[0]] }
       on_street = ->(x, y) { inside?(x, y) && @street[y][x] && !@stairs_at&.key?([x, y]) }
+      street = cells_where(seen) { |x, y| !@street[y][x] && NEIGHBOURS.any? { |ox, oy| on_street.call(x + ox, y + oy) } }
       return {
         exits:     @exits.map(&:dup),
         doors:     @doors.map { |x, y, brick| [x, y, brick.kind] },
-        street:    cells_where(seen) { |x, y| !@street[y][x] && NEIGHBOURS.any? { |ox, oy| on_street.call(x + ox, y + oy) } },
+        street:    street,
+        facing:    street.map { |x, y| [x, y, FACING_NAMES[NEIGHBOURS.find { |ox, oy| on_street.call(x + ox, y + oy) }]] },
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
         dead_ends: @dead_ends.select { |x, y| seen[y][x] },
         nooks:     @nooks.map(&:dup),
@@ -162,8 +166,10 @@ module MapProceduralGenerator
     # the cells reached in seen.
     def walk_foot(start, seen)
       foot = lambda do |x, y|
-        next false if !inside?(x, y) || @water[y][x] || @border[y][x]
+        # A street goes through the border at the exits (like walk)
+        next false if !inside?(x, y) || @water[y][x]
         next true if @street[y][x]
+        next false if @border[y][x]
         next !@cells[y][x] || WALK_KINDS.include?(@kinds[y][x]) || (@cells[y][x] == excess[:carpet] && !@kinds[y][x])
       end
       return if !foot.call(*start)
@@ -1505,6 +1511,7 @@ module MapProceduralGenerator
     end
 
     NEIGHBOURS = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+    FACING_NAMES = { [0, -1] => "haut", [1, 0] => "droite", [0, 1] => "bas", [-1, 0] => "gauche" }.freeze
     NEIGHBOURS8 = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]].freeze
 
     # Brush steps from every street cell outward: distances[y][x] (nil = no

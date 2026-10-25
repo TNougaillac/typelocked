@@ -89,7 +89,7 @@ module ProceduralEncounters
   # previous cap to LEVEL_REACH of the gap up to the next one; the first ones
   # start at START_LEVEL.
   START_LEVEL = 3
-  CAPS = [14, 21, 24, 29, 43, 43, 47, 50, 63].freeze
+  CAPS = [14, 21, 24, 29, 36, 43, 47, 50, 63].freeze
   LEVEL_REACH = 0.8
 
   # A Pokémon that evolves by level shows up from that level on. One that

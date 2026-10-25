@@ -50,6 +50,17 @@ Tirés à chaque graine dans [MapProc/Lore/noms.txt](../MapProc/Lore/noms.txt) :
 - grottes : « Grotte » + nom (Grotte Rossini), ou nom + « Cave » (Hudson Cave) ;
 - région : tirée dans sa propre liste.
 
+## Les dialogues
+
+Tous les textes des PNJ des mondes générés sont dans [MapProc/Lore/dialogues.txt](../MapProc/Lore/dialogues.txt), une section par rôle. Ils suivent le ton :
+
+- les **habitants** vivent sous la Famille sans l'aimer ni la combattre : ils paient, se taisent, murmurent sur le Pacte et les désignés disparus, et appellent le joueur par son nom ;
+- les **Cousins**, **membres d'arène** et **lieutenants** parlent au nom de la Famille, un peu cliché, jamais cruels ;
+- les **Anciens** laissent entendre qu'ils ont été désignés eux aussi ; le **Parrain** voit le joueur comme le prix du Pacte ;
+- **Arceus** ne parle pas : la salle le décrit.
+
+Une réplique peut nommer le joueur (`{joueur}`), sa ville (`{ville}`) ou la région (`{region}`). Ajouter des répliques à une section suffit pour qu'elles apparaissent en jeu.
+
 ## Ce que le lore n'explique pas
 
 - Le mode Facile (type choisi par le joueur) : c'est une concession de jeu. Dans l'univers, c'est toujours le Pacte qui choisit le type.
