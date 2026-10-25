@@ -8,18 +8,27 @@ module WorldEvents
   module_function
 
   # { plans: { map name => MapEvents plan text }, trainers: [sections of
-  # PBS/trainers.txt] }. zones and encounters: ProceduralEncounters'
-  # world_zones and world_encounters (its second value) of that world, for
-  # the trainers (none without them).
-  def world_events(result, seed, zones: nil, encounters: nil)
+  # PBS/trainers.txt], leaders: [the lieutenants, see gym_events] }.
+  # zones and encounters: ProceduralEncounters' world_zones and
+  # world_encounters (its second value) of that world, for the trainers;
+  # species (the roster), tms ([[item, move, type, power, status?]]) and
+  # caps (level cap by seals), for the gyms. Without them, none.
+  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
     plans = Hash.new { |hash, name| hash[name] = [] }
     start_events(atlas, plans, rng)
     service_events(atlas, seals_at(result), plans)
     trainers = []
-    trainer_events(result, atlas, zones, encounters, plans, trainers, Random.new((seed * 1000) + 710)) if zones && encounters
-    return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers }
+    leaders = []
+    names = Hash.new { |hash, type| hash[type] = [] }
+    if species && tms && caps
+      leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, Random.new((seed * 1000) + 720))
+    end
+    if zones && encounters
+      trainer_events(result, atlas, zones, encounters, plans, trainers, names, Random.new((seed * 1000) + 710))
+    end
+    return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders }
   end
 
   def plan_text(name, events)

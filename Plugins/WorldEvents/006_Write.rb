@@ -15,9 +15,10 @@ module WorldEvents
 
   def write_world(result, seed, export)
     caps = ProceduralEncounters.level_caps
+    species = ProceduralEncounters.load_species
     zones = ProceduralEncounters.world_zones(result, caps)
-    _lines, generated = ProceduralEncounters.world_encounters(result, ProceduralEncounters.load_species, caps, seed)
-    events = world_events(result, seed, zones: zones, encounters: generated)
+    _lines, generated = ProceduralEncounters.world_encounters(result, species, caps, seed)
+    events = world_events(result, seed, zones: zones, encounters: generated, species: species, tms: game_tms, caps: caps)
     write_trainers(events[:trainers])
     events[:plans].each_value do |text|
       plan = MapEvents.parse(text, File.basename(export))
@@ -29,6 +30,17 @@ module WorldEvents
     File.write(export.sub(/\.txt\z/, "_evenements.txt"), events[:plans].values.join(separator))
     File.write(export.sub(/\.txt\z/, "_dresseurs.txt"), events[:trainers].join(separator))
     Console.echoln_li(_INTL("Événements placés sur {1} cartes, {2} dresseurs.", events[:plans].length, events[:trainers].length))
+  end
+
+  # Every TM of the game: [[item, move, type, power, status?]]
+  def game_tms
+    tms = []
+    GameData::Item.each do |item|
+      next if !item.is_machine? || !item.move
+      move = GameData::Move.get(item.move)
+      tms.push([item.id, move.id, move.type, move.power, move.status?])
+    end
+    return tms
   end
 
   # Replaces the trainers of the last world (version TRAINER_VERSION) with

@@ -13,12 +13,107 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_World 003_Trainers].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_World 003_Trainers 004_Gyms].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
 # WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others locally
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
+
+# Tables with their data, to read the tiles of the demo maps
+class Table
+  def self._load(data)
+    table = allocate
+    _dim, x, y, z, size = data.unpack("V5")
+    table.instance_variable_set(:@xsize, x)
+    table.instance_variable_set(:@ysize, y)
+    table.instance_variable_set(:@zsize, z)
+    table.instance_variable_set(:@data, data[20, size * 2].unpack("s<*"))
+    return table
+  end
+
+  def [](x, y = 0, z = 0) = @data[x + (y * @xsize) + (z * @xsize * @ysize)]
+end
+
+TILESETS = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
+# Cells walkable on a demo map: PASSABLE[id][y][x] (tiles only, as RMXP
+# reads them: from the top layer down to the first one under the hero)
+PASSABLE = Hash.new do |grids, id|
+  map = load_rxdata(File.join(ROOT, "Data", format("Map%03d.rxdata", id)))
+  tileset = TILESETS[map.instance_variable_get(:@tileset_id)]
+  passages = tileset.passages
+  priorities = tileset.instance_variable_get(:@priorities)
+  data = map.instance_variable_get(:@data)
+  grids[id] = Array.new(data.ysize) do |y|
+    Array.new(data.xsize) do |x|
+      2.downto(0).each_with_object([true]) do |z, ok|
+        tile = data[x, y, z]
+        next if !tile || tile == 0
+        if passages[tile] & 0x0f == 0x0f
+          ok[0] = false
+          break ok
+        end
+        break ok if priorities[tile] == 0
+      end[0]
+    end
+  end
+end
+
+# Cells reached from start on that grid without stepping on blocked.
+def reach(grid, start, blocked)
+  seen = { start => true }
+  queue = [start]
+  until queue.empty?
+    x, y = queue.shift
+    [[0, -1], [1, 0], [0, 1], [-1, 0]].each do |dx, dy|
+      cell = [x + dx, y + dy]
+      next if seen[cell] || blocked.include?(cell) || cell.min < 0 || !grid[cell[1]]&.[](cell[0])
+      seen[cell] = true
+      queue.push(cell)
+    end
+  end
+  return seen
+end
+
+# Every gym has its lieutenant (seal in the order of the gyms, a useful TM of
+# his type never given twice, the level cap of his seal, types all
+# different) and 2 to 4 members; the lieutenant is reached with the members
+# in place, and never without crossing a member's sight.
+def check_gyms(atlas, plans, leaders, tms)
+  types = leaders.map { |l| l[:type] }
+  raise MapEvents::Error, "deux lieutenants du même type" if types.uniq.length != types.length
+  given = leaders.filter_map { |l| l[:tm]&.first }
+  raise MapEvents::Error, "CT donnée deux fois : #{given.join(', ')}" if given.uniq.length != given.length
+  tops = leaders.map { |l| l[:team].map(&:last).max }
+  raise MapEvents::Error, "lieutenants pas de plus en plus forts : #{tops.join(', ')}" if tops != tops.sort
+  atlas[:gyms].each_with_index do |town, i|
+    map, spots = atlas[:maps].find { |_name, m| m[:building] == "arene" && m[:owner] == town }
+    raise MapEvents::Error, "#{town} : pas d'intérieur d'arène" if !map
+    events = plans[map]&.events || []
+    leader = events.find { |e| e.label == "Lieutenant" }
+    raise MapEvents::Error, "#{map} : pas de lieutenant" if !leader
+    raise MapEvents::Error, "#{map} : sceau #{leader.value('Badge')} au lieu de #{i + 1}" if leader.value("Badge").to_i != i + 1
+    drawn = leaders.find { |l| l[:map] == map }
+    raise MapEvents::Error, "#{map} : niveau #{tops[leaders.index(drawn)]} au lieu du plafond #{E::CAPS[i]}" if tops[leaders.index(drawn)] != E::CAPS[i]
+    tm = tms.find { |item, *| item.to_s == leader.value("Gift") }
+    if !tm || !W.useful_tms(tms, drawn[:type]).include?(tm)
+      raise MapEvents::Error, "#{map} : CT #{leader.value('Gift')} absente ou inutile pour le type #{drawn[:type]}"
+    end
+    members = events.select { |e| e.kind == :trainer && e.label.start_with?("Membre") }
+    raise MapEvents::Error, "#{map} : #{members.length} membres" if !W::GYM_MEMBERS.include?(members.length)
+    grid = PASSABLE[spots[:template]]
+    target = [leader.x, leader.y + 1]
+    standing = events.map { |e| [e.x, e.y] }
+    raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, spots[:arrival], standing)[target]
+    seen = members.flat_map do |e|
+      dx, dy = W::STEPS[e.value("Facing")]
+      (1..e.value("Sight").to_i).map { |k| [e.x + (dx * k), e.y + (dy * k)] }.take_while { |x, y| grid[y]&.[](x) }
+    end
+    if reach(grid, spots[:arrival], standing + seen)[target]
+      raise MapEvents::Error, "#{map} : on atteint le lieutenant sans passer devant un membre"
+    end
+  end
+end
 
 # [width, height] of a demo map (the template of an interior)
 SIZES = Hash.new do |sizes, id|
@@ -82,6 +177,7 @@ def check_trainers(result, zones, plans, sections, species, ttypes)
       where = "#{name} : [Trainer #{entry.label}]"
       raise MapEvents::Error, "#{where} : pas d'équipe dans trainers.txt" if !team
       raise MapEvents::Error, "#{where} : BattleID #{entry.value('BattleID')}" if entry.value("BattleID").to_i != W::TRAINER_VERSION
+      next if !zone   # A gym's (check_gyms)
       sizes = W::PARTY_SIZES[[zone.seals, W::PARTY_SIZES.length - 1].min]
       raise MapEvents::Error, "#{where} : #{team.length} Pokémon (#{sizes} avec #{zone.seals} sceaux)" if !sizes.include?(team.length)
       highest = team.map(&:last).max
@@ -157,7 +253,7 @@ species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\
 types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
 ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
 genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES).uniq.each do |type|
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES).uniq.each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
   female = W::FEMALE_TYPES.include?(type)
   CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
@@ -166,6 +262,16 @@ genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/
   end
 end
 roster = E.load_species(ROOT)
+# [[item, move, type, power, status?]] of every TM, from the PBS files
+moves = CI.read_text(File.join(ROOT, "PBS", "moves.txt")).split(/^\[/).drop(1).to_h do |sec|
+  [sec[/\A(\w+)/, 1].to_sym, [sec[/^Type\s*=\s*(\w+)/, 1]&.to_sym, sec[/^Power\s*=\s*(\d+)/, 1].to_i, sec[/^Category\s*=\s*Status/] ? true : false]]
+end
+tms = CI.read_text(File.join(ROOT, "PBS", "items.txt")).split(/^\[/).drop(1).filter_map do |sec|
+  move = sec[/^Move\s*=\s*(\w+)/, 1]&.to_sym
+  next if !move || !moves[move] || sec !~ /^FieldUse\s*=\s*(TM|HM|TR)\b/
+  [sec[/\A(\w+)/, 1].to_sym, move, *moves[move]]
+end
+W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
 
 folder = File.join(ROOT, M::FOLDER)
@@ -184,8 +290,9 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     atlas = M.world_atlas(result)
     zones = E.world_zones(result, E::CAPS)
     _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
-    events = W.world_events(result, seed, zones: zones, encounters: generated)
-    if W.world_events(result, seed, zones: zones, encounters: generated) != events
+    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS }
+    events = W.world_events(result, seed, **args)
+    if W.world_events(result, seed, **args) != events
       CI.error(path, nil, "#{where} : la même graine donne d'autres événements")
     end
     plans = {}
@@ -201,6 +308,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     begin
       check_start(atlas, plans)
       check_services(atlas, plans)
+      check_gyms(atlas, plans, events[:leaders], tms)
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")

@@ -70,7 +70,7 @@ module WorldEvents
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
-  FEMALE_TYPES = %i[LASS PICNICKER POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
+  FEMALE_TYPES = %i[LEADER_Misty LEADER_Erika LEADER_Sabrina LASS PICNICKER POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
                Matteo Dario Nico Sonny Ray Jack Bobby Lucien Marcel Gino Carlo Franco Angelo Victor],
@@ -95,6 +95,46 @@ module WorldEvents
     "Le Parrain en entendra parler.",
     "Tu as de la chance. Pour l'instant."
   ].freeze
+
+  # Gyms (the interior is a copy of a demo map, by template): the
+  # lieutenant's cell, then cells for the members of the Family, [x, y,
+  # facing, sight]: those of blocking see a stretch the player must cross
+  # (one of them is always taken), the others are drawn among the rest.
+  GYM_LAYOUTS = {
+    10 => {
+      leader:   [6, 5],
+      blocking: [[11, 6, "gauche", 10], [10, 10, "gauche", 8], [1, 13, "droite", 10]],
+      others:   [[2, 4, "bas", 3], [10, 4, "bas", 3], [3, 8, "droite", 4], [9, 8, "gauche", 4]]
+    }
+  }.freeze
+  GYM_MEMBERS = 2..4
+  # Trainer types of the lieutenants (gym leaders for the Monotype), one per
+  # gym, and of the members of the gyms.
+  LEADER_TYPES = %i[LEADER_Brock LEADER_Misty LEADER_Surge LEADER_Erika LEADER_Koga LEADER_Sabrina
+                    LEADER_Blaine LEADER_Giovanni].freeze
+  # Pokémon of a lieutenant by gym (1st to 8th), the strongest at the level
+  # cap of the next seal; its members have PARTY_SIZES Pokémon, this much
+  # lower.
+  LEADER_PARTY_SIZES = [2, 3, 3, 4, 4, 5, 5, 6].freeze
+  LEADER_LEVEL_SPREAD = 3
+  MEMBER_LEVEL_GAP    = 2..4
+  # Game switch turned on by the n-th lieutenant (« Defeated Gym n »)
+  GYM_SWITCH = 3
+  # A TM is « useful »: at least this power, or a status move of this list.
+  TM_MIN_POWER = 70
+  TM_STATUS = %i[SWORDSDANCE CALMMIND BULKUP DRAGONDANCE NASTYPLOT TOXIC WILLOWISP THUNDERWAVE
+                 PROTECT SUBSTITUTE LIGHTSCREEN REFLECT ROOST TAILWIND TRICKROOM SPIKES STEALTHROCK
+                 TOXICSPIKES QUIVERDANCE SHELLSMASH AGILITY ROCKPOLISH IRONDEFENSE AMNESIA
+                 SLEEPPOWDER SPORE HYPNOSIS GLARE DRAININGKISS MOONLIGHT MORNINGSUN SYNTHESIS].freeze
+  LEADER_BATTLE = "Tu es arrivé jusqu'à moi. Le Pacte veut que je te mette à l'épreuve."
+  LEADER_END    = "La Famille t'a vu combattre. Le territoire suivant t'est ouvert."
+  LEADER_WIN    = "\\me[Badge get]Le lieutenant te remet la chevalière de la Famille. Tu la passes à ton doigt."
+  LEADER_GIFT   = "Prends aussi cette CT. Elle te servira."
+  MEMBER_BATTLES = [
+    "Personne ne voit le lieutenant sans passer par moi.",
+    "La Famille garde cette arène. Montre ce que tu vaux."
+  ].freeze
+  MEMBER_ENDS = ["Le lieutenant t'attend.", "Va, il est au fond."].freeze
 
   # What the professor says ({1} = the imposed type; \PN = the player's
   # name). He already told the Pact during the intro (IntroScene). Moved to

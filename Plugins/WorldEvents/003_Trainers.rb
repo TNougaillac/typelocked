@@ -10,10 +10,9 @@ module WorldEvents
 
   # Draws the trainers of the world: their events into plans, their teams
   # (sections of PBS/trainers.txt) into trainers.
-  def trainer_events(result, atlas, zones, encounters, plans, trainers, rng)
+  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, rng)
     zones = zones.to_h { |zone| [zone.name, zone] }
     pools = zone_pools(zones, encounters)
-    names = Hash.new { |hash, type| hash[type] = [] }
     draw = lambda do |map, cells, types, count, cousin_chance|
       zone = zones[map]
       return if !zone || !pools[map]
@@ -113,15 +112,11 @@ module WorldEvents
   # TRAINER_VERSION, one name per type in the world).
   def add_trainer(plans, trainers, names, map, cell, type, zone, pool, cousin, rng)
     x, y, facing, sight = cell
-    gender = FEMALE_TYPES.include?(type) ? :female : :male
-    name = (TRAINER_NAMES[gender] - names[type]).sample(random: rng)
+    name = trainer_name(type, names, rng)
     return if !name
-    names[type].push(name)
     battle = (cousin ? COUSIN_BATTLE_TEXTS : BATTLE_TEXTS).sample(random: rng)
     lose = (cousin ? COUSIN_END_TEXTS : END_TEXTS).sample(random: rng)
-    team = party(zone, pool, rng)
-    trainers.push("[#{type},#{name},#{TRAINER_VERSION}]\nLoseText = #{lose}\n" +
-                  team.map { |species, level| "Pokemon = #{species},#{level}\n" }.join)
+    trainers.push(team_section(type, name, lose, party(zone, pool, rng)))
     label = cousin ? "Cousin" : "Dresseur"
     add(plans, map, "Trainer", "#{label}#{plans[map].count { |*, text| text.start_with?("[Trainer #{label}") } + 1}",
         x, y, ["Facing", facing], ["Sight", sight], ["Type", type], ["Name", name],
