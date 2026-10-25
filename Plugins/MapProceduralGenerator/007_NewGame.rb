@@ -33,13 +33,20 @@ module MapProceduralGenerator
     nil
   end
 
+  # Seed of the next new game's world, instead of a random one (a game of the
+  # history played again); used once.
+  def next_game_seed=(seed)
+    @next_game_seed = seed
+  end
+
   # Starts drawing the world of a new game in a thread (plain Ruby, nothing
   # written yet): { path:, seed:, thread: }, nil if there is no world.
   def begin_new_game_world
     return nil if !NEW_GAME_WORLD
     path = File.join(FOLDER, NEW_GAME_WORLD)
     return nil if !File.exist?(path)
-    seed = rand(1_000_000)
+    seed = @next_game_seed || rand(1_000_000)
+    @next_game_seed = nil
     thread = Thread.new { compute_world(path, seed) }
     thread.report_on_exception = false
     # Short time slices: the intro keeps its frame rate

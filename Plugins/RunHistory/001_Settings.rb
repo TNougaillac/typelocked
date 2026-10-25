@@ -11,6 +11,4 @@ module RunHistory
   SIZE = 20
   # Outcome of a game: shown in the list.
   OUTCOMES = { playing: "En cours", defeat: "Défaite", victory: "Victoire", abandon: "Abandon" }.freeze
-  # Order of « Dernières parties » in the pause menu (Save = 60, Options = 70).
-  PAUSE_ORDER = 65
 end

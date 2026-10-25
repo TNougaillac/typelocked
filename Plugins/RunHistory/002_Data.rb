@@ -4,7 +4,7 @@
 # updated at each save while it is going on, frozen once it ends.
 #===============================================================================
 module RunHistory
-  Entry = Struct.new(:id, :seed, :region, :type, :outcome, :seals, :place, :team, :play_time,
+  Entry = Struct.new(:id, :seed, :region, :type, :outcome, :place, :team, :play_time,
                      :started, :updated)
   # A Pokémon of the team: dead (Nuzlocke) or not.
   Member = Struct.new(:species, :name, :level, :dead)
@@ -31,12 +31,13 @@ module RunHistory
   end
 
   # Records the current game with that outcome (team: the Pokémon to keep,
-  # the party by default); an ended game is not changed any more.
+  # the party by default). A game never saved is not recorded (only a save
+  # adds it), and an ended game is not changed any more.
   def record(outcome, team = $player.party)
     return if !$run_history_id
     list = entries
     old = list.find { |e| e.id == $run_history_id }
-    return if old && old.outcome != :playing
+    return if old ? old.outcome != :playing : outcome != :playing
     list.delete(old)
     list.unshift(snapshot(outcome, team, old&.started || Time.now))
     write(list)
@@ -53,8 +54,8 @@ module RunHistory
 
   def snapshot(outcome, team, started)
     members = team.map { |pkmn| Member.new(pkmn.species, pkmn.name, pkmn.level, pkmn.nuzlocke_dead? ? true : false) }
-    return Entry.new($run_history_id, $mapproc_world, region_name, Monotype.data.type, outcome, $player.badge_count,
-                     $game_map&.name, members, $stats.play_time.to_i, started, Time.now)
+    return Entry.new($run_history_id, $mapproc_world, region_name, Monotype.data.type, outcome, $game_map&.name,
+                     members, $stats.play_time.to_i, started, Time.now)
   end
 
   # The Town Map name of the region the player is in (nil: none).
