@@ -610,7 +610,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Un dresseur posé au bord du chemin pourrait, rarement, boucher un passage étroit vers des hautes herbes ou un cul-de-sac (la CI ne refait pas le chemin à pied avec les dresseurs en place).
 
 ## F16. Historique des parties (RunHistory)
-**Statut :** v1.0.0, écrit, **non testé en jeu**. Issue #48.
+**Statut :** v1.1.0, écrit, **non testé en jeu**. Issue #48.
 **Version cible :** Essentials v21.1. Dépend de Nuzlocke, Monotype, MapProceduralGenerator et WorldEvents (`Requires`).
 **Dossier :** `Plugins/RunHistory/`
 
@@ -623,6 +623,14 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Combien :** les `SIZE` (20) dernières parties, la plus récente en premier.
 - **Où :** dans `RunHistory.rxdata`, à côté du fichier de sauvegarde (jamais dans le dossier du jeu) : une nouvelle version du jeu ou le launcher (#52) ne l'efface pas, et il survit à la suppression du monde.
 - **Écran titre :** un panneau « Dernières parties » sous « New Game » montre la dernière partie avant celle de la sauvegarde : région, type, issue et les icônes de son équipe (un Pokémon mort au Nuzlocke est pâli). Les panneaux défilent pour suivre le choix. Le choisir ouvre la liste de toutes les parties : une carte par partie (mêmes informations), `CARDS_SHOWN` (3) à l'écran, Haut et Bas pour choisir, Valider pour les détails (graine, date, temps de jeu, dernier lieu, équipe avec « (mort) »), Retour pour revenir.
+- **Score :** chaque partie a un score, calculé à chaque enregistrement (réglages dans `001_Settings.rb`) :
+  - progression : 100 par sceau, 150 par Ancien, 300 pour le Parrain, 500 pour Arceus (interrupteurs `LEAGUE_SWITCH` + 1 à 6) ;
+  - combats : 5 par dresseur battu, 20 par membre d'arène (événement MapEvents « Membre ») ; lieutenants, Anciens et Parrain ne comptent que par leur sceau ou interrupteur ;
+  - −25 par Pokémon mort (boîtes Cimetière et équipe) ;
+  - victoire seulement : bonus de vitesse `max(0, 1000 − minutes de jeu)` ;
+  - puis × le multiplicateur du type (`TYPE_MULTIPLIERS`, tous à 1,0 pour l'instant), × 0,5 sans Nuzlocke (marqué « sans Nuzlocke » dans les détails) ; jamais sous 0 ;
+  - une défaite ou un abandon garde le score atteint.
+- **Où voir le score :** à droite de chaque carte (panneau de l'écran titre, liste), dans les détails d'une partie, et pour la partie en cours sur la carte de dresseur (ligne « Score » ajoutée sous le n° ID). Dans la liste, Gauche ou Droite bascule sur les `BEST_SIZE` (5) meilleurs scores de tous les temps, le meilleur en premier : le fichier les garde même au-delà des 20 dernières parties.
 - **Rejouer cette graine :** après les détails d'une partie, le joueur peut lancer une nouvelle partie dans la même région (même graine, `MapProceduralGenerator.next_game_seed`). Le type imposé et le reste sont tirés à nouveau.
 
 ### Fichiers
@@ -633,20 +641,25 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `002_Data.rb` | Entrées (`Entry`, `Member`), lecture et écriture du fichier, `record`, `abandon`, identifiant de partie dans la sauvegarde. |
 | `003_Hooks.rb` | Enregistrement à la sauvegarde, à la défaite Nuzlocke et à la victoire contre Arceus ; abandon. |
 | `004_Screen.rb` | Panneau « Dernières parties » de l'écran titre, détails d'une partie, commande insérée sous New Game. |
-| `005_List.rb` | Liste de toutes les parties (`ListScene`), une carte avec les icônes de l'équipe par partie. |
+| `005_List.rb` | Liste de toutes les parties (`ListScene`), une carte avec les icônes de l'équipe par partie ; vue « Meilleurs scores ». |
+| `006_Score.rb` | Score d'une partie, dresseurs et membres d'arène battus (`$run_history_wins`, dans la sauvegarde), ligne « Score » de la carte de dresseur. |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`MapProceduralGenerator.next_game_seed=` (graine de la prochaine partie, ajoutée en v0.25.0), `Game.save`, `Nuzlocke.bury_dead_party_members`, `WorldEvents.arceus`, `PokemonLoad_Scene#pbStartScene`, `#pbChoose` et `#pbUpdate`.
+`MapProceduralGenerator.next_game_seed=` (graine de la prochaine partie, ajoutée en v0.25.0), `Game.save`, `Nuzlocke.bury_dead_party_members`, `WorldEvents.arceus`, `PokemonLoad_Scene#pbStartScene`, `#pbChoose` et `#pbUpdate`, `TrainerBattle.start_core` (après l'alias de Monotype), `PokemonTrainerCard_Scene#pbDrawTrainerCardFront`.
 
 ### À vérifier au premier lancement
 - Après une sauvegarde, la liste des dernières parties montre la partie « En cours » (le panneau de l'écran titre, lui, montre la précédente) ; une partie jamais sauvegardée n'y est pas.
 - À l'écran titre, le panneau « Dernières parties » apparaît sous « New Game » avec les icônes de l'équipe de la partie précédente ; descendre jusqu'à « Quit Game » fait défiler les panneaux. Le choisir ouvre la liste, Haut et Bas la font défiler.
 - Perdre le run Nuzlocke : l'entrée passe en « Défaite » avec l'équipe d'avant la mort.
 - Nouvelle partie puis sauvegarde : l'ancienne partie passe en « Abandon ».
+- Battre un dresseur puis un membre d'arène : le score de la carte de dresseur monte de 5 puis de 20 ; battre le lieutenant ajoute 100 (le sceau), pas 5.
+- Dans la liste, Gauche/Droite affiche « Meilleurs scores » ; les détails montrent le score et « (sans Nuzlocke) » en mode normal.
 - « Rejouer cette graine » lance une nouvelle partie dont la console affiche la même graine, avec la même région.
 
 ### Limites connues
 - Sans Nuzlocke actif, une partie ne se termine que par la victoire ou l'abandon.
+- Un fichier `RunHistory.rxdata` écrit par la v1.0.0 (sans score) n'est plus lisible : l'historique repart de zéro.
+- Les dresseurs battus avant la v1.1.0 dans une sauvegarde existante ne sont pas comptés.
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -731,3 +744,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | WorldEvents v1.7.3 : un Pokémon sans attaque offensive (Queulorior) garde ce qu'il sait (Gribouille) | `Plugins/WorldEvents/006_Sets.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | RunHistory v1.0.0 (#48) : historique des 20 dernières parties (graine, région, type, dernier lieu, équipe, issue), mis à jour à chaque sauvegarde, figé à la défaite Nuzlocke, à la victoire contre Arceus ou à l'abandon (une partie jamais sauvegardée n'y entre pas) ; panneau « Dernières parties » sous New Game à l'écran titre (partie précédente et icônes de son équipe) et liste de toutes les parties, avec « Rejouer cette graine » ; MapProceduralGenerator v0.25.0 (`next_game_seed=`) | `Plugins/RunHistory/*`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 25/10/2026 | Sprites de la Famille (#103) : 18 types de dresseur `LIEUTENANT_<TYPE>`, `ANCIEN_1` à `ANCIEN_4` et `PARRAIN`, sprites copiés d'Essentials ; WorldEvents v1.8.0 (le lieutenant prend le sprite de son type), Monotype v1.5.4 (règle d'arène pour ces types) | `PBS/trainer_types.txt`, `Graphics/Trainers/`, `Graphics/Characters/`, `tools/art/family_sprites.rb`, `Plugins/WorldEvents/*`, `Plugins/Monotype/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
