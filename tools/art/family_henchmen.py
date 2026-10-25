@@ -92,13 +92,13 @@ def battle(gender):
 
 
 # Overworld sheets (4x4 frames of 32x48, art drawn x2): the cap is above
-# CAP_ROWS in a frame; the R on the chest (TORSO box of a frame) becomes
-# shirt (light) and tie (dark); other red is her hair, or his uniform's
-# trim, which turns to suit.
+# CAP_ROWS in a frame; the R on the chest (TORSO box of a frame) becomes a
+# plain shirt with a straight tie down its middle; other red is her hair, or
+# his uniform's trim, which turns to suit.
 OW_SUIT = {(72, 72, 88): (82, 60, 42), (136, 144, 144): (132, 104, 76)}
 OW_CAP = {(72, 72, 88): (60, 42, 30), (136, 144, 144): (100, 76, 54), (56, 56, 24): (42, 30, 20)}
 OW_LEATHER = {(192, 200, 216): (70, 50, 36)}
-OW_RED = {(224, 112, 80): SHIRT, (120, 64, 64): TIE, (144, 64, 40): TIE, (80, 16, 0): TIE}
+OW_RED = {(224, 112, 80), (120, 64, 64), (144, 64, 40), (80, 16, 0)}
 CAP_ROWS = 18
 TORSO = (10, 28, 21, 39)
 
@@ -122,13 +122,27 @@ def overworld(gender):
                 c = OW_LEATHER[c]
             elif c in OW_RED:
                 if box((x % fw, fy), TORSO) and y < fh:      # front frames only
-                    c = OW_RED[c]
+                    c = SHIRT
                 elif gender == "F":
                     c = OW_HAIR[c]
                 else:
                     c = OW_SUIT[(72, 72, 88)]
             px[x, y] = (*c, a)
+    for frame in range(4):
+        tie(px, frame * fw)
     return im
+
+
+# Tie: the middle art pixel (2 px wide) of the shirt, below its top row.
+def tie(px, left):
+    x0, y0, x1, y1 = TORSO
+    cells = [(x, y) for y in range(y0, y1 + 1) for x in range(left + x0, left + x1 + 1) if px[x, y][:3] == SHIRT]
+    xs = sorted({x for x, _ in cells})
+    top = min(y for _, y in cells)
+    mid = xs[len(xs) // 2] & ~1
+    for x, y in cells:
+        if x in (mid, mid + 1) and y >= top + 2:
+            px[x, y] = (*TIE, 255)
 
 
 def main():
