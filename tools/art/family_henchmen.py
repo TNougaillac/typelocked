@@ -1,8 +1,8 @@
 """Henchmen of the Family (TypeLocked, #103): the Cousins in mafia style.
 
 Redraws Essentials' Team Rocket grunts (battle sprites and overworld sheets)
-as Family henchmen, all in brown: a pinstripe suit of the same brown tweed
-as their flat cap (coppola), a white shirt with a dark red tie instead of
+as Family henchmen, all in brown: a pinstripe suit of brown tweed, a flat
+cap (coppola) one shade darker, a white shirt with a dark red tie instead of
 the R, dark brown leather gloves and shoes, a gold belt buckle. The sources are Essentials' own files, so the
 result is the same each time.
 
@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 # Grunt colours -> henchman colours
 SUIT = {(56, 56, 72): (72, 52, 38), (80, 80, 104): (106, 80, 56), (120, 120, 144): (142, 112, 82)}
-CAP = SUIT
+CAP = {(56, 56, 72): (52, 36, 26), (80, 80, 104): (80, 58, 40), (120, 120, 144): (110, 84, 60)}
 LEATHER = {(152, 152, 168): (52, 36, 26), (176, 176, 192): (70, 50, 36), (200, 200, 216): (92, 68, 50)}
 RED = {(160, 72, 64), (208, 96, 88), (240, 104, 96)}
 SHIRT = (236, 236, 240)
@@ -91,7 +91,7 @@ def battle(gender):
 # shirt (light) and tie (dark); other red is her hair, or his uniform's
 # trim, which turns to suit.
 OW_SUIT = {(72, 72, 88): (82, 60, 42), (136, 144, 144): (132, 104, 76)}
-OW_CAP = {(72, 72, 88): (82, 60, 42), (136, 144, 144): (132, 104, 76), (56, 56, 24): (56, 40, 28)}
+OW_CAP = {(72, 72, 88): (60, 42, 30), (136, 144, 144): (100, 76, 54), (56, 56, 24): (42, 30, 20)}
 OW_LEATHER = {(192, 200, 216): (70, 50, 36)}
 OW_RED = {(224, 112, 80): SHIRT, (120, 64, 64): TIE, (144, 64, 40): TIE, (80, 16, 0): TIE}
 CAP_ROWS = 18

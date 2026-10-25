@@ -67,11 +67,11 @@ module WorldEvents
     "automne"         => %i[PAINTER LADY AROMALADY BIRDKEEPER],
     "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_M POKEMONRANGER_F],
     "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
-    "grotte"          => %i[HIKER POKEMANIAC SUPERNERD RUINMANIAC]
+    "grotte"          => %i[HIKER POKEMANIAC RUINMANIAC CAMPER]
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
-  FEMALE_TYPES = %i[LIEUTENANT_ICE LIEUTENANT_PSYCHIC LIEUTENANT_GHOST LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER
+  FEMALE_TYPES = %i[LIEUTENANT_PSYCHIC LIEUTENANT_GHOST LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER
                     POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
