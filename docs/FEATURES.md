@@ -222,7 +222,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.24.1, prototype écrit, **non testé en jeu**.
+**Statut :** v0.25.0, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -591,6 +591,45 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Pas de dresseur sur les îles ni dans les routes sous-marines.
 - Un dresseur posé au bord du chemin pourrait, rarement, boucher un passage étroit vers des hautes herbes ou un cul-de-sac (la CI ne refait pas le chemin à pied avec les dresseurs en place).
 
+## F16. Historique des parties (RunHistory)
+**Statut :** v1.0.0, écrit, **non testé en jeu**. Issue #48.
+**Version cible :** Essentials v21.1. Dépend de Nuzlocke, Monotype, MapProceduralGenerator et WorldEvents (`Requires`).
+**Dossier :** `Plugins/RunHistory/`
+
+### Règles
+- **Une entrée par partie :** un identifiant est tiré à la nouvelle partie et gardé dans la sauvegarde (`$run_history_id`). L'entrée garde la graine du monde, le nom de la région, le type imposé (Monotype), le dernier lieu, l'équipe (espèce, surnom, niveau, mort au Nuzlocke), le temps de jeu et les dates.
+- **Quand :** une seule partie à la fois, comme dans les jeux. À chaque sauvegarde, l'entrée de la partie est créée ou mise à jour (« En cours ») ; une partie jamais sauvegardée n'entre pas dans l'historique, même perdue ou gagnée. L'entrée est figée quand la partie se termine :
+  - **Défaite :** le run Nuzlocke est perdu (plus aucun Pokémon en vie), avec l'équipe d'avant l'enterrement des derniers morts ;
+  - **Victoire :** Arceus est battu ou capturé à la Ligue ;
+  - **Abandon :** une nouvelle partie est sauvegardée par-dessus une partie encore en cours.
+- **Combien :** les `SIZE` (20) dernières parties, la plus récente en premier.
+- **Où :** dans `RunHistory.rxdata`, à côté du fichier de sauvegarde (jamais dans le dossier du jeu) : une nouvelle version du jeu ou le launcher (#52) ne l'efface pas, et il survit à la suppression du monde.
+- **Écran titre :** un panneau « Dernières parties » sous « New Game » montre la dernière partie avant celle de la sauvegarde : région, type, issue et les icônes de son équipe (un Pokémon mort au Nuzlocke est pâli). Les panneaux défilent pour suivre le choix. Le choisir ouvre la liste de toutes les parties : une carte par partie (mêmes informations), `CARDS_SHOWN` (3) à l'écran, Haut et Bas pour choisir, Valider pour les détails (graine, date, temps de jeu, dernier lieu, équipe avec « (mort) »), Retour pour revenir.
+- **Rejouer cette graine :** après les détails d'une partie, le joueur peut lancer une nouvelle partie dans la même région (même graine, `MapProceduralGenerator.next_game_seed`). Le type imposé et le reste sont tirés à nouveau.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Nom du fichier, nombre de parties gardées, noms des issues. |
+| `002_Data.rb` | Entrées (`Entry`, `Member`), lecture et écriture du fichier, `record`, `abandon`, identifiant de partie dans la sauvegarde. |
+| `003_Hooks.rb` | Enregistrement à la sauvegarde, à la défaite Nuzlocke et à la victoire contre Arceus ; abandon. |
+| `004_Screen.rb` | Panneau « Dernières parties » de l'écran titre, détails d'une partie, commande insérée sous New Game. |
+| `005_List.rb` | Liste de toutes les parties (`ListScene`), une carte avec les icônes de l'équipe par partie. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`MapProceduralGenerator.next_game_seed=` (graine de la prochaine partie, ajoutée en v0.25.0), `Game.save`, `Nuzlocke.bury_dead_party_members`, `WorldEvents.arceus`, `PokemonLoad_Scene#pbStartScene`, `#pbChoose` et `#pbUpdate`.
+
+### À vérifier au premier lancement
+- Après une sauvegarde, la liste des dernières parties montre la partie « En cours » (le panneau de l'écran titre, lui, montre la précédente) ; une partie jamais sauvegardée n'y est pas.
+- À l'écran titre, le panneau « Dernières parties » apparaît sous « New Game » avec les icônes de l'équipe de la partie précédente ; descendre jusqu'à « Quit Game » fait défiler les panneaux. Le choisir ouvre la liste, Haut et Bas la font défiler.
+- Perdre le run Nuzlocke : l'entrée passe en « Défaite » avec l'équipe d'avant la mort.
+- Nouvelle partie puis sauvegarde : l'ancienne partie passe en « Abandon ».
+- « Rejouer cette graine » lance une nouvelle partie dont la console affiche la même graine, avec la même région.
+
+### Limites connues
+- Sans Nuzlocke actif, une partie ne se termine que par la victoire ou l'abandon.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -670,3 +709,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | WorldEvents v1.7.0 : vrais sets pour les lieutenants et la Ligue (attaques du type du dresseur, de couverture et de statut tirées dans les capacités par niveau, CT et reproduction sous un plafond de puissance selon les sceaux ; objet tenu, talent caché dès 4 sceaux, nature, IV 10 à 31), contrôlés par la CI | `Plugins/WorldEvents/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.7.1 : les sets peuvent prendre les attaques à deux tours et d'autodestruction | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/meta.txt`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.7.2 : plus aucune attaque exclue des sets (`SET_BANNED` supprimé) | `Plugins/WorldEvents/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 25/10/2026 | RunHistory v1.0.0 (#48) : historique des 20 dernières parties (graine, région, type, dernier lieu, équipe, issue), mis à jour à chaque sauvegarde, figé à la défaite Nuzlocke, à la victoire contre Arceus ou à l'abandon (une partie jamais sauvegardée n'y entre pas) ; panneau « Dernières parties » sous New Game à l'écran titre (partie précédente et icônes de son équipe) et liste de toutes les parties, avec « Rejouer cette graine » ; MapProceduralGenerator v0.25.0 (`next_game_seed=`) | `Plugins/RunHistory/*`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
