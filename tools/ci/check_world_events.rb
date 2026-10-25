@@ -401,13 +401,22 @@ species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\
 types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
 ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
 genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES.values + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
   female = W::FEMALE_TYPES.include?(type)
   CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
   %W[Graphics/Trainers/#{type}.png Graphics/Characters/trainer_#{type}.png].each do |file|
     CI.error(settings, nil, "#{type} : #{file} absent") if !File.exist?(File.join(ROOT, file))
   end
+end
+# The Family's sprites exist only once: never an ordinary trainer, a cousin or an NPC's graphic.
+family = CI.read_text(File.join(ROOT, "tools", "art", "family_sprites.rb")).scan(/^\s+\w+:\s+:(\w+)/).flatten
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES).each do |type|
+  CI.error(settings, nil, "TRAINER_TYPES : #{type} est un sprite de la Famille") if family.include?(type.to_s)
+end
+W.constants.grep(/GRAPHICS?\z/).flat_map { |c| Array(W.const_get(c)) }.each do |graphic|
+  source = graphic.to_s[/\Atrainer_(\w+)\z/, 1]
+  CI.error(settings, nil, "#{graphic} : sprite de la Famille") if source && family.include?(source)
 end
 roster = E.load_species(ROOT)
 # [[item, move, type, power, status?]] of every TM, from the PBS files

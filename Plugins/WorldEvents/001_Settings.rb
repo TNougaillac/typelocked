@@ -27,7 +27,7 @@ module WorldEvents
   CENTRE_LABELS = %w[Infirmiere PC Machine].freeze
   # The clerk of each shop template ([x, y]), a member of the Family.
   MART_CLERK = { 25 => [2, 3], 54 => [2, 3] }.freeze
-  CLERK_GRAPHIC = "trainer_GENTLEMAN"
+  CLERK_GRAPHIC = "trainer_COUSIN_F"
   # Stock of a shop by the seals won on the way there: each line adds its
   # items from that number of seals on.
   MART_STOCK = {
@@ -55,21 +55,23 @@ module WorldEvents
   # Their levels: up to the highest of the zone's wild Pokémon, this much less.
   PARTY_LEVEL_SPREAD = 2
   # Trainer types by ambiance of the route (nil: grass), mountain and cave.
+  # Never a sprite of the Family (tools/art/family_sprites.rb): its
+  # characters exist only once (checked by the CI).
   TRAINER_TYPES = {
     nil               => %i[YOUNGSTER LASS CAMPER PICNICKER BUGCATCHER BIRDKEEPER POKEMONBREEDER],
-    "verdoyante"      => %i[CAMPER PICNICKER BUGCATCHER POKEMONRANGER_M POKEMONRANGER_F],
+    "verdoyante"      => %i[CAMPER PICNICKER BUGCATCHER POKEMONRANGER_F LASS],
     "prairie"         => %i[LASS YOUNGSTER AROMALADY BIRDKEEPER PAINTER],
     "sable"           => %i[RUINMANIAC HIKER PICNICKER CAMPER],
-    "minérale"        => %i[HIKER BLACKBELT CRUSHGIRL ENGINEER],
-    "terre battue"    => %i[CAMPER PICNICKER BIKER ROCKER],
-    "automne"         => %i[PAINTER LADY GENTLEMAN BIRDKEEPER],
-    "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_M POKEMONRANGER_F],
-    "montagne"        => %i[HIKER BLACKBELT CRUSHGIRL],
-    "grotte"          => %i[HIKER POKEMANIAC SUPERNERD ENGINEER]
+    "minérale"        => %i[HIKER CRUSHGIRL RUINMANIAC POKEMANIAC],
+    "terre battue"    => %i[CAMPER PICNICKER YOUNGSTER LASS],
+    "automne"         => %i[PAINTER LADY AROMALADY BIRDKEEPER],
+    "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_F PICNICKER],
+    "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
+    "grotte"          => %i[HIKER POKEMANIAC RUINMANIAC CAMPER]
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
-  FEMALE_TYPES = %i[LEADER_Misty LEADER_Erika LEADER_Sabrina ELITEFOUR_Lorelei ELITEFOUR_Agatha LASS PICNICKER
+  FEMALE_TYPES = %i[LIEUTENANT_PSYCHIC LIEUTENANT_GHOST LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER
                     POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
@@ -90,10 +92,15 @@ module WorldEvents
     }
   }.freeze
   GYM_MEMBERS = 2..4
-  # Trainer types of the lieutenants (gym leaders for the Monotype), one per
-  # gym, and of the members of the gyms.
-  LEADER_TYPES = %i[LEADER_Brock LEADER_Misty LEADER_Surge LEADER_Erika LEADER_Koga LEADER_Sabrina
-                    LEADER_Blaine LEADER_Giovanni].freeze
+  # Trainer type of a lieutenant (gym leader for the Monotype) by the type of
+  # its gym: its sprite (tools/art/family_sprites.rb).
+  LEADER_TYPES = {
+    NORMAL: :LIEUTENANT_NORMAL, FIRE: :LIEUTENANT_FIRE, WATER: :LIEUTENANT_WATER, GRASS: :LIEUTENANT_GRASS,
+    ELECTRIC: :LIEUTENANT_ELECTRIC, ICE: :LIEUTENANT_ICE, FIGHTING: :LIEUTENANT_FIGHTING,
+    POISON: :LIEUTENANT_POISON, GROUND: :LIEUTENANT_GROUND, FLYING: :LIEUTENANT_FLYING,
+    PSYCHIC: :LIEUTENANT_PSYCHIC, BUG: :LIEUTENANT_BUG, ROCK: :LIEUTENANT_ROCK, GHOST: :LIEUTENANT_GHOST,
+    DRAGON: :LIEUTENANT_DRAGON, DARK: :LIEUTENANT_DARK, STEEL: :LIEUTENANT_STEEL, FAIRY: :LIEUTENANT_FAIRY
+  }.freeze
   # Pokémon of a lieutenant by gym (1st to 8th), the strongest at the level
   # cap of the next seal; its members have PARTY_SIZES Pokémon, this much
   # lower.
@@ -121,11 +128,11 @@ module WorldEvents
   LEAGUE_SWITCH = 58
   # The four Anciens: their trainer types (Elite Four for the Monotype), one
   # drawn type each, never the same; their Pokémon.
-  ELDER_TYPES = %i[ELITEFOUR_Lorelei ELITEFOUR_Bruno ELITEFOUR_Agatha ELITEFOUR_Lance].freeze
+  ELDER_TYPES = %i[ANCIEN_1 ANCIEN_2 ANCIEN_3 ANCIEN_4].freeze
   ELDER_PARTY_SIZES = [5, 5, 6, 6].freeze
   # The Parrain (Champion for the Monotype): no type, the most evolved
   # Pokémon of the roster, the strongest at the cap with every seal.
-  PARRAIN_TYPE = :CHAMPION
+  PARRAIN_TYPE = :PARRAIN
   PARRAIN_PARTY_SIZE = 6
   # Arceus, boss of OverworldBoss: this many levels above the Parrain's top.
   ARCEUS_GRAPHIC = "boss_ARCEUS"
