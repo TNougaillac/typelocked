@@ -145,10 +145,6 @@ module WorldEvents
   # A status move from this many seals (TM_STATUS or these).
   SET_STATUS_SEALS = 2
   SET_STATUS = (TM_STATUS + %i[RECOVER SOFTBOILED SLACKOFF WISH LEECHSEED COIL WORKUP SHIFTGEAR]).freeze
-  # Never taken: recharge moves, and moves that fail without their condition.
-  SET_BANNED = %i[HYPERBEAM GIGAIMPACT BLASTBURN HYDROCANNON FRENZYPLANT ROCKWRECKER ROAROFTIME PRISMATICLASER
-                  FOCUSPUNCH DREAMEATER SNORE LASTRESORT BELCH NATURALGIFT FLING SPITUP SYNCHRONOISE
-                  FALSESWIPE].freeze
   # The hidden ability (AbilityIndex 2) from this many seals, if it has one.
   SET_HIDDEN_SEALS = 4
   # Held items by seals (the last line reached): drawn without repeat in a

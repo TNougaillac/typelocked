@@ -44,7 +44,7 @@ module WorldEvents
       taught = (ls.tutor_moves & @tm_moves) + ((seals >= SET_EGG_SEALS) ? ls.egg_moves : [])
       taught = taught.select { |m| @dex[:moves][m] && @dex[:moves][m].power <= WorldEvents.set_cap(seals, @dex[:moves][m].type == type) }
       ids = ls.level_moves.filter_map { |l, m| m if l <= level } + taught
-      return (ids.uniq - SET_BANNED).filter_map { |m| @dex[:moves][m] }
+      return ids.uniq.filter_map { |m| @dex[:moves][m] }
     end
 
     # Up to 4 move ids: the best of each STAB type (the trainer's first), a

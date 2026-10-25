@@ -354,12 +354,11 @@ def check_sets(fights, seals, items)
       moves.each do |move|
         data = DEX[:moves][move]
         taught = (TM_MOVES.include?(move) && ls.tutor_moves.include?(move)) || (has >= W::SET_EGG_SEALS && ls.egg_moves.include?(move))
-        ok = data && !W::SET_BANNED.include?(move) &&
-             (level_moves.include?(move) || (taught && data.power <= W.set_cap(has, data.type == fight[:type])))
+        ok = data && (level_moves.include?(move) || (taught && data.power <= W.set_cap(has, data.type == fight[:type])))
         raise MapEvents::Error, "#{where} : #{id} niveau #{level} ne peut pas connaître #{move}" if !ok
       end
       type = fight[:type]
-      stab = level_moves.any? { |m| (d = DEX[:moves][m]) && d.type == type && d.category != :Status && d.power > 1 && !W::SET_BANNED.include?(m) }
+      stab = level_moves.any? { |m| (d = DEX[:moves][m]) && d.type == type && d.category != :Status && d.power > 1 }
       if type && stab && moves.none? { |m| DEX[:moves][m].type == type }
         raise MapEvents::Error, "#{where} : #{id} sans attaque #{type}"
       end
@@ -422,7 +421,7 @@ tms = CI.read_text(File.join(ROOT, "PBS", "items.txt")).split(/^\[/).drop(1).fil
 end
 DEX = W.load_dex(ROOT)
 TM_MOVES = tms.map { |_item, move, *| move }
-(W::SET_STATUS + W::SET_BANNED).each { |move| CI.error(settings, nil, "SET_STATUS/SET_BANNED : capacité #{move} absente de moves.txt") if !moves[move] }
+W::SET_STATUS.each { |move| CI.error(settings, nil, "SET_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 (W::SET_ITEMS.values.flatten - [:BOOSTER] + W::TYPE_BOOSTERS.values).each do |item|
   CI.error(settings, nil, "SET_ITEMS/TYPE_BOOSTERS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
 end
