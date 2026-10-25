@@ -10,30 +10,31 @@ require "fileutils"
 
 ROOT = File.expand_path("../..", __dir__)
 
-# Trainer type => Essentials sprite it is copied from.
+# Trainer type => Essentials sprite it is copied from: only characters that
+# look threatening or shifty (gym leaders and Elite Four included).
 SPRITES = {
-  LIEUTENANT_NORMAL:   :COOLTRAINER_M,
-  LIEUTENANT_FIRE:     :LEADER_Blaine,
-  LIEUTENANT_WATER:    :LEADER_Misty,
-  LIEUTENANT_GRASS:    :LEADER_Erika,
+  LIEUTENANT_NORMAL:   :RIVAL1,
+  LIEUTENANT_FIRE:     :JUGGLER,
+  LIEUTENANT_WATER:    :ROCKER,
+  LIEUTENANT_GRASS:    :PSYCHIC_M,
   LIEUTENANT_ELECTRIC: :LEADER_Surge,
-  LIEUTENANT_ICE:      :ELITEFOUR_Lorelei,
+  LIEUTENANT_ICE:      :BEAUTY,
   LIEUTENANT_FIGHTING: :BLACKBELT,
-  LIEUTENANT_POISON:   :LEADER_Koga,
-  LIEUTENANT_GROUND:   :RUINMANIAC,
-  LIEUTENANT_FLYING:   :BIRDKEEPER,
+  LIEUTENANT_POISON:   :SCIENTIST,
+  LIEUTENANT_GROUND:   :BIKER,
+  LIEUTENANT_FLYING:   :TAMER,
   LIEUTENANT_PSYCHIC:  :LEADER_Sabrina,
-  LIEUTENANT_BUG:      :BUGCATCHER,
-  LIEUTENANT_ROCK:     :LEADER_Brock,
+  LIEUTENANT_BUG:      :LEADER_Koga,
+  LIEUTENANT_ROCK:     :ELITEFOUR_Bruno,
   LIEUTENANT_GHOST:    :CHANNELER,
   LIEUTENANT_DRAGON:   :ELITEFOUR_Lance,
   LIEUTENANT_DARK:     :BURGLAR,
-  LIEUTENANT_STEEL:    :ENGINEER,
-  LIEUTENANT_FAIRY:    :BEAUTY,
+  LIEUTENANT_STEEL:    :CUEBALL,
+  LIEUTENANT_FAIRY:    :PSYCHIC_F,
   ANCIEN_1:            :ELITEFOUR_Agatha,
   ANCIEN_2:            :GENTLEMAN,
   ANCIEN_3:            :GAMBLER,
-  ANCIEN_4:            :ELITEFOUR_Bruno,
+  ANCIEN_4:            :LEADER_Blaine,
   PARRAIN:             :ROCKETBOSS
 }.freeze
 

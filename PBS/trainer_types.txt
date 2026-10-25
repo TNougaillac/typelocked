@@ -426,14 +426,14 @@ VictoryBGM = Battle victory leader
 #-------------------------------
 [LIEUTENANT_WATER]
 Name = Lieutenant
-Gender = Female
+Gender = Male
 BaseMoney = 100
 BattleBGM = Battle Gym Leader
 VictoryBGM = Battle victory leader
 #-------------------------------
 [LIEUTENANT_GRASS]
 Name = Lieutenant
-Gender = Female
+Gender = Male
 BaseMoney = 100
 BattleBGM = Battle Gym Leader
 VictoryBGM = Battle victory leader

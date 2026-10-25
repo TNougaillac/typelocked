@@ -69,9 +69,8 @@ module WorldEvents
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
-  FEMALE_TYPES = %i[LIEUTENANT_WATER LIEUTENANT_GRASS LIEUTENANT_ICE LIEUTENANT_PSYCHIC LIEUTENANT_GHOST
-                    LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER
-                    CRUSHGIRL LADY COUSIN_F].freeze
+  FEMALE_TYPES = %i[LIEUTENANT_ICE LIEUTENANT_PSYCHIC LIEUTENANT_GHOST LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER
+                    POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
                Matteo Dario Nico Sonny Ray Jack Bobby Lucien Marcel Gino Carlo Franco Angelo Victor],
