@@ -2,7 +2,8 @@
 # Draws the events of each MapProc world with a few seeds (plugin
 # WorldEvents) and checks them: plans read by MapEvents, events on cells the
 # player can reach and never in the way (exits, doors), the professor and the
-# gate of the first town, the same events for the same seed.
+# gate of the first town, the services of the Centres and shops, the same
+# events for the same seed.
 #===============================================================================
 require_relative "lib/ci"
 
@@ -79,6 +80,38 @@ def check_start(atlas, plans)
   end
 end
 
+# Every Pokémon Centre has its nurse, PC and healing machine, every shop its
+# clerk of the Family.
+def check_services(atlas, plans)
+  atlas[:maps].each do |name, map|
+    next if map[:kind] != "interieur"
+    labels = plans[name]&.events&.map(&:label) || []
+    case map[:building]
+    when "centre"
+      missing = W::CENTRE_LABELS - labels
+      raise MapEvents::Error, "#{name} : Centre sans #{missing.join(', ')}" if !missing.empty?
+    when "boutique"
+      raise MapEvents::Error, "#{name} : boutique sans vendeur" if !labels.include?("Vendeur")
+    end
+  end
+end
+
+# The settings name events and items that exist.
+settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
+W::CENTRE_EVENTS.each do |template, events|
+  CI.error(settings, nil, "CENTRE_EVENTS : la carte #{template} n'est pas un gabarit de Centre") if !M::INTERIORS["centre"].any? { |t, *| t == template }
+  map_events = load_rxdata(File.join(ROOT, "Data", format("Map%03d.rxdata", template))).instance_variable_get(:@events)
+  events.each do |id, x, y|
+    event = map_events[id]
+    next if event && [event.instance_variable_get(:@x), event.instance_variable_get(:@y)] == [x, y]
+    CI.error(settings, nil, "CENTRE_EVENTS : pas d'événement #{id} en #{x},#{y} sur la carte #{template}")
+  end
+end
+(M::INTERIORS["centre"].map(&:first) - W::CENTRE_EVENTS.keys).each { |t| CI.error(settings, nil, "CENTRE_EVENTS : gabarit #{t} absent") }
+(M::INTERIORS["boutique"].map(&:first) - W::MART_CLERK.keys).each { |t| CI.error(settings, nil, "MART_CLERK : gabarit #{t} absent") }
+items = CI.read_text(File.join(ROOT, "PBS", "items.txt")).scan(/^\[\s*(\w+)\s*\]/).flatten
+W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
+
 folder = File.join(ROOT, M::FOLDER)
 bricks = Dir.glob(File.join(folder, M::BRICK_FOLDER, "*.txt")).sort.map do |path|
   M.parse_brick(CI.read_text(path), File.basename(path))
@@ -107,6 +140,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     end
     begin
       check_start(atlas, plans)
+      check_services(atlas, plans)
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
     end

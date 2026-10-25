@@ -33,6 +33,11 @@ module WorldEvents
     return true
   end
 
+  # The clerk of a shop where that many seals are won on the way.
+  def mart(seals)
+    pbPokemonMart(mart_stock(seals), _INTL(MART_SPEECH))
+  end
+
   # An exit of the first town, before the starter.
   def gate
     pbMessage(_INTL(GATE_TEXT))

@@ -13,6 +13,7 @@ module WorldEvents
     rng = Random.new((seed * 1000) + 700)
     plans = Hash.new { |hash, name| hash[name] = [] }
     start_events(atlas, plans, rng)
+    service_events(atlas, seals_at(result), plans)
     return { plans: plans.to_h { |name, sections| [name, plan_text(name, sections)] } }
   end
 
@@ -23,6 +24,38 @@ module WorldEvents
   # One [Kind label] section: lines are [key, value] pairs.
   def section(kind, label, x, y, *lines)
     return "[#{kind} #{label}]\nPos = #{x},#{y}\n" + lines.map { |key, value| "#{key} = #{value}\n" }.join
+  end
+
+  # Seals won on the way to each place, by name: the lieutenants of the
+  # chain before it (an island counts as its port).
+  def seals_at(result)
+    gyms = result.places.filter_map { |wp, *| wp.index if wp.gym } +
+           (result.islands || []).filter_map { |wp, *| wp.index if wp.gym }
+    seals = result.places.to_h { |wp, *| [wp.name, gyms.count { |i| i < wp.index }] }
+    (result.islands || []).each { |wp, port, *| seals[wp.name] = seals[port.name] || gyms.count { |i| i < wp.index } }
+    return seals
+  end
+
+  # Stock of a shop with that many seals.
+  def mart_stock(seals)
+    return MART_STOCK.select { |from, _items| from <= seals }.values.flatten
+  end
+
+  #-----------------------------------------------------------------------------
+  # Pokémon Centres and shops
+  #-----------------------------------------------------------------------------
+  def service_events(atlas, seals, plans)
+    atlas[:maps].each do |name, map|
+      next if map[:kind] != "interieur"
+      if (events = CENTRE_EVENTS[map[:template]])
+        events.each_with_index do |(id, x, y), i|
+          plans[name].push(section("Copy", CENTRE_LABELS[i], x, y, ["From", "#{map[:template]},#{id}"]))
+        end
+      elsif (clerk = MART_CLERK[map[:template]]) && map[:building] == "boutique"
+        plans[name].push(section("Npc", "Vendeur", *clerk, ["Graphic", CLERK_GRAPHIC],
+                                 ["Script", "WorldEvents.mart(#{seals[map[:owner]] || 0})"]))
+      end
+    end
   end
 
   #-----------------------------------------------------------------------------

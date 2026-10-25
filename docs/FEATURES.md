@@ -178,7 +178,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Les PV affichés du boss et ses PV après capture (doivent revenir à la normale).
 
 ## F06. Placeur d'événements (MapEvents)
-**Statut :** v1.2.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
+**Statut :** v1.3.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
 **Version cible :** Essentials v21.1. Plugin séparé de MapGen (aucune dépendance obligatoire).
 **Dossier :** `Plugins/MapEvents/`, plans dans `MapEvents/*.txt` (exemple : `MapEvents/exemple.txt`, sur la carte de `MapGen/exemple.txt`).
 
@@ -190,6 +190,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - **`[Trainer B]` (dresseur) :** `Type`, `Name`, `Battle` obligatoires ; `Sight` (portée de vue, 3 par défaut) ; `Graphic` (sinon celui du type de dresseur) ; `Facing`. Les autres clés sont les commentaires de dresseur d'Essentials : `EndBattle`, `BattleID`, `DoubleBattle` / `Continue` (`oui`/`non`), `Backdrop`, `EndIfSwitch`, `VanishIfSwitch`, `Outcome`, `RegSpeech`. Plusieurs `Battle` = revanches. L'équipe est celle de `PBS/trainers.txt`.
 - **Champion d'arène :** un `[Trainer]` avec, après une victoire, `Win` (texte, codes de message acceptés comme `\me[Badge get]`), `Badge = n` (badge 1 à 8), `Gift = TM39` (objet donné), `Switch = n` (interrupteur activé). Le Monotype le reconnaît par son type `LEADER_…`.
 - **`Trigger` et `Hide` (PNJ) :** `Trigger = contact` déclenche le PNJ quand le joueur marche dessus ou le heurte (`action` par défaut). `Hide = V7>=1` le fait disparaître dès que la condition est vraie (une page vide qui se traverse prend le relais) : `A` à `D` (interrupteur local), `S25` (interrupteur 25 activé), `V7>=1` (variable 7 au moins à 1).
+- **`[Copy N]` :** `From = 24,2` copie l'événement 2 de la carte 24 tel quel (pages, graphismes, commandes) sur `Pos`. Il garde son numéro s'il est libre, pour les événements qui le nomment (l'infirmière et sa machine de soin) : les copies sont placées avant les autres événements.
 - **`[Item C]` :** `Item = POTION`, `Hidden = oui` pour un objet caché.
 - **`[Metadata]` :** lignes `Clé = valeur` fusionnées dans la section de la carte de `PBS/map_metadata.txt` (les autres clés sont gardées), ex. `HealingSpot`, `Outdoor`, `BattleBack`.
 - **`[Encounters]` :** mêmes lignes que dans `PBS/encounters.txt` (`Land,21` puis `40,PIDGEY,2,4`) ; elles remplacent la section de la carte. Les deux PBS sont recompilés aussitôt. **Convention du projet : ne pas l'utiliser**, les rencontres se gèrent uniquement dans `PBS/encounters.txt`.
@@ -514,7 +515,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.0.0, écrit, **non testé en jeu**. Spec #93, ticket #94 (socle et starter).
+**Statut :** v1.1.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter) et #95 (services).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -525,20 +526,22 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   - si la ville de départ a son labo, le Professeur Castellane s'y tient avec trois Poké Balls (`LAB_PROFESSOR`, `LAB_BALLS`). Parler au professeur ouvre le choix (interrupteur 3 « Choosing starter »), chaque Poké Ball propose un des trois starters (`Monotype.starter_ball`) et disparaît une fois prise ;
   - sinon, il attend dehors, sur la case `professor` de l'inventaire, et propose les trois starters dans une liste (`Monotype.starter_dialog`) ;
   - il ne raconte plus le Pacte, déjà dit pendant l'intro (F14).
+- **Centres Pokémon :** chaque Centre (îles et plateau compris) reçoit l'infirmière, le PC et la machine de soin de son gabarit de la démo (`CENTRE_EVENTS`), copiés tels quels. Le point de soin du Centre vient déjà de MapProc (`HealingSpot`).
+- **Boutiques :** le vendeur est un membre de la Famille (`CLERK_GRAPHIC`, texte d'accueil `MART_SPEECH`). Son stock dépend des sceaux gagnés avant sa ville (une île compte comme son port) : chaque ligne de `MART_STOCK` ajoute ses objets à partir de ce nombre de sceaux (Poké Balls et Potions au départ, Super Balls à 2, Hyper Balls à 4, Guérison à 7).
 - **Garde des sorties :** sur la rangée intérieure de chaque sortie de la ville de départ, un événement invisible renvoie le joueur d'un pas en arrière (« Tu ne peux pas partir sans Pokémon ») tant que la variable 7 (« Starter choice ») vaut 0. Le starter pris, elle vaut 1 à 3 et la garde disparaît.
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin (requiert MapEvents, MapProceduralGenerator, ProceduralEncounters, Monotype). |
-| `001_Settings.rb` | Places du professeur et des Poké Balls au labo, graphismes, interrupteur et variable du starter, textes. |
+| `001_Settings.rb` | Places du professeur et des Poké Balls au labo, graphismes, interrupteur et variable du starter, événements des Centres, vendeur et stocks des boutiques, textes. |
 | `002_World.rb` | `WorldEvents.world_events(result, seed)` : les plans MapEvents du monde, en Ruby pur (vérifié par la CI). |
-| `003_Runtime.rb` | Appelé par les événements en jeu : `professor`, `starter_ball`, `gate`. |
+| `003_Runtime.rb` | Appelé par les événements en jeu : `professor`, `starter_ball`, `mart`, `gate`. |
 | `004_Write.rb` | Écriture des plans après les cartes et les rencontres, export. |
 
 ### Intégration
 - Rien à faire : actif dès que MapProc génère un monde.
-- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, et que la même graine redonne les mêmes événements.
+- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` et `MART_STOCK` nomment des événements et des objets qui existent, et que la même graine redonne les mêmes événements.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `MapProceduralGenerator.generate_world` et `generate_world_maps` (après ProceduralEncounters, d'où le `Requires`).
@@ -546,10 +549,12 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### À vérifier au premier lancement
 - Au labo : les Poké Balls ne proposent rien avant d'avoir parlé au professeur, puis chacune propose son starter ; celle qui est prise disparaît, les autres ne donnent plus rien.
 - Sans labo : le professeur dehors propose la liste des trois starters.
+- Au Centre : l'infirmière soigne avec l'animation de la machine ; le PC s'ouvre. À la boutique : le vendeur accueille au nom de la Famille et vend le stock du tronçon.
 - Avant le starter, marcher sur une sortie de la ville de départ affiche le message et fait reculer d'un pas ; après, la sortie est libre (aussi après une sauvegarde et un rechargement).
 
 ### Limites connues
 - Les textes sont encore dans `001_Settings.rb` ; ils iront dans `MapProc/Lore/dialogues.txt` (#100).
+- L'infirmière garde les textes anglais de la démo (copie telle quelle).
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -619,3 +624,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 23/10/2026 | Sols d'ambiance (prairie, sable, terre, gravier) : arbres, grand pin, arbre rond, cyprès, arbrisseau, haies et buissons redessinés sur chaque sol (ombres sans vert), fleurs, rive et rue de la prairie ; 176 tuiles ajoutées sous le tileset Outside (T4016 à T4199) par `tools/art/ground_variants.py`, tables du tileset agrandies par `tools/art/tileset_tables.rb` ; jardin fleuri et massif de fleurs réservés aux ambiances herbeuses | `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/maison_jardin.txt`, `MapProc/Briques/parc_fleurs.txt`, `tools/art/ground_variants.py`, `tools/art/tileset_tables.rb`, `docs/FEATURES.md` |
 | 23/10/2026 | Monde non linéaire (#82) : MapGenerator v1.9.0 (masque et tracé des zones, image de région sans marge), MapProceduralGenerator v0.24.0 (monde 32x24, routes de 1 à 4 cases de long et 1 ou 2 de large, routes en L et en U, villes 1x1, 1x2, 2x2 et en L, boucles, raccourcis fermés par un obstacle, Grappin pour les raccourcis et les recoins), ProceduralEncounters v1.3.0 (rencontres au palier des routes ajoutées) ; contrôles CI (masque, villes, accessibilité sans raccourci, pas de saut d'arène, obstacles) | `MapProc/monde.txt`, `MapProc/ville.txt`, `MapProc/route.txt`, `Plugins/MapGenerator/*`, `Plugins/MapProceduralGenerator/*`, `Plugins/ProceduralEncounters/*`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.0.0 (#94) : événements des mondes générés tirés avec la graine depuis l'inventaire et placés par MapEvents ; Professeur Castellane au labo (trois Poké Balls) ou dehors, sorties de la ville de départ gardées jusqu'au starter ; MapEvents v1.2.0 (clés `Trigger` et `Hide` des PNJ) ; CI `check_world_events.rb` | `Plugins/WorldEvents/*`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `tools/ci/check_world_events.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
+| 25/10/2026 | WorldEvents v1.1.0 (#95) : infirmière, PC et machine de soin copiés des Centres de la démo, vendeur de la Famille dans chaque boutique avec un stock selon les sceaux ; MapEvents v1.3.0 (section `[Copy]`) ; contrôles CI des services | `Plugins/WorldEvents/*`, `Plugins/MapEvents/*`, `tools/ci/check_world_events.rb`, `tools/ci/check_mapevents.rb`, `docs/FEATURES.md` |

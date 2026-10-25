@@ -19,6 +19,7 @@ module MapEvents
     when :npc     then build_npc(event, entry)
     when :trainer then event = build_trainer(event, entry, checker)
     when :item    then event = build_item(event, entry)
+    when :copy    then event = build_copy(entry, id)
     end
     return event
   end
@@ -112,6 +113,18 @@ module MapEvents
     list = trainer.pages[0].list
     index = list.index { |command| command.code == 123 && command.indent == 1 }   # Self switch A
     list.insert(index, *rewards)
+  end
+
+  # The event as it is on its map, moved to Pos ("Nurse MapEvents N").
+  def build_copy(entry, id)
+    map_id, event_id = copy_source(entry)
+    template = load_data(sprintf("Data/Map%03d.rxdata", map_id)).events[event_id]
+    raise Error, "[Copy #{entry.label}] : pas d'événement #{event_id} sur la carte #{map_id}" if !template
+    event = Marshal.load(Marshal.dump(template))
+    event.id = id
+    event.x, event.y = entry.x, entry.y
+    event.name = "#{template.name} #{TAG} #{entry.label}"
+    return event
   end
 
   def build_item(event, entry)
