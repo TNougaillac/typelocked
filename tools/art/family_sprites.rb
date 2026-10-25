@@ -14,10 +14,10 @@ ROOT = File.expand_path("../..", __dir__)
 # look threatening or shifty (gym leaders and Elite Four included).
 SPRITES = {
   LIEUTENANT_NORMAL:   :RIVAL1,
-  LIEUTENANT_FIRE:     :JUGGLER,
+  LIEUTENANT_FIRE:     :LEADER_Blaine,
   LIEUTENANT_WATER:    :ROCKER,
   LIEUTENANT_GRASS:    :PSYCHIC_M,
-  LIEUTENANT_ELECTRIC: :LEADER_Surge,
+  LIEUTENANT_ELECTRIC: :ENGINEER,
   LIEUTENANT_ICE:      :BEAUTY,
   LIEUTENANT_FIGHTING: :BLACKBELT,
   LIEUTENANT_POISON:   :SCIENTIST,
@@ -34,7 +34,7 @@ SPRITES = {
   ANCIEN_1:            :ELITEFOUR_Agatha,
   ANCIEN_2:            :GENTLEMAN,
   ANCIEN_3:            :GAMBLER,
-  ANCIEN_4:            :LEADER_Blaine,
+  ANCIEN_4:            :LEADER_Surge,
   PARRAIN:             :ROCKETBOSS
 }.freeze
 

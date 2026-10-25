@@ -62,12 +62,12 @@ module WorldEvents
     "verdoyante"      => %i[CAMPER PICNICKER BUGCATCHER POKEMONRANGER_M POKEMONRANGER_F],
     "prairie"         => %i[LASS YOUNGSTER AROMALADY BIRDKEEPER PAINTER],
     "sable"           => %i[RUINMANIAC HIKER PICNICKER CAMPER],
-    "minérale"        => %i[HIKER CRUSHGIRL ENGINEER RUINMANIAC],
+    "minérale"        => %i[HIKER CRUSHGIRL RUINMANIAC POKEMANIAC],
     "terre battue"    => %i[CAMPER PICNICKER YOUNGSTER LASS],
     "automne"         => %i[PAINTER LADY AROMALADY BIRDKEEPER],
     "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_M POKEMONRANGER_F],
     "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
-    "grotte"          => %i[HIKER POKEMANIAC SUPERNERD ENGINEER]
+    "grotte"          => %i[HIKER POKEMANIAC SUPERNERD RUINMANIAC]
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.

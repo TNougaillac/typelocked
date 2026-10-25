@@ -545,15 +545,15 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   | Rôle | Sprite | Rôle | Sprite |
   |---|---|---|---|
   | Normal | `RIVAL1` | Vol | `TAMER` |
-  | Feu | `JUGGLER` | Psy | `LEADER_Sabrina` |
+  | Feu | `LEADER_Blaine` | Psy | `LEADER_Sabrina` |
   | Eau | `ROCKER` | Insecte | `LEADER_Koga` |
   | Plante | `PSYCHIC_M` | Roche | `ELITEFOUR_Bruno` |
-  | Électrik | `LEADER_Surge` | Spectre | `CHANNELER` |
+  | Électrik | `ENGINEER` | Spectre | `CHANNELER` |
   | Glace | `BEAUTY` | Dragon | `ELITEFOUR_Lance` |
   | Combat | `BLACKBELT` | Ténèbres | `BURGLAR` |
   | Poison | `SCIENTIST` | Acier | `CUEBALL` |
   | Sol | `BIKER` | Fée | `PSYCHIC_F` |
-  | Anciens 1 à 4 | `ELITEFOUR_Agatha`, `GENTLEMAN`, `GAMBLER`, `LEADER_Blaine` | Parrain | `ROCKETBOSS` |
+  | Anciens 1 à 4 | `ELITEFOUR_Agatha`, `GENTLEMAN`, `GAMBLER`, `LEADER_Surge` | Parrain | `ROCKETBOSS` |
 
   Des personnages à l'air menaçant ou louche, champions d'arène et Conseil 4 des jeux compris. Chacun n'existe qu'une fois : aucun dresseur de route ou de grotte (`TRAINER_TYPES`), Cousin ni PNJ (`*_GRAPHIC`) ne reprend un de ces sprites, ce que la CI vérifie (`check_world_events.rb` lit la table du script). Le vendeur des boutiques est une Cousine (`trainer_COUSIN_F`).
 
