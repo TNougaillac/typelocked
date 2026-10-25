@@ -221,7 +221,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Dans `Battle` et `EndBattle`, la séquence `\m` coupe le texte en deux boîtes (comportement d'Essentials) : éviter `\me[...]` dans ces clés.
 
 ## F07. Génération procédurale (MapProceduralGenerator)
-**Statut :** v0.24.0, prototype écrit, **non testé en jeu**.
+**Statut :** v0.24.1, prototype écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapGenerator (`Requires = MapGenerator`), sans le modifier.
 **Dossier :** `Plugins/MapProceduralGenerator/`, lieux dans `MapProc/*.txt` (`ville.txt`, `route.txt`, monde `monde.txt`), briques dans `MapProc/Briques/*.txt`.
 
@@ -270,7 +270,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
   - pas de sauvegarde (ou une sauvegarde sans monde) : les cartes du monde sont supprimées (`Data/MapXXX.rxdata`, arbre des cartes, raccords, métadonnées, points de la carte de région, graines des grottes) la région de `town_map.txt` et son image (`typelocked_proc.png`) sont remises comme avant le premier monde, les plans exportés de ce monde (`MapProc/Export/monde_<graine>.txt` et ses rencontres) supprimés ;
   - sauvegarde d'un autre monde : ce monde est redessiné depuis sa graine (mêmes numéros de carte), les cartes en trop et les plans exportés du monde abandonné sont supprimés.
 - **Noms de lieux :** avec `Toponymie = Lore/noms.txt` dans `monde.txt`, les noms affichés en jeu (panneau d'entrée, Carte de la région, métadonnées) sont tirés avec la graine dans `MapProc/Lore/noms.txt` (voir `docs/LORE.md`) : la première ville et les villes sans arène sont des villages (Bourg Lucca, Beaumont County), les villes portuaires et les cités lacustres des ports (Port Hudson, Salerno Dock), les autres des villes (Morettiville, Caruso City) ; les routes sont numérotées (Route 1), les grottes nommées (Grotte Rossini, Hudson Cave), la région aussi (Omerta...). Langue du nom de base tirée à parts égales, jamais deux fois le même nom. Les cartes gardent leur nom généré dans l'arbre des cartes (« Ville générée 3 »), pour que les numéros de carte restent les mêmes d'un monde à l'autre ; le nom affiché passe par l'option `nom=` de `[Places]` (MapGen). Les tirages ont leur propre graine : le reste du monde ne change pas.
-- **Inventaire (`009_Atlas.rb`) :** chaque monde garde, pour chaque carte, ses emplacements : sorties, portes avec leur type de bâtiment, cases libres au bord des rues, hautes herbes, culs-de-sac (toutes accessibles à pied depuis une sortie ou une porte), et pour le monde entier la ville de départ, l'ordre des arènes (l'arène d'une île juste après son port), les villes de Surf et de Plongée. Sauvegardé avec les cartes dans `Data/MapProcAtlas.rxdata` (par numéro de carte), exporté en texte dans `MapProc/Export/monde_<graine>_inventaire.txt`. En jeu : `MapProceduralGenerator.spots(map_id)` (nil hors du monde généré) et `MapProceduralGenerator.atlas`. La CI vérifie sur chaque graine que les portes sont celles des briques, que les autres cases sont praticables, et que la même graine donne le même inventaire.
+- **Inventaire (`009_Atlas.rb`) :** chaque monde garde, pour chaque carte, ses emplacements : sorties, portes avec leur type de bâtiment, cases libres au bord des rues (et la direction de la rue, `facing`), hautes herbes, culs-de-sac (toutes accessibles à pied depuis une sortie ou une porte), et pour le monde entier la ville de départ, l'ordre des arènes (l'arène d'une île juste après son port), les villes de Surf et de Plongée. Sauvegardé avec les cartes dans `Data/MapProcAtlas.rxdata` (par numéro de carte), exporté en texte dans `MapProc/Export/monde_<graine>_inventaire.txt`. En jeu : `MapProceduralGenerator.spots(map_id)` (nil hors du monde généré) et `MapProceduralGenerator.atlas`. La CI vérifie sur chaque graine que les portes sont celles des briques, que les autres cases sont praticables, et que la même graine donne le même inventaire.
 - **Rives :** l'autotile de mer (A1) ne dessine pas son bord du bas. La rangée sous chaque eau prend donc une tuile de rive (`Rive = !'?` dans le lieu : bout gauche, milieu, bout droit), sur l'herbe (T848 à T850), le sable (T832 à T834) ou la terre battue (T840 à T842) selon l'ambiance (`Rive` d'une ambiance ; prairie et minérale gardent la rive d'herbe). Cette rangée reste libre (pas de rue, de brique ni d'arbre de bordure) ; une brique d'eau ne se pose pas au-dessus d'une rue en ville. L'eau trop fine (hors de tout bloc 2x2, le bord de carte compte comme de l'eau) est retirée. La CI refuse toute eau sans rive, eau, relief ou bord de carte dessous, et toute eau trop fine.
 - Pendant la génération ou la suppression, un écran noir affiche « Le monde se prépare... ». Les fichiers PBS réécrits sont ensuite datés juste avant leurs données compilées, pour qu'Essentials ne recompile pas tout au lancement suivant.
 - Générer le même monde depuis le menu debug le détache de la partie : il n'est plus jamais supprimé ni redessiné tout seul.
@@ -515,7 +515,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.1.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter) et #95 (services).
+**Statut :** v1.2.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services) et #96 (dresseurs et Cousins).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -528,6 +528,9 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   - il ne raconte plus le Pacte, déjà dit pendant l'intro (F14).
 - **Centres Pokémon :** chaque Centre (îles et plateau compris) reçoit l'infirmière, le PC et la machine de soin de son gabarit de la démo (`CENTRE_EVENTS`), copiés tels quels. Le point de soin du Centre vient déjà de MapProc (`HealingSpot`).
 - **Boutiques :** le vendeur est un membre de la Famille (`CLERK_GRAPHIC`, texte d'accueil `MART_SPEECH`). Son stock dépend des sceaux gagnés avant sa ville (une île compte comme son port) : chaque ligne de `MART_STOCK` ajoute ses objets à partir de ce nombre de sceaux (Poké Balls et Potions au départ, Super Balls à 2, Hyper Balls à 4, Guérison à 7).
+- **Dresseurs :** 1 à 2 par case de route (`ROUTE_TRAINERS`), 1 à 2 par étage de grotte (pas dans les grottes sombres), placés au bord du chemin et tournés vers lui (inventaire `facing`), à 3 cases au moins des autres événements, jamais sur une sortie, une porte, la case devant une porte ou près d'une échelle, et leur vue (3 à 4 cases) n'atteint aucun de ces endroits. Le type de dresseur suit l'ambiance de la route (`TRAINER_TYPES` : montagne, grotte, sable, prairie...), le nom est tiré dans `TRAINER_NAMES` selon le genre du type (`FEMALE_TYPES`).
+- **Cousins de la Famille :** un dresseur de route sur quatre est un Cousin ou une Cousine (`COUSIN_CHANCE`, types `COUSIN_M` et `COUSIN_F` ajoutés à `trainer_types.txt`, graphismes de la Team Rocket copiés), et chaque ville en a 0 ou 1 (`TOWN_COUSINS`), sauf la ville de départ. Leurs textes parlent de la Famille.
+- **Équipes :** tirées parmi les Pokémon sauvages de la zone (hautes herbes ou grotte, sinon l'eau, sinon la zone d'avant), au niveau le plus haut de la zone, moins 0 à 2 (`PARTY_LEVEL_SPREAD`), donc jamais au-dessus du plafond. Taille selon les sceaux gagnés avant (`PARTY_SIZES` : 1 à 2 au départ, 5 à 6 avec 8 sceaux). Écrites dans `PBS/trainers.txt` avec la version 100 (`TRAINER_VERSION`) : un nouveau monde remplace celles du précédent, et elles partent avec le monde supprimé. Les dresseurs faits main (autres versions) restent. Exportées dans `MapProc/Export/<monde>_<graine>_dresseurs.txt`.
 - **Garde des sorties :** sur la rangée intérieure de chaque sortie de la ville de départ, un événement invisible renvoie le joueur d'un pas en arrière (« Tu ne peux pas partir sans Pokémon ») tant que la variable 7 (« Starter choice ») vaut 0. Le starter pris, elle vaut 1 à 3 et la garde disparaît.
 
 ### Fichiers
@@ -535,26 +538,30 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 |---|---|
 | `meta.txt` | Déclaration du plugin (requiert MapEvents, MapProceduralGenerator, ProceduralEncounters, Monotype). |
 | `001_Settings.rb` | Places du professeur et des Poké Balls au labo, graphismes, interrupteur et variable du starter, événements des Centres, vendeur et stocks des boutiques, textes. |
-| `002_World.rb` | `WorldEvents.world_events(result, seed)` : les plans MapEvents du monde, en Ruby pur (vérifié par la CI). |
-| `003_Runtime.rb` | Appelé par les événements en jeu : `professor`, `starter_ball`, `mart`, `gate`. |
-| `004_Write.rb` | Écriture des plans après les cartes et les rencontres, export. |
+| `002_World.rb` | `WorldEvents.world_events(result, seed, zones:, encounters:)` : les plans MapEvents du monde et les équipes des dresseurs, en Ruby pur (vérifié par la CI). |
+| `003_Trainers.rb` | Dresseurs et Cousins : places, types, noms, équipes. |
+| `004_Runtime.rb` | Appelé par les événements en jeu : `professor`, `starter_ball`, `mart`, `gate`. |
+| `005_Write.rb` | Écriture des dresseurs dans `trainers.txt` puis des plans après les cartes et les rencontres, export, retrait avec le monde. |
 
 ### Intégration
 - Rien à faire : actif dès que MapProc génère un monde.
-- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` et `MART_STOCK` nomment des événements et des objets qui existent, et que la même graine redonne les mêmes événements.
+- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` et `MART_STOCK` nomment des événements et des objets qui existent, que chaque route a ses dresseurs, que chaque dresseur a son équipe (taille selon les sceaux, espèces connues, niveau au plus au plafond, un seul par type et nom), que les plus forts dresseurs d'un tronçon ne sont jamais plus faibles que ceux du tronçon d'avant, que la vue d'un dresseur n'atteint ni sortie ni porte, que les types de dresseur existent avec leurs graphismes et leur genre, et que la même graine redonne les mêmes événements.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`MapProceduralGenerator.generate_world` et `generate_world_maps` (après ProceduralEncounters, d'où le `Requires`).
+`MapProceduralGenerator.generate_world`, `generate_world_maps`, `remove_world_now` et `delete_exports` (après ProceduralEncounters, d'où le `Requires`) ; `Compiler.compile_trainers`.
 
 ### À vérifier au premier lancement
 - Au labo : les Poké Balls ne proposent rien avant d'avoir parlé au professeur, puis chacune propose son starter ; celle qui est prise disparaît, les autres ne donnent plus rien.
 - Sans labo : le professeur dehors propose la liste des trois starters.
+- Les dresseurs repèrent le joueur et combattent avec l'équipe tirée ; les Cousins et Cousines ont le graphisme de la Team Rocket. Recompiler les PBS (Ctrl au lancement) la première fois, pour les nouveaux types de dresseur.
 - Au Centre : l'infirmière soigne avec l'animation de la machine ; le PC s'ouvre. À la boutique : le vendeur accueille au nom de la Famille et vend le stock du tronçon.
 - Avant le starter, marcher sur une sortie de la ville de départ affiche le message et fait reculer d'un pas ; après, la sortie est libre (aussi après une sauvegarde et un rechargement).
 
 ### Limites connues
 - Les textes sont encore dans `001_Settings.rb` ; ils iront dans `MapProc/Lore/dialogues.txt` (#100).
-- L'infirmière garde les textes anglais de la démo (copie telle quelle).
+- L'infirmière garde les textes anglais de la démo (copie telle quelle). Les types de dresseur gardent leurs noms anglais d'Essentials (Youngster...).
+- Pas de dresseur sur les îles ni dans les routes sous-marines.
+- Un dresseur posé au bord du chemin pourrait, rarement, boucher un passage étroit vers des hautes herbes ou un cul-de-sac (la CI ne refait pas le chemin à pied avec les dresseurs en place).
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -625,3 +632,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 23/10/2026 | Monde non linéaire (#82) : MapGenerator v1.9.0 (masque et tracé des zones, image de région sans marge), MapProceduralGenerator v0.24.0 (monde 32x24, routes de 1 à 4 cases de long et 1 ou 2 de large, routes en L et en U, villes 1x1, 1x2, 2x2 et en L, boucles, raccourcis fermés par un obstacle, Grappin pour les raccourcis et les recoins), ProceduralEncounters v1.3.0 (rencontres au palier des routes ajoutées) ; contrôles CI (masque, villes, accessibilité sans raccourci, pas de saut d'arène, obstacles) | `MapProc/monde.txt`, `MapProc/ville.txt`, `MapProc/route.txt`, `Plugins/MapGenerator/*`, `Plugins/MapProceduralGenerator/*`, `Plugins/ProceduralEncounters/*`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.0.0 (#94) : événements des mondes générés tirés avec la graine depuis l'inventaire et placés par MapEvents ; Professeur Castellane au labo (trois Poké Balls) ou dehors, sorties de la ville de départ gardées jusqu'au starter ; MapEvents v1.2.0 (clés `Trigger` et `Hide` des PNJ) ; CI `check_world_events.rb` | `Plugins/WorldEvents/*`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `tools/ci/check_world_events.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.1.0 (#95) : infirmière, PC et machine de soin copiés des Centres de la démo, vendeur de la Famille dans chaque boutique avec un stock selon les sceaux ; MapEvents v1.3.0 (section `[Copy]`) ; contrôles CI des services | `Plugins/WorldEvents/*`, `Plugins/MapEvents/*`, `tools/ci/check_world_events.rb`, `tools/ci/check_mapevents.rb`, `docs/FEATURES.md` |
+| 25/10/2026 | WorldEvents v1.2.0 (#96) : dresseurs des routes et des grottes, Cousins de la Famille sur les routes et dans les villes, équipes tirées dans les Pokémon de la zone et écrites dans `trainers.txt` (version 100) ; types `COUSIN_M` et `COUSIN_F` ; MapProceduralGenerator v0.24.1 : l'inventaire de certaines routes était vide (la rue de sortie traverse la bordure, la marche à pied s'y arrêtait), et il donne la direction de la rue (`facing`) | `Plugins/WorldEvents/*`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `PBS/trainer_types.txt`, `Graphics/Trainers/COUSIN_*.png`, `Graphics/Characters/trainer_COUSIN_*.png`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |

@@ -2,8 +2,8 @@
 # Draws the events of each MapProc world with a few seeds (plugin
 # WorldEvents) and checks them: plans read by MapEvents, events on cells the
 # player can reach and never in the way (exits, doors), the professor and the
-# gate of the first town, the services of the Centres and shops, the same
-# events for the same seed.
+# gate of the first town, the services of the Centres and shops, the
+# trainers (teams, levels, sight), the same events for the same seed.
 #===============================================================================
 require_relative "lib/ci"
 
@@ -12,8 +12,10 @@ require_relative "lib/essentials"
 Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
-%w[001_Settings 002_World].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
+%w[001_Settings 002_World 003_Trainers].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
+E = ProceduralEncounters
 W = WorldEvents
 # WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others locally
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
@@ -22,12 +24,6 @@ WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.ne
 SIZES = Hash.new do |sizes, id|
   map = load_rxdata(File.join(ROOT, "Data", format("Map%03d.rxdata", id)))
   sizes[id] = [map.instance_variable_get(:@width), map.instance_variable_get(:@height)]
-end
-
-# Cells of each exit (a square as wide as a street).
-def exit_cells(exits)
-  width = M::STREET_WIDTH
-  return exits.flat_map { |_side, x, y| (0...width).flat_map { |i| (0...width).map { |j| [x + i, y + j] } } }
 end
 
 # Raises unless every event of the plan stands where the player can reach it
@@ -43,17 +39,64 @@ def check_cells(plan, spots, gates)
     end
     return
   end
-  free = (spots[:street] || []) + (spots[:grass] || []) + (spots[:dead_ends] || []) +
+  free = (spots[:street] || []) + (spots[:grass] || []) + (spots[:dead_ends] || []) + (spots[:floor] || []) +
          (spots[:nooks] || []).map { |x, y, *| [x, y] } + [spots[:professor]].compact
-  doors = (spots[:doors] || []).flat_map { |x, y, _kind| [[x, y], [x, y + 1]] }
-  exits = exit_cells(spots[:exits] || [])
+  blocked = W.blocked_cells(spots)
   plan.events.each do |entry|
     cell = [entry.x, entry.y]
     where = "[#{entry.kind.capitalize} #{entry.label}] en #{entry.x},#{entry.y}"
     next if gates.include?(cell) && entry.label.start_with?("Garde")
-    raise MapEvents::Error, "#{where} : sur une porte ou devant" if doors.include?(cell)
-    raise MapEvents::Error, "#{where} : sur une sortie" if exits.include?(cell)
+    raise MapEvents::Error, "#{where} : sur une sortie, une porte ou devant" if blocked.include?(cell)
     raise MapEvents::Error, "#{where} : case hors de l'inventaire (inaccessible ?)" if !free.include?(cell)
+    next if entry.kind != :trainer
+    # A trainer never sees an exit or a door
+    dx, dy = W::STEPS[entry.value("Facing")]
+    sight = (1..entry.value("Sight").to_i).map { |i| [entry.x + (dx * i), entry.y + (dy * i)] }
+    raise MapEvents::Error, "#{where} : sa vue atteint une sortie ou une porte" if sight.any? { |c| blocked.include?(c) }
+  end
+end
+
+# Every trainer has its team (PARTY_SIZES Pokémon of existing species, at
+# most at the level cap of its seals), each type and name once; every route
+# has trainers; the strongest trainer of each stretch is never weaker than
+# the one of the stretch before.
+def check_trainers(result, zones, plans, sections, species, ttypes)
+  teams = {}
+  sections.each do |text|
+    head, *lines = text.split("\n")
+    raise MapEvents::Error, "dresseur « #{head} » : en-tête attendu [TYPE,Nom,#{W::TRAINER_VERSION}]" unless head =~ /\A\[(\w+),([^,\]]+),(\d+)\]\z/
+    key = [$1, $2]
+    raise MapEvents::Error, "dresseur #{head} en double" if teams[key]
+    raise MapEvents::Error, "dresseur #{head} : version #{$3} au lieu de #{W::TRAINER_VERSION}" if $3.to_i != W::TRAINER_VERSION
+    raise MapEvents::Error, "dresseur #{head} : type inconnu" if !ttypes.include?($1)
+    team = lines.filter_map { |l| [$1, $2.to_i] if l =~ /\APokemon = (\w+),(\d+)\z/ }
+    team.each { |sp, _| raise MapEvents::Error, "dresseur #{head} : espèce #{sp} inconnue" if !species.include?(sp) }
+    teams[key] = team
+  end
+  top = Hash.new(0)
+  plans.each do |name, plan|
+    trainers = plan.events.select { |e| e.kind == :trainer }
+    zone = zones[name]
+    trainers.each do |entry|
+      team = teams.delete([entry.value("Type"), entry.value("Name")])
+      where = "#{name} : [Trainer #{entry.label}]"
+      raise MapEvents::Error, "#{where} : pas d'équipe dans trainers.txt" if !team
+      raise MapEvents::Error, "#{where} : BattleID #{entry.value('BattleID')}" if entry.value("BattleID").to_i != W::TRAINER_VERSION
+      sizes = W::PARTY_SIZES[[zone.seals, W::PARTY_SIZES.length - 1].min]
+      raise MapEvents::Error, "#{where} : #{team.length} Pokémon (#{sizes} avec #{zone.seals} sceaux)" if !sizes.include?(team.length)
+      highest = team.map(&:last).max
+      cap = E::CAPS[zone.seals] || E::CAPS.last
+      raise MapEvents::Error, "#{where} : niveau #{highest} au-dessus du plafond #{cap}" if highest > cap
+      top[zone.seals] = [top[zone.seals], highest].max
+    end
+  end
+  raise MapEvents::Error, "équipes sans dresseur : #{teams.keys.map { |k| k.join(',') }.join(' ; ')}" if !teams.empty?
+  top.keys.sort.each_cons(2) do |a, b|
+    raise MapEvents::Error, "dresseurs plus faibles avec #{b} sceaux (#{top[b]}) qu'avec #{a} (#{top[a]})" if top[b] < top[a]
+  end
+  result.places.each do |wp, *|
+    next if wp.kind != "route" || plans[wp.name]&.events&.any? { |e| e.kind == :trainer }
+    raise MapEvents::Error, "#{wp.name} : route sans dresseur"
   end
 end
 
@@ -110,6 +153,19 @@ end
 (M::INTERIORS["centre"].map(&:first) - W::CENTRE_EVENTS.keys).each { |t| CI.error(settings, nil, "CENTRE_EVENTS : gabarit #{t} absent") }
 (M::INTERIORS["boutique"].map(&:first) - W::MART_CLERK.keys).each { |t| CI.error(settings, nil, "MART_CLERK : gabarit #{t} absent") }
 items = CI.read_text(File.join(ROOT, "PBS", "items.txt")).scan(/^\[\s*(\w+)\s*\]/).flatten
+species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\s*\]/).flatten
+types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
+ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
+genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES).uniq.each do |type|
+  CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
+  female = W::FEMALE_TYPES.include?(type)
+  CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
+  %W[Graphics/Trainers/#{type}.png Graphics/Characters/trainer_#{type}.png].each do |file|
+    CI.error(settings, nil, "#{type} : #{file} absent") if !File.exist?(File.join(ROOT, file))
+  end
+end
+roster = E.load_species(ROOT)
 W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
 
 folder = File.join(ROOT, M::FOLDER)
@@ -126,8 +182,12 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     where = "#{File.basename(path)} (graine #{seed})"
     result = M.generate_world(world, town, route, bricks, seed)
     atlas = M.world_atlas(result)
-    events = W.world_events(result, seed)
-    CI.error(path, nil, "#{where} : la même graine donne d'autres événements") if W.world_events(result, seed) != events
+    zones = E.world_zones(result, E::CAPS)
+    _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
+    events = W.world_events(result, seed, zones: zones, encounters: generated)
+    if W.world_events(result, seed, zones: zones, encounters: generated) != events
+      CI.error(path, nil, "#{where} : la même graine donne d'autres événements")
+    end
     plans = {}
     events[:plans].each do |name, text|
       plans[name] = MapEvents.parse(text, "#{where}, #{name}")
@@ -141,6 +201,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     begin
       check_start(atlas, plans)
       check_services(atlas, plans)
+      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
     end

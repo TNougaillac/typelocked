@@ -7,23 +7,29 @@
 module WorldEvents
   module_function
 
-  # { plans: { map name => MapEvents plan text } }
-  def world_events(result, seed)
+  # { plans: { map name => MapEvents plan text }, trainers: [sections of
+  # PBS/trainers.txt] }. zones and encounters: ProceduralEncounters'
+  # world_zones and world_encounters (its second value) of that world, for
+  # the trainers (none without them).
+  def world_events(result, seed, zones: nil, encounters: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
     plans = Hash.new { |hash, name| hash[name] = [] }
     start_events(atlas, plans, rng)
     service_events(atlas, seals_at(result), plans)
-    return { plans: plans.to_h { |name, sections| [name, plan_text(name, sections)] } }
+    trainers = []
+    trainer_events(result, atlas, zones, encounters, plans, trainers, Random.new((seed * 1000) + 710)) if zones && encounters
+    return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers }
   end
 
-  def plan_text(name, sections)
-    return "Map = #{name}\n" + sections.map { |section| "\n#{section}" }.join
+  def plan_text(name, events)
+    return "Map = #{name}\n" + events.map { |_x, _y, text| "\n#{text}" }.join
   end
 
-  # One [Kind label] section: lines are [key, value] pairs.
-  def section(kind, label, x, y, *lines)
-    return "[#{kind} #{label}]\nPos = #{x},#{y}\n" + lines.map { |key, value| "#{key} = #{value}\n" }.join
+  # Adds a [Kind label] section on that map: lines are [key, value] pairs.
+  def add(plans, name, kind, label, x, y, *lines)
+    text = "[#{kind} #{label}]\nPos = #{x},#{y}\n" + lines.map { |key, value| "#{key} = #{value}\n" }.join
+    plans[name].push([x, y, text])
   end
 
   # Seals won on the way to each place, by name: the lieutenants of the
@@ -49,11 +55,11 @@ module WorldEvents
       next if map[:kind] != "interieur"
       if (events = CENTRE_EVENTS[map[:template]])
         events.each_with_index do |(id, x, y), i|
-          plans[name].push(section("Copy", CENTRE_LABELS[i], x, y, ["From", "#{map[:template]},#{id}"]))
+          add(plans, name, "Copy", CENTRE_LABELS[i], x, y, ["From", "#{map[:template]},#{id}"])
         end
       elsif (clerk = MART_CLERK[map[:template]]) && map[:building] == "boutique"
-        plans[name].push(section("Npc", "Vendeur", *clerk, ["Graphic", CLERK_GRAPHIC],
-                                 ["Script", "WorldEvents.mart(#{seals[map[:owner]] || 0})"]))
+        add(plans, name, "Npc", "Vendeur", *clerk, ["Graphic", CLERK_GRAPHIC],
+            ["Script", "WorldEvents.mart(#{seals[map[:owner]] || 0})"])
       end
     end
   end
@@ -69,19 +75,19 @@ module WorldEvents
       map[:building] == MapProceduralGenerator::LAB && map[:owner] == start
     end&.first
     if lab
-      plans[lab].push(section("Npc", "Professeur", *LAB_PROFESSOR, ["Graphic", PROFESSOR_GRAPHIC],
-                              ["Script", "WorldEvents.professor(true)"]))
+      add(plans, lab, "Npc", "Professeur", *LAB_PROFESSOR, ["Graphic", PROFESSOR_GRAPHIC],
+          ["Script", "WorldEvents.professor(true)"])
       LAB_BALLS.each_with_index do |(x, y), i|
-        plans[lab].push(section("Npc", "Ball#{i + 1}", x, y, ["Graphic", BALL_GRAPHIC], ["Hide", "A"],
-                                ["Script", "pbSetSelfSwitch(@event_id, \"A\", true) if WorldEvents.starter_ball(#{i})"]))
+        add(plans, lab, "Npc", "Ball#{i + 1}", x, y, ["Graphic", BALL_GRAPHIC], ["Hide", "A"],
+            ["Script", "pbSetSelfSwitch(@event_id, \"A\", true) if WorldEvents.starter_ball(#{i})"])
       end
     elsif spots[:professor]
-      plans[start].push(section("Npc", "Professeur", *spots[:professor], ["Graphic", PROFESSOR_GRAPHIC],
-                                ["Script", "WorldEvents.professor(false)"]))
+      add(plans, start, "Npc", "Professeur", *spots[:professor], ["Graphic", PROFESSOR_GRAPHIC],
+          ["Script", "WorldEvents.professor(false)"])
     end
     gate_cells(spots[:exits]).each_with_index do |(x, y), i|
-      plans[start].push(section("Npc", "Garde#{i + 1}", x, y, ["Trigger", "contact"],
-                                ["Hide", "V#{STARTER_VARIABLE}>=1"], ["Script", "WorldEvents.gate"]))
+      add(plans, start, "Npc", "Garde#{i + 1}", x, y, ["Trigger", "contact"],
+          ["Hide", "V#{STARTER_VARIABLE}>=1"], ["Script", "WorldEvents.gate"])
     end
   end
 
