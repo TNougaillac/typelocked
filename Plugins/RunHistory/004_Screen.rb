@@ -3,6 +3,7 @@
 # A panel under New Game shows the last game before the saved one (region,
 # type, outcome, its team's icons); choosing it opens the list of every game
 # (005_List.rb). The details of a game, then playing its seed again.
+# Each card shows the game's score on its first line, on the right.
 #===============================================================================
 module RunHistory
   TEXT_COLOR        = Color.new(232, 232, 232)
@@ -10,8 +11,10 @@ module RunHistory
 
   module_function
 
-  def line(entry)
-    type = entry.type ? GameData::Type.try_get(entry.type)&.name : nil
+  # Region · type · outcome; without the type on a card of the list (its
+  # score is on the same line, the team shows the type).
+  def line(entry, with_type = true)
+    type = (with_type && entry.type) ? GameData::Type.try_get(entry.type)&.name : nil
     return [entry.region || _INTL("Région inconnue"), type, OUTCOMES[entry.outcome]].compact.join(" · ")
   end
 
@@ -22,8 +25,8 @@ module RunHistory
   end
 
   # Draws a card of panels.png on bitmap (the Continue panel cut to its
-  # height): title, then line and the team's icons, or line only.
-  def draw_card(bitmap, panels, selected, title, line, team, icon_y)
+  # height): title and score, then line and the team's icons, or line only.
+  def draw_card(bitmap, panels, selected, title, score, line, team, icon_y)
     w = panels.width
     h = bitmap.height
     top = selected ? 222 : 0
@@ -31,6 +34,7 @@ module RunHistory
     bitmap.blt(0, 0, panels.bitmap, Rect.new(0, top, w, h - 24))
     bitmap.blt(0, h - 24, panels.bitmap, Rect.new(0, top + 198, w, 24))
     textpos = [[title, 32, 14, :left, TEXT_COLOR, TEXT_SHADOW_COLOR]]
+    textpos.push([score, w - 32, 14, :right, TEXT_COLOR, TEXT_SHADOW_COLOR]) if score
     textpos.push([line, 32, 56, :left, TEXT_COLOR, TEXT_SHADOW_COLOR]) if line
     pbDrawTextPositions(bitmap, textpos)
     (team || []).each_with_index do |member, k|
@@ -49,6 +53,7 @@ module RunHistory
     pbMessage(_INTL("{1}\nGraine {2} · {3} · {4} h {5}", line(entry), entry.seed || "?",
                     entry.updated.strftime("%d/%m/%Y"), hours, format("%02d", minutes)))
     pbMessage(_INTL("Dernier lieu : {1}", entry.place || "?"))
+    pbMessage(_INTL("Score : {1}", score_text(entry)) + (entry.nuzlocke == false ? _INTL(" (sans Nuzlocke)") : ""))
     team = entry.team.map do |m|
       species = GameData::Species.try_get(m.species)&.name || m.species.to_s
       name = (m.name == species) ? species : "#{m.name} (#{species})"
@@ -85,7 +90,8 @@ module RunHistory
 
     def refresh
       line = @entry ? RunHistory.line(@entry) : _INTL("Aucune partie terminée.")
-      RunHistory.draw_card(self.bitmap, @panels, @selected, _INTL("Dernières parties"), line, @entry&.team, 80)
+      score = @entry ? RunHistory.score_text(@entry) : nil
+      RunHistory.draw_card(self.bitmap, @panels, @selected, _INTL("Dernières parties"), score, line, @entry&.team, 80)
     end
 
     def dispose

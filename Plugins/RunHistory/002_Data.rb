@@ -5,7 +5,7 @@
 #===============================================================================
 module RunHistory
   Entry = Struct.new(:id, :seed, :region, :type, :outcome, :place, :team, :play_time,
-                     :started, :updated)
+                     :started, :updated, :score, :nuzlocke)
   # A Pokémon of the team: dead (Nuzlocke) or not.
   Member = Struct.new(:species, :name, :level, :dead)
 
@@ -16,7 +16,8 @@ module RunHistory
     return File.directory?(dir) ? File.join(dir, FILE_NAME) : FILE_NAME
   end
 
-  # [Entry], the most recent first.
+  # [Entry], the most recent first (the last SIZE, then the best scores
+  # older than them).
   def entries
     return [] if !File.exist?(file)
     return File.open(file, "rb") { |f| Marshal.load(f) }
@@ -25,7 +26,7 @@ module RunHistory
   end
 
   def write(list)
-    File.open(file, "wb") { |f| Marshal.dump(list.first(SIZE), f) }
+    File.open(file, "wb") { |f| Marshal.dump(list.first(SIZE) | best(list), f) }
   rescue StandardError => e
     echoln("RunHistory : écriture impossible (#{e.message})")
   end
@@ -52,10 +53,15 @@ module RunHistory
     write(list)
   end
 
+  # The BEST_SIZE best scores of list, the best first.
+  def best(list)
+    return list.select(&:score).max_by(BEST_SIZE, &:score)
+  end
+
   def snapshot(outcome, team, started)
-    members = team.map { |pkmn| Member.new(pkmn.species, pkmn.name, pkmn.level, pkmn.nuzlocke_dead? ? true : false) }
+    members = team.map { |pkmn| Member.new(pkmn.species, pkmn.name, pkmn.level, pkmn.run_history_dead?) }
     return Entry.new($run_history_id, $mapproc_world, region_name, Monotype.data.type, outcome, $game_map&.name,
-                     members, $stats.play_time.to_i, started, Time.now)
+                     members, $stats.play_time.to_i, started, Time.now, score(outcome), nuzlocke?)
   end
 
   # The Town Map name of the region the player is in (nil: none).
