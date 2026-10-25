@@ -388,7 +388,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 ### Règles
 - Le niveau maximum dépend du nombre de sceaux : c'est le niveau du Pokémon le plus fort du prochain lieutenant (avec 8 sceaux, celui du Parrain), lu dans `PBS/trainers.txt`. Les lieutenants sont listés dans l'ordre dans `LEADERS`.
-- Un lieutenant pas encore défini (`nil` dans `LEADERS` ou absent de `trainers.txt`) utilise `FALLBACK_CAPS` (provisoire : champions de la démo Kanto, 14, 21, 24, 29, 43, 43, 47, 50, 63). Une valeur `nil` = pas de limite.
+- Un lieutenant pas encore défini (`nil` dans `LEADERS` ou absent de `trainers.txt`) utilise `FALLBACK_CAPS` (provisoire : champions de la démo Kanto, sauf la 5e arène ramenée de 43 à 36 : 14, 21, 24, 29, 36, 43, 47, 50, 63). Une valeur `nil` = pas de limite.
 - Au niveau maximum, un Pokémon ne gagne plus d'expérience en combat (il gagne toujours ses EV). Un gain qui dépasserait la limite s'arrête pile au niveau maximum.
 - Super Bonbon et Bonbons Exp. : refusés au niveau maximum (« X ne peut pas dépasser le niveau N pour l'instant. »), et la quantité proposée s'arrête à la limite.
 - Un Pokémon déjà au-dessus de la limite (capturé, reçu) garde son niveau.
@@ -662,3 +662,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | WorldEvents v1.4.0 (#98) : objets du monde (au sol, cachés, donnés, butin des recoins) selon les sceaux, objets de terrain donnés dans leur ville après le sceau, Écailles Cœur et Maîtres des Capacités ; MapEvents v1.4.0 (clés `When`, `Wait`, `Gift`, `Once` des PNJ) | `Plugins/WorldEvents/*`, `Plugins/MapEvents/*`, `tools/ci/check_world_events.rb`, `tools/ci/check_mapevents.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.5.0 (#99) : Ligue (quatre Anciens d'un type tiré, Parrain, Arceus en boss), portes fermées jusqu'à la victoire ; équipes sans Pokémon pas encore évolués ; CT des 3 premiers lieutenants dès 50 de puissance ; graphisme `boss_ARCEUS` | `Plugins/WorldEvents/*`, `Graphics/Characters/boss_ARCEUS.png`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.6.0 (#100) : habitants dans les rues et les maisons ; tous les textes dans `MapProc/Lore/dialogues.txt` (sections par rôle, jetons, sans répétition), vérifiés par la CI | `Plugins/WorldEvents/*`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md`, `docs/LORE.md` |
+| 25/10/2026 | LevelCap v1.0.1, ProceduralEncounters v1.3.1 : plafond de la 5e arène ramené de 43 à 36 (la 6e reste à 43) | `Plugins/LevelCap/001_Settings.rb`, `Plugins/ProceduralEncounters/001_Settings.rb`, `docs/FEATURES.md` |
