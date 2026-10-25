@@ -133,6 +133,42 @@ module WorldEvents
   ARCEUS_BOSS = { stats: { HP: 3, ATTACK: 1.2, SPECIAL_ATTACK: 1.2 },
                   moves: %i[JUDGMENT EXTREMESPEED RECOVER COSMICPOWER] }.freeze
 
+  # Sets of the lieutenants and of the League: 4 moves (the trainer's type
+  # first, then the Pokémon's other type, a coverage move, a status move),
+  # an ability, a held item, a nature, IVs. Read from these PBS files.
+  MOVES_PBS = "PBS/moves.txt"
+  # Moves a set may take beside its level-up moves: the TMs of the game and,
+  # from SET_EGG_SEALS seals, its egg moves; at most this power by seals of
+  # the player (0 to 8).
+  SET_MAX_POWER = [60, 65, 75, 80, 90, 100, 120, 120, 150].freeze
+  SET_EGG_SEALS = 3
+  # A status move from this many seals (TM_STATUS or these).
+  SET_STATUS_SEALS = 2
+  SET_STATUS = (TM_STATUS + %i[RECOVER SOFTBOILED SLACKOFF WISH LEECHSEED COIL WORKUP SHIFTGEAR]).freeze
+  # Never taken: recharge, charge, two-turn or self-KO moves.
+  SET_BANNED = %i[HYPERBEAM GIGAIMPACT SOLARBEAM SOLARBLADE SKYATTACK FOCUSPUNCH SELFDESTRUCT EXPLOSION
+                  BLASTBURN HYDROCANNON FRENZYPLANT ROCKWRECKER ROAROFTIME PRISMATICLASER METEORBEAM
+                  SKULLBASH RAZORWIND FUTURESIGHT DOOMDESIRE DREAMEATER SNORE LASTRESORT BELCH NATURALGIFT
+                  FLING SPITUP SYNCHRONOISE STEELBEAM MINDBLOWN FALSESWIPE FLY DIG DIVE BOUNCE
+                  PHANTOMFORCE SHADOWFORCE SKYDROP FREEZESHOCK ICEBURN].freeze
+  # The hidden ability (AbilityIndex 2) from this many seals, if it has one.
+  SET_HIDDEN_SEALS = 4
+  # Held items by seals (the last line reached): drawn without repeat in a
+  # team while some are left. BOOSTER: the item of the type of its first move.
+  SET_ITEMS = { 0 => %i[ORANBERRY], 3 => %i[SITRUSBERRY BOOSTER],
+                6 => %i[SITRUSBERRY LEFTOVERS EXPERTBELT BOOSTER],
+                8 => %i[LEFTOVERS LIFEORB FOCUSSASH SITRUSBERRY BOOSTER] }.freeze
+  TYPE_BOOSTERS = { NORMAL: :SILKSCARF, FIRE: :CHARCOAL, WATER: :MYSTICWATER, ELECTRIC: :MAGNET,
+                    GRASS: :MIRACLESEED, ICE: :NEVERMELTICE, FIGHTING: :BLACKBELT, POISON: :POISONBARB,
+                    GROUND: :SOFTSAND, FLYING: :SHARPBEAK, PSYCHIC: :TWISTEDSPOON, BUG: :SILVERPOWDER,
+                    ROCK: :HARDSTONE, GHOST: :SPELLTAG, DRAGON: :DRAGONFANG, DARK: :BLACKGLASSES,
+                    STEEL: :METALCOAT, FAIRY: :PIXIEPLATE }.freeze
+  # Nature by the better attack stat of the species.
+  SET_NATURES = { physical: :ADAMANT, special: :MODEST }.freeze
+  # IVs (all six) of the lieutenants by gym (1st to 8th), of the League.
+  LEADER_IVS = [10, 12, 15, 18, 21, 24, 27, 30].freeze
+  LEAGUE_IVS = 31
+
   # Items of a world. How many: per square of a route, per town (islands
   # too), per floor of a cave (not the dark ones), plus the loot of each nook.
   ROUTE_ITEMS = 1..2

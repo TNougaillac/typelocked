@@ -13,8 +13,9 @@ module WorldEvents
   # Draws the gyms: events into plans, teams into trainers. species: the
   # roster (ProceduralEncounters.load_species); tms: [[item, move, type,
   # power, status?]]; caps: level cap by seals. Returns the lieutenants
-  # drawn: [{ gym:, map:, type:, trainer:, name:, team:, tm: }].
-  def gym_events(atlas, species, tms, caps, plans, trainers, names, lines, rng)
+  # drawn: [{ gym:, map:, type:, trainer:, name:, team:, sets:, tm: }]; sets:
+  # a Sets, for the lieutenant's team.
+  def gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, rng)
     leaders = []
     used_tms = []
     types = leader_types(atlas[:gyms].length, species, tms, rng)
@@ -32,9 +33,10 @@ module WorldEvents
       next if !name
       size = LEADER_PARTY_SIZES[[i, LEADER_PARTY_SIZES.length - 1].min]
       team = typed_party(species, type, size, cap - LEADER_LEVEL_SPREAD, cap, i, rng)
+      team_sets = sets.draw(team, type, i, LEADER_IVS[[i, LEADER_IVS.length - 1].min])
       title = atlas[:maps][town][:title]
       lose = lines.text("lieutenant_fin", title)
-      trainers.push(team_section(trainer, name, lose, team))
+      trainers.push(team_section(trainer, name, lose, team, team_sets))
       wins = lines.boxes("lieutenant_victoire", title) + (tm ? lines.boxes("lieutenant_ct", title) : [])
       add(plans, map, "Trainer", "Lieutenant", *layout[:leader], ["Facing", "bas"], ["Sight", 1],
           ["Type", trainer], ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("lieutenant_combat", title)],
@@ -55,7 +57,7 @@ module WorldEvents
             ["Battle", lines.text("membre_combat", title)], ["EndBattle", lose])
       end
       leaders.push({ gym: i + 1, map: map, town: town, type: type, trainer: trainer, name: name, team: team,
-                     tm: tm, members: members.length })
+                     sets: team_sets, tm: tm, members: members.length })
     end
     return leaders
   end
@@ -115,16 +117,17 @@ module WorldEvents
     return name
   end
 
-  def team_section(type, name, lose, team)
+  # sets: [set or nil] for each Pokémon (see Sets#draw), none for a member.
+  def team_section(type, name, lose, team, sets = [])
     return "[#{type},#{name},#{TRAINER_VERSION}]\nLoseText = #{lose}\n" +
-           team.map { |species, level| "Pokemon = #{species},#{level}\n" }.join
+           team.each_with_index.map { |(species, level), k| "Pokemon = #{species},#{level}\n" + set_lines(sets[k]) }.join
   end
 
   # The League's rooms, in the order of the inventory: the four Anciens, the
   # Parrain, Arceus; the door of each room closed until it is won. Teams into
-  # trainers. Returns [{ map:, role:, type:, trainer:, name:, team: }] (Arceus:
-  # team [[:ARCEUS, level]]).
-  def league_events(atlas, species, caps, plans, trainers, names, lines, rng)
+  # trainers. Returns [{ map:, role:, type:, trainer:, name:, team:, sets: }]
+  # (Arceus: team [[:ARCEUS, level]], no sets).
+  def league_events(atlas, species, caps, plans, trainers, names, lines, sets, rng)
     rooms = atlas[:league].filter_map do |name|
       spots = atlas[:maps][name]
       layout = LEAGUE_LAYOUTS[spots[:template]]
@@ -165,10 +168,11 @@ module WorldEvents
       end
       name = trainer_name(trainer, names, rng)
       next if !name
-      trainers.push(team_section(trainer, name, lose, team))
+      team_sets = sets.draw(team, type, atlas[:gyms].length, LEAGUE_IVS)
+      trainers.push(team_section(trainer, name, lose, team, team_sets))
       add(plans, map, "Trainer", role.delete(" "), x, y, ["Facing", "bas"], ["Sight", 4], ["Type", trainer],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", battle], ["EndBattle", lose], ["Switch", switch])
-      fights.push({ map: map, role: role, type: type, trainer: trainer, name: name, team: team })
+      fights.push({ map: map, role: role, type: type, trainer: trainer, name: name, team: team, sets: team_sets })
     end
     return fights
   end

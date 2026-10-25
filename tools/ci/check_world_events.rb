@@ -13,7 +13,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -335,6 +335,41 @@ def check_habitants(result, atlas, plans)
   end
 end
 
+# The sets of the lieutenants and of the League: one per Pokémon, 1 to 4
+# moves it may know (level-up at its level, TM or egg move under the power
+# cap of the seals, one seal more for the trainer's type), one of the trainer's type when it learns one by then,
+# its hidden ability only if it has one, items that exist.
+def check_sets(fights, seals, items)
+  fights.each do |fight|
+    next if !fight[:sets]
+    where = "#{fight[:name]} (#{fight[:role] || "lieutenant #{fight[:gym]}"})"
+    raise MapEvents::Error, "#{where} : #{fight[:sets].length} sets pour #{fight[:team].length} Pokémon" if fight[:sets].length != fight[:team].length
+    has = fight[:gym] ? fight[:gym] - 1 : seals
+    fight[:team].zip(fight[:sets]).each do |(id, level), set|
+      ls = DEX[:species][id]
+      raise MapEvents::Error, "#{where} : #{id} sans set" if !set || !ls
+      moves = set[:moves]
+      raise MapEvents::Error, "#{where} : #{id}, #{moves.length} attaques" if moves.empty? || moves.length > 4 || moves.uniq != moves
+      level_moves = ls.level_moves.filter_map { |l, m| m if l <= level }
+      moves.each do |move|
+        data = DEX[:moves][move]
+        taught = (TM_MOVES.include?(move) && ls.tutor_moves.include?(move)) || (has >= W::SET_EGG_SEALS && ls.egg_moves.include?(move))
+        ok = data && !W::SET_BANNED.include?(move) &&
+             (level_moves.include?(move) || (taught && data.power <= W.set_cap(has, data.type == fight[:type])))
+        raise MapEvents::Error, "#{where} : #{id} niveau #{level} ne peut pas connaître #{move}" if !ok
+      end
+      type = fight[:type]
+      stab = level_moves.any? { |m| (d = DEX[:moves][m]) && d.type == type && d.category != :Status && d.power > 1 && !W::SET_BANNED.include?(m) }
+      if type && stab && moves.none? { |m| DEX[:moves][m].type == type }
+        raise MapEvents::Error, "#{where} : #{id} sans attaque #{type}"
+      end
+      raise MapEvents::Error, "#{where} : #{id} sans talent caché" if set[:ability_index] >= 2 && ls.hidden.empty?
+      raise MapEvents::Error, "#{where} : #{id}, AbilityIndex #{set[:ability_index]}" if set[:ability_index] < 2 && set[:ability_index] >= ls.abilities.length
+      raise MapEvents::Error, "#{where} : #{id}, objet #{set[:item]} absent" if !set[:item] || !items.include?(set[:item].to_s)
+    end
+  end
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
 begin
@@ -385,6 +420,13 @@ tms = CI.read_text(File.join(ROOT, "PBS", "items.txt")).split(/^\[/).drop(1).fil
   next if !move || !moves[move] || sec !~ /^FieldUse\s*=\s*(TM|HM|TR)\b/
   [sec[/\A(\w+)/, 1].to_sym, move, *moves[move]]
 end
+DEX = W.load_dex(ROOT)
+TM_MOVES = tms.map { |_item, move, *| move }
+(W::SET_STATUS + W::SET_BANNED).each { |move| CI.error(settings, nil, "SET_STATUS/SET_BANNED : capacité #{move} absente de moves.txt") if !moves[move] }
+(W::SET_ITEMS.values.flatten - [:BOOSTER] + W::TYPE_BOOSTERS.values).each do |item|
+  CI.error(settings, nil, "SET_ITEMS/TYPE_BOOSTERS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
+end
+CI.error(settings, nil, "SET_ITEMS : pas de ligne à 0 sceau") if !W::SET_ITEMS[0]
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 W::ARCEUS_BOSS[:moves].each { |move| CI.error(settings, nil, "ARCEUS_BOSS : capacité #{move} absente de moves.txt") if !moves[move] }
 ROSTER = roster
@@ -429,7 +471,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     atlas = M.world_atlas(result)
     zones = E.world_zones(result, E::CAPS)
     _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
-    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES }
+    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES, dex: DEX }
     DRAWN.clear
     events = W.world_events(result, seed, **args)
     drawn = DRAWN.transform_values(&:dup)
@@ -452,6 +494,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_gyms(atlas, plans, events[:leaders], tms)
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
       check_league(atlas, plans, events[:league], events[:leaders])
+      check_sets(events[:leaders] + events[:league], atlas[:gyms].length, items)
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])

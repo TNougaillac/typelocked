@@ -15,8 +15,9 @@ module WorldEvents
   # species (the roster), tms ([[item, move, type, power, status?]]) and
   # caps (level cap by seals), for the gyms; zones and tms, for the items.
   # Without them, none. dialogues: parse_dialogues of dialogues.txt (read
-  # from the game's folder when nil).
-  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil)
+  # from the game's folder when nil); dex: load_dex (the same), for the
+  # sets of the lieutenants and of the League.
+  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil, dex: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
     lines = Lines.new(dialogues || load_dialogues, region_name(result), Random.new((seed * 1000) + 750))
@@ -28,8 +29,9 @@ module WorldEvents
     league = []
     names = Hash.new { |hash, type| hash[type] = [] }
     if species && tms && caps
-      leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, Random.new((seed * 1000) + 720))
-      league = league_events(atlas, species, caps, plans, trainers, names, lines, Random.new((seed * 1000) + 740))
+      sets = Sets.new(dex || load_dex, tms, Random.new((seed * 1000) + 770))
+      leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 720))
+      league = league_events(atlas, species, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 740))
     end
     if zones && encounters
       trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710))
