@@ -409,6 +409,15 @@ genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/
     CI.error(settings, nil, "#{type} : #{file} absent") if !File.exist?(File.join(ROOT, file))
   end
 end
+# The Family's sprites exist only once: never an ordinary trainer, a cousin or an NPC's graphic.
+family = CI.read_text(File.join(ROOT, "tools", "art", "family_sprites.rb")).scan(/^\s+\w+:\s+:(\w+)/).flatten
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES).each do |type|
+  CI.error(settings, nil, "TRAINER_TYPES : #{type} est un sprite de la Famille") if family.include?(type.to_s)
+end
+W.constants.grep(/GRAPHICS?\z/).flat_map { |c| Array(W.const_get(c)) }.each do |graphic|
+  source = graphic.to_s[/\Atrainer_(\w+)\z/, 1]
+  CI.error(settings, nil, "#{graphic} : sprite de la Famille") if source && family.include?(source)
+end
 roster = E.load_species(ROOT)
 # [[item, move, type, power, status?]] of every TM, from the PBS files
 moves = CI.read_text(File.join(ROOT, "PBS", "moves.txt")).split(/^\[/).drop(1).to_h do |sec|

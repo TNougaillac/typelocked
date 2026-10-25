@@ -27,7 +27,7 @@ module WorldEvents
   CENTRE_LABELS = %w[Infirmiere PC Machine].freeze
   # The clerk of each shop template ([x, y]), a member of the Family.
   MART_CLERK = { 25 => [2, 3], 54 => [2, 3] }.freeze
-  CLERK_GRAPHIC = "trainer_GENTLEMAN"
+  CLERK_GRAPHIC = "trainer_COUSIN_F"
   # Stock of a shop by the seals won on the way there: each line adds its
   # items from that number of seals on.
   MART_STOCK = {
@@ -55,16 +55,18 @@ module WorldEvents
   # Their levels: up to the highest of the zone's wild Pokémon, this much less.
   PARTY_LEVEL_SPREAD = 2
   # Trainer types by ambiance of the route (nil: grass), mountain and cave.
+  # Never a sprite of the Family (tools/art/family_sprites.rb): its
+  # characters exist only once (checked by the CI).
   TRAINER_TYPES = {
     nil               => %i[YOUNGSTER LASS CAMPER PICNICKER BUGCATCHER BIRDKEEPER POKEMONBREEDER],
     "verdoyante"      => %i[CAMPER PICNICKER BUGCATCHER POKEMONRANGER_M POKEMONRANGER_F],
     "prairie"         => %i[LASS YOUNGSTER AROMALADY BIRDKEEPER PAINTER],
     "sable"           => %i[RUINMANIAC HIKER PICNICKER CAMPER],
-    "minérale"        => %i[HIKER BLACKBELT CRUSHGIRL ENGINEER],
-    "terre battue"    => %i[CAMPER PICNICKER BIKER ROCKER],
-    "automne"         => %i[PAINTER LADY GENTLEMAN BIRDKEEPER],
+    "minérale"        => %i[HIKER CRUSHGIRL ENGINEER RUINMANIAC],
+    "terre battue"    => %i[CAMPER PICNICKER YOUNGSTER LASS],
+    "automne"         => %i[PAINTER LADY AROMALADY BIRDKEEPER],
     "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_M POKEMONRANGER_F],
-    "montagne"        => %i[HIKER BLACKBELT CRUSHGIRL],
+    "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
     "grotte"          => %i[HIKER POKEMANIAC SUPERNERD ENGINEER]
   }.freeze
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
