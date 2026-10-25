@@ -547,7 +547,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   | Normal | `RIVAL1` | Vol | `TAMER` |
   | Feu | `LEADER_Blaine` | Psy | `LEADER_Sabrina` |
   | Eau | `ROCKER` | Insecte | `LEADER_Koga` |
-  | Plante | `PSYCHIC_M` | Roche | `ELITEFOUR_Bruno` |
+  | Plante | `POKEMONRANGER_M` | Roche | `ELITEFOUR_Bruno` |
   | Électrik | `ENGINEER` | Spectre | `CHANNELER` |
   | Glace | `SUPERNERD` | Dragon | `ELITEFOUR_Lance` |
   | Combat | `BLACKBELT` | Ténèbres | `BURGLAR` |
