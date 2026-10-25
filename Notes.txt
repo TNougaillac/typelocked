@@ -1,0 +1,8 @@
+- enlever "obligatoire" sur surnom du Pokémon (obligatoire)
+- tout traduire en français
+- rendre le centre Pokémon payant au bout de 3 utilisations, avec un message disant "tu as déjà eu gratuit maintenant tu payes" mieux tourné que ça.
+- faire que le professeur nous donne le pokédex en même temps que le starter
+- si on perd ça nous sauvegarde la partie
+- remplir les bords de zone d'arbres pour le pas voir de carré noir, ou de montagne en continuant la montagne et idem pour tous les autres types de terrain
+- si on a tiré un type pouvant être joué avec des capacités de météo, favoriser les CT liés aux météos sur a map (notamment déblocables sur des objets atteignables avec une contrainte). il y a une petite chance que cela n'arrive pas ou peu dans une partie. Donne moi la liste des types affectés et par quel objet/CT.
+- bug : dans le premier menu du jeu, les sprites se déplacent 
