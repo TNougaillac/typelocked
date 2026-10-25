@@ -609,7 +609,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   - progression : 100 par sceau, 150 par Ancien, 300 pour le Parrain, 500 pour Arceus (interrupteurs `LEAGUE_SWITCH` + 1 à 6) ;
   - combats : 5 par dresseur battu, 20 par membre d'arène (événement MapEvents « Membre ») ; lieutenants, Anciens et Parrain ne comptent que par leur sceau ou interrupteur ;
   - −25 par Pokémon mort (boîtes Cimetière et équipe) ;
-  - victoire seulement : bonus de vitesse `max(0, 1000 − 5 × minutes de jeu)` ;
+  - victoire seulement : bonus de vitesse `max(0, 1000 − minutes de jeu)` ;
   - puis × le multiplicateur du type (`TYPE_MULTIPLIERS`, tous à 1,0 pour l'instant), × 0,5 sans Nuzlocke (marqué « sans Nuzlocke » dans les détails) ; jamais sous 0 ;
   - une défaite ou un abandon garde le score atteint.
 - **Où voir le score :** à droite de chaque carte (panneau de l'écran titre, liste), dans les détails d'une partie, et pour la partie en cours sur la carte de dresseur (ligne « Score » ajoutée sous le n° ID). Dans la liste, Gauche ou Droite bascule sur les `BEST_SIZE` (5) meilleurs scores de tous les temps, le meilleur en premier : le fichier les garde même au-delà des 20 dernières parties.
