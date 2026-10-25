@@ -591,6 +591,43 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Pas de dresseur sur les îles ni dans les routes sous-marines.
 - Un dresseur posé au bord du chemin pourrait, rarement, boucher un passage étroit vers des hautes herbes ou un cul-de-sac (la CI ne refait pas le chemin à pied avec les dresseurs en place).
 
+## F16. Historique des parties (RunHistory)
+**Statut :** v1.0.0, écrit, **non testé en jeu**. Issue #48.
+**Version cible :** Essentials v21.1. Dépend de Nuzlocke, Monotype, MapProceduralGenerator et WorldEvents (`Requires`).
+**Dossier :** `Plugins/RunHistory/`
+
+### Règles
+- **Une entrée par partie :** un identifiant est tiré à la nouvelle partie et gardé dans la sauvegarde (`$run_history_id`). L'entrée garde la graine du monde, le nom de la région, le type imposé (Monotype), le nombre de sceaux, le dernier lieu, l'équipe (espèce, surnom, niveau, mort au Nuzlocke), le temps de jeu et les dates.
+- **Quand :** à chaque sauvegarde, l'entrée de la partie est mise à jour (« En cours »). Elle est figée quand la partie se termine :
+  - **Défaite :** le run Nuzlocke est perdu (plus aucun Pokémon en vie), avec l'équipe d'avant l'enterrement des derniers morts ;
+  - **Victoire :** Arceus est battu ou capturé à la Ligue ;
+  - **Abandon :** une nouvelle partie est sauvegardée par-dessus une partie encore en cours.
+- **Combien :** les `SIZE` (20) dernières parties, la plus récente en premier.
+- **Où :** dans `RunHistory.rxdata`, à côté du fichier de sauvegarde (jamais dans le dossier du jeu) : une nouvelle version du jeu ou le launcher (#52) ne l'efface pas, et il survit à la suppression du monde.
+- **Écran « Dernières parties » :** à l'écran titre (avant « Quitter », les panneaux défilent pour qu'il reste visible) et dans le menu pause (entre Sauvegarder et Options). La liste donne région, type, sceaux et issue ; une partie choisie montre sa graine, sa date, son temps de jeu, son dernier lieu et son équipe (« † » pour un mort).
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Nom du fichier, nombre de parties gardées, noms des issues, place dans le menu pause. |
+| `002_Data.rb` | Entrées (`Entry`, `Member`), lecture et écriture du fichier, `record`, `abandon`, identifiant de partie dans la sauvegarde. |
+| `003_Hooks.rb` | Enregistrement à la sauvegarde, à la défaite Nuzlocke et à la victoire contre Arceus ; abandon. |
+| `004_Screen.rb` | Écran « Dernières parties », commande de l'écran titre, entrée du menu pause. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Game.save`, `Nuzlocke.bury_dead_party_members`, `WorldEvents.arceus`, `PokemonLoad_Scene#pbStartScene`, `#pbChoose` et `#pbUpdate` ; `MenuHandlers` (`:pause_menu`).
+
+### À vérifier au premier lancement
+- Après une sauvegarde, « Dernières parties » (menu pause ou écran titre) montre la partie « En cours ».
+- À l'écran titre, « Dernières parties » apparaît avant « Quitter » ; descendre jusqu'à « Quitter » fait défiler les panneaux.
+- Perdre le run Nuzlocke : l'entrée passe en « Défaite » avec l'équipe d'avant la mort.
+- Nouvelle partie puis sauvegarde : l'ancienne partie passe en « Abandon ».
+
+### Limites connues
+- Pas encore de « Rejouer cette graine » depuis l'historique.
+- Sans Nuzlocke actif, une partie ne se termine que par la victoire ou l'abandon.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -670,3 +707,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | WorldEvents v1.7.0 : vrais sets pour les lieutenants et la Ligue (attaques du type du dresseur, de couverture et de statut tirées dans les capacités par niveau, CT et reproduction sous un plafond de puissance selon les sceaux ; objet tenu, talent caché dès 4 sceaux, nature, IV 10 à 31), contrôlés par la CI | `Plugins/WorldEvents/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.7.1 : les sets peuvent prendre les attaques à deux tours et d'autodestruction | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/meta.txt`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.7.2 : plus aucune attaque exclue des sets (`SET_BANNED` supprimé) | `Plugins/WorldEvents/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 25/10/2026 | RunHistory v1.0.0 (#48) : historique des 20 dernières parties (graine, région, type, sceaux, dernier lieu, équipe, issue), mis à jour à chaque sauvegarde, figé à la défaite Nuzlocke, à la victoire contre Arceus ou à l'abandon ; écran « Dernières parties » à l'écran titre et dans le menu pause | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
