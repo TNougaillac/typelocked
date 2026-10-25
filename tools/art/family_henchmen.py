@@ -1,9 +1,9 @@
 """Henchmen of the Family (TypeLocked, #103): the Cousins in mafia style.
 
 Redraws Essentials' Team Rocket grunts (battle sprites and overworld sheets)
-as Family henchmen: a charcoal pinstripe suit, a white shirt with a dark red
-tie instead of the R, a brown tweed flat cap (coppola), black leather gloves
-and shoes, a gold belt buckle. The sources are Essentials' own files, so the
+as Family henchmen, all in brown: a pinstripe suit of the same brown tweed
+as their flat cap (coppola), a white shirt with a dark red tie instead of
+the R, dark brown leather gloves and shoes, a gold belt buckle. The sources are Essentials' own files, so the
 result is the same each time.
 
 Usage: python3 tools/art/family_henchmen.py
@@ -17,9 +17,9 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 
 # Grunt colours -> henchman colours
-SUIT = {(56, 56, 72): (36, 34, 40), (80, 80, 104): (58, 55, 64), (120, 120, 144): (94, 90, 100)}
-CAP = {(56, 56, 72): (72, 52, 38), (80, 80, 104): (106, 80, 56), (120, 120, 144): (142, 112, 82)}
-LEATHER = {(152, 152, 168): (58, 54, 58), (176, 176, 192): (82, 78, 84), (200, 200, 216): (108, 104, 110)}
+SUIT = {(56, 56, 72): (72, 52, 38), (80, 80, 104): (106, 80, 56), (120, 120, 144): (142, 112, 82)}
+CAP = SUIT
+LEATHER = {(152, 152, 168): (52, 36, 26), (176, 176, 192): (70, 50, 36), (200, 200, 216): (92, 68, 50)}
 RED = {(160, 72, 64), (208, 96, 88), (240, 104, 96)}
 SHIRT = (236, 236, 240)
 TIE = (128, 20, 32)
@@ -90,9 +90,9 @@ def battle(gender):
 # CAP_ROWS in a frame; the R on the chest (TORSO box of a frame) becomes
 # shirt (light) and tie (dark); other red is her hair, or his uniform's
 # trim, which turns to suit.
-OW_SUIT = {(72, 72, 88): (48, 46, 54), (136, 144, 144): (84, 80, 90)}
+OW_SUIT = {(72, 72, 88): (82, 60, 42), (136, 144, 144): (132, 104, 76)}
 OW_CAP = {(72, 72, 88): (82, 60, 42), (136, 144, 144): (132, 104, 76), (56, 56, 24): (56, 40, 28)}
-OW_LEATHER = {(192, 200, 216): (96, 92, 100)}
+OW_LEATHER = {(192, 200, 216): (70, 50, 36)}
 OW_RED = {(224, 112, 80): SHIRT, (120, 64, 64): TIE, (144, 64, 40): TIE, (80, 16, 0): TIE}
 CAP_ROWS = 18
 TORSO = (10, 28, 21, 39)
