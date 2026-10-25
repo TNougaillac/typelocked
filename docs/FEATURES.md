@@ -540,7 +540,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   - **Anciens :** types de dresseur `ANCIEN_1` à `ANCIEN_4` (« Ancien » en jeu, règle d'arène du Monotype), un type tiré chacun, jamais le même entre eux ; 5, 5, 6 et 6 Pokémon de ce type (`ELDER_PARTY_SIZES`). Le plus fort monte du plafond du dernier lieutenant à celui du Parrain (avec les plafonds par défaut : 53, 55, 58, 60).
   - **Parrain :** type de dresseur `PARRAIN`, sans type de Pokémon fixe : 6 Pokémon parmi les plus évolués du roster, de types principaux différents, le plus fort au plafond avec tous les sceaux (63).
   - **Arceus :** boss d'OverworldBoss (`ARCEUS_BOSS` : PV x3, Attaque et Attaque Spé. x1,2, Jugement, Vitesse Extrême, Soin, Force Cosmique), 5 niveaux au-dessus du Parrain (`ARCEUS_LEVEL_BONUS`). Battu ou capturé, il ouvre la porte du Panthéon et le Pacte est brisé (`ARCEUS_END`). Graphisme `boss_ARCEUS`, fait à partir de son icône.
-- **Sprites de la Famille (#103) :** chaque type de dresseur de la Famille a sa copie d'un sprite d'Essentials (combat dans `Graphics/Trainers/`, déplacement dans `Graphics/Characters/trainer_*`), faite par `tools/art/family_sprites.rb` :
+- **Sprites de la Famille (#103) :** chaque type de dresseur de la Famille a sa copie d'un sprite d'Essentials (combat dans `Graphics/Trainers/`, déplacement dans `Graphics/Characters/trainer_*`), faite par `tools/art/family_sprites.rb` (planche : `docs/sprites/famille.png`) :
 
   | Rôle | Sprite | Rôle | Sprite |
   |---|---|---|---|
