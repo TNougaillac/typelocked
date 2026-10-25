@@ -604,7 +604,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
   - **Abandon :** une nouvelle partie est sauvegardée par-dessus une partie encore en cours.
 - **Combien :** les `SIZE` (20) dernières parties, la plus récente en premier.
 - **Où :** dans `RunHistory.rxdata`, à côté du fichier de sauvegarde (jamais dans le dossier du jeu) : une nouvelle version du jeu ou le launcher (#52) ne l'efface pas, et il survit à la suppression du monde.
-- **Écran « Dernières parties » :** à l'écran titre, avec Continuer et Nouvelle partie (avant « Quitter », les panneaux défilent pour qu'il reste visible). La liste donne région, type et issue ; une partie choisie montre sa graine, sa date, son temps de jeu, son dernier lieu et son équipe (« † » pour un mort).
+- **Écran « Dernières parties » :** à l'écran titre, avec Continuer et Nouvelle partie (avant « Quitter », les panneaux défilent pour qu'il reste visible). La liste donne région, type et issue ; une partie choisie montre sa graine, sa date, son temps de jeu, son dernier lieu et son équipe (« (mort) » après un Pokémon mort au Nuzlocke).
 - **Rejouer cette graine :** après les détails d'une partie, le joueur peut lancer une nouvelle partie dans la même région (même graine, `MapProceduralGenerator.next_game_seed`). Le type imposé et le reste sont tirés à nouveau.
 
 ### Fichiers

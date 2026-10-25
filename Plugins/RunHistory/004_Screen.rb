@@ -34,7 +34,7 @@ module RunHistory
     team = entry.team.map do |m|
       species = GameData::Species.try_get(m.species)&.name || m.species.to_s
       name = (m.name == species) ? species : "#{m.name} (#{species})"
-      _INTL("{1} N.{2}", name, m.level) + (m.dead ? _INTL(" †") : "")
+      _INTL("{1} N.{2}", name, m.level) + (m.dead ? _INTL(" (mort)") : "")
     end
     pbMessage(team.empty? ? _INTL("Aucun Pokémon.") : team.join(", "))
     return nil if !entry.seed
