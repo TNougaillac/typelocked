@@ -10,7 +10,7 @@ module WorldEvents
 
   # Draws the trainers of the world: their events into plans, their teams
   # (sections of PBS/trainers.txt) into trainers.
-  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, rng)
+  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, rng)
     zones = zones.to_h { |zone| [zone.name, zone] }
     pools = zone_pools(zones, encounters)
     draw = lambda do |map, cells, types, count, cousin_chance|
@@ -21,7 +21,7 @@ module WorldEvents
         break if !cell
         cousin = rng.rand(100) < cousin_chance
         type = (cousin ? COUSIN_TYPES : types).sample(random: rng)
-        add_trainer(plans, trainers, names, map, cell, type, zone, pools[map], cousin, rng)
+        add_trainer(plans, trainers, names, map, cell, type, zone, pools[map], cousin, [lines, atlas[:maps][map][:title]], rng)
       end
     end
     places = result.places.sort_by { |wp, *| wp.index }
@@ -110,12 +110,12 @@ module WorldEvents
 
   # One trainer: its event, and its team in PBS/trainers.txt (version
   # TRAINER_VERSION, one name per type in the world).
-  def add_trainer(plans, trainers, names, map, cell, type, zone, pool, cousin, rng)
+  def add_trainer(plans, trainers, names, map, cell, type, zone, pool, cousin, (lines, town), rng)
     x, y, facing, sight = cell
     name = trainer_name(type, names, rng)
     return if !name
-    battle = (cousin ? COUSIN_BATTLE_TEXTS : BATTLE_TEXTS).sample(random: rng)
-    lose = (cousin ? COUSIN_END_TEXTS : END_TEXTS).sample(random: rng)
+    battle = lines.text(cousin ? "cousin_combat" : "dresseur_combat", town)
+    lose = lines.text(cousin ? "cousin_fin" : "dresseur_fin", town)
     trainers.push(team_section(type, name, lose, party(zone, pool, rng)))
     label = cousin ? "Cousin" : "Dresseur"
     add(plans, map, "Trainer", "#{label}#{plans[map].count { |*, text| text.start_with?("[Trainer #{label}") } + 1}",

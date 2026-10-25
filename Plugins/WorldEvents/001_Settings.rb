@@ -38,7 +38,6 @@ module WorldEvents
     6 => %i[MAXPOTION],
     7 => %i[FULLRESTORE]
   }.freeze
-  MART_SPEECH = "Bienvenue. La Famille tient ce commerce, comme les autres. Que veux-tu ?"
 
   # Trainers of the world, written in PBS/trainers.txt with this version
   # (one per type and name): a new world replaces them all.
@@ -78,24 +77,6 @@ module WorldEvents
     female: %w[Giulia Rosa Lucia Carla Sofia Maria Gina Nina Peggy Betty Lola Ruby Claire Margot Elise Chloé
                Anna Teresa Bianca Vera Donna Rita Jeanne Louise Adèle Camille Sylvie Gloria Paula Livia]
   }.freeze
-  BATTLE_TEXTS = [
-    "Hé, toi ! On ne passe pas sans se battre.",
-    "Je t'ai vu arriver. Montre-moi ce que vaut ton équipe.",
-    "Un combat ? Ce n'est pas comme si j'avais le choix."
-  ].freeze
-  END_TEXTS = [
-    "Bien joué...",
-    "Tu es plus fort que tu n'en as l'air.",
-    "D'accord, d'accord. Passe."
-  ].freeze
-  COUSIN_BATTLE_TEXTS = [
-    "La Famille surveille la route. Et toi, je te surveille.",
-    "Le Parrain veut savoir de quoi tu es capable."
-  ].freeze
-  COUSIN_END_TEXTS = [
-    "Le Parrain en entendra parler.",
-    "Tu as de la chance. Pour l'instant."
-  ].freeze
 
   # Gyms (the interior is a copy of a demo map, by template): the
   # lieutenant's cell, then cells for the members of the Family, [x, y,
@@ -130,15 +111,6 @@ module WorldEvents
                  PROTECT SUBSTITUTE LIGHTSCREEN REFLECT ROOST TAILWIND TRICKROOM SPIKES STEALTHROCK
                  TOXICSPIKES QUIVERDANCE SHELLSMASH AGILITY ROCKPOLISH IRONDEFENSE AMNESIA
                  SLEEPPOWDER SPORE HYPNOSIS GLARE DRAININGKISS MOONLIGHT MORNINGSUN SYNTHESIS].freeze
-  LEADER_BATTLE = "Tu es arrivé jusqu'à moi. Le Pacte veut que je te mette à l'épreuve."
-  LEADER_END    = "La Famille t'a vu combattre. Le territoire suivant t'est ouvert."
-  LEADER_WIN    = "\\me[Badge get]Le lieutenant te remet la chevalière de la Famille. Tu la passes à ton doigt."
-  LEADER_GIFT   = "Prends aussi cette CT. Elle te servira."
-  MEMBER_BATTLES = [
-    "Personne ne voit le lieutenant sans passer par moi.",
-    "La Famille garde cette arène. Montre ce que tu vaux."
-  ].freeze
-  MEMBER_ENDS = ["Le lieutenant t'attend.", "Va, il est au fond."].freeze
 
   # The rooms of the League (LEAGUE_ROOMS of MapProceduralGenerator), by
   # template: where the fighter stands, and the cell in front of the door to
@@ -208,51 +180,42 @@ module WorldEvents
   GIFT_GRAPHICS = (1..29).map { |i| format("NPC %02d", i) }.freeze
   FIELD_GRAPHIC = "trainer_COUSIN_M"
 
-  # What the professor says ({1} = the imposed type; \PN = the player's
-  # name). He already told the Pact during the intro (IntroScene). Moved to
-  # MapProc/Lore/dialogues.txt with the other texts (#100).
-  PROFESSOR_INTRO = [
-    "Te voilà, \\PN. Comme promis, j'ai trois Pokémon de type {1} pour toi."
-  ].freeze
-  PROFESSOR_BALLS = "Ces trois Poké Balls contiennent des Pokémon de ton type. Choisis celui qui t'accompagnera."
-  PROFESSOR_AFTER = "Prends soin de ton Pokémon. La Famille garde un œil sur toi, \\PN."
-  BALL_TEXT       = "Une Poké Ball du professeur."
-  GATE_TEXT       = "Tu ne peux pas partir sans Pokémon. Le professeur t'attend."
-  ELDER_BATTLES = [
-    "Je suis le premier des Anciens. Personne ne monte voir le Parrain sans nous.",
-    "Le Pacte t'a mené jusqu'ici. Voyons s'il avait raison.",
-    "J'ai vu passer d'autres désignés avant toi. Aucun n'est redescendu.",
-    "Dernière porte avant le Parrain. Elle ne s'ouvre pas pour n'importe qui."
-  ].freeze
-  ELDER_ENDS = [
-    "Monte. Les autres t'attendent.",
-    "Tu es plus coriace que les précédents.",
-    "Peut-être que toi, tu redescendras.",
-    "Le Parrain t'attend. Il t'attend depuis longtemps."
-  ].freeze
-  PARRAIN_BATTLE = "Alors c'est toi, le prix du Pacte. Montre-moi ce que la Famille a payé si cher."
-  PARRAIN_END    = "Tu crois avoir gagné ? Derrière cette porte, quelqu'un t'attend. Il attend chaque génération."
-  ARCEUS_INTRO = [
-    "Une lumière immense remplit la salle.",
-    "Arceus. Celui avec qui la Famille a passé le Pacte. Celui à qui tu devais être remis."
-  ].freeze
-  ARCEUS_END = [
-    "La lumière vacille, puis s'éteint.",
-    "Le Pacte est brisé. La Famille n'a plus rien à offrir, ni personne à livrer."
-  ].freeze
-  LEAGUE_DOOR_TEXT = "La porte est fermée. Il faut d'abord gagner ici."
-  GIFT_TEXTS = [
-    "Tiens, prends ça. Moi, je n'en ai plus l'usage.",
-    "Tu as l'air d'en avoir besoin plus que moi.",
-    "La Famille prend tout, alors autant que ce soit toi qui l'aies.",
-    "Je l'ai trouvé près de la route. Il est à toi."
-  ].freeze
-  GIFT_AFTER = ["Fais-en bon usage.", "Bonne route.", "Ne dis pas à la Famille que ça vient de moi."].freeze
-  FIELD_WAIT  = "Tant que le lieutenant de cette ville ne t'a pas reconnu, je n'ai rien pour toi."
-  FIELD_GIFT  = "Le lieutenant t'a remis sa chevalière. La Famille t'ouvre la route avec ceci."
-  FIELD_AFTER = "Ne déçois pas la Famille."
-  RELEARNER_INTRO    = "Je suis le Maître des Capacités. Une Écaille Cœur, et ton Pokémon se souviendra d'une capacité oubliée."
-  RELEARNER_NO_SCALE = "Tu n'as pas d'Écaille Cœur. Reviens quand tu en auras une."
-  RELEARNER_NONE     = "Aucun de tes Pokémon n'a de capacité à retrouver."
-  RELEARNER_DONE     = "Voilà. Merci pour l'Écaille Cœur."
+  # Inhabitants: by the streets of each town (islands too, not the first
+  # town), and in the houses, on these cells of their template ([x, y,
+  # facing], where the demo has its people).
+  TOWN_HABITANTS  = 2..4
+  HOUSE_HABITANTS = 1..2
+  HOUSE_BUILDINGS = %w[maison immeuble port special].freeze
+  HOUSE_SPOTS = {
+    6  => [[7, 4, "bas"]],
+    8  => [[1, 4, "bas"], [5, 4, "bas"], [8, 4, "bas"]],
+    11 => [[5, 3, "bas"], [10, 3, "bas"]],
+    12 => [[2, 7, "bas"], [6, 7, "bas"], [10, 7, "bas"]],
+    26 => [[2, 6, "bas"], [9, 6, "bas"]],
+    27 => [[4, 4, "bas"], [6, 5, "gauche"]]
+  }.freeze
+
+  # Every text of the events, in MapProc/Lore/dialogues.txt (in the folder
+  # of MapProceduralGenerator): its sections, and the tokens each allows.
+  # Those said in battle (*_fin, the lose text) can't name the player, those
+  # said in game (professor, shops...) know no town nor region.
+  DIALOGUES_FILE = "Lore/dialogues.txt"
+  PLACE_TOKENS  = %w[joueur ville region].freeze
+  BATTLE_TOKENS = %w[ville region].freeze
+  DIALOGUE_SECTIONS = {
+    "habitant" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
+    "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS,
+    "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
+    "professeur_apres" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
+    "vendeur" => [], "maitre_intro" => %w[joueur], "maitre_sans_ecaille" => %w[joueur],
+    "maitre_aucun" => %w[joueur], "maitre_fin" => %w[joueur],
+    "don" => PLACE_TOKENS, "don_apres" => PLACE_TOKENS, "terrain_attente" => PLACE_TOKENS,
+    "terrain_don" => PLACE_TOKENS, "terrain_apres" => PLACE_TOKENS,
+    "lieutenant_combat" => PLACE_TOKENS, "lieutenant_fin" => BATTLE_TOKENS,
+    "lieutenant_victoire" => PLACE_TOKENS, "lieutenant_ct" => PLACE_TOKENS,
+    "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
+    "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
+    "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
+    "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
+  }.freeze
 end

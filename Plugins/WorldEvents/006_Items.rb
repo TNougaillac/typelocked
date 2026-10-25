@@ -11,7 +11,7 @@ module WorldEvents
 
   # Draws the items of the world into plans. Returns [{ map:, source:, item: }]
   # (source: sol, cache, don, recoin, terrain).
-  def item_events(result, atlas, zones, tms, leaders, plans, rng)
+  def item_events(result, atlas, zones, tms, leaders, plans, lines, rng)
     zones = zones.to_h { |zone| [zone.name, zone] }
     used_tms = leaders.filter_map { |leader| leader[:tm]&.first }
     slots = item_slots(result, atlas, zones, rng)
@@ -29,10 +29,10 @@ module WorldEvents
     items = []
     # Gifts first: they need a cell by the street
     all.sort_by { |slot| (slot[:source] == "don") ? 0 : 1 }.each do |slot|
-      placed = place_item(plans, atlas[:maps][slot[:map]], slot, rng)
+      placed = place_item(plans, atlas[:maps][slot[:map]], slot, lines, rng)
       items.push({ map: slot[:map], source: placed, item: slot[:item] }) if placed
     end
-    items.concat(field_item_events(atlas, plans, rng))
+    items.concat(field_item_events(atlas, plans, lines, rng))
     relearner_events(result, atlas, zones, plans, rng)
     return items
   end
@@ -126,7 +126,7 @@ module WorldEvents
 
   # Places one slot on its map: returns its source, nil if no cell is left
   # (a gift falls back to a hidden item when no NPC fits).
-  def place_item(plans, spots, slot, rng)
+  def place_item(plans, spots, slot, lines, rng)
     map = slot[:map]
     taken = plans[map]
     count = taken.count { |*, text| text.start_with?("[Item ", "[Npc Don") } + 1
@@ -140,7 +140,7 @@ module WorldEvents
       if cell
         x, y, facing = cell
         add(plans, map, "Npc", "Don#{count}", x, y, ["Graphic", GIFT_GRAPHICS.sample(random: rng)], ["Facing", facing],
-            ["Text", GIFT_TEXTS.sample(random: rng)], ["Gift", slot[:item]], ["Once", GIFT_AFTER.sample(random: rng)])
+            *texts(lines, "don", "Text", spots[:title]), ["Gift", slot[:item]], *texts(lines, "don_apres", "Once", spots[:title]))
         return "don"
       end
       slot[:source] = "cache"
@@ -152,6 +152,11 @@ module WorldEvents
     hidden = slot[:source] == "cache"
     add(plans, map, "Item", "Objet#{count}", cell[0], cell[1], ["Item", slot[:item]], *(hidden ? [["Hidden", "oui"]] : []))
     return slot[:source]
+  end
+
+  # A line of that section as [key, box] pairs, one per message box.
+  def texts(lines, section, key, town)
+    return lines.boxes(section, town).map { |box| [key, box] }
   end
 
   # Cells for an NPC, [x, y, facing]: by the street, else on a cave floor.
@@ -180,7 +185,7 @@ module WorldEvents
 
   # Each field item: a member of the Family in its town gives it once the
   # town's lieutenant is beaten (its switch).
-  def field_item_events(atlas, plans, rng)
+  def field_item_events(atlas, plans, lines, rng)
     items = []
     atlas[:items].each_with_index do |(item, town), i|
       spots = atlas[:maps][town]
@@ -189,9 +194,10 @@ module WorldEvents
       next if !cell
       x, y, facing = cell
       gym = atlas[:gyms].index(town)
-      wait = gym ? [["When", "S#{GYM_SWITCH + gym + 1}"], ["Wait", FIELD_WAIT]] : []
+      wait = gym ? [["When", "S#{GYM_SWITCH + gym + 1}"], *texts(lines, "terrain_attente", "Wait", spots[:title])] : []
       add(plans, town, "Npc", "Terrain#{i + 1}", x, y, ["Graphic", FIELD_GRAPHIC], ["Facing", facing], *wait,
-          ["Text", FIELD_GIFT], ["Gift", item], ["Once", FIELD_AFTER])
+          *texts(lines, "terrain_don", "Text", spots[:title]), ["Gift", item],
+          *texts(lines, "terrain_apres", "Once", spots[:title]))
       items.push({ map: town, source: "terrain", item: item })
     end
     return items

@@ -14,7 +14,7 @@ module WorldEvents
   # roster (ProceduralEncounters.load_species); tms: [[item, move, type,
   # power, status?]]; caps: level cap by seals. Returns the lieutenants
   # drawn: [{ gym:, map:, type:, trainer:, name:, team:, tm: }].
-  def gym_events(atlas, species, tms, caps, plans, trainers, names, rng)
+  def gym_events(atlas, species, tms, caps, plans, trainers, names, lines, rng)
     leaders = []
     used_tms = []
     types = leader_types(atlas[:gyms].length, species, tms, rng)
@@ -32,11 +32,14 @@ module WorldEvents
       next if !name
       size = LEADER_PARTY_SIZES[[i, LEADER_PARTY_SIZES.length - 1].min]
       team = typed_party(species, type, size, cap - LEADER_LEVEL_SPREAD, cap, i, rng)
-      trainers.push(team_section(trainer, name, LEADER_END, team))
+      title = atlas[:maps][town][:title]
+      lose = lines.text("lieutenant_fin", title)
+      trainers.push(team_section(trainer, name, lose, team))
+      wins = lines.boxes("lieutenant_victoire", title) + (tm ? lines.boxes("lieutenant_ct", title) : [])
       add(plans, map, "Trainer", "Lieutenant", *layout[:leader], ["Facing", "bas"], ["Sight", 1],
-          ["Type", trainer], ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", LEADER_BATTLE],
-          ["EndBattle", LEADER_END], ["Win", LEADER_WIN], ["Badge", [i + 1, 8].min],
-          *(tm ? [["Win", LEADER_GIFT], ["Gift", tm[0]]] : []), ["Switch", GYM_SWITCH + i + 1])
+          ["Type", trainer], ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("lieutenant_combat", title)],
+          ["EndBattle", lose], *wins.map { |box| ["Win", box] }, ["Badge", [i + 1, 8].min],
+          *(tm ? [["Gift", tm[0]]] : []), ["Switch", GYM_SWITCH + i + 1])
       members = gym_members(layout, rng)
       members.each_with_index do |(x, y, facing, sight), j|
         member = COUSIN_TYPES.sample(random: rng)
@@ -45,11 +48,11 @@ module WorldEvents
         top = cap - rng.rand(MEMBER_LEVEL_GAP)
         member_team = typed_party(species, type, rng.rand(PARTY_SIZES[[i, PARTY_SIZES.length - 1].min]),
                                   top - PARTY_LEVEL_SPREAD, top, i, rng)
-        lose = MEMBER_ENDS.sample(random: rng)
+        lose = lines.text("membre_fin", title)
         trainers.push(team_section(member, member_name, lose, member_team))
         add(plans, map, "Trainer", "Membre#{j + 1}", x, y, ["Facing", facing], ["Sight", sight],
             ["Type", member], ["Name", member_name], ["BattleID", TRAINER_VERSION],
-            ["Battle", MEMBER_BATTLES.sample(random: rng)], ["EndBattle", lose])
+            ["Battle", lines.text("membre_combat", title)], ["EndBattle", lose])
       end
       leaders.push({ gym: i + 1, map: map, town: town, type: type, trainer: trainer, name: name, team: team,
                      tm: tm, members: members.length })
@@ -121,7 +124,7 @@ module WorldEvents
   # Parrain, Arceus; the door of each room closed until it is won. Teams into
   # trainers. Returns [{ map:, role:, type:, trainer:, name:, team: }] (Arceus:
   # team [[:ARCEUS, level]]).
-  def league_events(atlas, species, caps, plans, trainers, names, rng)
+  def league_events(atlas, species, caps, plans, trainers, names, lines, rng)
     rooms = atlas[:league].filter_map do |name|
       spots = atlas[:maps][name]
       layout = LEAGUE_LAYOUTS[spots[:template]]
@@ -133,13 +136,15 @@ module WorldEvents
     fights = []
     rooms.each_with_index do |(map, role, layout), i|
       x, y = layout[:boss]
+      title = atlas[:maps][map][:title]
       switch = LEAGUE_SWITCH + i + 1
       gx, gy = layout[:gate]
       add(plans, map, "Npc", "Porte", gx, gy, ["Trigger", "contact"], ["Hide", "S#{switch}"],
           ["Script", "WorldEvents.league_door"])
       if role == "Arceus"
         level = top + ARCEUS_LEVEL_BONUS
-        add(plans, map, "Npc", "Arceus", x, y, ["Graphic", ARCEUS_GRAPHIC], *ARCEUS_INTRO.map { |line| ["Text", line] },
+        add(plans, map, "Npc", "Arceus", x, y, ["Graphic", ARCEUS_GRAPHIC],
+            *lines.boxes("arceus_intro", title).map { |box| ["Text", box] },
             ["Script", "WorldEvents.arceus(self, #{level}, #{switch})"])
         fights.push({ map: map, role: role, type: nil, trainer: nil, name: "Arceus", team: [[:ARCEUS, level]] })
         next
@@ -151,12 +156,12 @@ module WorldEvents
         high = last + (((top - last) * (elder + 1)) / 5.0).round
         size = ELDER_PARTY_SIZES[[elder, ELDER_PARTY_SIZES.length - 1].min]
         team = typed_party(species, type, size, high - LEADER_LEVEL_SPREAD, high, atlas[:gyms].length, rng)
-        battle, lose = ELDER_BATTLES[elder % ELDER_BATTLES.length], ELDER_ENDS[elder % ELDER_ENDS.length]
+        battle, lose = lines.text("ancien_combat", title), lines.text("ancien_fin", title)
       else
         type = nil
         trainer = PARRAIN_TYPE
         team = parrain_party(species, top, atlas[:gyms].length, rng)
-        battle, lose = PARRAIN_BATTLE, PARRAIN_END
+        battle, lose = lines.text("parrain_combat", title), lines.text("parrain_fin", title)
       end
       name = trainer_name(trainer, names, rng)
       next if !name

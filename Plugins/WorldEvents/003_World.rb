@@ -14,10 +14,12 @@ module WorldEvents
   # world_encounters (its second value) of that world, for the trainers;
   # species (the roster), tms ([[item, move, type, power, status?]]) and
   # caps (level cap by seals), for the gyms; zones and tms, for the items.
-  # Without them, none.
-  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil)
+  # Without them, none. dialogues: parse_dialogues of dialogues.txt (read
+  # from the game's folder when nil).
+  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
+    lines = Lines.new(dialogues || load_dialogues, region_name(result), Random.new((seed * 1000) + 750))
     plans = Hash.new { |hash, name| hash[name] = [] }
     start_events(atlas, plans, rng)
     service_events(atlas, seals_at(result), plans)
@@ -26,13 +28,14 @@ module WorldEvents
     league = []
     names = Hash.new { |hash, type| hash[type] = [] }
     if species && tms && caps
-      leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, Random.new((seed * 1000) + 720))
-      league = league_events(atlas, species, caps, plans, trainers, names, Random.new((seed * 1000) + 740))
+      leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, Random.new((seed * 1000) + 720))
+      league = league_events(atlas, species, caps, plans, trainers, names, lines, Random.new((seed * 1000) + 740))
     end
     if zones && encounters
-      trainer_events(result, atlas, zones, encounters, plans, trainers, names, Random.new((seed * 1000) + 710))
+      trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710))
     end
-    items = zones && tms ? item_events(result, atlas, zones, tms, leaders, plans, Random.new((seed * 1000) + 730)) : []
+    items = zones && tms ? item_events(result, atlas, zones, tms, leaders, plans, lines, Random.new((seed * 1000) + 730)) : []
+    habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760))
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
              league: league, items: items }
   end
@@ -118,5 +121,34 @@ module WorldEvents
       when "est"   then Array.new(width) { |i| [x, y + i] }
       end
     end
+  end
+
+  #-----------------------------------------------------------------------------
+  # Inhabitants: by the streets of the towns, in the houses
+  #-----------------------------------------------------------------------------
+  def habitant_events(result, atlas, plans, lines, rng)
+    towns = result.places.filter_map { |wp, *| wp.name if wp.kind == "ville" && wp.name != atlas[:start] } +
+            (result.islands || []).map { |wp, *| wp.name }
+    towns.each do |town|
+      spots = atlas[:maps][town]
+      rng.rand(TOWN_HABITANTS).times do |i|
+        cell = item_cell(spots, npc_cells(spots, rng), plans[town])
+        break if !cell
+        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng)
+      end
+    end
+    atlas[:maps].each do |name, map|
+      cells = HOUSE_SPOTS[map[:template]]
+      next if map[:kind] != "interieur" || !HOUSE_BUILDINGS.include?(map[:building]) || !cells
+      cells.shuffle(random: rng).first(rng.rand(HOUSE_HABITANTS)).each_with_index do |cell, i|
+        habitant(plans, name, "Habitant#{i + 1}", cell, map[:title], lines, rng)
+      end
+    end
+  end
+
+  def habitant(plans, map, label, cell, town, lines, rng)
+    x, y, facing = cell
+    add(plans, map, "Npc", label, x, y, ["Graphic", GIFT_GRAPHICS.sample(random: rng)], ["Facing", facing],
+        *lines.boxes("habitant", town).map { |box| ["Text", box] })
   end
 end

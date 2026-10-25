@@ -13,7 +13,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_World 003_Trainers 004_Gyms 005_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -309,8 +309,48 @@ def check_league(atlas, plans, fights, leaders)
   end
 end
 
+# No line of a section drawn twice while others are left: the pool left
+# after each draw counts down from the section's size to 0, then again.
+def check_lines(drawn)
+  drawn.each do |section, lefts|
+    size = DIALOGUES[section].length
+    lefts.each_with_index do |left, i|
+      expected = size - 1 - (i % size)
+      raise MapEvents::Error, "dialogues [#{section}] : réplique redite avant d'avoir tout dit" if left != expected
+    end
+  end
+end
+
+# Inhabitants by the streets of every town but the first, in the houses.
+def check_habitants(result, atlas, plans)
+  result.places.each do |wp, *|
+    next if wp.kind != "ville" || wp.name == atlas[:start]
+    next if plans[wp.name]&.events&.any? { |e| e.label.start_with?("Habitant") }
+    raise MapEvents::Error, "#{wp.name} : ville sans habitant"
+  end
+  atlas[:maps].each do |name, map|
+    next if map[:kind] != "interieur" || !W::HOUSE_BUILDINGS.include?(map[:building]) || !W::HOUSE_SPOTS[map[:template]]
+    count = plans[name]&.events&.count { |e| e.label.start_with?("Habitant") } || 0
+    raise MapEvents::Error, "#{name} : #{count} habitants (#{W::HOUSE_HABITANTS})" if !W::HOUSE_HABITANTS.include?(count)
+  end
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
+begin
+  DIALOGUES = W.load_dialogues(ROOT)
+rescue W::Error => e
+  dfile, dline = e.message[/\A(.+?), ligne (\d+)/, 1] ? [$1, $2.to_i] : [W.dialogues_path(ROOT), nil]
+  CI.error(dfile, dline, e.message)
+  CI.finish("Événements des mondes")
+end
+# Every line drawn, by section, to check that none comes back too soon
+DRAWN = Hash.new { |hash, section| hash[section] = [] }
+W::Lines.prepend(Module.new do
+  def draw(section, town = nil)
+    super.tap { DRAWN[section].push(@pools[section].length) }
+  end
+end)
 W::CENTRE_EVENTS.each do |template, events|
   CI.error(settings, nil, "CENTRE_EVENTS : la carte #{template} n'est pas un gabarit de Centre") if !M::INTERIORS["centre"].any? { |t, *| t == template }
   map_events = load_rxdata(File.join(ROOT, "Data", format("Map%03d.rxdata", template))).instance_variable_get(:@events)
@@ -348,6 +388,19 @@ end
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 W::ARCEUS_BOSS[:moves].each { |move| CI.error(settings, nil, "ARCEUS_BOSS : capacité #{move} absente de moves.txt") if !moves[move] }
 ROSTER = roster
+# The cells of the houses are walkable, and the people on them cut nobody off
+W::HOUSE_SPOTS.each do |template, cells|
+  entry = M::INTERIORS.values.flatten(1).find { |t, *| t == template }
+  next CI.error(settings, nil, "HOUSE_SPOTS : la carte #{template} n'est pas un gabarit d'intérieur") if !entry
+  grid = PASSABLE[template]
+  start = [entry[1], entry[2] - 1]
+  people = cells.map { |x, y, _facing| [x, y] }
+  people.each do |x, y|
+    CI.error(settings, nil, "HOUSE_SPOTS : #{template} #{x},#{y} n'est pas une case libre") if !grid[y]&.[](x) || [x, y] == start
+  end
+  cut = reach(grid, start, []).keys - people - reach(grid, start, people).keys
+  CI.error(settings, nil, "HOUSE_SPOTS : #{template}, les habitants coupent #{cut.first(3).inspect}") if !cut.empty?
+end
 W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
 { "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE }.each do |key, table|
   CI.error(settings, nil, "#{key} : pas de ligne à 0 sceau") if !table[0]
@@ -376,8 +429,10 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     atlas = M.world_atlas(result)
     zones = E.world_zones(result, E::CAPS)
     _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
-    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS }
+    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES }
+    DRAWN.clear
     events = W.world_events(result, seed, **args)
+    drawn = DRAWN.transform_values(&:dup)
     if W.world_events(result, seed, **args) != events
       CI.error(path, nil, "#{where} : la même graine donne d'autres événements")
     end
@@ -397,6 +452,8 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_gyms(atlas, plans, events[:leaders], tms)
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
       check_league(atlas, plans, events[:league], events[:leaders])
+      check_lines(drawn)
+      check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
