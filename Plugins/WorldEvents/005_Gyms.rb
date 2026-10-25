@@ -19,7 +19,6 @@ module WorldEvents
     leaders = []
     used_tms = []
     types = leader_types(atlas[:gyms].length, species, tms, rng)
-    leader_types = LEADER_TYPES.shuffle(random: rng)
     atlas[:gyms].each_with_index do |town, i|
       map, spots = atlas[:maps].find { |_name, m| m[:building] == "arene" && m[:owner] == town }
       layout = spots && GYM_LAYOUTS[spots[:template]]
@@ -28,7 +27,7 @@ module WorldEvents
       cap = caps[i] || caps.last
       tm = (useful_tms(tms, type, i) - used_tms).sample(random: rng)
       used_tms.push(tm) if tm
-      trainer = leader_types[i % leader_types.length]
+      trainer = LEADER_TYPES.fetch(type, :LIEUTENANT_NORMAL)
       name = trainer_name(trainer, names, rng)
       next if !name
       size = LEADER_PARTY_SIZES[[i, LEADER_PARTY_SIZES.length - 1].min]

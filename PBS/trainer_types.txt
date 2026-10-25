@@ -409,3 +409,164 @@ Gender = Male
 BaseMoney = 100
 BattleBGM = Battle Champion
 VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_NORMAL]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_FIRE]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_WATER]
+Name = Lieutenant
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_GRASS]
+Name = Lieutenant
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_ELECTRIC]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_ICE]
+Name = Lieutenant
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_FIGHTING]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_POISON]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_GROUND]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_FLYING]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_PSYCHIC]
+Name = Lieutenant
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_BUG]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_ROCK]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_GHOST]
+Name = Lieutenant
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_DRAGON]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_DARK]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_STEEL]
+Name = Lieutenant
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[LIEUTENANT_FAIRY]
+Name = Lieutenant
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[ANCIEN_1]
+Name = Ancien
+Gender = Female
+BaseMoney = 100
+BattleBGM = Battle Elite
+VictoryBGM = Battle victory leader
+#-------------------------------
+[ANCIEN_2]
+Name = Ancien
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Elite
+VictoryBGM = Battle victory leader
+#-------------------------------
+[ANCIEN_3]
+Name = Ancien
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Elite
+VictoryBGM = Battle victory leader
+#-------------------------------
+[ANCIEN_4]
+Name = Ancien
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Elite
+VictoryBGM = Battle victory leader
+#-------------------------------
+[PARRAIN]
+Name = Parrain
+Gender = Male
+BaseMoney = 100
+BattleBGM = Battle Champion
+VictoryBGM = Battle victory leader

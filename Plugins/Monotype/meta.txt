@@ -1,5 +1,5 @@
 Name       = Monotype
-Version    = 1.5.3
+Version    = 1.5.4
 Essentials = 21.1
 Credits    = TypeLocked
 Requires   = NewGameSetup

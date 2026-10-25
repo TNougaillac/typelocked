@@ -401,7 +401,7 @@ species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\
 types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
 ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
 genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES.values + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
   female = W::FEMALE_TYPES.include?(type)
   CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
