@@ -8,11 +8,13 @@ module WorldEvents
   module_function
 
   # { plans: { map name => MapEvents plan text }, trainers: [sections of
-  # PBS/trainers.txt], leaders: [the lieutenants, see gym_events] }.
+  # PBS/trainers.txt], leaders: [the lieutenants, see gym_events], items:
+  # [the items, see item_events] }.
   # zones and encounters: ProceduralEncounters' world_zones and
   # world_encounters (its second value) of that world, for the trainers;
   # species (the roster), tms ([[item, move, type, power, status?]]) and
-  # caps (level cap by seals), for the gyms. Without them, none.
+  # caps (level cap by seals), for the gyms; zones and tms, for the items.
+  # Without them, none.
   def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
@@ -28,7 +30,9 @@ module WorldEvents
     if zones && encounters
       trainer_events(result, atlas, zones, encounters, plans, trainers, names, Random.new((seed * 1000) + 710))
     end
-    return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders }
+    items = zones && tms ? item_events(result, atlas, zones, tms, leaders, plans, Random.new((seed * 1000) + 730)) : []
+    return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
+             items: items }
   end
 
   def plan_text(name, events)

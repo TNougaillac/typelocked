@@ -43,4 +43,16 @@ module WorldEvents
     pbMessage(_INTL(GATE_TEXT))
     pbMoveRoute($game_player, [PBMoveRoute::BACKWARD], true)
   end
+
+  # A Move Relearner: a move remembered for a Heart Scale.
+  def relearner
+    pbMessage(_INTL(RELEARNER_INTRO))
+    return pbMessage(_INTL(RELEARNER_NO_SCALE)) if !$bag.has?(HEART_SCALE)
+    return pbMessage(_INTL(RELEARNER_NONE)) if $player.party.none?(&:can_relearn_move?)
+    pbChoosePokemon(1, 3, proc { |pkmn| pkmn.can_relearn_move? })
+    return if pbGet(1) < 0
+    return if !pbRelearnMoveScreen($player.party[pbGet(1)])
+    $bag.remove(HEART_SCALE)
+    pbMessage(_INTL(RELEARNER_DONE))
+  end
 end

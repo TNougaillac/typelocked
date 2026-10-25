@@ -21,6 +21,11 @@
 #   Hide = V7>=1               (NPC: gone once the condition holds: A to D =
 #                               its self switch, S25 = game switch 25 on,
 #                               V7>=1 = game variable 7 at least 1)
+#   When = S4                  (NPC: Text, Script and Gift only once S4 or
+#   Wait = Reviens plus tard.   V7>=1 holds, Wait = what it says before;
+#   Gift = MACHETE              Gift = item given, in file order with the
+#   Once = Bonne route !        texts; Once = what it says ever after, the
+#                               NPC talks only once, required with a Gift)
 #   [Trainer B]                (Essentials trainer: Type, Name and Battle are
 #   Pos = 10,3                  required; Sight = how far it sees, 3 by
 #   Sight = 4                   default; Graphic is taken from the trainer
@@ -69,11 +74,13 @@ module MapEvents
   TRIGGERS = { "action" => 0, "contact" => 1 }   # RMXP triggers
   # Hide conditions: self switch, game switch, game variable at least n
   HIDE_PATTERN = /\A(?:[A-D]|S\d+|V\d+>=\d+)\z/
+  # When conditions: game switch, game variable at least n
+  WHEN_PATTERN = /\A(?:S\d+|V\d+>=\d+)\z/
   # Keys written as comments for Compiler.convert_to_trainer_event
   TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
-    npc:     %w[Pos Graphic Facing Text Script Trigger Hide] + MOVE_KEYS,
+    npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide] + MOVE_KEYS,
     trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From]
@@ -161,6 +168,8 @@ module MapEvents
       fail_at.call("déclenchement « #{value} » inconnu (#{TRIGGERS.keys.join(', ')})")
     elsif key == "Hide" && value !~ HIDE_PATTERN
       fail_at.call("condition « #{value} » inconnue (A à D, S25, V7>=1)")
+    elsif key == "When" && value !~ WHEN_PATTERN
+      fail_at.call("condition « #{value} » inconnue (S25, V7>=1)")
     elsif NUMBER_KEYS.include?(key) && value !~ /\A\d+\z/
       fail_at.call("nombre attendu pour « #{key} », trouvé « #{value} »")
     elsif YES_NO_KEYS.include?(key) && !%w[oui non true false].include?(value.downcase)
@@ -211,8 +220,11 @@ module MapEvents
       REQUIRED[entry.kind].each do |key|
         raise Error, "#{where} : « #{key} » manquant" if !entry.value(key)
       end
-      if entry.kind == :npc && !entry.value("Text") && !entry.value("Script")
-        raise Error, "#{where} : « Text » ou « Script » manquant"
+      if entry.kind == :npc
+        raise Error, "#{where} : « Text », « Script » ou « Gift » manquant" if !%w[Text Script Gift].any? { |k| entry.value(k) }
+        raise Error, "#{where} : « Wait » demande « When »" if entry.value("Wait") && !entry.value("When")
+        raise Error, "#{where} : « Gift » demande « Once » (sinon il redonne)" if entry.value("Gift") && !entry.value("Once")
+        raise Error, "#{where} : « Once » utilise déjà l'interrupteur local A de « Hide »" if entry.value("Once") && entry.value("Hide") == "A"
       end
       if entry.value("Move") == "ronde" && !entry.value("Route")
         raise Error, "#{where} : « Move = ronde » demande une « Route »"

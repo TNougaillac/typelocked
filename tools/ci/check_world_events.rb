@@ -13,7 +13,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_World 003_Trainers 004_Gyms].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_World 003_Trainers 004_Gyms 005_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -235,6 +235,43 @@ def check_services(atlas, plans)
   end
 end
 
+# Every nook has its loot, every field item is given in its town once its
+# lieutenant is beaten, the Heart Scales reach their number, a Move
+# Relearner stands in a town reached before the 2nd seal, gifts are given
+# once and reach their share.
+def check_items(atlas, zones, plans, items)
+  loot = Hash.new(0)
+  plans.each { |name, plan| loot[name] = plan.events.count { |e| e.kind == :item && e.label.start_with?("Recoin") } }
+  atlas[:maps].each do |name, spots|
+    nooks = (spots[:nooks] || []).count { |_x, _y, kind, *| kind != "sombre" }
+    nooks = 1 if spots[:dark] && spots[:loot]
+    raise MapEvents::Error, "#{name} : #{loot[name]} butins pour #{nooks} recoins" if loot[name] != nooks
+  end
+  atlas[:items].each do |item, town|
+    npc = plans[town]&.events&.find { |e| e.kind == :npc && e.value("Gift") == item.to_s }
+    raise MapEvents::Error, "#{town} : personne ne donne #{item}" if !npc
+    gym = atlas[:gyms].index(town)
+    if gym && npc.value("When") != "S#{W::GYM_SWITCH + gym + 1}"
+      raise MapEvents::Error, "#{town} : #{item} donné sans attendre le sceau de la ville (#{npc.value('When')})"
+    end
+  end
+  scales = items.count { |i| i[:item] == W::HEART_SCALE }
+  raise MapEvents::Error, "#{scales} Écailles Cœur au lieu de #{W::HEART_SCALES}" if scales != W::HEART_SCALES
+  early = plans.select { |name, plan| plan.events.any? { |e| e.label.start_with?("MaitreCapacites") } && zones[name].seals <= 1 }
+  raise MapEvents::Error, "aucun Maître des Capacités avant le 2e sceau" if early.empty?
+  plans.each do |name, plan|
+    plan.events.each do |e|
+      next if e.kind != :npc || !e.value("Gift") || e.value("Once")
+      raise MapEvents::Error, "#{name} : [Npc #{e.label}] redonne son objet (pas de « Once »)"
+    end
+  end
+  drawn = items.select { |i| W::ITEM_SOURCES.key?(i[:source]) }
+  gifts = drawn.count { |i| i[:source] == "don" }
+  if gifts * 100 < drawn.length * W::GIFT_SHARE
+    raise MapEvents::Error, "#{gifts} dons sur #{drawn.length} objets (#{W::GIFT_SHARE} % au moins)"
+  end
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
 W::CENTRE_EVENTS.each do |template, events|
@@ -273,6 +310,16 @@ tms = CI.read_text(File.join(ROOT, "PBS", "items.txt")).split(/^\[/).drop(1).fil
 end
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
+{ "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE }.each do |key, table|
+  CI.error(settings, nil, "#{key} : pas de ligne à 0 sceau") if !table[0]
+  table.values.flat_map(&:keys).uniq.each do |item|
+    CI.error(settings, nil, "#{key} : objet #{item} absent de items.txt") if item != :TM && !items.include?(item.to_s)
+  end
+end
+CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
+[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
+  CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
+end
 
 folder = File.join(ROOT, M::FOLDER)
 bricks = Dir.glob(File.join(folder, M::BRICK_FOLDER, "*.txt")).sort.map do |path|
@@ -310,6 +357,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
+      check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
     end

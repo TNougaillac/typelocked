@@ -24,29 +24,56 @@ module MapEvents
     return event
   end
 
-  # Talks (or runs its script lines) when the player presses the action key,
-  # or steps on it (Trigger = contact); with Hide, an empty page that goes
-  # through takes over once its condition holds.
+  # Talks (or runs its script lines, gives its items) when the player presses
+  # the action key, or steps on it (Trigger = contact). With When, a page
+  # before it says the Wait texts until its condition holds; with Once, a
+  # page after it says the Once texts ever after; with Hide, an empty page
+  # that goes through takes over once its condition holds.
   def build_npc(event, entry)
     event.name = "#{TAG} #{entry.label}"
     page = event.pages[0]
     page.trigger = TRIGGERS[entry.value("Trigger") || "action"]
+    blank = Marshal.load(Marshal.dump(page))
     entry.fields.each do |key, value|
       page.list.push(message(value)) if key == "Text"
       Compiler.push_script(page.list, value) if key == "Script"
+      Compiler.push_script(page.list, "pbReceiveItem(:#{value})") if key == "Gift"
     end
+    page.list.push(RPG::EventCommand.new(123, 0, ["A", 0])) if entry.value("Once")   # Self switch A ON
     Compiler.push_end(page.list)
+    if entry.value("When")
+      set_condition(page.condition, entry.value("When"))
+      event.pages.unshift(texts_page(blank, entry, "Wait"))
+    end
+    if entry.value("Once")
+      once = texts_page(blank, entry, "Once")
+      set_condition(once.condition, "A")
+      event.pages.push(once)
+    end
     event.pages.push(hidden_page(entry.value("Hide"))) if entry.value("Hide")
+  end
+
+  # A copy of the NPC's blank page saying the texts of that key.
+  def texts_page(blank, entry, key)
+    page = Marshal.load(Marshal.dump(blank))
+    entry.fields.each { |k, value| page.list.push(message(value)) if k == key }
+    Compiler.push_end(page.list)
+    return page
   end
 
   def hidden_page(hide)
     page = RPG::Event::Page.new
     page.through = true
-    condition = page.condition
-    case hide
+    set_condition(page.condition, hide)
+    return page
+  end
+
+  # A to D = self switch on, S25 = game switch on, V7>=1 = game variable.
+  def set_condition(condition, text)
+    case text
     when /\A[A-D]\z/
       condition.self_switch_valid = true
-      condition.self_switch_ch = hide
+      condition.self_switch_ch = text
     when /\AS(\d+)\z/
       condition.switch1_valid = true
       condition.switch1_id = $1.to_i
@@ -55,7 +82,6 @@ module MapEvents
       condition.variable_id = $1.to_i
       condition.variable_value = $2.to_i
     end
-    return page
   end
 
   # Movement type, speed and loop route; trainers keep them through

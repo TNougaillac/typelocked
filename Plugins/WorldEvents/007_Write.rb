@@ -29,7 +29,8 @@ module WorldEvents
     separator = "\n#-------------------------------\n"
     File.write(export.sub(/\.txt\z/, "_evenements.txt"), events[:plans].values.join(separator))
     File.write(export.sub(/\.txt\z/, "_dresseurs.txt"), events[:trainers].join(separator))
-    Console.echoln_li(_INTL("Événements placés sur {1} cartes, {2} dresseurs.", events[:plans].length, events[:trainers].length))
+    Console.echoln_li(_INTL("Événements placés sur {1} cartes, {2} dresseurs, {3} objets.", events[:plans].length,
+                                 events[:trainers].length, events[:items].length))
   end
 
   # Every TM of the game: [[item, move, type, power, status?]]

@@ -136,6 +136,53 @@ module WorldEvents
   ].freeze
   MEMBER_ENDS = ["Le lieutenant t'attend.", "Va, il est au fond."].freeze
 
+  # Items of a world. How many: per square of a route, per town (islands
+  # too), per floor of a cave (not the dark ones), plus the loot of each nook.
+  ROUTE_ITEMS = 1..2
+  TOWN_ITEMS  = 2..3
+  CAVE_ITEMS  = 1..2
+  # Source of each of them (weights; the CI checks that gifts are at least
+  # GIFT_SHARE % of them): on the ground (a Poké Ball), hidden (Itemfinder),
+  # given by an inhabitant.
+  ITEM_SOURCES = { "sol" => 30, "cache" => 25, "don" => 45 }.freeze
+  GIFT_SHARE = 40
+  # What they are, by the seals won before the map: the table of the highest
+  # line at most that many seals, item => weight. TM: a TM of the game drawn
+  # at random (never twice, nor a lieutenant's).
+  ITEM_TABLE = {
+    0 => { POTION: 10, POKEBALL: 10, ANTIDOTE: 4, PARALYZEHEAL: 4, ORANBERRY: 6, PECHABERRY: 3,
+           CHERIBERRY: 3, REPEL: 3, ESCAPEROPE: 2, TM: 1 },
+    2 => { SUPERPOTION: 10, GREATBALL: 8, POKEBALL: 3, AWAKENING: 3, BURNHEAL: 3, ICEHEAL: 3,
+           SITRUSBERRY: 5, REVIVE: 3, ETHER: 3, SUPERREPEL: 3, TM: 3, FIRESTONE: 1, WATERSTONE: 1,
+           THUNDERSTONE: 1, LEAFSTONE: 1, MOONSTONE: 1, RARECANDY: 1, NUGGET: 1 },
+    4 => { HYPERPOTION: 8, ULTRABALL: 8, FULLHEAL: 5, REVIVE: 5, LUMBERRY: 4, SITRUSBERRY: 4,
+           ELIXIR: 3, MAXREPEL: 3, TM: 4, RARECANDY: 2, PPUP: 2, NUGGET: 2, PROTEIN: 1, IRON: 1,
+           CALCIUM: 1, ZINC: 1, CARBOS: 1, SUNSTONE: 1, DUSKSTONE: 1, SHINYSTONE: 1, DAWNSTONE: 1, ICESTONE: 1 },
+    6 => { MAXPOTION: 8, FULLRESTORE: 3, ULTRABALL: 8, FULLHEAL: 4, MAXREVIVE: 3, MAXETHER: 3,
+           LUMBERRY: 4, TM: 5, RARECANDY: 3, PPUP: 2, BIGNUGGET: 1, HPUP: 1, PROTEIN: 1, IRON: 1,
+           CALCIUM: 1, ZINC: 1, CARBOS: 1 }
+  }.freeze
+  # The loot of a nook, by the seals won when it opens (its map's, or those
+  # before the field item that opens it, whichever is more): rarer.
+  NOOK_TABLE = {
+    0 => { RARECANDY: 3, NUGGET: 3, TM: 4, PPUP: 1, EVERSTONE: 1, MOONSTONE: 1, FIRESTONE: 1,
+           WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1 },
+    4 => { RARECANDY: 4, BIGNUGGET: 2, TM: 4, PPUP: 2, LEFTOVERS: 1, LIFEORB: 1, CHOICESCARF: 1,
+           FOCUSSASH: 1, EXPSHARE: 1, LUCKYEGG: 1, HPUP: 1 }
+  }.freeze
+  # Heart Scales of a world: spread along the way and among the sources, in
+  # place of other items.
+  HEART_SCALES = 10
+  HEART_SCALE  = :HEARTSCALE
+  # Move Relearners (a Heart Scale per move): one in a town reached with at
+  # most each number of seals (the first one before the 2nd seal).
+  RELEARNERS = [1, 4, 7].freeze
+  RELEARNER_GRAPHIC = "NPC 13"
+  # Inhabitants who give an item, and the member of the Family who gives a
+  # field item once the lieutenant of the town is beaten.
+  GIFT_GRAPHICS = (1..29).map { |i| format("NPC %02d", i) }.freeze
+  FIELD_GRAPHIC = "trainer_COUSIN_M"
+
   # What the professor says ({1} = the imposed type; \PN = the player's
   # name). He already told the Pact during the intro (IntroScene). Moved to
   # MapProc/Lore/dialogues.txt with the other texts (#100).
@@ -146,4 +193,18 @@ module WorldEvents
   PROFESSOR_AFTER = "Prends soin de ton Pokémon. La Famille garde un œil sur toi, \\PN."
   BALL_TEXT       = "Une Poké Ball du professeur."
   GATE_TEXT       = "Tu ne peux pas partir sans Pokémon. Le professeur t'attend."
+  GIFT_TEXTS = [
+    "Tiens, prends ça. Moi, je n'en ai plus l'usage.",
+    "Tu as l'air d'en avoir besoin plus que moi.",
+    "La Famille prend tout, alors autant que ce soit toi qui l'aies.",
+    "Je l'ai trouvé près de la route. Il est à toi."
+  ].freeze
+  GIFT_AFTER = ["Fais-en bon usage.", "Bonne route.", "Ne dis pas à la Famille que ça vient de moi."].freeze
+  FIELD_WAIT  = "Tant que le lieutenant de cette ville ne t'a pas reconnu, je n'ai rien pour toi."
+  FIELD_GIFT  = "Le lieutenant t'a remis sa chevalière. La Famille t'ouvre la route avec ceci."
+  FIELD_AFTER = "Ne déçois pas la Famille."
+  RELEARNER_INTRO    = "Je suis le Maître des Capacités. Une Écaille Cœur, et ton Pokémon se souviendra d'une capacité oubliée."
+  RELEARNER_NO_SCALE = "Tu n'as pas d'Écaille Cœur. Reviens quand tu en auras une."
+  RELEARNER_NONE     = "Aucun de tes Pokémon n'a de capacité à retrouver."
+  RELEARNER_DONE     = "Voilà. Merci pour l'Écaille Cœur."
 end
