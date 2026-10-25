@@ -204,7 +204,7 @@ Alors c'est toi, le prix du Pacte. Montre-moi ce que la Famille a payé si cher.
 Tu crois avoir gagné ? Derrière cette porte, quelqu'un attend. Il attend chaque génération.
 
 [arceus_intro]
-Une lumière immense remplit la salle. | Arceus. Celui avec qui la Famille a passé le Pacte. Celui à qui tu devais être remis.
+Une lumière immense remplit la salle. | Arceus. Celui avec qui la Famille a passé le Pacte. Celui à qui tu seras remis si tu tombes ici.
 
 [arceus_fin]
 La lumière vacille, puis s'éteint. | Le Pacte est brisé, {joueur}. La Famille n'a plus rien à offrir, ni personne à livrer.

@@ -12,7 +12,7 @@ Une nouvelle région du monde Pokémon. Kanto et les autres régions existent ai
 
 ## Le Pacte
 
-Il y a longtemps, la Famille a passé un **Pacte** avec Arceus. Arceus lui a donné le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul des types d'Arceus (les 18 plaques), doit monter jusqu'au sommet de la Famille et lui être remise. Personne ne sait ce que sont devenues les personnes désignées avant le joueur : elles ont toutes disparu après la Ligue. Les termes exacts du Pacte sont oubliés, même de la plupart des membres de la Famille.
+Il y a longtemps, la Famille a passé un **Pacte** avec Arceus. Arceus lui a donné le pouvoir sur la région. En échange, à chaque génération, une personne tirée au hasard est liée à un seul des types d'Arceus (les 18 plaques), doit monter jusqu'au sommet de la Famille, puis affronter Arceus. Si elle perd, elle lui est remise. Personne ne sait ce que sont devenues les personnes désignées avant le joueur : elles ont toutes perdu contre Arceus et ont disparu après la Ligue. Les termes exacts du Pacte sont oubliés, même de la plupart des membres de la Famille.
 
 ## La Famille
 
@@ -37,7 +37,7 @@ Le **joueur** est la personne que le Pacte a désignée pour cette génération.
 
 ## La fin
 
-Au sommet de la Ligue, le joueur affronte le Parrain, puis Arceus, en combat de boss (plugin OverworldBoss). Il brise le Pacte. Son type imposé lui reste jusqu'au bout : c'est le prix qu'il a déjà payé. Arceus n'apparaît que là ; les légendaires restent exclus de la liste des 300 Pokémon.
+Au sommet de la Ligue, le joueur affronte le Parrain, puis Arceus, en combat de boss (plugin OverworldBoss). S'il gagne, il brise le Pacte ; s'il perd, il est remis à Arceus, comme les désignés avant lui. Son type imposé lui reste jusqu'au bout : c'est le prix qu'il a déjà payé. Arceus n'apparaît que là ; les légendaires restent exclus de la liste des 300 Pokémon.
 
 ## Les noms de lieux
 
