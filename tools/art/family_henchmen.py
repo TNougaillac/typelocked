@@ -3,7 +3,8 @@
 Redraws Essentials' Team Rocket grunts (battle sprites and overworld sheets)
 as Family henchmen, all in brown: a pinstripe suit of brown tweed, a flat
 cap (coppola) one shade darker, a white shirt with a dark red tie instead of
-the R, dark brown leather gloves and shoes, a gold belt buckle. The sources are Essentials' own files, so the
+the R, dark brown leather gloves and shoes, a gold belt buckle; her hair is
+black. The sources are Essentials' own files, so the
 result is the same each time.
 
 Usage: python3 tools/art/family_henchmen.py
@@ -25,6 +26,10 @@ SHIRT = (236, 236, 240)
 TIE = (128, 20, 32)
 TIE_LIGHT = (176, 40, 48)
 GOLD = (208, 172, 72)
+# Her red hair turns black
+HAIR = {(160, 72, 64): (22, 20, 26), (208, 96, 88): (42, 38, 48), (240, 104, 96): (68, 62, 76)}
+OW_HAIR = {(80, 16, 0): (22, 20, 26), (144, 64, 40): (42, 38, 48), (120, 64, 64): (42, 38, 48),
+           (224, 112, 80): (68, 62, 76)}
 STRIPE = 16             # lighter added to every pinstripe pixel
 STRIPE_EVERY = 8        # pixels between pinstripes (4 pixels of art, drawn x2)
 
@@ -57,7 +62,7 @@ def battle(gender):
                 elif box((x, y), spec["buckle"]):
                     c = GOLD
                 elif gender == "F" and y < 45:
-                    continue                      # her red hair
+                    c = HAIR[c]
                 else:
                     c = (60, 34, 28)              # soles, glove seams
             elif c in SUIT:
@@ -119,7 +124,7 @@ def overworld(gender):
                 if box((x % fw, fy), TORSO) and y < fh:      # front frames only
                     c = OW_RED[c]
                 elif gender == "F":
-                    continue
+                    c = OW_HAIR[c]
                 else:
                     c = OW_SUIT[(72, 72, 88)]
             px[x, y] = (*c, a)
