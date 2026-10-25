@@ -1,0 +1,137 @@
+"""Henchmen of the Family (TypeLocked, #103): the Cousins in mafia style.
+
+Redraws Essentials' Team Rocket grunts (battle sprites and overworld sheets)
+as Family henchmen: a charcoal pinstripe suit, a white shirt with a dark red
+tie instead of the R, a brown tweed flat cap (coppola), black leather gloves
+and shoes, a gold belt buckle. The sources are Essentials' own files, so the
+result is the same each time.
+
+Usage: python3 tools/art/family_henchmen.py
+Writes Graphics/Trainers/COUSIN_M.png, COUSIN_F.png and
+Graphics/Characters/trainer_COUSIN_M.png, trainer_COUSIN_F.png.
+"""
+from pathlib import Path
+
+from PIL import Image
+
+ROOT = Path(__file__).resolve().parents[2]
+
+# Grunt colours -> henchman colours
+SUIT = {(56, 56, 72): (36, 34, 40), (80, 80, 104): (58, 55, 64), (120, 120, 144): (94, 90, 100)}
+CAP = {(56, 56, 72): (72, 52, 38), (80, 80, 104): (106, 80, 56), (120, 120, 144): (142, 112, 82)}
+LEATHER = {(152, 152, 168): (58, 54, 58), (176, 176, 192): (82, 78, 84), (200, 200, 216): (108, 104, 110)}
+RED = {(160, 72, 64), (208, 96, 88), (240, 104, 96)}
+SHIRT = (236, 236, 240)
+TIE = (128, 20, 32)
+TIE_LIGHT = (176, 40, 48)
+GOLD = (208, 172, 72)
+STRIPE = 16             # lighter added to every pinstripe pixel
+STRIPE_EVERY = 8        # pixels between pinstripes (4 pixels of art, drawn x2)
+
+# Battle sprites (128x128, art drawn x2): cap bottom, R box (x0, y0, x1, y1),
+# shirt (x0, x1, top, bottom) with the tie in its middle, belt buckle box.
+BATTLE = {
+    "M": {"cap": 30, "logo": (54, 48, 71, 63), "shirt": (58, 66, 40, 64), "tie": (62, 64), "buckle": (70, 70, 73, 75)},
+    "F": {"cap": 30, "logo": (62, 48, 75, 61), "shirt": (66, 72, 42, 62), "tie": (68, 70), "buckle": (68, 66, 71, 73)},
+}
+
+
+def box(point, rect):
+    x, y = point
+    return rect[0] <= x <= rect[2] and rect[1] <= y <= rect[3]
+
+
+def battle(gender):
+    spec = BATTLE[gender]
+    im = Image.open(ROOT / f"Graphics/Trainers/TEAMROCKET_{gender}.png").convert("RGBA")
+    px = im.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            c = (r, g, b)
+            if c in RED:
+                if box((x, y), spec["logo"]):
+                    c = SUIT[(80, 80, 104)]
+                elif box((x, y), spec["buckle"]):
+                    c = GOLD
+                elif gender == "F" and y < 45:
+                    continue                      # her red hair
+                else:
+                    c = (60, 34, 28)              # soles, glove seams
+            elif c in SUIT:
+                if y < spec["cap"]:
+                    c = CAP[c]
+                else:
+                    c = SUIT[c]
+                    if x % STRIPE_EVERY in (0, 1):
+                        c = tuple(min(255, v + STRIPE) for v in c)
+            elif c in LEATHER:
+                c = LEATHER[c]
+            px[x, y] = (*c, a)
+    x0, x1, top, bottom = spec["shirt"]
+    t0, t1 = spec["tie"]
+    for y in range(top, bottom):
+        # Shirt as a V narrowing down to the tie, then the tie alone
+        half = max(0, (x1 - x0) // 2 - (y - top) // 3)
+        for x in range(x0, x1):
+            if px[x, y][3] == 0 or px[x, y][:3] == (0, 0, 0):
+                continue
+            mid = (x0 + x1) // 2
+            if t0 <= x < t1:
+                px[x, y] = (*(TIE_LIGHT if x == t0 and y > top + 2 else TIE), 255)
+            elif abs(x - mid) <= half and px[x, y][:3] != (0, 0, 0):
+                px[x, y] = (*SHIRT, 255)
+    return im
+
+
+# Overworld sheets (4x4 frames of 32x48, art drawn x2): the cap is above
+# CAP_ROWS in a frame; the R on the chest (TORSO box of a frame) becomes
+# shirt (light) and tie (dark); other red is her hair, or his uniform's
+# trim, which turns to suit.
+OW_SUIT = {(72, 72, 88): (48, 46, 54), (136, 144, 144): (84, 80, 90)}
+OW_CAP = {(72, 72, 88): (82, 60, 42), (136, 144, 144): (132, 104, 76), (56, 56, 24): (56, 40, 28)}
+OW_LEATHER = {(192, 200, 216): (96, 92, 100)}
+OW_RED = {(224, 112, 80): SHIRT, (120, 64, 64): TIE, (144, 64, 40): TIE, (80, 16, 0): TIE}
+CAP_ROWS = 18
+TORSO = (10, 28, 21, 39)
+
+
+def overworld(gender):
+    im = Image.open(ROOT / f"Graphics/Characters/trainer_TEAMROCKET_{gender}.png").convert("RGBA")
+    px = im.load()
+    fw, fh = im.width // 4, im.height // 4
+    for y in range(im.height):
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            c = (r, g, b)
+            fy = y % fh
+            if fy < CAP_ROWS and c in OW_CAP:
+                c = OW_CAP[c]
+            elif c in OW_SUIT:
+                c = OW_SUIT[c]
+            elif c in OW_LEATHER:
+                c = OW_LEATHER[c]
+            elif c in OW_RED:
+                if box((x % fw, fy), TORSO) and y < fh:      # front frames only
+                    c = OW_RED[c]
+                elif gender == "F":
+                    continue
+                else:
+                    c = OW_SUIT[(72, 72, 88)]
+            px[x, y] = (*c, a)
+    return im
+
+
+def main():
+    for gender in ("M", "F"):
+        battle(gender).save(ROOT / f"Graphics/Trainers/COUSIN_{gender}.png")
+        overworld(gender).save(ROOT / f"Graphics/Characters/trainer_COUSIN_{gender}.png")
+    print("Cousins redessinés")
+
+
+if __name__ == "__main__":
+    main()
