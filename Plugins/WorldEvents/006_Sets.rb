@@ -48,7 +48,7 @@ module WorldEvents
     end
 
     # Up to 4 move ids: the best of each STAB type (the trainer's first), a
-    # coverage move, a status move, then the best left.
+    # coverage move, a status move, then the best left; else any it knows.
     def choose_moves(moves, stabs, physical, seals)
       score = lambda do |m|
         m.power * (m.accuracy.zero? ? 100 : m.accuracy) * (stabs.include?(m.type) ? 1.5 : 1) *
@@ -65,6 +65,8 @@ module WorldEvents
       take.call(moves.select { |m| SET_STATUS.include?(m.id) }.sample(random: @rng)) if seals >= SET_STATUS_SEALS
       ranked.select(&new_type).each(&take)
       ranked.each(&take)
+      # No damaging move (Smeargle and its Sketch): what it knows
+      moves.each(&take) if picks.empty?
       return picks.map(&:id)
     end
   end

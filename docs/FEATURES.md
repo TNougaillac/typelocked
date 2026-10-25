@@ -516,7 +516,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.7.2, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue.
+**Statut :** v1.7.3, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -710,4 +710,5 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | WorldEvents v1.7.0 : vrais sets pour les lieutenants et la Ligue (attaques du type du dresseur, de couverture et de statut tirées dans les capacités par niveau, CT et reproduction sous un plafond de puissance selon les sceaux ; objet tenu, talent caché dès 4 sceaux, nature, IV 10 à 31), contrôlés par la CI | `Plugins/WorldEvents/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.7.1 : les sets peuvent prendre les attaques à deux tours et d'autodestruction | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/meta.txt`, `docs/FEATURES.md` |
 | 25/10/2026 | WorldEvents v1.7.2 : plus aucune attaque exclue des sets (`SET_BANNED` supprimé) | `Plugins/WorldEvents/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 25/10/2026 | WorldEvents v1.7.3 : un Pokémon sans attaque offensive (Queulorior) garde ce qu'il sait (Gribouille) | `Plugins/WorldEvents/006_Sets.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | RunHistory v1.0.0 (#48) : historique des 20 dernières parties (graine, région, type, dernier lieu, équipe, issue), mis à jour à chaque sauvegarde, figé à la défaite Nuzlocke, à la victoire contre Arceus ou à l'abandon (une partie jamais sauvegardée n'y entre pas) ; panneau « Dernières parties » sous New Game à l'écran titre (partie précédente et icônes de son équipe) et liste de toutes les parties, avec « Rejouer cette graine » ; MapProceduralGenerator v0.25.0 (`next_game_seed=`) | `Plugins/RunHistory/*`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
