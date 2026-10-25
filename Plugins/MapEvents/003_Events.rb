@@ -23,15 +23,38 @@ module MapEvents
     return event
   end
 
-  # Talks (or runs its script lines) when the player presses the action key.
+  # Talks (or runs its script lines) when the player presses the action key,
+  # or steps on it (Trigger = contact); with Hide, an empty page that goes
+  # through takes over once its condition holds.
   def build_npc(event, entry)
     event.name = "#{TAG} #{entry.label}"
     page = event.pages[0]
+    page.trigger = TRIGGERS[entry.value("Trigger") || "action"]
     entry.fields.each do |key, value|
       page.list.push(message(value)) if key == "Text"
       Compiler.push_script(page.list, value) if key == "Script"
     end
     Compiler.push_end(page.list)
+    event.pages.push(hidden_page(entry.value("Hide"))) if entry.value("Hide")
+  end
+
+  def hidden_page(hide)
+    page = RPG::Event::Page.new
+    page.through = true
+    condition = page.condition
+    case hide
+    when /\A[A-D]\z/
+      condition.self_switch_valid = true
+      condition.self_switch_ch = hide
+    when /\AS(\d+)\z/
+      condition.switch1_valid = true
+      condition.switch1_id = $1.to_i
+    when /\AV(\d+)>=(\d+)\z/
+      condition.variable_valid = true
+      condition.variable_id = $1.to_i
+      condition.variable_value = $2.to_i
+    end
+    return page
   end
 
   # Movement type, speed and loop route; trainers keep them through

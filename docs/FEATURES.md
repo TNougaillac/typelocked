@@ -178,7 +178,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Les PV affichés du boss et ses PV après capture (doivent revenir à la normale).
 
 ## F06. Placeur d'événements (MapEvents)
-**Statut :** v1.1.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
+**Statut :** v1.2.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
 **Version cible :** Essentials v21.1. Plugin séparé de MapGen (aucune dépendance obligatoire).
 **Dossier :** `Plugins/MapEvents/`, plans dans `MapEvents/*.txt` (exemple : `MapEvents/exemple.txt`, sur la carte de `MapGen/exemple.txt`).
 
@@ -189,6 +189,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - **Déplacements (PNJ et dresseurs) :** `Move = fixe` (par défaut), `vers_joueur` (s'approche du joueur) ou `ronde`. `Route = droite*3, attendre 60, gauche*3, regard_bas` est un trajet répété en boucle (pas : `haut`, `bas`, `gauche`, `droite`, `*n` pour répéter, `regard_<direction>`, `attendre <images>`) ; il implique `Move = ronde`, doit revenir à `Pos` et rester dans la carte (vérifié). `Speed` et `Frequency` de 1 à 6 comme dans l'éditeur, `Through = oui` pour traverser les autres. Pas de déplacement aléatoire (un PNJ ne peut pas être tenu dans une zone).
 - **`[Trainer B]` (dresseur) :** `Type`, `Name`, `Battle` obligatoires ; `Sight` (portée de vue, 3 par défaut) ; `Graphic` (sinon celui du type de dresseur) ; `Facing`. Les autres clés sont les commentaires de dresseur d'Essentials : `EndBattle`, `BattleID`, `DoubleBattle` / `Continue` (`oui`/`non`), `Backdrop`, `EndIfSwitch`, `VanishIfSwitch`, `Outcome`, `RegSpeech`. Plusieurs `Battle` = revanches. L'équipe est celle de `PBS/trainers.txt`.
 - **Champion d'arène :** un `[Trainer]` avec, après une victoire, `Win` (texte, codes de message acceptés comme `\me[Badge get]`), `Badge = n` (badge 1 à 8), `Gift = TM39` (objet donné), `Switch = n` (interrupteur activé). Le Monotype le reconnaît par son type `LEADER_…`.
+- **`Trigger` et `Hide` (PNJ) :** `Trigger = contact` déclenche le PNJ quand le joueur marche dessus ou le heurte (`action` par défaut). `Hide = V7>=1` le fait disparaître dès que la condition est vraie (une page vide qui se traverse prend le relais) : `A` à `D` (interrupteur local), `S25` (interrupteur 25 activé), `V7>=1` (variable 7 au moins à 1).
 - **`[Item C]` :** `Item = POTION`, `Hidden = oui` pour un objet caché.
 - **`[Metadata]` :** lignes `Clé = valeur` fusionnées dans la section de la carte de `PBS/map_metadata.txt` (les autres clés sont gardées), ex. `HealingSpot`, `Outdoor`, `BattleBack`.
 - **`[Encounters]` :** mêmes lignes que dans `PBS/encounters.txt` (`Land,21` puis `40,PIDGEY,2,4`) ; elles remplacent la section de la carte. Les deux PBS sont recompilés aussitôt. **Convention du projet : ne pas l'utiliser**, les rencontres se gèrent uniquement dans `PBS/encounters.txt`.
@@ -262,7 +263,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - Une zone sous-marine est une carte à part, de la taille de la route : on y plonge depuis l'eau profonde, on remonte là où l'eau au-dessus est profonde.
 - Si les briques d'un lieu ne tiennent pas (route étroite coupée par l'eau ou les rochers, port refait sans son île), le lieu est retiré avec une graine dérivée de la sienne ; après 4 essais, tout le monde est retracé (jusqu'à `WORLD_TRIES` fois), plus loin dans les tirages de la graine : le monde reste le même pour une même graine.
 - Lancement : menu debug > Autres éditeurs > « Générer un lieu (MapProc) ». Les raccords, les métadonnées, la carte de région et les points de vol sont écrits par MapGen.
-- **Nouvelle partie :** chaque nouvelle partie tire un monde (`NEW_GAME_WORLD`, `monde.txt` par défaut, `nil` = désactivé) avec une graine au hasard. Seules les cartes sont générées, sans événements (pas de MapEvents) ; les rencontres sauvages sont écrites par ProceduralEncounters (F13). La partie commence directement dans la première ville du monde, devant le Centre Pokémon (sinon devant la première porte) : l'intro de l'éditeur (carte 1) est sautée, le joueur choisit seulement son nom (`pbTrainerName`, personnage 1). Sans monde (`NEW_GAME_WORLD = nil` ou génération ratée), l'intro d'origine se joue. Aucun message au joueur : la graine, Surf et Plongée sont écrits dans la console. La graine est gardée dans la sauvegarde.
+- **Nouvelle partie :** chaque nouvelle partie tire un monde (`NEW_GAME_WORLD`, `monde.txt` par défaut, `nil` = désactivé) avec une graine au hasard. Les cartes sont générées avec leurs événements (WorldEvents, F15) ; les rencontres sauvages sont écrites par ProceduralEncounters (F13). La partie commence directement dans la première ville du monde, devant le Centre Pokémon (sinon devant la première porte) : l'intro de l'éditeur (carte 1) est sautée, le joueur choisit seulement son nom (`pbTrainerName`, personnage 1). Sans monde (`NEW_GAME_WORLD = nil` ou génération ratée), l'intro d'origine se joue. Aucun message au joueur : la graine, Surf et Plongée sont écrits dans la console. La graine est gardée dans la sauvegarde.
 - **Génération pendant l'intro :** le tirage du monde (le calcul en Ruby pur de `generate_world`, `compute_world`) tourne dans un thread de basse priorité (`WORLD_THREAD_PRIORITY`, tranches de temps courtes pour garder la fluidité de l'intro) pendant que l'intro (IntroScene, F14) se joue. La partie démarre sur la carte de départ de l'éditeur, puis, avant que la première carte s'affiche (`Scene_Map#main`), les cartes sont écrites et le joueur est déplacé au départ du monde (nouvelle `PokemonMapFactory`, `moveto`, rencontres, musique de la carte). L'écran « Le monde se prépare... » ne reste que le temps d'écrire les cartes, plus la fin du calcul s'il n'est pas fini. Même graine, même monde qu'avant. Si le thread échoue, le monde est tiré à ce moment-là, comme avant (message dans la console).
 - **Partie non sauvegardée :** à la fermeture du jeu (`at_exit`), si aucune sauvegarde ne contient de monde, les fichiers `Data/MapXXX.rxdata` du monde et leurs entrées dans l'arbre des cartes sont supprimés tout de suite (sans compilateur, la fenêtre n'existe plus). Le reste est fait au lancement suivant (écran de chargement), où les cartes sur le disque sont remises d'accord avec la sauvegarde :
   - pas de sauvegarde (ou une sauvegarde sans monde) : les cartes du monde sont supprimées (`Data/MapXXX.rxdata`, arbre des cartes, raccords, métadonnées, points de la carte de région, graines des grottes) la région de `town_map.txt` et son image (`typelocked_proc.png`) sont remises comme avant le premier monde, les plans exportés de ce monde (`MapProc/Export/monde_<graine>.txt` et ses rencontres) supprimés ;
@@ -512,6 +513,44 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Seuls Red et Leaf ont tous leurs sprites (course, vélo, surf, pêche). Brendan et May pourront s'ajouter avec `[3]` et `[4]` dans `metadata.txt` quand leurs sprites existeront.
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
+## F15. Événements des mondes générés (WorldEvents)
+**Statut :** v1.0.0, écrit, **non testé en jeu**. Spec #93, ticket #94 (socle et starter).
+**Version cible :** Essentials v21.1.
+**Dossier :** `Plugins/WorldEvents/`
+
+### Règles
+- **Quand :** chaque fois que MapProc écrit un monde (nouvelle partie ou menu debug), ses événements sont tirés avec la même graine, à partir de l'inventaire (F07), puis placés par MapEvents (F06) sur ses cartes. Un générateur aléatoire à part : tirer les événements ne change pas le monde.
+- **Plans :** les événements prennent la forme de plans MapEvents (un par carte), exportés dans `MapProc/Export/<monde>_<graine>_evenements.txt`. Copiés dans `MapEvents/`, ils se rejouent avec le placeur.
+- **Professeur et starter :**
+  - si la ville de départ a son labo, le Professeur Castellane s'y tient avec trois Poké Balls (`LAB_PROFESSOR`, `LAB_BALLS`). Parler au professeur ouvre le choix (interrupteur 3 « Choosing starter »), chaque Poké Ball propose un des trois starters (`Monotype.starter_ball`) et disparaît une fois prise ;
+  - sinon, il attend dehors, sur la case `professor` de l'inventaire, et propose les trois starters dans une liste (`Monotype.starter_dialog`) ;
+  - il ne raconte plus le Pacte, déjà dit pendant l'intro (F14).
+- **Garde des sorties :** sur la rangée intérieure de chaque sortie de la ville de départ, un événement invisible renvoie le joueur d'un pas en arrière (« Tu ne peux pas partir sans Pokémon ») tant que la variable 7 (« Starter choice ») vaut 0. Le starter pris, elle vaut 1 à 3 et la garde disparaît.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin (requiert MapEvents, MapProceduralGenerator, ProceduralEncounters, Monotype). |
+| `001_Settings.rb` | Places du professeur et des Poké Balls au labo, graphismes, interrupteur et variable du starter, textes. |
+| `002_World.rb` | `WorldEvents.world_events(result, seed)` : les plans MapEvents du monde, en Ruby pur (vérifié par la CI). |
+| `003_Runtime.rb` | Appelé par les événements en jeu : `professor`, `starter_ball`, `gate`. |
+| `004_Write.rb` | Écriture des plans après les cartes et les rencontres, export. |
+
+### Intégration
+- Rien à faire : actif dès que MapProc génère un monde.
+- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, et que la même graine redonne les mêmes événements.
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`MapProceduralGenerator.generate_world` et `generate_world_maps` (après ProceduralEncounters, d'où le `Requires`).
+
+### À vérifier au premier lancement
+- Au labo : les Poké Balls ne proposent rien avant d'avoir parlé au professeur, puis chacune propose son starter ; celle qui est prise disparaît, les autres ne donnent plus rien.
+- Sans labo : le professeur dehors propose la liste des trois starters.
+- Avant le starter, marcher sur une sortie de la ville de départ affiche le message et fait reculer d'un pas ; après, la sortie est libre (aussi après une sauvegarde et un rechargement).
+
+### Limites connues
+- Les textes sont encore dans `001_Settings.rb` ; ils iront dans `MapProc/Lore/dialogues.txt` (#100).
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -579,3 +618,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 23/10/2026 | Hautes herbes de la prairie (T143) et pied des herbes très hautes sur la prairie, le sable, la terre et le gravier (T151, T175, T181, T189), ajoutés au tileset Outside ; contrôle CI des moitiés de plante mis à jour | `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `Plugins/ProceduralEncounters/001_Settings.rb`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
 | 23/10/2026 | Sols d'ambiance (prairie, sable, terre, gravier) : arbres, grand pin, arbre rond, cyprès, arbrisseau, haies et buissons redessinés sur chaque sol (ombres sans vert), fleurs, rive et rue de la prairie ; 176 tuiles ajoutées sous le tileset Outside (T4016 à T4199) par `tools/art/ground_variants.py`, tables du tileset agrandies par `tools/art/tileset_tables.rb` ; jardin fleuri et massif de fleurs réservés aux ambiances herbeuses | `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/maison_jardin.txt`, `MapProc/Briques/parc_fleurs.txt`, `tools/art/ground_variants.py`, `tools/art/tileset_tables.rb`, `docs/FEATURES.md` |
 | 23/10/2026 | Monde non linéaire (#82) : MapGenerator v1.9.0 (masque et tracé des zones, image de région sans marge), MapProceduralGenerator v0.24.0 (monde 32x24, routes de 1 à 4 cases de long et 1 ou 2 de large, routes en L et en U, villes 1x1, 1x2, 2x2 et en L, boucles, raccourcis fermés par un obstacle, Grappin pour les raccourcis et les recoins), ProceduralEncounters v1.3.0 (rencontres au palier des routes ajoutées) ; contrôles CI (masque, villes, accessibilité sans raccourci, pas de saut d'arène, obstacles) | `MapProc/monde.txt`, `MapProc/ville.txt`, `MapProc/route.txt`, `Plugins/MapGenerator/*`, `Plugins/MapProceduralGenerator/*`, `Plugins/ProceduralEncounters/*`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `docs/FEATURES.md` |
+| 25/10/2026 | WorldEvents v1.0.0 (#94) : événements des mondes générés tirés avec la graine depuis l'inventaire et placés par MapEvents ; Professeur Castellane au labo (trois Poké Balls) ou dehors, sorties de la ville de départ gardées jusqu'au starter ; MapEvents v1.2.0 (clés `Trigger` et `Hide` des PNJ) ; CI `check_world_events.rb` | `Plugins/WorldEvents/*`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `tools/ci/check_world_events.rb`, `.github/workflows/ci.yml`, `docs/FEATURES.md` |

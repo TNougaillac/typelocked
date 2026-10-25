@@ -55,6 +55,9 @@ jobs:
       - name: Plans MapEvents
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_mapevents.rb
+      - name: Événements des mondes générés
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_world_events.rb
       - name: meta.txt et encodage
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_plugins.rb

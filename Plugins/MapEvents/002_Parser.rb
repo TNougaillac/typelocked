@@ -16,6 +16,11 @@
 #   Through = oui               attendre <frames>), it implies Move = ronde and
 #                               must come back to Pos; Speed and Frequency =
 #                               1-6; Through = oui walks through the others)
+#   Trigger = contact          (NPC: action (default) or contact, run when the
+#                               player steps on it or bumps into it)
+#   Hide = V7>=1               (NPC: gone once the condition holds: A to D =
+#                               its self switch, S25 = game switch 25 on,
+#                               V7>=1 = game variable 7 at least 1)
 #   [Trainer B]                (Essentials trainer: Type, Name and Battle are
 #   Pos = 10,3                  required; Sight = how far it sees, 3 by
 #   Sight = 4                   default; Graphic is taken from the trainer
@@ -57,11 +62,14 @@ module MapEvents
     "regard_droite" => [18, [0, 0]], "regard_haut" => [19, [0, 0]]
   }
   MOVE_KEYS = %w[Move Route Speed Frequency Through]
+  TRIGGERS = { "action" => 0, "contact" => 1 }   # RMXP triggers
+  # Hide conditions: self switch, game switch, game variable at least n
+  HIDE_PATTERN = /\A(?:[A-D]|S\d+|V\d+>=\d+)\z/
   # Keys written as comments for Compiler.convert_to_trainer_event
   TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
-    npc:     %w[Pos Graphic Facing Text Script] + MOVE_KEYS,
+    npc:     %w[Pos Graphic Facing Text Script Trigger Hide] + MOVE_KEYS,
     trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden]
   }
@@ -137,6 +145,10 @@ module MapEvents
       fail_at.call("direction « #{value} » inconnue (#{FACINGS.keys.join(', ')})")
     elsif key == "Move" && !MOVES[value]
       fail_at.call("déplacement « #{value} » inconnu (#{MOVES.keys.join(', ')})")
+    elsif key == "Trigger" && !TRIGGERS[value]
+      fail_at.call("déclenchement « #{value} » inconnu (#{TRIGGERS.keys.join(', ')})")
+    elsif key == "Hide" && value !~ HIDE_PATTERN
+      fail_at.call("condition « #{value} » inconnue (A à D, S25, V7>=1)")
     elsif NUMBER_KEYS.include?(key) && value !~ /\A\d+\z/
       fail_at.call("nombre attendu pour « #{key} », trouvé « #{value} »")
     elsif YES_NO_KEYS.include?(key) && !%w[oui non true false].include?(value.downcase)
