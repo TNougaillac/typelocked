@@ -1,7 +1,7 @@
 # Fonctionnalités
 
 ## F01. Mode Nuzlocke
-**Statut :** v1.2.2, écrit, **non testé**.
+**Statut :** v1.2.3, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Nuzlocke/`
 
@@ -100,7 +100,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.5.4, écrit, **non testé**.
+**Statut :** v1.5.5, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -612,7 +612,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Un dresseur posé au bord du chemin pourrait, rarement, boucher un passage étroit vers des hautes herbes ou un cul-de-sac (la CI ne refait pas le chemin à pied avec les dresseurs en place).
 
 ## F16. Historique des parties (RunHistory)
-**Statut :** v1.1.0, écrit, **non testé en jeu**. Issue #48.
+**Statut :** v1.1.1, écrit, **non testé en jeu**. Issue #48.
 **Version cible :** Essentials v21.1. Dépend de Nuzlocke, Monotype, MapProceduralGenerator et WorldEvents (`Requires`).
 **Dossier :** `Plugins/RunHistory/`
 
