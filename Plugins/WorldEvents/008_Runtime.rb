@@ -17,7 +17,9 @@ module WorldEvents
       return
     end
     Monotype.starter_dialog
-    pbSet(STARTER_VARIABLE, 1) if Monotype.data.starter_given
+    return if !Monotype.data.starter_given
+    pbSet(STARTER_VARIABLE, 1)
+    give_pokedex
   end
 
   # A Poké Ball of the lab: true once its starter is taken.
@@ -29,7 +31,16 @@ module WorldEvents
     return false if !Monotype.starter_ball(index)
     $game_switches[CHOOSING_STARTER_SWITCH] = false
     pbSet(STARTER_VARIABLE, index + 1)
+    give_pokedex
     return true
+  end
+
+  # The professor gives the Pokédex with the starter (#115).
+  def give_pokedex
+    return if $player.has_pokedex
+    say("professeur_pokedex")
+    $player.has_pokedex = true
+    pbMessage(_INTL("\\me[Key item get]{1} reçoit le Pokédex !\\wtnp[30]", $player.name))
   end
 
   # The clerk of a shop where that many seals are won on the way.

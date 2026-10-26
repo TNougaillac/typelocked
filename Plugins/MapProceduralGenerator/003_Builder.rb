@@ -153,7 +153,8 @@ module MapProceduralGenerator
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
         dead_ends: @dead_ends.select { |x, y| seen[y][x] },
         nooks:     @nooks.map(&:dup),
-        lock:      @lock&.dup
+        lock:      @lock&.dup,
+        ground:    cells_where(seen) { true }
       }
     end
 

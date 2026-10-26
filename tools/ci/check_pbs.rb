@@ -167,8 +167,8 @@ end
 
 # Monotype: ROSTER (Plugins/Monotype/006_Roster.rb) is docs/roster/liste-300.csv,
 # and each type that can be drawn has enough starters (base forms of the roster
-# that have the type or evolve into it, pseudo-legendaries excluded, as
-# Monotype.starter_pool).
+# that have the type or evolve into it, and evolve into a Pokémon of the
+# roster, pseudo-legendaries excluded, as Monotype.starter_pool).
 %w[001_Settings 006_Roster].each { |f| require File.join(ROOT, "Plugins", "Monotype", "#{f}.rb") }
 roster_file = File.join(ROOT, "Plugins", "Monotype", "006_Roster.rb")
 csv_ids = CI.read_text(File.join(ROOT, "docs", "roster", "liste-300.csv")).lines.drop(1).map { |l| l.split(",")[0] }
@@ -190,7 +190,7 @@ end
 types.each_value do |t|
   next if value_of.call(t, "IsPseudoType") == "true" || Monotype::EXCLUDED_TYPES.include?(t.id.to_sym)
   pool = roster.select do |id|
-    !roster.include?(prevo[id]) && eligible.call(id, t.id) &&
+    !roster.include?(prevo[id]) && eligible.call(id, t.id) && evolutions.fetch(id, []).any? { |e| roster.include?(e) } &&
       final_stats.call(id) <= Monotype::STARTER_MAX_FINAL_STATS
   end
   next if pool.length >= Monotype::STARTER_COUNT

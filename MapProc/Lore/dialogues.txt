@@ -107,6 +107,10 @@ La Famille n'oublie pas.
 Va. On se reverra plus haut.
 Pas mal. Le lieutenant sera moins tendre.
 
+[cousin_carte]
+Tiens, une carte de {region}. La Famille veut que tu trouves ton chemin jusqu'aux lieutenants. | Tous les chemins mènent au Parrain, de toute façon.
+Prends cette carte. Comme ça, tu ne pourras pas dire que tu t'es perdu en route. | Les routes de {region} appartiennent à la Famille. Toi aussi, maintenant.
+
 #-------------------------------------------------------------------------------
 # Professeur Castellane, Poké Balls du labo, garde des sorties (dits en jeu)
 #-------------------------------------------------------------------------------
@@ -118,6 +122,10 @@ Ces trois Poké Balls contiennent des Pokémon de ton type. Choisis celui qui t'
 
 [professeur_apres]
 Prends soin de ton Pokémon. La Famille garde un œil sur toi, {joueur}.
+
+[professeur_pokedex]
+Tiens, prends aussi ce Pokédex. La Famille aime savoir ce que ses désignés attrapent. | Note tout, {joueur}. Surtout les Pokémon de type {type}.
+Un Pokédex, pour toi. Chaque Pokémon que tu croises y sera noté. Et la Famille lira tes notes. | Allez, file, {joueur}.
 
 [ball]
 Une Poké Ball du professeur.
