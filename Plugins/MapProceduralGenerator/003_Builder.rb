@@ -115,7 +115,8 @@ module MapProceduralGenerator
       lay_port(hub) if @place.port
       lay_shore if @place.island
       moor_boat if @terminal && (@place.ferry || @place.island)
-      scatter_reefs if @place.island
+      scatter_reefs(ISLAND_BANKS, ISLAND_REEFS, @rng) if @place.island
+      scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if @place.port
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       choose_plan
       lay_grid if @plan == "grille"
@@ -123,6 +124,7 @@ module MapProceduralGenerator
       lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
       cross if @place.crossing
+      scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)
       if @place.mountain
         choose_river if @place.river
         raise_levels
@@ -1052,16 +1054,21 @@ module MapProceduralGenerator
     end
 
     # Sandbanks (walked on after surfing) and rocks in the sea around an
-    # island, off the shore, the piers and one another.
-    def scatter_reefs
+    # island or a port, or in the water crossing a route: off the shore, the
+    # piers, the way across and one another.
+    def scatter_reefs(banks, reefs, rng)
       # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
       # the hand-made maps
-      [[@place.bank, ISLAND_BANKS, [2, 4], [2, 3]], [@place.reef, ISLAND_REEFS, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
+      [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
         next if !sym
-        @rng.rand(count).times do
-          w, h = @rng.rand(ws[0]..ws[1]), @rng.rand(hs[0]..hs[1])
+        rng.rand(count).times do
+          w, h = rng.rand(ws[0]..ws[1]), rng.rand(hs[0]..hs[1])
           spots = (0..@h - h).flat_map { |y| (0..@w - w).map { |x| [x, y] } }
-          spot = spots.shuffle(random: @rng).find { |x, y| open_sea?(x, y, w, h, 2) }
+          spot = spots.shuffle(random: rng).find do |x, y|
+            open_sea?(x, y, w, h, 2) && (y - 3...y + h + 3).none? do |cy|
+              (x - 3...x + w + 3).any? { |cx| inside?(cx, cy) && @street[cy][cx] }
+            end
+          end
           break if !spot
           reef(*spot, w, h, sym)
         end

@@ -21,6 +21,9 @@ Eau     = ~
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
 Profond = %
+# Des rochers et des bancs de sable dans l'eau qui traverse une route.
+Recif   = µ
+Banc    = £
 Roche   = R
 Caillou = o
 # Routes de montagne (« Montagnes » dans monde.txt) : un symbole par niveau, du
@@ -213,6 +216,8 @@ x = {sol} T919          # cailloux gris
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
 % = {sol} A1 A3         # eau profonde (on y plonge avec Plongée)
+µ = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
+£ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 o = {sol} T815          # caillou (comble les trous du mur de rochers)
 1 = T787             # rocher de l'entrée de grotte
 2 = T790

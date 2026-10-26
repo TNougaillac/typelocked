@@ -289,6 +289,10 @@ module MapProceduralGenerator
   # Sandbanks and rocks in the sea around an island
   ISLAND_BANKS = 1..3
   ISLAND_REEFS = 3..6
+  # The same in the sea of a port and in the water crossing a route (their
+  # own draws, SEA_LIFE_SALT), when the place has « Recif » and « Banc »
+  SEA_LIFE = { banks: 0..2, reefs: 1..3 }.freeze
+  SEA_LIFE_SALT = 0x5EA1
   # Island names: « Île » and a name, or a name alone, from these sections of
   # this file
   ISLAND_NAMES_FILE = "Lore/noms.txt"
