@@ -43,6 +43,36 @@ Avant, {ville} avait un maire. Maintenant, elle a un lieutenant.
 Le Pacte a choisi {joueur}... Je me demande ce qu'il a vu en toi.
 
 #-------------------------------------------------------------------------------
+# Policiers : dans les rues ; la plupart payés par la Famille, quelques-uns
+# qui enquêtent en douce
+#-------------------------------------------------------------------------------
+[policier]
+La loi, ici, c'est la Famille. Moi, je fais juste la circulation.
+Tu as vu quelque chose ? Non. Personne ne voit jamais rien à {ville}.
+Un jour, quelqu'un écrira ce que la Famille a fait aux désignés. Pas moi, j'ai des enfants.
+Mon salaire vient de {region}. Ma prime vient d'ailleurs. Devine laquelle est la plus grosse.
+Un Cousin a renversé un étal ce matin. Le rapport dit « accident ». C'est moi qui l'ai écrit.
+Circule, {joueur}. Les Cousins n'aiment pas qu'on traîne près du poste.
+Le commissariat de {ville} n'a pas de cellule. La Famille a la sienne.
+Je note tout dans un carnet, {joueur}. Le vrai, pas celui du bureau. | Si un jour il m'arrive quelque chose... cherche sous le banc du Centre Pokémon.
+Les anciens désignés ? Dossiers classés. Tous. Par la même main.
+On a reçu une plainte contre un lieutenant, une fois. Le plaignant a déménagé. Très loin.
+Ma matraque ne sert à rien. Ma carte de la Famille, elle, ouvre toutes les portes.
+Le professeur Castellane signe nos rapports d'accident de Pokémon. Drôle de métier, pour un professeur.
+Ne fais pas confiance à l'uniforme, {joueur}. Ni au mien, ni à celui d'un autre.
+Le Parrain a offert un nouveau toit au poste. On ne refuse pas un toit.
+Si tu bats les lieutenants, {joueur}, il y aura de la place pour des gens honnêtes. Peut-être.
+Un collègue posait trop de questions sur le Pacte. On l'a muté. Personne ne sait où.
+Mon chef dîne avec le lieutenant de {ville} tous les jeudis. Moi, je garde la voiture.
+Les vols de Pokémon ? On ne les compte plus. Enfin, on n'a plus le droit de les compter.
+À l'école de police, on nous apprend la loi. Ici, on nous apprend à l'oublier.
+Tu cherches la justice ? Elle a pris sa retraite à {ville}. Elle tient un café, maintenant.
+Je ne t'ai rien dit, mais les registres de la Ligue ne mentionnent aucun désigné revenu. Aucun.
+Les Cousins paient leurs amendes en avance. C'est pratique : on n'a jamais à les arrêter.
+Reste dans la lumière, petit. Et ne parle pas des Anciens devant un uniforme.
+Il paraît qu'Arceus a signé le Pacte. Moi, je n'ai jamais vu sa signature. Personne ne l'a vue.
+
+#-------------------------------------------------------------------------------
 # Dresseurs des routes et des grottes, Cousins de la Famille
 #-------------------------------------------------------------------------------
 [dresseur_combat]

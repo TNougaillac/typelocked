@@ -463,7 +463,7 @@ W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK :
   end
 end
 CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
-[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
+[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, W::POLICE_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
   CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
 end
 

@@ -224,9 +224,13 @@ module WorldEvents
   # most each number of seals (the first one before the 2nd seal).
   RELEARNERS = [1, 4, 7].freeze
   RELEARNER_GRAPHIC = "NPC 13"
+  # Policemen (#122): POLICE_CHANCE % of the inhabitants of the streets wear
+  # this uniform and say the lines of [policier]; no one else wears it.
+  POLICE_GRAPHIC = "NPC 01"
+  POLICE_CHANCE  = 20
   # Inhabitants who give an item, and the member of the Family who gives a
   # field item once the lieutenant of the town is beaten.
-  GIFT_GRAPHICS = (1..29).map { |i| format("NPC %02d", i) }.freeze
+  GIFT_GRAPHICS = ((1..29).map { |i| format("NPC %02d", i) } - [POLICE_GRAPHIC]).freeze
   FIELD_GRAPHIC = "trainer_COUSIN_M"
 
   # Inhabitants: by the streets of each town (islands too, not the first
@@ -252,7 +256,7 @@ module WorldEvents
   PLACE_TOKENS  = %w[joueur ville region].freeze
   BATTLE_TOKENS = %w[ville region].freeze
   DIALOGUE_SECTIONS = {
-    "habitant" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
+    "habitant" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
     "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
     "professeur_apres" => %w[joueur type], "ball" => [], "garde" => %w[joueur],

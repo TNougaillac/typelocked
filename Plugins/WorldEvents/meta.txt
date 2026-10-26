@@ -1,5 +1,5 @@
 Name       = WorldEvents
-Version    = 1.9.0
+Version    = 1.10.0
 Essentials = 21.1
 Requires   = MapEvents
 Requires   = MapProceduralGenerator
