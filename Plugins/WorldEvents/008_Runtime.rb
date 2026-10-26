@@ -97,6 +97,9 @@ class PokemonGlobalMetadata
   def centre_heals
     @centre_heals ||= {}
     return @centre_heals
+  end
+end
+
 # A double battle (DoubleBattle = oui) with fewer than two able Pokémon is
 # fought single (#123).
 class << TrainerBattle
