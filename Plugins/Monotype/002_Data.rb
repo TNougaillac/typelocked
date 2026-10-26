@@ -65,11 +65,13 @@ module Monotype
   end
 
   # Base forms of the roster (their prevolution isn't in it) that respect the
-  # rule, pseudo-legendaries excluded.
+  # rule and evolve into a Pokémon of the roster, pseudo-legendaries excluded.
   def starter_pool
     ROSTER.select do |species|
-      prevo = GameData::Species.get(species).get_previous_species
+      sp = GameData::Species.get(species)
+      prevo = sp.get_previous_species
       (prevo == species || !ROSTER.include?(prevo)) && species_eligible?(species) &&
+        sp.get_evolutions(true).any? { |evo| ROSTER.include?(evo[0]) } &&
         final_stats(species) <= STARTER_MAX_FINAL_STATS
     end
   end

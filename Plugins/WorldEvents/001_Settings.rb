@@ -60,6 +60,12 @@ module WorldEvents
   # (at least 2 in their party). A player with one able Pokémon fights single.
   DOUBLE_FROM   = 3
   DOUBLE_CHANCE = 25
+
+  # The Town Map (#115): a Cousin of the first route where one can stand so
+  # that the sight (up to MAP_GIVER_SIGHT) cuts the way between two exits
+  # gives it once beaten.
+  MAP_ITEM        = :TOWNMAP
+  MAP_GIVER_SIGHT = 6
   # Pokémon of a trainer by the seals won on the way (0 to 8).
   PARTY_SIZES = [1..2, 1..2, 2..3, 2..3, 3..4, 3..4, 4..5, 4..6, 5..6].freeze
   # Their levels: up to the highest of the zone's wild Pokémon, this much less.
@@ -267,9 +273,9 @@ module WorldEvents
   BATTLE_TOKENS = %w[ville region].freeze
   DIALOGUE_SECTIONS = {
     "habitant" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
-    "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS,
+    "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS, "cousin_carte" => PLACE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
-    "professeur_apres" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
+    "professeur_apres" => %w[joueur type], "professeur_pokedex" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
     "vendeur" => [], "infirmiere_fin_gratuit" => %w[joueur prix], "infirmiere_prix" => %w[joueur prix],
     "infirmiere_sans_argent" => %w[joueur], "maitre_intro" => %w[joueur], "maitre_sans_ecaille" => %w[joueur],
     "maitre_aucun" => %w[joueur], "maitre_fin" => %w[joueur],

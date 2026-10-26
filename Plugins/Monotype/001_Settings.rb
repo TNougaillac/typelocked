@@ -6,7 +6,8 @@ module Monotype
   EXCLUDED_TYPES = [:SHADOW]
 
   # Starters: 3 drawn at random for each game among the base forms of ROSTER
-  # that respect the Monotype rule (006_Roster.rb). Lines whose final evolution
+  # that respect the Monotype rule and evolve into a Pokémon of ROSTER
+  # (006_Roster.rb). Lines whose final evolution
   # has more base stats than STARTER_MAX_FINAL_STATS are left out
   # (pseudo-legendaries: 600).
   STARTER_COUNT           = 3
