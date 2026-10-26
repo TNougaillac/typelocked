@@ -33,21 +33,11 @@ module MapProceduralGenerator
   FACE_WAVE = 2
   MOUNTAIN_GRASS = 2..4
   # A raised band stops short of a side of the map that often (%), at least
-  # SIDE_GAP tiles from its streets. Mountain routes: peaks (one level above
-  # the ground around them) per 20x20 tiles.
+  # SIDE_GAP tiles from its streets; peaks (one level above the ground
+  # around them) per 20x20 tiles.
   SIDE_TRIM = 60
   SIDE_GAP = 4
   MOUNTAIN_PEAKS = 0.5..1.5
-  # Towns with « Terrasses »: that often (%) on terraces (never a port or an
-  # island), as many boundaries between them as TERRACE_FACES, and that many
-  # levels at most for each ambiance (nil: the others).
-  TOWN_TERRACES = 75
-  TERRACE_FACES = 2..3
-  # Rows between two boundaries of a town's terraces, and width of a terrace
-  # cut short of a side, at least
-  TERRACE_GAP = 7
-  TERRACE_WIDTH = 12
-  TERRACE_LEVELS = { nil => 1..2, "minérale" => 2..3 }.freeze
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
