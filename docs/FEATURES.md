@@ -58,7 +58,7 @@
 - Cohabitation avec le Nuzlocke : le kit efface les surnoms dans `pbStorePokemon`, le Nuzlocke remet le surnom forcé après coup. Effet visible : le message « envoyé dans la boîte » affiche le nom de l'espèce.
 
 ## F03. Générateur de cartes (MapGen)
-**Statut :** v1.9.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
+**Statut :** v1.10.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemples : `MapGen/exemple.txt`, `MapGen/exemple_calques.txt`, `MapGen/exemple_porte_dehors.txt` + `MapGen/exemple_porte_maison.txt`, `MapGen/place_ville.txt`, plan du monde `MapGen/exemple_monde.txt`).
 
@@ -75,6 +75,7 @@
   - Chaque lieu reçoit `Name`, `Outdoor`, `ShowArea`, `MapPosition` et `MapSize` dans `PBS/map_metadata.txt` (les autres clés de la section sont gardées), et ses cases dans la région de `PBS/town_map.txt` (`Point`, avec la destination de Vol).
   - L'image de la carte de région est dessinée dans `Graphics/UI/Town Map/` (480x320 au minimum, cases de 16 px), avec les couleurs et les formes de `mapRegion0.png` : côte arrondie avec sable et eau peu profonde, routes blanches dans un bandeau sombre qui suivent les raccords, villes en blocs rouges, autres lieux en cases sombres à point vert. Une image existante n'est remplacée que si MapGen l'a dessinée (les images faites à la main, comme `mapRegion0.png`, sont gardées).
   - Seules les lignes qui concernent les cartes du monde sont réécrites ; les trois fichiers PBS sont recompilés tout de suite.
+- **Caméra aux bords** (#119, toutes les cartes) : sur un bord sans carte raccordée en vue, la caméra s'arrête au bord de la carte au lieu de montrer du noir (comme la métadonnée `SnapEdges`, mais seulement de ce côté). Là où une carte voisine est en vue, elle continue de défiler. Une carte plus petite que l'écran (intérieur) garde la caméra d'Essentials sur cet axe.
 - Lancement : menu debug > Autres éditeurs > « Générer des cartes (MapGen) ». Écrit `Data/MapXXX.rxdata` et l'ajoute à `MapInfos.rxdata`.
 - Sans `MapID` : nouvelle carte (ID suivant). Avec `MapID` : la carte est remplacée, ses événements sont conservés (ceux qui sortent de la nouvelle taille sont supprimés).
 - Après la génération, si RPG Maker XP est ouvert, le jeu propose de le rouvrir : il le ferme sans enregistrer (`taskkill /F`, sinon il écraserait les cartes) puis rouvre `Game.rxproj`. Même action seule : menu debug > Autres éditeurs > « Rouvrir RPG Maker XP (MapGen) ». Windows uniquement.
@@ -90,14 +91,16 @@
 | `005_Editor.rb` | Fermeture et réouverture de RPG Maker XP. |
 | `006_World.rb` | Plans du monde : lieux, raccords, métadonnées et carte de région. |
 | `007_RegionImage.rb` | Dessin de l'image de la carte de région (PNG écrit avec Zlib). |
+| `008_EdgeCamera.rb` | Caméra arrêtée aux bords sans carte voisine. |
 
 ### Points d'accroche Essentials
-Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `compile_town_map` (plans du monde), `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même table que le rendu d'Essentials) et `MenuHandlers.add(:debug_menu, ...)`.
+Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFactoryHelper.clear`. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `compile_town_map` (plans du monde), `TileDrawingHelper::NEIGHBORS_TO_AUTOTILE_INDEX` (même table que le rendu d'Essentials) et `MenuHandlers.add(:debug_menu, ...)`.
 
 ### Limites connues
 - Pas encore d'import PNG (1 pixel = 1 case) ni de génération procédurale.
 - Plan du monde : chaque lieu est un rectangle (pas de lieu en L), et l'image de la carte de région n'a ni relief, ni arbres, ni rivières.
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
+- Caméra aux bords : une carte voisine qui ne couvre qu'une partie de la vue laisse encore voir du noir à côté d'elle (coins). En longeant un bord, la caméra peut sauter quand la carte voisine sort de la vue. Le décor n'est pas prolongé (cartes de remplissage à venir, #119).
 
 ## F04. Mode Monotype
 **Statut :** v1.5.4, écrit, **non testé**.
@@ -745,3 +748,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | RunHistory v1.0.0 (#48) : historique des 20 dernières parties (graine, région, type, dernier lieu, équipe, issue), mis à jour à chaque sauvegarde, figé à la défaite Nuzlocke, à la victoire contre Arceus ou à l'abandon (une partie jamais sauvegardée n'y entre pas) ; panneau « Dernières parties » sous New Game à l'écran titre (partie précédente et icônes de son équipe) et liste de toutes les parties, avec « Rejouer cette graine » ; MapProceduralGenerator v0.25.0 (`next_game_seed=`) | `Plugins/RunHistory/*`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 25/10/2026 | Sprites de la Famille (#103) : 18 types de dresseur `LIEUTENANT_<TYPE>`, `ANCIEN_1` à `ANCIEN_4` et `PARRAIN`, sprites copiés d'Essentials ; WorldEvents v1.8.0 (le lieutenant prend le sprite de son type), Monotype v1.5.4 (règle d'arène pour ces types) | `PBS/trainer_types.txt`, `Graphics/Trainers/`, `Graphics/Characters/`, `tools/art/family_sprites.rb`, `Plugins/WorldEvents/*`, `Plugins/Monotype/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
+| 26/10/2026 | MapGenerator v1.10.0 (#119) : la caméra s'arrête aux bords sans carte voisine en vue, plus de noir au bord du monde | `Plugins/MapGenerator/008_EdgeCamera.rb`, `Plugins/MapGenerator/meta.txt`, `docs/FEATURES.md` |
