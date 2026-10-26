@@ -136,7 +136,8 @@ module WorldEvents
       rng.rand(TOWN_HABITANTS).times do |i|
         cell = item_cell(spots, npc_cells(spots, rng), plans[town])
         break if !cell
-        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng)
+        police = rng.rand(100) < POLICE_CHANCE
+        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng, police: police)
       end
     end
     atlas[:maps].each do |name, map|
@@ -148,9 +149,11 @@ module WorldEvents
     end
   end
 
-  def habitant(plans, map, label, cell, town, lines, rng)
+  # police: a policeman, with the lines of [policier].
+  def habitant(plans, map, label, cell, town, lines, rng, police: false)
     x, y, facing = cell
-    add(plans, map, "Npc", label, x, y, ["Graphic", GIFT_GRAPHICS.sample(random: rng)], ["Facing", facing],
-        *lines.boxes("habitant", town).map { |box| ["Text", box] })
+    graphic = police ? POLICE_GRAPHIC : GIFT_GRAPHICS.sample(random: rng)
+    add(plans, map, "Npc", label, x, y, ["Graphic", graphic], ["Facing", facing],
+        *lines.boxes(police ? "policier" : "habitant", town).map { |box| ["Text", box] })
   end
 end
