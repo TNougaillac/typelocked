@@ -5146,6 +5146,28 @@ Flags = Fling_80
 Move = DIVE
 Description = Diving on the first turn, the user floats up and attacks on the second.
 #-------------------------------
+[TM102]
+Name = TM102
+NamePlural = TM102s
+Pocket = 4
+Price = 3000
+BPPrice = 64
+FieldUse = TR
+Flags = Fling_110
+Move = HURRICANE
+Description = The user attacks by wrapping its opponent in a fierce wind that flies up into the sky. This may also confuse the target.
+#-------------------------------
+[TM103]
+Name = TM103
+NamePlural = TM103s
+Pocket = 4
+Price = 3000
+BPPrice = 64
+FieldUse = TR
+Flags = Fling_50
+Move = WEATHERBALL
+Description = An attack move that varies in power and type depending on the weather.
+#-------------------------------
 [CHERIBERRY]
 Name = Cheri Berry
 NamePlural = Cheri Berries

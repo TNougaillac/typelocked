@@ -523,7 +523,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.8.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
+**Statut :** v1.9.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -570,6 +570,16 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Objets :** un seul tirage pour tout le monde. 1 à 2 objets par case de route (`ROUTE_ITEMS`), 2 à 3 par ville ou île (`TOWN_ITEMS`), 1 à 2 par étage de grotte (`CAVE_ITEMS`, pas dans les grottes sombres). Chacun reçoit une source (`ITEM_SOURCES`) : au sol (une Poké Ball, d'abord au bout des impasses), caché (Cherch'Objet) ou donné par un habitant (« Don », fréquent : au moins `GIFT_SHARE` %, 40 %). L'objet suit les sceaux gagnés avant la carte (`ITEM_TABLE` : soins et Poké Balls au début, puis baies, pierres, CT, Super Bonbons, vitamines ; `TM` = une CT du jeu au hasard, jamais deux fois ni celle d'un lieutenant). Posés sur les cases accessibles de l'inventaire (`street`, `grass`, `dead_ends`, sol des grottes), jamais sur une sortie, une porte ou dans la vue d'un dresseur. Un objet ramassé ne revient pas (Essentials), un habitant ne donne qu'une fois (`Once`).
 - **Butin des recoins :** chaque recoin (poche, îlot, paroi du Grappin, grotte sombre) a son objet sur sa case de butin, tiré dans `NOOK_TABLE` (plus rare) selon les sceaux gagnés quand il s'ouvre : ceux de sa carte, ou le sceau qui donne l'objet de terrain qui l'ouvre si c'est plus tard.
 - **Objets de terrain :** chaque objet de terrain (Machette, Lanterne, Pioche, Harnais, Grappin, Vol, Surf, Plongée) est donné par un membre de la Famille dans la ville de l'inventaire, une fois le lieutenant de cette ville battu (`When` sur son interrupteur) ; avant, il dit `FIELD_WAIT`. Pas d'exemplaire en plus sur la carte.
+- **CT de météo (#120) :** quand le type imposé (Monotype) joue avec une météo, ses CT et sa roche sont placées dans 85 % des parties (`WEATHER_CHANCE`), une fois chacune, à la place d'autres objets. La CT qui lance la météo vient en premier. Elles occupent au plus la moitié des recoins, répartis le long du chemin, et le reste va aux autres objets. Il n'y a rien de plus si un lieutenant donne déjà la CT. Dans les 15 % restants, la météo peut ne pas apparaître.
+
+  | Météo | Types | Objets (`WEATHER_ITEMS`) |
+  |---|---|---|
+  | Pluie | Eau, Électrik, Vol | CT18 Danse Pluie, CT25 Fatal-Foudre, CT102 Vent Violent, CT103 Ball'Météo, Roche Humide |
+  | Soleil | Feu, Plante | CT11 Zénith, CT22 Lance-Soleil, CT103 Ball'Météo, Roche Chaude |
+  | Sable | Roche, Sol, Acier | CT37 Tempête de Sable, CT103 Ball'Météo, Roche Lisse |
+  | Grêle | Glace | CT07 Grêle, CT14 Blizzard, CT103 Ball'Météo, Roche Glace |
+
+  CT102 (Vent Violent) et CT103 (Ball'Météo) sont ajoutées à `items.txt`. Ball'Météo compte comme une attaque de 100 de puissance pour les CT utiles des lieutenants (`TM_POWER_OVERRIDES`).
 - **Écailles Cœur :** `HEART_SCALES` (10) par partie, à la place d'autres objets, réparties à intervalles réguliers le long du chemin (toutes sources mêlées, la première tôt).
 - **Maître des Capacités :** un dans une ville atteinte avec au plus 1 sceau (avant le 2e), puis avec au plus 4 et 7 (`RELEARNERS`), jamais deux dans la même ville, et pas dans la ville de départ si une autre convient. Il fait retrouver une capacité contre une Écaille Cœur (`pbRelearnMoveScreen`, l'Écaille n'est prise que si le Pokémon apprend). Pas de rappel depuis le menu : « Remember Move » de l'écran Résumé (MUI) ne s'affiche qu'en génération 9, et `MECHANICS_GENERATION` vaut 8.
 - **Habitants :** 2 à 4 dans les rues de chaque ville (îles comprises, pas la ville de départ, `TOWN_HABITANTS`), au bord de la rue comme les dresseurs, et 1 à 2 dans chaque maison, immeuble, maison du port ou bâtiment spécial (`HOUSE_HABITANTS`), sur les cases où la démo a ses personnages (`HOUSE_SPOTS`). Ils parlent de la Famille, du Pacte ou de la vie de la région, et appellent le joueur par son nom.
@@ -582,11 +592,11 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `meta.txt` | Déclaration du plugin (requiert MapEvents, MapProceduralGenerator, ProceduralEncounters, Monotype, OverworldBoss). |
 | `001_Settings.rb` | Places du professeur et des Poké Balls au labo, graphismes, interrupteur et variable du starter, événements des Centres, vendeur et stocks des boutiques, objets, sets, Ligue, habitants, sections de `dialogues.txt` et leurs jetons. |
 | `002_Dialogues.rb` | Lecture et vérification de `MapProc/Lore/dialogues.txt`, tirage des répliques sans répétition (`Lines`), répliques dites en jeu (`say`, `line`). |
-| `003_World.rb` | `WorldEvents.world_events(result, seed, zones:, encounters:, species:, tms:, caps:, dialogues:, dex:)` : les plans MapEvents du monde, les équipes des dresseurs, les lieutenants, la Ligue, les objets et les habitants, en Ruby pur (vérifié par la CI). |
+| `003_World.rb` | `WorldEvents.world_events(result, seed, zones:, encounters:, species:, tms:, caps:, dialogues:, dex:, type:)` : les plans MapEvents du monde, les équipes des dresseurs, les lieutenants, la Ligue, les objets et les habitants, en Ruby pur (vérifié par la CI). |
 | `004_Trainers.rb` | Dresseurs et Cousins : places, types, noms, équipes. |
 | `005_Gyms.rb` | Lieutenants et membres des arènes (type favori, équipes, sceau et CT), Anciens, Parrain et Arceus. |
 | `006_Sets.rb` | Sets des lieutenants et de la Ligue : lecture des capacités (`load_dex`, `pokemon.txt` et `moves.txt`), tirage (`Sets`), sous-lignes de `trainers.txt`. |
-| `007_Items.rb` | Objets : emplacements, sources, tables, butin des recoins, Écailles Cœur, objets de terrain, Maîtres des Capacités. |
+| `007_Items.rb` | Objets : emplacements, sources, tables, butin des recoins, CT de météo, Écailles Cœur, objets de terrain, Maîtres des Capacités. |
 | `008_Runtime.rb` | Appelé par les événements en jeu : `professor`, `starter_ball`, `mart`, `gate`, `relearner`, `league_door`, `arceus`. |
 | `009_Write.rb` | Liste des CT du jeu, écriture des dresseurs dans `trainers.txt` puis des plans après les cartes et les rencontres, export, retrait avec le monde. |
 
@@ -754,3 +764,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
 | 26/10/2026 | MapProceduralGenerator v0.27.0, MapGenerator v1.11.0 (#119) : cartes de décor autour des lieux (forêt, mer, montagne selon le voisin), `type=decor` dans les plans du monde, raccords par les coins ; contrôles CI | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/007_RegionImage.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `tools/ci/check_encounters.rb`, `docs/FEATURES.md` |
 | 26/10/2026 | Nuzlocke v1.3.0 (#117) : sauvegarde automatique après une défaite, panneau d'équipe du Pokémon mort avec le message de sa mort, fond « City » pour les nouvelles boîtes Cimetière | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
+| 26/10/2026 | WorldEvents v1.9.0 (#120) : CT de météo et roche du type imposé placées dans 85 % des parties (moitié des recoins au plus) ; CT102 Vent Violent et CT103 Ball'Météo ; Ball'Météo compte 100 de puissance pour les CT utiles ; contrôle CI | `Plugins/WorldEvents/*`, `PBS/items.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |

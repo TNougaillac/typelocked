@@ -10,10 +10,12 @@ module WorldEvents
   module_function
 
   # Draws the items of the world into plans. Returns [{ map:, source:, item: }]
-  # (source: sol, cache, don, recoin, terrain).
-  def item_events(result, atlas, zones, tms, leaders, plans, lines, rng)
+  # (source: sol, cache, don, recoin, terrain). weather: see weather_items.
+  def item_events(result, atlas, zones, tms, leaders, weather, plans, lines, rng)
     zones = zones.to_h { |zone| [zone.name, zone] }
     used_tms = leaders.filter_map { |leader| leader[:tm]&.first }
+    weather -= used_tms
+    used_tms += weather
     slots = item_slots(result, atlas, zones, rng)
     nooks = nook_slots(result, atlas, zones)
     # The sources: as many gifts as the setting asks, the rest by weight
@@ -26,6 +28,7 @@ module WorldEvents
       slot[:item] = draw_item(table, slot[:seals], tms, used_tms, rng)
     end
     heart_scales(all)
+    weather_nooks(all, weather)
     items = []
     # Gifts first: they need a cell by the street
     all.sort_by { |slot| (slot[:source] == "don") ? 0 : 1 }.each do |slot|
@@ -122,6 +125,31 @@ module WorldEvents
     return if slots.empty?
     count = [HEART_SCALES, slots.length].min
     count.times { |i| slots[((i + 0.5) * slots.length / count).floor][:item] = HEART_SCALE }
+  end
+
+  # The weather items of the imposed type (WEATHER_ITEMS), in WEATHER_CHANCE %
+  # of the games; else none.
+  def weather_items(type, rng)
+    items = WEATHER_ITEMS.find { |types, _items| types.include?(type) }&.last
+    return [] if !items || rng.rand(100) >= WEATHER_CHANCE
+    return items.dup
+  end
+
+  # The weather items go to nooks evenly spread along the way (at most half
+  # of them, so the nooks keep some rare loot), the rest to other slots, in
+  # place of their item (never of a Heart Scale).
+  def weather_nooks(slots, weather)
+    nooks = slots.select { |slot| slot[:source] == "recoin" && slot[:item] != HEART_SCALE }
+    others = slots.select { |slot| slot[:source] != "recoin" && slot[:item] != HEART_SCALE }
+    in_nooks = [weather.length, (nooks.length + 1) / 2].min
+    spread(nooks, weather.first(in_nooks))
+    spread(others, weather.drop(in_nooks))
+  end
+
+  # Items evenly spread over these slots.
+  def spread(slots, items)
+    count = [items.length, slots.length].min
+    count.times { |i| slots[((i + 0.5) * slots.length / count).floor][:item] = items[i] }
   end
 
   # Places one slot on its map: returns its source, nil if no cell is left
