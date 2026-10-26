@@ -167,17 +167,18 @@ module WorldEvents
     return if !name
     battle = lines.text(cousin ? "cousin_combat" : "dresseur_combat", town)
     lose = lines.text(cousin ? "cousin_fin" : "dresseur_fin", town)
-    trainers.push(team_section(type, name, lose, party(zone, pool, rng)))
+    double = zone.seals >= DOUBLE_FROM && rng.rand(100) < DOUBLE_CHANCE
+    trainers.push(team_section(type, name, lose, party(zone, pool, rng, double ? 2 : 1)))
     label = cousin ? "Cousin" : "Dresseur"
     add(plans, map, "Trainer", "#{label}#{plans[map].count { |*, text| text.start_with?("[Trainer #{label}") } + 1}",
         x, y, ["Facing", facing], ["Sight", sight], ["Type", type], ["Name", name],
-        ["BattleID", TRAINER_VERSION], ["Battle", battle], ["EndBattle", lose], *extra)
+        ["BattleID", TRAINER_VERSION], ["Battle", battle], ["EndBattle", lose], *(double ? [["DoubleBattle", "oui"]] : []), *extra)
   end
 
-  # [[species, level]] of a trainer of that zone: PARTY_SIZES Pokémon, up to
-  # the highest level of its wild Pokémon.
-  def party(zone, pool, rng)
-    size = rng.rand(PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min])
+  # [[species, level]] of a trainer of that zone: PARTY_SIZES Pokémon (at
+  # least min), up to the highest level of its wild Pokémon.
+  def party(zone, pool, rng, min = 1)
+    size = [rng.rand(PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min]), min].max
     top = zone.levels[1]
     return Array.new(size) { [pool.sample(random: rng), [top - rng.rand(0..PARTY_LEVEL_SPREAD), 2].max] }
   end

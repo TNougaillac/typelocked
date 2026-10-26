@@ -8,7 +8,7 @@ require_relative "lib/ci"
 %w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
 require_relative "lib/essentials"
 Essentials.load_scripts("Overworld_RandomDungeons")
-%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
+%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Seeds of the worlds (WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others
@@ -460,6 +460,26 @@ worlds.each do |path|
     end
     result.seabeds.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::SEABED_TILESET])
+    end
+    # Decor maps: their tiles, never walked (no ground tile, no warp), every
+    # place's side and corner with an empty square next to it covered
+    result.fillers.each do |f|
+      decor = MapGenerator.parse(f.text, f.name)
+      MapGenerator.check_tiles(decor, tilesets[decor.tileset_id])
+      CI.error(path, nil, "#{f.name} (graine #{seed}) : #{f.w * world.cell}x#{f.h * world.cell} attendu") if decor.rows.length != f.h * world.cell || decor.rows.any? { |row| row.length != f.w * world.cell }
+      CI.error(path, nil, "#{f.name} (graine #{seed}) : sol praticable") if decor.rows.join.include?(".")
+    end
+    grid = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})").rows
+    grid.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if c != MapGenerator::WORLD_EMPTY
+        near = M::FILLER_REACH.any? do |dx, dy, _w|
+          next false if y + dy < 0 || x + dx < 0
+          other = grid[y + dy]&.[](x + dx)
+          other && other != MapGenerator::WORLD_EMPTY && !M::FILLER_SYMBOLS.include?(other)
+        end
+        CI.error(path, nil, "graine #{seed} : case #{x},#{y} vide à côté d'un lieu (sans décor)") if near
+      end
     end
     # Each building door leads to its interior, whose exit leads back
     plans = (result.places.map { |wp, place, text, _layout| [wp.name, MapGenerator.parse(text, place.file)] } +
