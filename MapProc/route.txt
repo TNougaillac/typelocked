@@ -234,30 +234,33 @@ e = {sol} T777          # escalier taillé dans une montagne (gauche, droite)
 f = {sol} T778
 g = {sol} T769          # escalier dans le rebord nord du niveau 1
 h = {sol} T770
-E = T793 T777           # escaliers du niveau 2, sur la roche
-F = T793 T778
-G = T793 T769
-H = T793 T770
+E = {sol} T777          # escaliers du niveau 2
+F = {sol} T778
+G = {sol} T769
+H = {sol} T770
 z = T793                # dessus d'une montagne (sous les bords des niveaux 3 et 5)
-n = T147                # hautes herbes sur un niveau de montagne (T6 sur la roche, son fond vert ôté)
-q = T793 T815           # rochers et cailloux sur la roche d'une montagne
-u = T793 T831
-v = T793 T839
-w = T793 T847
+n = {sol} T147          # hautes herbes sur un niveau de montagne
+q = {sol} T815          # rochers et cailloux sur un niveau de montagne
+u = {sol} T831
+v = {sol} T839
+w = {sol} T847
 < = {sol} T810          # corniche (on la saute vers le sud)
 - = {sol} T828
 > = {sol} T814
 
 [Terrains]
-# Les niveaux impairs ont les bords du niveau 1, les pairs ceux du niveau 2 ;
-# chaque niveau rejoint ceux du dessus (with=), pour que seul le plus haut
-# dessine son bord.
-^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnz L2 @.   # montagne, niveau 1 (dessus praticable)
-& = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnz   # niveau 2
-k = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnz L2 @z   # niveau 3
-K = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnz   # niveau 4
-m = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnz L2 @z   # niveau 5
-M = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnz   # niveau 6
+# Les niveaux sont des plateaux, comme sur les routes des jeux : leur dessus
+# garde le sol de l'ambiance (T731 est vide), leur bord nord est un rebord fin
+# ({rive} : la rive de l'ambiance, que l'on ne franchit pas vers le nord), leurs
+# côtés et leur bord sud une falaise de roche. Les niveaux impairs ont les bords
+# du niveau 1, les pairs ceux du niveau 2 ; chaque niveau rejoint ceux du
+# dessus (with=), pour que seul le plus haut dessine son bord.
+^ = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnz L2 @.   # montagne, niveau 1 (dessus praticable)
+& = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnz L2 @.   # niveau 2
+k = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnz L2 @.   # niveau 3
+K = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnz L2 @.   # niveau 4
+m = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnz L2 @.   # niveau 5
+M = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnz L2 @.   # niveau 6
 
 [Objects]
 é = T440 3x3         # grand pin

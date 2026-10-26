@@ -68,7 +68,9 @@
 #   [Legend] [Terrains] [Objects]
 #   ...                        (MapGen palette, shared by every brick; with
 #                               ambiances, « {sol} » stands for the first tile
-#                               of the drawn ground, under flowers, water...)
+#                               of the drawn ground, under flowers, water...;
+#                               « {rive} » for the middle tile of its « Rive »,
+#                               the north rim of a plateau)
 # Brick file (MapProc/Briques/*.txt):
 #   Brique = Centre Pokémon    (required: name, for error messages)
 #   Type   = centre            (required: the type named in [Briques])
@@ -372,9 +374,10 @@ module MapProceduralGenerator
   # Palette with the ambiance's ground and street.
   def palette_text(place)
     chosen = ambiance(place)
-    return place.palette if !chosen
+    rive = chosen&.banks&.[](1) || default_rive(place)
+    return place.palette.gsub("{rive}", rive) if !chosen
     ground = chosen.ground.split("|").first.split.first
-    text = place.palette.gsub("{sol}", ground)
+    text = place.palette.gsub("{sol}", ground).gsub("{rive}", rive)
     text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
     if chosen.street && place.street != place.ground
       section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
@@ -385,9 +388,17 @@ module MapProceduralGenerator
       place.banks.each_char.with_index { |sym, i| text << "#{sym} = #{chosen.banks[i]}\n" }
     end
     chosen.palette.each do |sym, (value, _lineno)|
-      text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground)}\n"
+      text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground).gsub('{rive}', rive)}\n"
     end
     return text
+  end
+
+  # The middle tile of the place's own « Rive » (« T849 » for « ' = T849 »),
+  # or an empty tile.
+  def default_rive(place)
+    sym = place.banks&.[](1)
+    line = sym && place.palette.each_line.find { |l| l.start_with?("#{sym} ") }
+    return line ? line.split("=", 2)[1].split.first : "T731"
   end
 
   # Section of the place's palette ([Legend], [Objects], [Terrains]) where
