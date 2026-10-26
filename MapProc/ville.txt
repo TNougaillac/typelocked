@@ -55,13 +55,14 @@ decor    = 0        # décor propre à une ambiance : quantité donnée par l'am
 [Ambiance verdoyante]
 Poids = 8
 Sol   = T1|T1|T1|T2|T3
-Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=f
 decor = 0..1 par case
 
 [Ambiance chemins de terre]
 Poids = 2
 Sol   = T1|T1|T1|T2|T3
-Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100 with=f
+q     = T106               # pavé sous la fontaine
 decor = 0..1 par case
 
 [Ambiance prairie]
@@ -81,7 +82,8 @@ t = T4016 2x3
 ë = T4193 1x2
 * = T4046                # fleurs sur la prairie (image fixe : l'autotile a un fond vert)
 Rive  = T4047 T4047 T4047
-Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
+Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188 with=f
+q     = T4176               # pavé sous la fontaine
 arbre = 0..1 par case
 decor = 0..1 par case
 
@@ -146,19 +148,21 @@ t = T4096 2x3
 ë = T4197 1x2
 Rive  = T841 T841 T841
 Rue   = T218
+q     = T218               # pavé sous la fontaine
 arbre = 0..1 par case
 decor = 0..1 par case
 
 [Ambiance automne]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
-Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=f
 arbre = 0..1 par case
 decor = 1..1 par case
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
 à = {sol} T475          # buisson
+q = T274                # pavé sous la fontaine de la place (le centre de « Rue »)
 ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)
 ù = {sol} T532          # cime de l'arbre jaune (au-dessus de ü)
 â = {sol} T523          # buisson jaune
@@ -239,6 +243,7 @@ w = T1680 4x1        # façade avec porte, sous un toit r, g ou o
 s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T420 2x3         # arbre
+f = T1125 3x3 @q     # fontaine ronde, au milieu de la place, sur ses pavés (les rues la longent : with=f)
 l = T1029 1x2        # lampadaire
 p = T997 1x1         # jardinière (une par case, posée sur le sol)
 F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)

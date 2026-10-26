@@ -105,6 +105,7 @@ module MapProceduralGenerator
       moor_boat if @terminal && (@place.ferry || @place.island)
       scatter_reefs if @place.island
       @rng.rand(@place.spurs).times { carve_spur(hub) }
+      lay_plaza(hub)
       close_lock if @place.lock
       cross if @place.crossing
       if @place.mountain
@@ -283,11 +284,17 @@ module MapProceduralGenerator
     # L-shaped street, bending at a random end (at the far end on an
     # east-west mountain route, so that the street climbs at the hub; at the
     # end that keeps it on the squares of a mask).
-    def carve_line(x0, y0, x1, y1)
+    # wide: one tile wider (an avenue), but not near the map's edges, so that
+    # the exit keeps its width.
+    def carve_line(x0, y0, x1, y1, wide = false)
       far_bend = @rng.rand(2) == 0
       far_bend = true if @place.mountain && !vertical_route?
       far_bend = !far_bend if @mask && !line_covered?(x0, y0, x1, y1, far_bend)
-      line_steps(x0, y0, x1, y1, far_bend).each { |x, y| paint(x, y) }
+      line_steps(x0, y0, x1, y1, far_bend).each do |x, y|
+        paint(x, y)
+        next if !wide || [x, y, @w - x, @h - y].min <= AVENUE_MARGIN
+        paint(x + 1, y + 1)
+      end
     end
 
     # Brush steps of an L-shaped street, bending at the far end or not.
@@ -329,7 +336,29 @@ module MapProceduralGenerator
           line_covered?(x, y, hx, hy, true) || line_covered?(x, y, hx, hy, false)
         end || hub
       end
-      carve_line(x, y, hub[0], hub[1])
+      # In a town, the streets of the first two exits make its avenue
+      avenue = @place.kind == "ville" && !@mask && !@place.port && !@place.island && @exits.length <= 2
+      carve_line(x, y, hub[0], hub[1], avenue)
+    end
+
+    # A paved square around the hub of a town (PLAZA), its fountain in the
+    # middle with the street all around; none in a village, a port, on an
+    # island or with a mask, nor where the square would not be free ground.
+    def lay_plaza(hub)
+      return if @place.kind != "ville" || @place.port || @place.island || @mask
+      return if !@palette.objects[PLAZA[:fountain]] || [@w, @h].min < PLAZA[:min_side]
+      rng = Random.new(@seed ^ PLAZA_SALT)
+      pw, ph = rng.rand(PLAZA[:width]), rng.rand(PLAZA[:height])
+      x0 = hub[0] + (STREET_WIDTH / 2) - (pw / 2)
+      y0 = hub[1] + (STREET_WIDTH / 2) - (ph / 2)
+      cells = (y0...y0 + ph).to_a.product((x0...x0 + pw).to_a)
+      return if cells.any? { |y, x| !inside?(x, y) || (@solid[y][x] && !@street[y][x]) }
+      cells.each { |y, x| @street[y][x] = true }
+      fountain = @palette.objects[PLAZA[:fountain]]
+      fx, fy = x0 + ((pw - fountain.width) / 2), y0 + ((ph - fountain.height) / 2)
+      rows = Array.new(fountain.height) { PLAZA[:fountain] * fountain.width }
+      fountain.height.times { |dy| fountain.width.times { |dx| @street[fy + dy][fx + dx] = false } }
+      stamp(Brick.new(PLAZA_KIND, "Fontaine", PLAZA_KIND, nil, 1, false, rows), fx, fy)
     end
 
     # Dead end from the square towards a random point of the inner area (in a
@@ -1448,11 +1477,34 @@ module MapProceduralGenerator
         end
       end
       return false if spots.empty?
-      # Close to a street, but not always the closest spot
+      # Close to a street, but not always the closest spot (in a town, along
+      # the street: DOOR_SLACK)
       best = spots.map { |s| s[2] }.min
-      x, y, = spots.select { |s| s[2] <= best + 2 }.sample(random: @rng)
+      slack = DOOR_SLACK[@place.kind] || 2
+      near = spots.select { |s| s[2] <= best + slack }
+      if brick.door
+        # A door whose only way to the street went through the brick itself
+        # is skipped
+        x, y, = near.shuffle(random: @rng).find { |sx, sy,| door_reachable?(brick, sx, sy) }
+        return false if !x
+      else
+        x, y, = near.sample(random: @rng)
+      end
       stamp(brick, x, y)
       return [x, y]
+    end
+
+    # True if the street can still be reached from below the door once the
+    # brick stands at x, y.
+    def door_reachable?(brick, x, y)
+      cells = []
+      brick.rows.each_with_index do |row, dy|
+        row.each_char.with_index { |c, dx| cells.push([x + dx, y + dy]) if c != " " && !@solid[y + dy][x + dx] }
+      end
+      cells.each { |cx, cy| @solid[cy][cx] = true }
+      reached = street_distances[y + brick.rows.length][x + brick.door[0]]
+      cells.each { |cx, cy| @solid[cy][cx] = false }
+      return !reached.nil?
     end
 
     # The brick's cells must be free, with one free tile around it (streets

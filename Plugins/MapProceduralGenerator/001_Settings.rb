@@ -26,6 +26,23 @@ module MapProceduralGenerator
   BORDER_SHARE = 0.2
   BORDER_SALT = 0x5B0D
 
+  # Paved square of a town around its hub (tiles across, tiles down), the
+  # fountain object of ville.txt in the middle, only in towns at least
+  # min_side tiles across both ways (not in villages). PLAZA_SALT: its own
+  # draws.
+  PLAZA = { width: 9..12, height: 8..10, fountain: "f", min_side: 30 }.freeze
+  PLAZA_KIND = "fontaine"
+  PLAZA_SALT = 0x91A2A
+
+  # The avenue of a town (the streets of its first two exits) is one tile
+  # wider than STREET_WIDTH, except within AVENUE_MARGIN tiles of the edges.
+  AVENUE_MARGIN = 6
+
+  # A building goes at most that many tiles further from its street than the
+  # closest spot found, by kind of place (2 for the others): towns line their
+  # buildings along the streets.
+  DOOR_SLACK = { "ville" => 0 }.freeze
+
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 
