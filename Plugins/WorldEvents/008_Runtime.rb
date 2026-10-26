@@ -97,5 +97,13 @@ class PokemonGlobalMetadata
   def centre_heals
     @centre_heals ||= {}
     return @centre_heals
+# A double battle (DoubleBattle = oui) with fewer than two able Pokémon is
+# fought single (#123).
+class << TrainerBattle
+  alias_method :__world_events_start_core, :start_core
+
+  def start_core(*args)
+    setBattleRule("single") if $game_temp.battle_rules["size"] == "double" && !pbCanDoubleBattle?
+    return __world_events_start_core(*args)
   end
 end

@@ -14,7 +14,10 @@
 #   A = Bourg Typelock  vol=12,8   (one symbol = one map, found by its name;
 #   1 = Route 1                     vol=x,y = fly destination on that map;
 #   L = Lac  type=lieu              type=ville|route|lieu = drawing on the
-#   B = Ville 2  nom=Port Lucca     Town Map, guessed from the name and vol;
+#   B = Ville 2  nom=Port Lucca     Town Map, guessed from the name and vol
+#                                   (decor: scenery around the places, never
+#                                   walked: off the Town Map, linked to the
+#                                   places it touches, corners included);
 #                                   nom=... = name shown in game, the map's
 #                                   name by default; masque=10/11 = the
 #                                   squares of its rectangle it covers, row
@@ -49,7 +52,7 @@ module MapGenerator
     end
   end
   WORLD_EMPTY = "."
-  PLACE_KINDS = %w[ville route lieu]
+  PLACE_KINDS = %w[ville route lieu decor]
 
   module_function
 
@@ -171,12 +174,25 @@ module MapGenerator
 
   # Edge-to-edge connections between places that touch, as PBS records:
   # [map1, edge1, pos1, map2, edge2, pos2], positions in tiles along the edge.
+  # A decor touching a place by a corner is linked too (east side, past the
+  # corner), so it shows from there; two decors are never linked.
   def world_links(plan)
     links = []
     places = plan.places.values
     places.each do |a|
       places.each do |b|
         next if a.equal?(b) || plan.no_links.include?([a.symbol, b.symbol].sort)
+        decor = [a, b].count { |place| place.kind == "decor" }
+        next if decor == 2
+        if decor == 1 && a.x + a.width == b.x
+          if a.y + a.height == b.y
+            links.push([a, "E", a.height * plan.cell, b, "W", 0])
+            next
+          elsif b.y + b.height == a.y
+            links.push([a, "E", 0, b, "W", b.height * plan.cell])
+            next
+          end
+        end
         if a.x + a.width == b.x && a.y < b.y + b.height && b.y < a.y + a.height
           d = (b.y - a.y) * plan.cell
           links.push([a, "E", [d, 0].max, b, "W", [-d, 0].max])
@@ -281,12 +297,13 @@ module MapGenerator
     plan.places.each_value do |place|
       x = plan.origin[0] + place.x
       y = plan.origin[1] + place.y
+      shown = place.kind != "decor"
       values = {
         "Name"        => place.display_name,
         "Outdoor"     => "true",
-        "ShowArea"    => "true",
-        "MapPosition" => "#{plan.region},#{x},#{y}",
-        "MapSize"     => (place.width * place.height > 1) ? "#{place.width},#{place.mask&.join || ('1' * (place.width * place.height))}" : nil
+        "ShowArea"    => shown ? "true" : nil,
+        "MapPosition" => shown ? "#{plan.region},#{x},#{y}" : nil,
+        "MapSize"     => (shown && place.width * place.height > 1) ? "#{place.width},#{place.mask&.join || ('1' * (place.width * place.height))}" : nil
       }
       start = lines.index { |l| l =~ /\A\[0*#{place.map_id}\]/ }
       if !start
@@ -315,6 +332,7 @@ module MapGenerator
     finish += 1 while finish < lines.length && lines[finish] !~ /\A\[|\A#-/
     squares = {}
     plan.places.each_value do |place|
+      next if place.kind == "decor"
       place.height.times do |dy|
         place.width.times do |dx|
           next if !place.covers?(dx, dy)
