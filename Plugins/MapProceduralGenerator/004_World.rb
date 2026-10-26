@@ -131,8 +131,9 @@ module MapProceduralGenerator
   # seabeds: [WorldPlace of the route, name, MapGen plan text];
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
   # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
-  # notes: lines for the console (routes off the chain that found no room)
-  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes)
+  # notes: lines for the console (routes off the chain that found no room);
+  # fillers: Filler (see 013_Fillers.rb)
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers)
 
   TOWN_SIZE = 2
   # Times the world is laid out again when a place can't be assembled
@@ -330,8 +331,9 @@ module MapProceduralGenerator
     interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8]) if it.door }
     built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
-    return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes), built, caves, seabeds, islands, interiors,
-                           extra_notes(built) + notes)
+    fillers = world_fillers(world, built, seed, map_ids)
+    return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes, fillers), built, caves, seabeds, islands, interiors,
+                           extra_notes(built) + notes, fillers)
   end
 
   # Assembles each place of the world: [WorldPlace, Place, MapGen plan text,
@@ -1099,7 +1101,7 @@ module MapProceduralGenerator
 
   # MapGen world plan of the generated places. Towns can be flown to, landing
   # in front of their Pokémon Centre.
-  def world_text(world, built, seed, caves = [], seabeds = [], islands = [], region = world.name, notes = [])
+  def world_text(world, built, seed, caves = [], seabeds = [], islands = [], region = world.name, notes = [], fillers = [])
     text = +"# Monde généré par MapProceduralGenerator, graine #{seed}.\n"
     text << "World   = #{region}\n"
     text << "Region  = #{world.region}\n"
@@ -1131,11 +1133,13 @@ module MapProceduralGenerator
       line += "  trace=#{wp.trace.map { |point| point.join(',') }.join('/')}" if wp.trace
       text << line << "\n"
     end
+    fillers.each { |f| text << "#{f.symbol} = #{f.name}  type=decor\n" }
     text << "\n[World]\n"
     grid = Array.new(world.height) { "." * world.width }
     built.each do |wp, *|
       wp.h.times { |dy| wp.w.times { |dx| grid[wp.y + dy][wp.x + dx] = wp.symbol } }
     end
+    fillers.each { |f| f.h.times { |dy| f.w.times { |dx| grid[f.y + dy][f.x + dx] = f.symbol } } }
     grid.each { |row| text << row << "\n" }
     return text
   end
