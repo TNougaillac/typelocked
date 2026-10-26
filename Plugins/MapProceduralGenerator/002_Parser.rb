@@ -22,10 +22,13 @@
 #                               blocks a route crossed through a cave)
 #   Caillou = o                (optional: 1x1 [Legend] symbol filling the gaps
 #                               of that wall)
-#   Relief  = ^ & k K          (optional: [Terrains] symbols of the levels of a
-#                               mountain route of a world, from the 1st up, 2
-#                               at least; each joins the higher ones so that
-#                               only the higher level shows its edge)
+#   Relief  = ¬ & k K          (optional: [Terrains] symbols of the levels of a
+#                               mountain route of a world or of a town in
+#                               terraces, from the 1st up, 2 at least; each
+#                               joins the higher ones so that only the higher
+#                               level shows its edge; drawn on [Layer3], they
+#                               join HOLE too, and need CLIFF and HOLE in
+#                               [Legend])
 #   Escalier = ef gh EF GH     (optional, with Relief: pairs of [Legend]
 #                               symbols for 2-wide stairs, in a south face of
 #                               level 1, a north edge of level 1, then the same
@@ -338,6 +341,9 @@ module MapProceduralGenerator
     raise Error, "#{place.file} : « Relief » demande « Escalier »" if !place.levels != !place.stairs
     place.levels&.each do |sym|
       raise Error, "#{place.file} : « Relief » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
+    end
+    if place.levels && !(palette.legend[CLIFF] && palette.legend[HOLE])
+      raise Error, "#{place.file} : « Relief » demande « #{CLIFF} » et « #{HOLE} » dans [Legend] (falaise, case vide de la couche 3)"
     end
     raise Error, "#{place.file} : « HerbeHaute = #{place.high_grass} » doit être un symbole de [Legend]" if place.high_grass && !palette.legend[place.high_grass]
     place.stairs&.join&.each_char do |sym|
