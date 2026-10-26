@@ -36,6 +36,7 @@ module MapProceduralGenerator
   # Most bricks an excess « fill » adds after the others (until none fits)
   FILL_LIMIT = 80
   PORT = "port"   # type of the port buildings, only put along the quay
+  MONUMENT = "monument"   # a town's monument, by its square
   TERMINAL = "gare"   # type of the ferry terminal, on piles at the end of a pier
   # Sea depth of a port town, at most PORT_SHARE of the map across
   PORT_DEPTH = 9..11
@@ -402,6 +403,17 @@ module MapProceduralGenerator
       carve_line(x, y, hub[0], hub[1], avenue)
     end
 
+    # Where the monument of a town goes: by the square (within MONUMENT_REACH
+    # tiles of it) when the town has one; nil = anywhere.
+    def monument_spot
+      return nil if !@plaza
+      x0, y0, x1, y1 = @plaza
+      return lambda do |brick, x, y|
+        w, h = brick.rows.map(&:length).max, brick.rows.length
+        x + w > x0 - MONUMENT_REACH && x < x1 + MONUMENT_REACH && y + h > y0 - MONUMENT_REACH && y < y1 + MONUMENT_REACH
+      end
+    end
+
     # The plan of a town (TOWN_PLANS, by weight; its own draws, PLAN_SALT):
     # « carrefour » (streets from the exits to a square), « grille » (a grid
     # of streets as well), « canal » (a canal from north to south, crossed
@@ -441,7 +453,7 @@ module MapProceduralGenerator
     def lay_canal(hub)
       rng = Random.new(@seed ^ PLAN_SALT ^ 2)
       width = rng.rand(CANAL[:width])
-      left, right = @plaza || [hub[0], hub[0] + STREET_WIDTH]
+      left, right = @plaza ? [@plaza[0], @plaza[2]] : [hub[0], hub[0] + STREET_WIDTH]
       ends = @exits.select { |side, *| %w[nord sud].include?(side) }.map { |_side, x, _y| x }
       spots = ((@w * 0.15).to_i..(@w * 0.85).to_i - width).select do |x0|
         (x0 + width + 2 <= left || x0 >= right + 2) &&
@@ -476,7 +488,7 @@ module MapProceduralGenerator
       cells = (y0...y0 + ph).to_a.product((x0...x0 + pw).to_a)
       return if cells.any? { |y, x| !inside?(x, y) || (@solid[y][x] && !@street[y][x]) }
       cells.each { |y, x| @street[y][x] = true }
-      @plaza = [x0, x0 + pw]
+      @plaza = [x0, y0, x0 + pw, y0 + ph]
       fountain = @palette.objects[PLAZA[:fountain]]
       fx, fy = x0 + ((pw - fountain.width) / 2), y0 + ((ph - fountain.height) / 2)
       rows = Array.new(fountain.height) { PLAZA[:fountain] * fountain.width }
@@ -532,12 +544,14 @@ module MapProceduralGenerator
         next if HIGHLAND.include?(kind) && !@level
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if @left_out.include?(kind)
-        next if place_brick(kind)
+        next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
         # so does a port town, for its decoration
         next if @level || (@port_depth && with_door.call(kind) == 1)
+        # The monument goes where it can, or not at all
+        next if kind == MONUMENT && (place_brick(kind) || true)
         next if i >= required.length || place_smallest(kind)
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]")
       end

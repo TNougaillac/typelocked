@@ -34,6 +34,10 @@ module MapProceduralGenerator
   PLAZA_KIND = "fontaine"
   PLAZA_SALT = 0x91A2A
 
+  # The monument of a town (« monument » in [Briques]) stands within that
+  # many tiles of its square, when it has one.
+  MONUMENT_REACH = 3
+
   # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
   # by weight; boost: [Briques] types raised to that many times their
   # highest count. GRID: tiles between two streets of a « grille » (across,

@@ -47,6 +47,9 @@ colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
 port     = 0        # entrepôts : posés le long du quai d'un port
 gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
+# Monument : une statue de la Famille près de la place (n'importe où sans
+# place) ; laissée de côté si elle ne tient pas.
+monument = 1
 
 # Ambiances : chaque ville en tire une selon son poids. L'herbe et ses rues
 # pavées restent le plus courant, quelques villes changent de sol.
@@ -244,6 +247,7 @@ s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T420 2x3         # arbre
 f = T1125 3x3 @q     # fontaine ronde, au milieu de la place, sur ses pavés (les rues la longent : with=f)
+v = T1014 2x4        # statue de la Famille (monument d'une ville)
 l = T1029 1x2        # lampadaire
 p = T997 1x1         # jardinière (une par case, posée sur le sol)
 F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)

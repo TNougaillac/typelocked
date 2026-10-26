@@ -1,0 +1,10 @@
+# Statue de la Famille, le monument d'une ville (au bord d'une rue, près de
+# la place quand la ville en a une).
+Brique = Statue de la Famille
+Type   = monument
+Contre = rue
+[Map]
+vv
+vv
+vv
+vv
