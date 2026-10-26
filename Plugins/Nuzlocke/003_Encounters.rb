@@ -106,6 +106,9 @@ module Nuzlocke::BallMenuHooks
        !Nuzlocke.any_catchable?(@battle.pbParty(1))
       foe = @battle.pbParty(1).find { |pkmn| pkmn && !pkmn.fainted? }
       pbDisplay(Nuzlocke.blocked_message(Nuzlocke.catch_blocked_reason(foe)))
+      # Back to the command menu: the message box would stay over it, and the
+      # next confirm would open the fight menu
+      pbShowWindow(Battle::Scene::COMMAND_BOX)
       return false
     end
     super

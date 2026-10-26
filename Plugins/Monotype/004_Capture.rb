@@ -57,6 +57,9 @@ module Monotype::BallMenuHooks
     if !raidCapture && Monotype.active? && @battle.wildBattle? &&
        !Monotype.any_catchable?(@battle.pbParty(1))
       pbDisplay(Monotype.blocked_message)
+      # Back to the command menu: the message box would stay over it, and the
+      # next confirm would open the fight menu
+      pbShowWindow(Battle::Scene::COMMAND_BOX)
       return false
     end
     super
