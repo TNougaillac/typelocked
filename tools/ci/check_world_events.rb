@@ -180,6 +180,9 @@ def check_trainers(result, zones, plans, sections, species, ttypes)
       next if !zone   # A gym's (check_gyms)
       sizes = W::PARTY_SIZES[[zone.seals, W::PARTY_SIZES.length - 1].min]
       raise MapEvents::Error, "#{where} : #{team.length} Pokémon (#{sizes} avec #{zone.seals} sceaux)" if !sizes.include?(team.length)
+      if entry.value("DoubleBattle") && (zone.seals < W::DOUBLE_FROM || team.length < 2)
+        raise MapEvents::Error, "#{where} : combat double avec #{team.length} Pokémon et #{zone.seals} sceaux"
+      end
       highest = team.map(&:last).max
       cap = E::CAPS[zone.seals] || E::CAPS.last
       raise MapEvents::Error, "#{where} : niveau #{highest} au-dessus du plafond #{cap}" if highest > cap
