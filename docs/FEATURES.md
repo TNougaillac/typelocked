@@ -103,7 +103,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.5.4, écrit, **non testé**.
+**Statut :** v1.5.5, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -385,16 +385,17 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Les options par défaut ne s'appliquent que si aucune sauvegarde n'existe encore (Essentials garde les options d'une partie à l'autre).
 
 ## F11. Niveau maximum par sceau (LevelCap)
-**Statut :** v1.0.0, écrit, **non testé**.
+**Statut :** v1.1.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/LevelCap/`
 
 ### Règles
 - Le niveau maximum dépend du nombre de sceaux : c'est le niveau du Pokémon le plus fort du prochain lieutenant (avec 8 sceaux, celui du Parrain), lu dans `PBS/trainers.txt`. Les lieutenants sont listés dans l'ordre dans `LEADERS`.
-- Un lieutenant pas encore défini (`nil` dans `LEADERS` ou absent de `trainers.txt`) utilise `FALLBACK_CAPS` (provisoire : champions de la démo Kanto, sauf la 5e arène ramenée de 43 à 36 : 14, 21, 24, 29, 36, 43, 47, 50, 63). Une valeur `nil` = pas de limite.
+- Un lieutenant pas encore défini (`nil` dans `LEADERS` ou absent de `trainers.txt`) utilise `FALLBACK_CAPS` (provisoire : 16, 24, 27, 33, 41, 49, 54, 57, 72, soit +2 à la première arène et le même facteur 16/14 sur les autres, #116). Une valeur `nil` = pas de limite. Tous les `LEADERS` sont à `nil` (Brock et Blue de la démo ne fixent plus les plafonds).
 - Au niveau maximum, un Pokémon ne gagne plus d'expérience en combat (il gagne toujours ses EV). Un gain qui dépasserait la limite s'arrête pile au niveau maximum.
 - Super Bonbon et Bonbons Exp. : refusés au niveau maximum (« X ne peut pas dépasser le niveau N pour l'instant. »), et la quantité proposée s'arrête à la limite.
 - Un Pokémon déjà au-dessus de la limite (capturé, reçu) garde son niveau.
+- **Indicateur :** « MAX » à côté du niveau d'un Pokémon au niveau maximum, en combat (boîtes de données du côté du joueur, en rouge) et dans l'écran de l'équipe (en jaune).
 
 ### Fichiers
 | Fichier | Rôle |
@@ -402,12 +403,13 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `meta.txt` | Déclaration du plugin. |
 | `001_Settings.rb` | `LEADERS`, `FALLBACK_CAPS`, `LEVEL_ITEMS`. |
 | `002_LevelCap.rb` | Calcul de la limite, limite d'expérience en combat et pour les objets. |
+| `003_Display.rb` | « MAX » à côté du niveau, en combat et dans l'équipe. |
 
 ### Intégration
 - À chaque nouveau lieutenant écrit dans `trainers.txt`, remplacer le `nil` correspondant de `LEADERS` par `[:TYPE_DE_DRESSEUR, "Nom"]`. La limite suit ensuite son équipe toute seule.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`Battle#pbGainExpOne`, `Pokemon#growth_rate` (remplacé par une version plafonnée pendant le gain, Essentials fait le reste), `ItemHandlers.triggerUseOnPokemon` et `triggerUseOnPokemonMaximum`.
+`Battle#pbGainExpOne`, `Pokemon#growth_rate` (remplacé par une version plafonnée pendant le gain, Essentials fait le reste), `ItemHandlers.triggerUseOnPokemon` et `triggerUseOnPokemonMaximum`, `Battle::Scene::PokemonDataBox#draw_level`, `PokemonPartyPanel#draw_level`.
 
 ### Limites connues
 - La Pension n'est pas limitée.
@@ -445,7 +447,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Les obstacles sur la carte gardent les graphismes d'Essentials (`Object tree 1`, `Object rock`, `Object boulder`, copiés des événements de la démo).
 
 ## F13. Rencontres sauvages générées (ProceduralEncounters)
-**Statut :** v1.4.0, écrit, testé hors jeu (CI), **non testé en jeu**.
+**Statut :** v1.4.1, écrit, testé hors jeu (CI), **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapProceduralGenerator (`Requires = MapProceduralGenerator`), sans le modifier.
 **Dossier :** `Plugins/ProceduralEncounters/`
 
@@ -540,8 +542,8 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Membres d'arène :** 2 à 4 membres de la Famille (Cousins, `GYM_MEMBERS`) par arène, de son type, 2 à 4 niveaux sous le lieutenant (`MEMBER_LEVEL_GAP`). L'un d'eux est toujours posé de façon à ce que sa vue couvre le chemin vers le lieutenant (places `blocking` de `GYM_LAYOUTS`) : il ne bloque pas le passage, il force le combat quand le joueur passe devant lui, comme dans les jeux officiels.
 - **Plafond de niveau :** les lieutenants sont tirés avec les plafonds de LevelCap (`ProceduralEncounters.level_caps`), donc le plafond avant le sceau `i` est toujours le niveau du Pokémon le plus fort du lieutenant `i`. LevelCap ne lit pas les équipes générées.
 - **Ligue :** dans les salles de la Ligue de l'inventaire (`LEAGUE_ROOMS`), dans l'ordre : les quatre Anciens, le Parrain, puis Arceus, au milieu de la salle (`LEAGUE_LAYOUTS`). La porte vers la salle suivante reste fermée (un événement devant elle renvoie le joueur d'un pas, `LEAGUE_DOOR_TEXT`) tant que la salle n'est pas gagnée : chaque victoire allume l'interrupteur `LEAGUE_SWITCH + n` (59 à 64). Les victoires restent acquises : un Ancien battu ne se rebat pas après une défaite plus haut.
-  - **Anciens :** types de dresseur `ANCIEN_1` à `ANCIEN_4` (« Ancien » en jeu, règle d'arène du Monotype), un type tiré chacun, jamais le même entre eux ; 5, 5, 6 et 6 Pokémon de ce type (`ELDER_PARTY_SIZES`). Le plus fort monte du plafond du dernier lieutenant à celui du Parrain (avec les plafonds par défaut : 53, 55, 58, 60).
-  - **Parrain :** type de dresseur `PARRAIN`, sans type de Pokémon fixe : 6 Pokémon parmi les plus évolués du roster, de types principaux différents, le plus fort au plafond avec tous les sceaux (63).
+  - **Anciens :** types de dresseur `ANCIEN_1` à `ANCIEN_4` (« Ancien » en jeu, règle d'arène du Monotype), un type tiré chacun, jamais le même entre eux ; 5, 5, 6 et 6 Pokémon de ce type (`ELDER_PARTY_SIZES`). Le plus fort monte du plafond du dernier lieutenant à celui du Parrain (avec les plafonds par défaut : 60, 63, 66, 69).
+  - **Parrain :** type de dresseur `PARRAIN`, sans type de Pokémon fixe : 6 Pokémon parmi les plus évolués du roster, de types principaux différents, le plus fort au plafond avec tous les sceaux (72).
   - **Arceus :** boss d'OverworldBoss (`ARCEUS_BOSS` : PV x3, Attaque et Attaque Spé. x1,2, Jugement, Vitesse Extrême, Soin, Force Cosmique), 5 niveaux au-dessus du Parrain (`ARCEUS_LEVEL_BONUS`). Battu ou capturé, il ouvre la porte du Panthéon et le Pacte est brisé (`ARCEUS_END`). Graphisme `boss_ARCEUS`, fait à partir de son icône.
 - **Sprites de la Famille (#103) :** chaque type de dresseur de la Famille a sa copie d'un sprite d'Essentials (combat dans `Graphics/Trainers/`, déplacement dans `Graphics/Characters/trainer_*`), faite par `tools/art/family_sprites.rb` (planche : `docs/sprites/famille.png`) :
 
@@ -613,7 +615,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Un dresseur posé au bord du chemin pourrait, rarement, boucher un passage étroit vers des hautes herbes ou un cul-de-sac (la CI ne refait pas le chemin à pied avec les dresseurs en place).
 
 ## F16. Historique des parties (RunHistory)
-**Statut :** v1.1.0, écrit, **non testé en jeu**. Issue #48.
+**Statut :** v1.1.1, écrit, **non testé en jeu**. Issue #48.
 **Version cible :** Essentials v21.1. Dépend de Nuzlocke, Monotype, MapProceduralGenerator et WorldEvents (`Requires`).
 **Dossier :** `Plugins/RunHistory/`
 
