@@ -30,11 +30,9 @@ Recif   = %
 Banc    = $
 # Ville en terrasses (TERRACE_CHANCE %) : un quartier en hauteur, comme
 # Oreburgh ou Ever Grande, un plateau du sol de la ville bordé d'une falaise,
-# des escaliers où les rues la franchissent (deux niveaux au plus), au sud
-# ou au nord, et à l'est ou à l'ouest sur ses côtés coupés.
+# des escaliers où les rues la franchissent (deux niveaux au plus).
 Relief   = ¬ ł
 Escalier = ŀĿ ĳĲ ŀĿ ĳĲ
-EscalierLateral = ŦŧŊŋ ŴŵŶŷ
 
 [Briques]
 centre   = 1
@@ -199,14 +197,6 @@ e = {sol} T777          # escalier taillé dans une montagne
 Ŀ = {sol} T778
 ĳ = {sol} T769          # escalier dans le rebord nord d'une terrasse
 Ĳ = {sol} T770
-Ŧ = {sol} T4216         # escalier qui monte vers l'est, sur le côté d'une terrasse
-ŧ = {sol} T4224         # (case haute : haut, bas ; case basse : haut, bas)
-Ŋ = {sol} T4217
-ŋ = {sol} T4225
-Ŵ = {sol} T4218         # escalier qui monte vers l'ouest
-ŵ = {sol} T4226
-Ŷ = {sol} T4219
-ŷ = {sol} T4227
 ( = {sol} A1 T1221      # rebord sud d'un ponton, sur l'eau (gauche, milieu, droite)
 _ = {sol} A1 T1222
 ) = {sol} A1 T1223

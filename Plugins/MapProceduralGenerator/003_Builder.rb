@@ -75,11 +75,6 @@ module MapProceduralGenerator
       !@plain && (![nil, "carrefour"].include?(@plan) || !@zone.nil? || (!@level.nil? && !@place.mountain))
     end
 
-    # Whether the place has stairs through the cut sides of its terraces
-    def side_stairs?
-      !@place.side_stairs.nil? && !@place.mountain
-    end
-
     # Whether the town is in terraces: worth building again with other
     # terraces, then flat (same plan), before plain, after an error.
     def terraced?
@@ -1219,10 +1214,8 @@ module MapProceduralGenerator
       crossings = (bh + 3..@h - bh - 3).to_h { |r| [r, boundary_crossings(r)] }.compact
       # A north-south route must climb: every boundary is crossed by a street
       crossings.reject! { |_r, n| n == 0 } if vertical_route?
-      # The exits and the water stay on the ground; a town's side exits too,
-      # unless it has side stairs (its terrace is cut there, see trim_sides)
-      ground_rows = @exits.reject { |side, _x, _y| side_stairs? && %w[est ouest].include?(side) }
-                          .flat_map { |_side, _x, y| [y, y + 1] } +
+      # The exits and the water stay on the ground
+      ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
                     (0...@h).select { |y| @water[y].any? }
       wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
       # A town's terraces have their own draws, one set per try
@@ -1265,7 +1258,7 @@ module MapProceduralGenerator
         Array.new(@w) { |x| picks.each_index.count { |i| picks[i] + waves[i][x] <= y } }
       end
       level = band.map { |row| row.map { |i| levels[i] } }
-      return false if !trim_sides(level, band, levels, relief)
+      trim_sides(level, band, levels, relief)
       raise_peaks(level) if @place.mountain
       raise_peaks(level, TERRACE_PEAKS, terraces, true) if terraces
       faces, stairs_at = draw_faces(level)
@@ -1388,19 +1381,6 @@ module MapProceduralGenerator
           next if !@street[y][x]
           south = y + 1 < @h && low.call(x, y + 1) < here
           north = y > 0 && low.call(x, y - 1) < here
-          west = x > 0 && low.call(x - 1, y) < here
-          east = x + 1 < @w && low.call(x + 1, y) < here
-          # A street crossing the cut side of a town's terrace: stairs two
-          # columns wide, the high one and the low one beside it
-          if side_stairs? && !north && !south && west != east
-            lx = west ? x - 1 : x + 1
-            return nil if !@street[y][lx] || low.call(lx, y) != here - 1
-            group = @place.side_stairs[west ? 0 : 1]
-            top = !@street[y - 1][x]
-            stairs[[x, y]] = group[top ? 0 : 1]
-            stairs[[lx, y]] = group[top ? 2 : 3]
-            next
-          end
           side = [[-1, 0], [1, 0]].any? { |ox, _| inside?(x + ox, y) && low.call(x + ox, y) < here && !@street[y][x + ox] }
           return nil if north == south || side
           pair = @place.stairs[(([here, 2].min - 1) * 2) + (south ? 0 : 1)]
@@ -1415,48 +1395,24 @@ module MapProceduralGenerator
 
     # A raised band no longer runs from side to side: it stops short of a
     # side (SIDE_TRIM % of the time) between that side and its streets,
-    # one level lower beyond, so that it stands as a mesa. A town's side exit
-    # in a band of level 1 cuts it where the exit's street runs straight, for
-    # side stairs (see draw_faces). false if that cut doesn't fit.
+    # one level lower beyond, so that it stands as a mesa.
     def trim_sides(level, band, levels, relief = @rng)
       levels.each_index do |i|
         next if levels[i] == 0
         cells = (0...@h).flat_map { |y| (0...@w).select { |x| band[y][x] == i }.map { |x| [x, y] } }
-        exits = @exits.select { |side, x, y| %w[est ouest].include?(side) && band[y][x] == i }
-        return false if exits.any? && (levels[i] != 1 || !side_stairs?)
-        rows = exits.flat_map { |_side, _x, y| (y...y + STREET_WIDTH).to_a }
-        streets = cells.select { |x, y| @street[y][x] && !rows.include?(y) }.map(&:first)
+        streets = cells.select { |x, y| @street[y][x] }.map(&:first)
         left, right = streets.empty? ? [@w / 2, @w / 2] : [streets.min - SIDE_GAP, streets.max + SIDE_GAP]
         cut_left = (@rng.rand(100) < SIDE_TRIM && left > 3) ? @rng.rand(2..left) : 0
         cut_right = (@rng.rand(100) < SIDE_TRIM && right < @w - 3) ? @rng.rand(right..@w - 2) : @w
-        west = exits.find { |side, _x, _y| side == "ouest" }
-        east = exits.find { |side, _x, _y| side == "est" }
-        cut_left = exit_cut(west[2], 2..left, relief) if west
-        cut_right = exit_cut(east[2], right..@w - 2, relief) if east
-        return false if !cut_left || !cut_right
-        if cut_right - cut_left < SIDE_GAP * 2
-          return false if exits.any?
-          next
-        end
-        # The cut wanders from row to row (SIDE_WAVE), never past the streets,
-        # straight by the stairs of an exit
+        next if cut_right - cut_left < SIDE_GAP * 2
+        # The cut wanders from row to row (SIDE_WAVE), never past the streets
         shift = side_wave(relief)
-        by = ->(exit, y) { exit && (exit[2] - 2..exit[2] + STREET_WIDTH + 1).cover?(y) }
         cells.each do |x, y|
-          lo = cut_left.zero? ? 0 : by.call(west, y) ? cut_left : (cut_left + shift[y % shift.length]).clamp(1, left)
-          hi = (cut_right == @w) ? @w : by.call(east, y) ? cut_right : (cut_right - shift[(y + 7) % shift.length]).clamp(right, @w - 1)
+          lo = cut_left.zero? ? 0 : (cut_left + shift[y % shift.length]).clamp(1, left)
+          hi = (cut_right == @w) ? @w : (cut_right - shift[(y + 7) % shift.length]).clamp(right, @w - 1)
           level[y][x] = levels[i] - 1 if x < lo || x >= hi
         end
       end
-      return true
-    end
-
-    # Where to cut a terrace for the side stairs of an exit's street (its
-    # top row y): a column c in range such that the street runs straight
-    # through columns c - 1 and c; nil if none.
-    def exit_cut(y, range, relief)
-      straight = ->(x) { (y...y + STREET_WIDTH).all? { |yy| @street[yy][x] } && !@street[y - 1][x] && !@street[y + STREET_WIDTH][x] }
-      return range.select { |c| straight.call(c - 1) && straight.call(c) }.sample(random: relief)
     end
 
     # Column offsets of a cut side, row after row: a step of one every few
