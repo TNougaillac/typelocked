@@ -17,6 +17,15 @@ module MapProceduralGenerator
   # Street width in tiles (exits, streets and paths to the doors).
   STREET_WIDTH = 2
 
+  # Natural border: past its first row of trees, the border of a place of that
+  # kind (« Lieu ») grows inwards by that many more rows of trees, changing by
+  # one row every BORDER_STRETCH trees along each side, at most BORDER_SHARE
+  # of the map across. BORDER_SALT: its own draws, apart from the place's.
+  BORDER_DEPTH = { "ville" => 0..1, "route" => 0..2 }.freeze
+  BORDER_STRETCH = 2..5
+  BORDER_SHARE = 0.2
+  BORDER_SALT = 0x5B0D
+
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 

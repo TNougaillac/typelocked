@@ -228,6 +228,44 @@ module MapProceduralGenerator
           @border[y][x] = @solid[y][x] = true
         end
       end
+      deepen_border(bw, bh)
+    end
+
+    # Natural border (BORDER_DEPTH): along each side of the map, the border
+    # grows inwards by whole rows of its trees, in stretches of
+    # BORDER_STRETCH trees, each one row deeper or shallower than the last,
+    # so that its inner edge winds like the edge of a forest. At most
+    # BORDER_SHARE of the map across, so that the bricks still fit. Its own
+    # draws (BORDER_SALT), so the rest of the place stays the same.
+    def deepen_border(bw, bh)
+      depths = BORDER_DEPTH[@place.kind]
+      return if !depths || @mask || @place.island || bw == 0 || bh == 0
+      rng = Random.new(@seed ^ BORDER_SALT)
+      sides = { "nord" => [@w, bw, bh, @h], "sud" => [@w, bw, bh, @h],
+                "ouest" => [@h, bh, bw, @w], "est" => [@h, bh, bw, @w] }
+      sides.each do |side, (length, step, unit, across)|
+        deepest = [depths.max, ((across * BORDER_SHARE) / unit).floor - 1].min
+        next if deepest <= 0
+        low = [depths.min, deepest].min
+        depth = rng.rand(low..deepest)
+        a = 0
+        while a < length
+          stretch = rng.rand(BORDER_STRETCH) * step
+          (a...[a + stretch, length].min).each do |along|
+            (unit...unit * (depth + 1)).each do |d|
+              x, y = case side
+                     when "nord"  then [along, d]
+                     when "sud"   then [along, @h - 1 - d]
+                     when "ouest" then [d, along]
+                     else              [@w - 1 - d, along]
+                     end
+              @border[y][x] = @solid[y][x] = true
+            end
+          end
+          a += stretch
+          depth = (depth + rng.rand(-1..1)).clamp(low, deepest)
+        end
+      end
     end
 
     # Square brush of STREET_WIDTH tiles, top-left at x, y.
