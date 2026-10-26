@@ -61,7 +61,7 @@ Grottes  = 1..2
 # escaliers. Une route de montagne peut aussi être coupée par un chenal ou un
 # lac. Certaines ont une grotte, un cul-de-sac à explorer (en %).
 Montagnes = 1..2
-GrotteMontagne = 50
+GrotteMontagne = 75
 # Une route de montagne nord-sud peut avoir une rivière qui longe la montée,
 # au pied des falaises, en parallèle du chemin (en %).
 RiviereMontagne = 50

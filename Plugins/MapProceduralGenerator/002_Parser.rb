@@ -26,7 +26,11 @@
 #                               mountain route of a world, from the 1st up, 2
 #                               at least; each joins the higher ones so that
 #                               only the higher level shows its edge)
-#   Escalier = ef gh EF GH     (optional, with Relief: pairs of [Legend]
+#   Terrasses = œ æ ø          (optional: [Terrains] symbols of the raised
+#                               terraces of a town, from the 1st up, their top
+#                               the ground; TOWN_TERRACES says how often and
+#                               how high)
+#   Escalier = ef gh EF GH     (optional, with Relief or Terrasses: pairs of [Legend]
 #                               symbols for 2-wide stairs, in a south face of
 #                               level 1, a north edge of level 1, then the same
 #                               for level 2 and up)
@@ -91,7 +95,7 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock)
+                     :mask, :joints, :filler, :lock, :terraces)
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
   # filler: « Comble », a symbol of one cell that blocks the way, for the
@@ -213,6 +217,9 @@ module MapProceduralGenerator
       when "relief"
         place.levels = value.split
         fail_at.call("attendu un symbole par niveau, ex. « ^ & k K »") unless place.levels.length >= 2 && place.levels.all? { |v| v.length == 1 }
+      when "terrasses"
+        place.terraces = value.split
+        fail_at.call("attendu un symbole par niveau, ex. « œ æ ø »") unless place.terraces.all? { |v| v.length == 1 }
       when "herbehaute" then place.high_grass = symbol(value, fail_at)
       when "escalier"
         place.stairs = value.split
@@ -332,9 +339,11 @@ module MapProceduralGenerator
     { "Recif" => place.reef, "Banc" => place.bank }.each do |key, sym|
       raise Error, "#{place.file} : « #{key} = #{sym} » doit être un symbole de [Legend]" if sym && !palette.legend[sym]
     end
-    raise Error, "#{place.file} : « Relief » demande « Escalier »" if !place.levels != !place.stairs
-    place.levels&.each do |sym|
-      raise Error, "#{place.file} : « Relief » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
+    raise Error, "#{place.file} : « Relief » ou « Terrasses » demande « Escalier »" if !(place.levels || place.terraces) != !place.stairs
+    { "Relief" => place.levels, "Terrasses" => place.terraces }.each do |key, symbols|
+      symbols&.each do |sym|
+        raise Error, "#{place.file} : « #{key} » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
+      end
     end
     raise Error, "#{place.file} : « HerbeHaute = #{place.high_grass} » doit être un symbole de [Legend]" if place.high_grass && !palette.legend[place.high_grass]
     place.stairs&.join&.each_char do |sym|

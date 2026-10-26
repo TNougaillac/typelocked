@@ -57,7 +57,7 @@ module MapProceduralGenerator
   DARK_CAVE = "grotte sombre"
 
   class PlaceBuilder
-    def initialize(place, bricks, palette, seed)
+    def initialize(place, bricks, palette, seed, flat: false)
       @place = place
       cave = place.crossing == "grotte" || place.cave || place.nook == "sombre"
       @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && cave) }
@@ -81,6 +81,7 @@ module MapProceduralGenerator
       @exits = []
       @dead_ends = []
       @nooks = []
+      @relief = place.mountain ? place.levels : (!flat && terraces)
     end
 
     def build
@@ -113,6 +114,8 @@ module MapProceduralGenerator
         lay_river
         # Its cave is left out when no spot fits
         place_mountain_cave if @place.cave
+      elsif @relief
+        raise_levels
       end
       reserve_banks
       place_port_bricks if @port_depth
@@ -191,6 +194,8 @@ module MapProceduralGenerator
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
+      # The streets of a town's terraces stay paved
+      rock = nil if rock && @street[y][x] && !@place.mountain && !@face[y][x]
       return @cells[y][x] || rock || @place.street if @street[y][x]
       return @cells[y][x] || rock || @place.ground
     end
@@ -345,7 +350,8 @@ module MapProceduralGenerator
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
         # so does a port town, for its decoration
-        next if @level || (@port_depth && with_door.call(kind) == 1)
+        next if @place.mountain && @level
+        next if @port_depth && with_door.call(kind) == 1
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
       end
       flood_ground
@@ -591,7 +597,7 @@ module MapProceduralGenerator
             next if @cells[y][x]
             next if level_at(x, y) > 0 || @stairs_at&.key?([x, y]) || !excess[:over_street]
             next if near?(x, y, 3) { |nx, ny| exit_at?(nx, ny) }
-          elsif !free_ground?(x, y)
+          elsif !free_ground?(x, y) || (!@place.mountain && level_at(x, y) > 0)
             next
           end
           @cells[y][x] = carpet
@@ -905,20 +911,23 @@ module MapProceduralGenerator
     # a lower one are its cliff (or rim), crossed by stairs where a street
     # goes through. The bands of the exits and the water stay on the ground.
     def raise_levels
-      error("« Relief » et « Escalier » manquants pour une route de montagne") if !@place.levels
+      error("« Relief » et « Escalier » manquants pour une route de montagne") if !@relief
       _bw, bh = border_size
       crossings = (bh + 3..@h - bh - 3).to_h { |r| [r, boundary_crossings(r)] }.compact
       # A north-south route must climb: every boundary is crossed by a street
       crossings.reject! { |_r, n| n == 0 } if vertical_route?
-      # The exits and the water stay on the ground
-      ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
+      # The exits of a route and the water stay on the ground (a town's exit
+      # may leave from a terrace: the edge of the map draws no cliff)
+      ground_rows = (@place.mountain ? @exits.flat_map { |_side, _x, y| [y, y + 1] } : []) +
                     (0...@h).select { |y| @water[y].any? }
       wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
+      wanted = @rng.rand(TERRACE_FACES) if !@place.mountain
       wanted = crossings.length if excess[:colossal]
       wanted = [wanted, crossings.length].min
-      # East-west routes may end up with cliffs and no stairs; a route with no
-      # room for levels stays flat
-      [true, vertical_route?].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
+      # East-west routes may end up with cliffs and no stairs (never a town:
+      # its terraces have streets and doors); a place with no room for
+      # levels stays flat
+      [true, vertical_route? || !@place.mountain].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
         20.times.any? { try_levels(crossings, ground_rows, count, stairs) }
       end
     end
@@ -928,7 +937,7 @@ module MapProceduralGenerator
     def try_levels(crossings, ground_rows, count, stairs)
       picks = []
       crossings.keys.shuffle(random: @rng).each do |r|
-        picks.push(r) if picks.none? { |p| (p - r).abs < FACE_GAP }
+        picks.push(r) if picks.none? { |p| (p - r).abs < (@place.mountain ? FACE_GAP : TERRACE_GAP) }
         break if picks.length == count
       end
       return false if picks.length < count
@@ -939,10 +948,16 @@ module MapProceduralGenerator
       levels = band_levels(count + 1, ground)
       return false if !levels
       waves = []
-      picks.each_with_index { |r, i| waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last)) }
-      level = Array.new(@h) do |y|
-        Array.new(@w) { |x| levels[picks.each_index.count { |i| picks[i] + waves[i][x] <= y }] }
+      # A town's terraces have straight edges, a mountain's wander
+      picks.each_with_index do |r, i|
+        waves.push(@place.mountain ? face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last) : Array.new(@w, 0))
       end
+      band = Array.new(@h) do |y|
+        Array.new(@w) { |x| picks.each_index.count { |i| picks[i] + waves[i][x] <= y } }
+      end
+      level = band.map { |row| row.map { |i| levels[i] } }
+      trim_sides(level, band, levels)
+      raise_peaks(level) if @place.mountain
       faces, stairs_at = draw_faces(level)
       return false if !faces
       @level, @face, @stairs_at = level, faces, stairs_at
@@ -980,7 +995,7 @@ module MapProceduralGenerator
     # bands, at most one per « Relief » symbol; climbing more often than not.
     # nil if none fits.
     def band_levels(n, ground)
-      top = @place.levels.length
+      top = @relief.length
       allowed = Array.new(n) { |i| ground.include?(i) ? [0] : (0..top).to_a }
       # Levels from which the rest of the bands can still be drawn
       feasible = Array.new(n)
@@ -1017,7 +1032,7 @@ module MapProceduralGenerator
         offset = 0 if crossing.any? { |c| (c - x).abs <= STREET_WIDTH + 1 }
         # Back towards r until nothing to keep lies between
         offset -= (offset <=> 0) while offset != 0 && (offset > 0 ? (r...r + offset) : (r + offset...r)).any? { |y| keep.call(x, y) }
-        offset += 1 while prev && r + offset < prev + prev_wave[x] + BAND_MIN
+        offset += 1 while prev && r + offset < prev + prev_wave[x] + (@place.mountain ? BAND_MIN : TERRACE_GAP - FACE_WAVE)
         offset
       end
     end
@@ -1045,10 +1060,64 @@ module MapProceduralGenerator
           stairs[[x, y]] = (x > 0 && @street[y][x - 1]) ? pair[1] : pair[0]
         end
       end
-      # The exits still reach one another, through the stairs
+      # The exits still reach one another, through the stairs, and so does
+      # every street of a town
       seen = walk_levels(@exits[0][1, 2], faces, stairs)
       return nil if @exits.any? { |_side, x, y| !seen[y][x] }
+      return nil if !@place.mountain && (0...@h).any? { |y| (0...@w).any? { |x| @street[y][x] && !seen[y][x] } }
       return faces, stairs
+    end
+
+    # How many terraces a town has (its first « Terrasses » symbols), from
+    # its own draw so that the rest of the town doesn't change; nil if flat.
+    def terraces
+      return nil if !@place.terraces || @place.kind != "ville" || @place.port || @place.island
+      rng = Random.new(@seed + 4241)
+      return nil if rng.rand(100) >= TOWN_TERRACES
+      count = rng.rand(TERRACE_LEVELS.fetch(@place.ambiance, TERRACE_LEVELS[nil]))
+      return @place.terraces.first(count)
+    end
+
+    # A raised band no longer runs from side to side: it stops short of a
+    # side (SIDE_TRIM % of the time) between that side and its streets,
+    # one level lower beyond, so that it stands as a terrace or a mesa.
+    def trim_sides(level, band, levels)
+      levels.each_index do |i|
+        next if levels[i] == 0
+        cells = (0...@h).flat_map { |y| (0...@w).select { |x| band[y][x] == i }.map { |x| [x, y] } }
+        streets = cells.select { |x, y| @street[y][x] }.map(&:first)
+        left, right = streets.empty? ? [@w / 2, @w / 2] : [streets.min - SIDE_GAP, streets.max + SIDE_GAP]
+        cut_left = (@rng.rand(100) < SIDE_TRIM && left > 3) ? @rng.rand(2..left) : 0
+        cut_right = (@rng.rand(100) < SIDE_TRIM && right < @w - 3) ? @rng.rand(right..@w - 2) : @w
+        next if cut_right - cut_left < (@place.mountain ? SIDE_GAP * 2 : TERRACE_WIDTH)
+        cells.each do |x, y|
+          level[y][x] = levels[i] - 1 if x < cut_left || x >= cut_right
+        end
+      end
+    end
+
+    # Peaks of a mountain route: rough ovals one level above the ground around
+    # them, away from the streets, the water and the exits (MOUNTAIN_PEAKS per
+    # CASE_SIZE square).
+    def raise_peaks(level)
+      top = @relief.length
+      count = (@w * @h * @rng.rand(MOUNTAIN_PEAKS) / (CASE_SIZE * CASE_SIZE).to_f).round
+      keep = ->(x, y) { !inside?(x, y) || @border[y][x] || @street[y][x] || @water[y][x] || exit_at?(x, y) }
+      (count * 20).times do
+        break if count == 0
+        rx, ry = @rng.rand(2.5..5.0), @rng.rand(2.0..3.5)
+        cx, cy = @rng.rand(@w), @rng.rand(@h)
+        here = level[cy][cx]
+        next if here >= top
+        cells = (cy - 4..cy + 4).flat_map do |y|
+          (cx - 6..cx + 6).select { |x| ((((x - cx) / rx)**2) + (((y - cy) / ry)**2)) <= 1.0 }.map { |x| [x, y] }
+        end
+        next if cells.any? do |x, y|
+          (-1..1).any? { |oy| (-1..1).any? { |ox| keep.call(x + ox, y + oy) || level[y + oy][x + ox] != here } }
+        end
+        cells.each { |x, y| level[y][x] = here + 1 }
+        count -= 1
+      end
     end
 
     # Like walk, with the cliffs in the way (stairs excepted).
@@ -1078,7 +1147,7 @@ module MapProceduralGenerator
 
     # The « Relief » symbol of a level.
     def level_symbol(level)
-      return @place.levels[level - 1]
+      return @relief[level - 1]
     end
 
     # Tall grass on the raised levels of a mountain route, in a few patches
@@ -1425,7 +1494,8 @@ module MapProceduralGenerator
           cx, cy = x + dx, y + dy
           return false if @solid[cy][cx] || @street[cy][cx]
           raised = level_at(cx, cy) > 0
-          return false if HIGHLAND.include?(brick.kind) != raised
+          # Anything on a town's terraces, only rocks on a mountain's levels
+          return false if HIGHLAND.include?(brick.kind) ? !raised : (raised && @place.mountain)
           (-1..1).each do |oy|
             (-1..1).each do |ox|
               nx, ny = cx + ox, cy + oy
@@ -1480,7 +1550,7 @@ module MapProceduralGenerator
           next if c == " "
           # On a raised level, a brick's relief stands that much higher
           step = HIGHLAND.include?(brick.kind) ? @place.levels&.index(c) : nil
-          c = level_symbol(level_at(x + dx, y + dy) + step) if step && level_at(x + dx, y + dy) + step <= @place.levels.length
+          c = level_symbol(level_at(x + dx, y + dy) + step) if step && level_at(x + dx, y + dy) + step <= @relief.length
           @cells[y + dy][x + dx] = c
           @solid[y + dy][x + dx] = true
           @kinds[y + dy][x + dx] = brick.kind
@@ -1629,7 +1699,13 @@ module MapProceduralGenerator
     end
     place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
-    layout = PlaceBuilder.new(place, bricks, palette, seed).build
+    layout = begin
+      PlaceBuilder.new(place, bricks, palette, seed).build
+    rescue Error
+      # A town whose terraces leave no room for its buildings stays flat
+      raise if !place.terraces
+      PlaceBuilder.new(place, bricks, palette, seed, flat: true).build
+    end
     text = plan_text(place, seed, layout.rows)
     return MapGenerator.parse(text, place.file), text, layout
   end

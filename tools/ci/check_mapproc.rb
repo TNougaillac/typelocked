@@ -53,7 +53,7 @@ end
 def check_water(plan, name, place)
   sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.cover?(t) } }.keys
   wet = sea + plan.objects.select { |_c, o| sea.include?(o.ground) }.keys + plan.terrains.select { |_c, t| sea.include?(t.ground) }.keys
-  clean = wet + place.banks.to_s.chars + place.levels.to_a
+  clean = wet + place.banks.to_s.chars + place.levels.to_a + place.terraces.to_a
   rows = plan.rows
   at = ->(x, y) { y < 0 || y >= rows.length || x < 0 || x >= rows[y].length || wet.include?(rows[y][x]) }
   rows.each_with_index do |row, y|
@@ -70,7 +70,7 @@ end
 # Symbols a cell of the inventory may show: ground, streets, banks, stairs, planks
 # and the bricks walked through (grass).
 def walkable_symbols(place, bricks)
-  symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
+  symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.terraces, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }

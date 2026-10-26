@@ -28,6 +28,13 @@ Rebord  = (_)
 Bateau  = b
 Recif   = %
 Banc    = $
+# Terrasses : environ une ville sur trois (TOWN_TERRACES) monte sur 1 ou 2 niveaux, 2 ou 3
+# en ambiance minérale (TERRACE_LEVELS) ; le dessus d'une terrasse garde le sol
+# de la ville, ses rues et ses bâtiments. Un symbole par niveau, puis les
+# escaliers (2 de large) : face sud et rebord nord du niveau 1, puis des niveaux
+# 2 et plus.
+Terrasses = œ æ ø
+Escalier  = eð þß eð þß
 
 [Briques]
 centre   = 1
@@ -44,6 +51,7 @@ arbre    = 0..2 par case
 lac      = 0..1
 montagne = 0..1
 colline  = 0..1   # rare : seulement HILL_TOWN_CHANCE % des fois
+corniche = 0..1 par case   # rebord à sauter vers le sud
 port     = 0        # entrepôts : posés le long du quai d'un port
 gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
@@ -125,8 +133,14 @@ Rue   = T274
 arbre = 0..1 par case
 lac   = 0
 decor = 1..2 par case
-# La roche grise remplace la brune (montagnes, rochers, corniches)
+# La roche grise remplace la brune (montagnes, terrasses, corniches)
 ^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+œ = T731 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=æøeðþßP L2 @.
+æ = T731 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=øeðþßP L2 @.
+ø = T731 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=eðþßP L2 @.
+< = {sol} T890
+- = {sol} T908
+> = {sol} T894
 
 
 [Ambiance terre battue]
@@ -180,7 +194,13 @@ x = {sol} T919          # cailloux gris
 ] = {sol} T1018
 { = {sol} T1019         # pieds du stand jaune
 } = {sol} T1021
-e = {sol} T777          # escalier taillé dans une montagne
+e = {sol} T777          # escalier taillé dans une montagne ou une terrasse (gauche, droite)
+ð = {sol} T778
+þ = {sol} T769          # escalier dans le rebord nord d'une terrasse
+ß = {sol} T770
+< = {sol} T810          # corniche (on la saute vers le sud)
+- = {sol} T828
+> = {sol} T814
 ( = {sol} A1 T1221      # rebord sud d'un ponton, sur l'eau (gauche, milieu, droite)
 _ = {sol} A1 T1222
 ) = {sol} A1 T1223
@@ -197,6 +217,10 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 
 [Terrains]
 ^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.   # montagne (dessus praticable)
+# Terrasses : le bord de roche seul, le dessus garde le sol de la ville (T731 est vide)
+œ = T731 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=æøeðþßP L2 @.   # niveau 1
+æ = T731 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=øeðþßP L2 @.   # niveau 2
+ø = T731 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=eðþßP L2 @.   # niveau 3
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
 [Objects]
