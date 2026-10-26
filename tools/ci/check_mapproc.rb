@@ -70,7 +70,7 @@ end
 # Symbols a cell of the inventory may show: ground, streets, banks, stairs, planks
 # and the bricks walked through (grass).
 def walkable_symbols(place, bricks)
-  symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
+  symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars, *place.side_stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
   symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand
@@ -103,7 +103,7 @@ end
 # blocked (a nook's obstacle) left out, the cells through (a wall crossed
 # with the Grappling Hook) walked.
 def reached(place, bricks, layout, surf:, blocked: nil, exits: layout.exits, through: [])
-  stairs = place.stairs&.join&.chars || []
+  stairs = (place.stairs.to_a + place.side_stairs.to_a).join.chars
   walkable = walkable_symbols(place, bricks) - stairs
   walkable += [place.water, place.deep].compact if surf
   height = ->(c) { place.levels&.index(c) || -1 }

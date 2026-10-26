@@ -33,6 +33,10 @@
 #                               symbols for 2-wide stairs, in a south face of
 #                               level 1, a north edge of level 1, then the same
 #                               for level 2 and up)
+#   EscalierLateral = abcd efgh (optional, with Relief: [Legend] symbols of
+#                               the stairs climbing east, then west, through
+#                               the cut side of a town's terrace: high column
+#                               top and bottom, low column top and bottom)
 #   HerbeHaute = n             (optional: [Legend] symbol of the tall grass on
 #                               the raised levels)
 #   Ponton  = |                (optional: [Terrains] symbol of the wooden piers
@@ -96,7 +100,7 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock, :plan)
+                     :mask, :joints, :filler, :lock, :plan, :side_stairs)
   # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
@@ -223,6 +227,9 @@ module MapProceduralGenerator
       when "escalier"
         place.stairs = value.split
         fail_at.call("attendu quatre paires de symboles, ex. « ef gh EF GH »") unless place.stairs.length == 4 && place.stairs.all? { |v| v.length == 2 }
+      when "escalierlateral"
+        place.side_stairs = value.split
+        fail_at.call("attendu deux groupes de quatre symboles, ex. « abcd efgh »") unless place.side_stairs.length == 2 && place.side_stairs.all? { |v| v.length == 4 }
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -348,6 +355,10 @@ module MapProceduralGenerator
     raise Error, "#{place.file} : « HerbeHaute = #{place.high_grass} » doit être un symbole de [Legend]" if place.high_grass && !palette.legend[place.high_grass]
     place.stairs&.join&.each_char do |sym|
       raise Error, "#{place.file} : « Escalier » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
+    end
+    raise Error, "#{place.file} : « EscalierLateral » demande « Relief »" if place.side_stairs && !place.levels
+    place.side_stairs&.join&.each_char do |sym|
+      raise Error, "#{place.file} : « EscalierLateral » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
     end
     place.counts.each_key do |kind|
       next if [LAKE, HILL].include?(kind) || bricks.any? { |b| b.kind == kind }
