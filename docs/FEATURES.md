@@ -1,7 +1,7 @@
 # Fonctionnalités
 
 ## F01. Mode Nuzlocke
-**Statut :** v1.2.2, écrit, **non testé**.
+**Statut :** v1.3.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Nuzlocke/`
 
@@ -14,19 +14,20 @@
 - **Clause des doublons :** une espèce déjà capturée (famille d'évolution comprise) n'est pas capturable et ne consomme pas la zone.
 - **Clause du shiny :** un shiny est toujours capturable. S'il est la première rencontre d'une zone libre, il consomme la zone.
 - **Surnoms obligatoires :** captures, cadeaux et événements. Redemandé tant que le surnom est vide ou égal au nom de l'espèce.
-- **Mort définitive :** un Pokémon du joueur qui tombe K.O. est mort tout de suite (un rappel en combat ne le sauve pas). En fin de combat il part dans une boîte « Cimetière N », créée au besoin. Il reste visible dans le PC mais ne peut plus être retiré, mis dans l'équipe, relâché ni soigné.
+- **Mort définitive :** un Pokémon du joueur qui tombe K.O. est mort tout de suite (un rappel en combat ne le sauve pas). En fin de combat il part dans une boîte « Cimetière N », créée au besoin avec le fond « City » (`GRAVEYARD_BACKGROUND`). Le message de sa mort s'affiche avec son panneau d'équipe (icône, nom, niveau, PV). Il reste visible dans le PC mais ne peut plus être retiré, mis dans l'équipe, relâché ni soigné.
 - **Poison hors combat :** il laisse le Pokémon à 1 PV puis disparaît.
 - **Équipe entièrement K.O. :** retour au dernier Centre Pokémon, les morts vont au cimetière et la partie continue avec les Pokémon du PC. S'il ne reste plus aucun Pokémon vivant (équipe et PC), le run est perdu : le mode se désactive et l'aventure continue normalement.
+- **Sauvegarde à la défaite** (`SAVE_ON_DEFEAT`) : après une défaite (retour au Centre), une fois les morts enterrés, la partie est sauvegardée. On ne peut donc pas recharger une sauvegarde d'avant la défaite.
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
-| `001_Settings.rb` | `ZONE_GROUPS`, `DUPLICATE_BY_FAMILY`, `SHINY_CONSUMES_FREE_ZONE`, `GRAVEYARD_NAME`. |
+| `001_Settings.rb` | `ZONE_GROUPS`, `DUPLICATE_BY_FAMILY`, `SHINY_CONSUMES_FREE_ZONE`, `GRAVEYARD_NAME`, `GRAVEYARD_BACKGROUND`, `SAVE_ON_DEFEAT`. |
 | `002_Data.rb` | Données de sauvegarde (`$nuzlocke`), zones utilisées, boîtes cimetière. |
 | `003_Encounters.rb` | Zones, doublons, shiny, blocage des Poké Balls. |
 | `004_Nicknames.rb` | Surnoms obligatoires. |
-| `005_Permadeath.rb` | Mort, cimetière, verrou des PV, équipe K.O. |
+| `005_Permadeath.rb` | Mort, cimetière (fond, panneau du mort), verrou des PV, équipe K.O., sauvegarde à la défaite. |
 | `006_Setup.rb` | Fenêtre de choix du début de partie, inscrite auprès de NewGameSetup. |
 | `007_Storage.rb` | Verrous du PC sur les Pokémon morts. |
 | `008_FieldPoison.rb` | Poison hors combat. |
@@ -36,7 +37,7 @@
 - Regrouper des cartes : `Nuzlocke::ZONE_GROUPS = { id_secondaire => id_principal }`.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
-`pbStartBattle`, `pbThrowPokeBall`, `pbStorePokemon` (sur `Battle` et `SafariBattle`, qui n'hérite pas de `Battle`), `Battle::Battler#pbFaint`, `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `pbNickname`, `Pokemon#hp=`, `Pokemon#heal_HP`, `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap/pbRelease`, handlers `:on_end_battle` et `:poison_party` (remplacé).
+`pbStartBattle`, `pbThrowPokeBall`, `pbStorePokemon` (sur `Battle` et `SafariBattle`, qui n'hérite pas de `Battle`), `Battle::Battler#pbFaint`, `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `pbNickname`, `Pokemon#hp=`, `Pokemon#heal_HP`, `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap/pbRelease`, `pbStartOver`, handlers `:on_end_battle` et `:poison_party` (remplacé).
 
 ### À vérifier au premier lancement
 - Les points d'accroche ont été vérifiés contre les scripts v21.1 du dépôt (`Data/Scripts.rxdata`), mais le plugin n'a pas encore tourné en jeu.
@@ -46,6 +47,8 @@
 - Pas de mode hardcore pour l'instant (poison mortel, K.O. de l'équipe = fin de partie) : à ajouter plus tard.
 - Les œufs qui éclosent ne forcent pas de surnom.
 - Les cadeaux ne consomment pas la zone.
+- Couper le jeu pendant un combat perdu, avant la fin du combat, évite encore la sauvegarde à la défaite.
+- Les boîtes Cimetière créées avant la v1.3.0 gardent leur fond.
 
 ## F02. Deluxe Battle Kit (plugin externe)
 **Statut :** v1.3.1 installé (Lucidious89), avec son prérequis v21.1 Hotfixes 1.0.9 (Maruno). **Non testé.**
@@ -745,3 +748,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | RunHistory v1.0.0 (#48) : historique des 20 dernières parties (graine, région, type, dernier lieu, équipe, issue), mis à jour à chaque sauvegarde, figé à la défaite Nuzlocke, à la victoire contre Arceus ou à l'abandon (une partie jamais sauvegardée n'y entre pas) ; panneau « Dernières parties » sous New Game à l'écran titre (partie précédente et icônes de son équipe) et liste de toutes les parties, avec « Rejouer cette graine » ; MapProceduralGenerator v0.25.0 (`next_game_seed=`) | `Plugins/RunHistory/*`, `Plugins/MapProceduralGenerator/007_NewGame.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 25/10/2026 | Sprites de la Famille (#103) : 18 types de dresseur `LIEUTENANT_<TYPE>`, `ANCIEN_1` à `ANCIEN_4` et `PARRAIN`, sprites copiés d'Essentials ; WorldEvents v1.8.0 (le lieutenant prend le sprite de son type), Monotype v1.5.4 (règle d'arène pour ces types) | `PBS/trainer_types.txt`, `Graphics/Trainers/`, `Graphics/Characters/`, `tools/art/family_sprites.rb`, `Plugins/WorldEvents/*`, `Plugins/Monotype/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
+| 26/10/2026 | Nuzlocke v1.3.0 (#117) : sauvegarde automatique après une défaite, panneau d'équipe du Pokémon mort avec le message de sa mort, fond « City » pour les nouvelles boîtes Cimetière | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
