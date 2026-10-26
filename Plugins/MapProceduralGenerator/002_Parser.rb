@@ -91,7 +91,8 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock)
+                     :mask, :joints, :filler, :lock, :plan)
+  # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
   # filler: « Comble », a symbol of one cell that blocks the way, for the

@@ -57,8 +57,12 @@ module MapProceduralGenerator
   DARK_CAVE = "grotte sombre"
 
   class PlaceBuilder
-    def initialize(place, bricks, palette, seed)
+    # The town's plan (see choose_plan); plain: always « carrefour ».
+    attr_reader :plan
+
+    def initialize(place, bricks, palette, seed, plain = false)
       @place = place
+      @plain = plain
       cave = place.crossing == "grotte" || place.cave || place.nook == "sombre"
       @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && cave) }
       # Bricks kept for some ambiances; a type left with none of its bricks
@@ -105,7 +109,10 @@ module MapProceduralGenerator
       moor_boat if @terminal && (@place.ferry || @place.island)
       scatter_reefs if @place.island
       @rng.rand(@place.spurs).times { carve_spur(hub) }
-      lay_plaza(hub)
+      choose_plan
+      lay_grid if @plan == "grille"
+      lay_plaza(hub) if @plan != "clairière"
+      lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
       cross if @place.crossing
       if @place.mountain
@@ -395,6 +402,67 @@ module MapProceduralGenerator
       carve_line(x, y, hub[0], hub[1], avenue)
     end
 
+    # The plan of a town (TOWN_PLANS, by weight; its own draws, PLAN_SALT):
+    # « carrefour » (streets from the exits to a square), « grille » (a grid
+    # of streets as well), « canal » (a canal from north to south, crossed
+    # by bridges) or « clairière » (no square, trees everywhere). Only in
+    # towns big enough for a square, not in a port, on an island or with a
+    # mask; nil for the others. A town whose bricks don't fit its plan is
+    # built again as a « carrefour » (generate_place).
+    def choose_plan
+      @plan = nil
+      return if @place.kind != "ville" || @place.port || @place.island || @mask || [@w, @h].min < PLAZA[:min_side]
+      rng = Random.new(@seed ^ PLAN_SALT)
+      roll = rng.rand(TOWN_PLANS.values.sum { |plan| plan[:weight] })
+      @plan = TOWN_PLANS.find { |_name, plan| (roll -= plan[:weight]) < 0 }[0]
+      @plan = @place.plan if @place.plan
+      @plan = "carrefour" if @plain
+      @plan = "carrefour" if @plan == "canal" && (!@place.water || !@place.pier || !@place.lips)
+    end
+
+    # A grid of straight streets (GRID: tiles between two streets), each
+    # running between the border's trees, so that the blocks hold one or
+    # two buildings each.
+    def lay_grid
+      rng = Random.new(@seed ^ PLAN_SALT ^ 1)
+      sx, sy = rng.rand(GRID[:across]), rng.rand(GRID[:down])
+      (rng.rand(sx)...@w).step(sx) { |x| @h.times { |y| paint(x, y) if brush_clear?(x, y) && grid_free?(x, y) } }
+      (rng.rand(sy)...@h).step(sy) { |y| @w.times { |x| paint(x, y) if brush_clear?(x, y) && grid_free?(x, y) } }
+    end
+
+    # The brush at x, y lies on free ground or streets only.
+    def grid_free?(x, y)
+      return (0...STREET_WIDTH).all? { |oy| (0...STREET_WIDTH).all? { |ox| !@solid[y + oy][x + ox] || @street[y + oy][x + ox] } }
+    end
+
+    # A canal (CANAL wide) from the northern to the southern edge, 2 tiles
+    # off the square and away from the exits of those sides; the streets that cross it
+    # become wooden bridges (« Ponton », with their « Rebord » lips).
+    def lay_canal(hub)
+      rng = Random.new(@seed ^ PLAN_SALT ^ 2)
+      width = rng.rand(CANAL[:width])
+      left, right = @plaza || [hub[0], hub[0] + STREET_WIDTH]
+      ends = @exits.select { |side, *| %w[nord sud].include?(side) }.map { |_side, x, _y| x }
+      spots = ((@w * 0.15).to_i..(@w * 0.85).to_i - width).select do |x0|
+        (x0 + width + 2 <= left || x0 >= right + 2) &&
+          ends.none? { |ex| ex + STREET_WIDTH + 2 > x0 && ex < x0 + width + 2 }
+      end
+      return if spots.empty?
+      x0 = spots.sample(random: rng)
+      @h.times do |y|
+        (x0...x0 + width).each do |x|
+          if @street[y][x]
+            @cells[y][x] = @place.pier
+          else
+            @cells[y][x] = @place.water
+            @water[y][x] = @solid[y][x] = true
+          end
+          @border[y][x] = false
+        end
+      end
+      lay_pier_lips
+    end
+
     # A paved square around the hub of a town (PLAZA), its fountain in the
     # middle with the street all around; none in a village, a port, on an
     # island or with a mask, nor where the square would not be free ground.
@@ -408,6 +476,7 @@ module MapProceduralGenerator
       cells = (y0...y0 + ph).to_a.product((x0...x0 + pw).to_a)
       return if cells.any? { |y, x| !inside?(x, y) || (@solid[y][x] && !@street[y][x]) }
       cells.each { |y, x| @street[y][x] = true }
+      @plaza = [x0, x0 + pw]
       fountain = @palette.objects[PLAZA[:fountain]]
       fx, fy = x0 + ((pw - fountain.width) / 2), y0 + ((ph - fountain.height) / 2)
       rows = Array.new(fountain.height) { PLAZA[:fountain] * fountain.width }
@@ -443,7 +512,8 @@ module MapProceduralGenerator
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = @rng.rand(range)
         boost = excess[:boost]&.[](kind)
-        count = [count, range.max * boost].max if boost
+        boost = [boost || 0, TOWN_PLANS.dig(@plan, :boost, kind) || 0].max
+        count = [count, range.max * boost].max if boost > 0
         range.min.times { required.push(kind) }
         (count - range.min).times { optional.push(kind) }
       end
@@ -1786,7 +1856,13 @@ module MapProceduralGenerator
     end
     place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
-    layout = PlaceBuilder.new(place, bricks, palette, seed).build
+    builder = PlaceBuilder.new(place, bricks, palette, seed)
+    begin
+      layout = builder.build
+    rescue Error
+      raise if [nil, "carrefour"].include?(builder.plan)
+      layout = PlaceBuilder.new(place, bricks, palette, seed, true).build
+    end
     text = plan_text(place, seed, layout.rows)
     return MapGenerator.parse(text, place.file), text, layout
   end

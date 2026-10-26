@@ -34,6 +34,21 @@ module MapProceduralGenerator
   PLAZA_KIND = "fontaine"
   PLAZA_SALT = 0x91A2A
 
+  # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
+  # by weight; boost: [Briques] types raised to that many times their
+  # highest count. GRID: tiles between two streets of a « grille » (across,
+  # down); CANAL: width of the canal of a « canal ». PLAN_SALT: their own
+  # draws.
+  TOWN_PLANS = {
+    "carrefour" => { weight: 4 },
+    "grille"    => { weight: 2 },
+    "canal"     => { weight: 1 },
+    "clairière" => { weight: 1, boost: { "arbre" => 3 } }
+  }.freeze
+  GRID = { across: 14..16, down: 12..14 }.freeze
+  CANAL = { width: 4..5 }.freeze
+  PLAN_SALT = 0x91A45
+
   # The avenue of a town (the streets of its first two exits) is one tile
   # wider than STREET_WIDTH, except within AVENUE_MARGIN tiles of the edges.
   AVENUE_MARGIN = 6

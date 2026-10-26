@@ -334,6 +334,21 @@ places.each do |path|
       check_spots(name, themed, bricks, layout)
     end
   end
+  # Every plan of a town on a few seeds (a town whose bricks don't fit its
+  # plan is built as a « carrefour »)
+  if place.kind == "ville"
+    M::TOWN_PLANS.each_key do |plan_name|
+      (1..5).each do |seed|
+        planned = place.dup.tap { |p| p.plan = plan_name }
+        plan, _text, layout = M.generate_place(planned, bricks, seed)
+        name = "#{File.basename(path)} (plan #{plan_name}, graine #{seed})"
+        MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+        check_spill(plan, name)
+        check_water(plan, name, planned)
+        check_spots(name, planned, bricks, layout)
+      end
+    end
+  end
   # A port on each side with no exit, at the size of a world's town
   next if !place.pier
   (M::SIDES - place.exits.map(&:first)).each do |side|
