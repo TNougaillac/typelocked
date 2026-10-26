@@ -46,6 +46,8 @@ colline = 0..1 par case
 # Rochers sur les niveaux d'une route de montagne (seulement là).
 rocaille = 2..5 par case
 lac    = 0..1
+# Refuge : une maison isolée au bord du chemin, que l'on peut visiter.
+refuge = 0..1
 # Entrées de grotte : posées seulement sur les routes que le monde fait passer
 # par une grotte (« Grottes » dans monde.txt).
 grotte = 0
@@ -271,3 +273,5 @@ a = T836 2x4         # flèche rocheuse brune (désert)
 i = T916 2x4         # flèche rocheuse grise (minéral)
 t = T420 2x3         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
+W = T1816 4x4        # maison en bois (refuge)
+V = T1336 5x4        # maison verte à cheminée (refuge)

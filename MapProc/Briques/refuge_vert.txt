@@ -1,0 +1,9 @@
+# Maison isolée au bord d'une route (on y entre : son intérieur est une maison).
+Brique = Refuge vert à cheminée
+Type   = refuge
+Porte  = 2,3
+[Map]
+VVVVV
+VVVVV
+VVVVV
+VVVVV

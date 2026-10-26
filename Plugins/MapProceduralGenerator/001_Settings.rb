@@ -121,10 +121,12 @@ module MapProceduralGenerator
   # drawn among those of its brick type: [map ID, x, y of its exit (the door
   # mat, the player arrives just above it)]. The copy keeps the map's tiles,
   # not its events. A centre's copy is the healing spot of its town.
+  HOUSE_INTERIORS = [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]].freeze
   INTERIORS = {
     "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
     "boutique" => [[25, 4, 8], [54, 4, 8]],
-    "maison"   => [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]],
+    "maison"   => HOUSE_INTERIORS,
+    "refuge"   => HOUSE_INTERIORS,
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
