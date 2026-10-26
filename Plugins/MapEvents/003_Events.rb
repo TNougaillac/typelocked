@@ -150,7 +150,37 @@ module MapEvents
     event.id = id
     event.x, event.y = entry.x, entry.y
     event.name = "#{template.name} #{TAG} #{entry.label}"
+    replace_graphic(event, entry.value("Graphic")) if entry.value("Graphic")
+    add_confirm(event, entry) if entry.value("Confirm")
     return event
+  end
+
+  # The copy's graphic (that of its first page) replaced on every page and in
+  # its move routes (Change Graphic).
+  def replace_graphic(event, graphic)
+    old = event.pages[0].graphic.character_name
+    event.pages.each do |page|
+      page.graphic.character_name = graphic if page.graphic.character_name == old
+      page.list.each do |command|
+        next if command.code != 209 && command.code != 509
+        route = (command.code == 209) ? command.parameters[1].list : [command.parameters[0]]
+        route.each { |move| move.parameters[0] = graphic if move.code == 41 && move.parameters[0] == old }
+      end
+    end
+  end
+
+  # The first answer of the first choice (When [0]) of page 1 starts with:
+  # unless Confirm's script holds, exit event processing.
+  def add_confirm(event, entry)
+    list = event.pages[0].list
+    index = list.index { |command| command.code == 402 && command.parameters[0] == 0 }
+    raise Error, "[Copy #{entry.label}] : pas de choix pour Confirm" if !index
+    indent = list[index].indent + 1
+    list.insert(index + 1,
+                RPG::EventCommand.new(111, indent, [12, "!(#{entry.value('Confirm')})"]),
+                RPG::EventCommand.new(115, indent + 1, []),
+                RPG::EventCommand.new(0, indent + 1, []),
+                RPG::EventCommand.new(412, indent, []))
   end
 
   def build_item(event, entry)

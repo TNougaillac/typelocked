@@ -55,6 +55,26 @@ module WorldEvents
     say("maitre_fin")
   end
 
+  # The nurse, before healing (#114): FREE_HEALS free heals in each Centre,
+  # then HEAL_PRICES by the seals won. false: no heal (refused, or not enough
+  # money).
+  def nurse_pay
+    heals = $PokemonGlobal.centre_heals
+    count = heals[$game_map.map_id] || 0
+    if count >= FREE_HEALS
+      price = HEAL_PRICES[[$player.badge_count, HEAL_PRICES.length - 1].min]
+      section = (count == FREE_HEALS) ? "infirmiere_fin_gratuit" : "infirmiere_prix"
+      return false if !pbConfirmMessage(line(section, "prix" => price.to_s_formatted))
+      if $player.money < price
+        say("infirmiere_sans_argent")
+        return false
+      end
+      $player.money -= price
+    end
+    heals[$game_map.map_id] = count + 1
+    return true
+  end
+
   # The door of a room of the League, before its fight is won.
   def league_door
     say("porte_ligue")
@@ -72,6 +92,11 @@ module WorldEvents
   end
 end
 
+# Heals done in each Centre (map ID => count), saved with the game.
+class PokemonGlobalMetadata
+  def centre_heals
+    @centre_heals ||= {}
+    return @centre_heals
 # A double battle (DoubleBattle = oui) with fewer than two able Pokémon is
 # fought single (#123).
 class << TrainerBattle

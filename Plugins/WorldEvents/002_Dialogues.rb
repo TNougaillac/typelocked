@@ -93,16 +93,17 @@ module WorldEvents
   #-----------------------------------------------------------------------------
   # In game
   #-----------------------------------------------------------------------------
-  # A line of that section drawn at random, {type} = the imposed type.
-  def line(section)
+  # A line of that section drawn at random, {type} = the imposed type, the
+  # other tokens from values.
+  def line(section, values = {})
     @dialogues ||= load_dialogues
     text = @dialogues[section].sample
     type = defined?(Monotype) ? Monotype.type_name : nil
-    return fill(text, "type" => type)
+    return fill(text, { "type" => type }.merge(values))
   end
 
   # Says a line of that section, one message box each « | ».
-  def say(section)
-    line(section).split(/\s*\|\s*/).each { |box| pbMessage(box) }
+  def say(section, values = {})
+    line(section, values).split(/\s*\|\s*/).each { |box| pbMessage(box) }
   end
 end

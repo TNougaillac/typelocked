@@ -40,7 +40,10 @@
 #   [Copy N]                   (a copy of event 2 of map 24, as it is there:
 #   Pos = 7,2                   pages, graphics, commands; it keeps its ID when
 #   From = 24,2                 free, for the events that name it, such as a
-#                               nurse and her healing machine)
+#   Graphic = NPC 16            nurse and her healing machine; Graphic = in
+#   Confirm = pbPay             place of its own, in its move routes too;
+#                               Confirm = script run at the start of the first
+#                               choice's first answer: false stops the event)
 #   [Item C]                   (Poké Ball on the ground, Hidden = oui for a
 #   Pos = 2,2                   hidden item)
 #   Item = POTION
@@ -83,7 +86,7 @@ module MapEvents
     npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide] + MOVE_KEYS,
     trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
-    copy:    %w[Pos From]
+    copy:    %w[Pos From Graphic Confirm]
   }
   REQUIRED = { npc: %w[Pos], trainer: %w[Pos Type Name Battle], item: %w[Pos Item], copy: %w[Pos From] }
   NUMBER_KEYS = %w[Sight Badge Switch BattleID EndIfSwitch VanishIfSwitch Outcome]
