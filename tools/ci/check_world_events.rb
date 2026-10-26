@@ -436,6 +436,10 @@ W::SET_STATUS.each { |move| CI.error(settings, nil, "SET_STATUS : capacité #{mo
 end
 CI.error(settings, nil, "SET_ITEMS : pas de ligne à 0 sceau") if !W::SET_ITEMS[0]
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
+W::TM_POWER_OVERRIDES.each_key { |move| CI.error(settings, nil, "TM_POWER_OVERRIDES : capacité #{move} absente de moves.txt") if !moves[move] }
+W::WEATHER_ITEMS.values.flatten.uniq.each do |item|
+  CI.error(settings, nil, "WEATHER_ITEMS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
+end
 W::ARCEUS_BOSS[:moves].each { |move| CI.error(settings, nil, "ARCEUS_BOSS : capacité #{move} absente de moves.txt") if !moves[move] }
 ROSTER = roster
 # The cells of the houses are walkable, and the people on them cut nobody off
@@ -467,6 +471,26 @@ folder = File.join(ROOT, M::FOLDER)
 bricks = Dir.glob(File.join(folder, M::BRICK_FOLDER, "*.txt")).sort.map do |path|
   M.parse_brick(CI.read_text(path), File.basename(path))
 end
+# For each weather, a world of a type that plays with it: when drawn, its
+# items not given by a lieutenant are placed once each, the first ones in
+# nooks (up to half of them).
+def check_weather(result, seed, args, events)
+  nooks = events[:items].count { |item| item[:source] == "recoin" }
+  W::WEATHER_ITEMS.each do |types, list|
+    type = types.first
+    typed = W.world_events(result, seed, **args, type: type)
+    given = typed[:leaders].filter_map { |leader| leader[:tm]&.first }
+    expected = W.weather_items(type, Random.new((seed * 1000) + 780)) - given
+    placed = typed[:items].select { |item| list.include?(item[:item]) }
+    missing = expected - placed.map { |item| item[:item] }
+    raise MapEvents::Error, "type #{type} : objets de météo absents (#{missing.join(", ")})" if !missing.empty?
+    twice = placed.map { |item| item[:item] }.tally.select { |_item, n| n > 1 }.keys
+    raise MapEvents::Error, "type #{type} : objets de météo donnés deux fois (#{twice.join(", ")})" if !twice.empty?
+    in_nooks = expected.first((nooks + 1) / 2).reject { |item| placed.any? { |p| p[:item] == item && p[:source] == "recoin" } }
+    raise MapEvents::Error, "type #{type} : objets de météo hors des recoins (#{in_nooks.join(", ")})" if !in_nooks.empty?
+  end
+end
+
 count = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
@@ -506,6 +530,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
+      check_weather(result, seed, args, events)
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
     end
