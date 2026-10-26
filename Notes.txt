@@ -1,8 +1,21 @@
 - enlever "obligatoire" sur surnom du Pokémon (obligatoire)
 - tout traduire en français
-- rendre le centre Pokémon payant au bout de 3 utilisations, avec un message disant "tu as déjà eu gratuit maintenant tu payes" mieux tourné que ça.
+- rendre chaque centre Pokémon payant au bout de 3 utilisations (individuellement), avec un message disant "tu as déjà eu gratuit maintenant tu payes" mieux tourné que ça.
+- modifier le skin de l'infirmière : la rendre cohérente avec la mafia car elle en fait partie (mettre dans le lore)
 - faire que le professeur nous donne le pokédex en même temps que le starter
 - si on perd ça nous sauvegarde la partie
 - remplir les bords de zone d'arbres pour le pas voir de carré noir, ou de montagne en continuant la montagne et idem pour tous les autres types de terrain
 - si on a tiré un type pouvant être joué avec des capacités de météo, favoriser les CT liés aux météos sur a map (notamment déblocables sur des objets atteignables avec une contrainte). il y a une petite chance que cela n'arrive pas ou peu dans une partie. Donne moi la liste des types affectés et par quel objet/CT.
-- bug : dans le premier menu du jeu, les sprites se déplacent 
+- bug : dans le premier menu du jeu, les sprites se déplacent, et les éléments du menu sont trop espacés
+- vérifier si l'accélération du jeu ne multiplie pas le temps de la partie affiché dans la carte de dresseur. Elle ne doit pas le faire
+- les répliques des PNJ sont-elles générées au hasard ?
+- faire qu'un PNJ dresseur non contournable nous donne la carte si on le bat. Le premier non contournable du jeu à chaque fois
+- (bug) après un msg qui empêche d'envoyer une ball quand c'est interdit, il y a une bulle de dialogue blanche, il faut re-cliquer pour ouvrir directement la liste de attaques de mon pokémon, le premier écran est alors masqué (l'écran de base en combat)
+- mettre un élément d'interface sur le niveau du pokémon en combat et dans l'interface de l'équipe pour dire qu'il a atteint le level cap
+- écrire "c'est hyper efficace" quand un pokémon inflige x4 dégâts à un autre.
+- fais que le starter doit avoir au moins une évolution
+- monte légérement tous les level cap : ajoute 2 niveaux à la première arène et modifie le reste proportionnellement
+- quand on voit le messge "...est mort. il repose dans la botie cimetière...", montrer le sprite du pokémon et son niveau, comme son résumé dans l'équipe pokémon
+- mettre par défaut le fond city dans chaque boite cimetière du pc
+- au moment du choix du repousse, mettre le même écran de choix que le raccourci de poké ball en combat sauvage
+- générer des extérieurs et intérieurs d'arènes différents : l'extérieur s'adapte juste à la couleur du type de l'arène et chaque type doit avoir son intérieur différent. Plus qu'un simple re-skin de l'arène de base.
