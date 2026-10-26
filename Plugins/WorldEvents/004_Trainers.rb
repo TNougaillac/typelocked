@@ -25,6 +25,7 @@ module WorldEvents
       end
     end
     places = result.places.sort_by { |wp, *| wp.index }
+    map_giver(places, atlas, zones, pools, plans, trainers, names, lines, rng)
     places.each do |wp, _place, _text, layout|
       spots = atlas[:maps][wp.name]
       if wp.kind == "route"
@@ -42,6 +43,55 @@ module WorldEvents
       cells = spots[:floor].map { |x, y| [x, y, FACINGS.sample(random: rng)] }
       draw.call(name, cells, TRAINER_TYPES["grotte"], rng.rand(CAVE_TRAINERS), 0)
     end
+  end
+
+  # The Cousin who gives the Town Map, on the first route where a cell cuts
+  # the way (cutting_cell).
+  def map_giver(places, atlas, zones, pools, plans, trainers, names, lines, rng)
+    cell = nil
+    wp, = places.find do |place, *|
+      next false if place.kind != "route" || !zones[place.name] || !pools[place.name]
+      cell = cutting_cell(atlas[:maps][place.name], rng)
+    end
+    return if !wp
+    town = atlas[:maps][wp.name][:title]
+    add_trainer(plans, trainers, names, wp.name, cell, COUSIN_TYPES.sample(random: rng), zones[wp.name], pools[wp.name],
+                true, [lines, town], rng, [*lines.boxes("cousin_carte", town).map { |box| ["Win", box] }, ["Gift", MAP_ITEM]])
+  end
+
+  # [x, y, facing, sight] of a cell beside the street where a trainer stands
+  # so that no one goes from an exit to another without crossing its sight
+  # (nor stepping on the trainer); nil if there is none.
+  def cutting_cell(spots, rng)
+    ground = (spots[:ground] || []).to_h { |cell| [cell, true] }
+    exits = (spots[:exits] || []).map { |_side, x, y| [x, y] }.select { |cell| ground[cell] }
+    return nil if exits.length < 2
+    blocked = blocked_cells(spots)
+    facing_cells(spots).shuffle(random: rng).each do |x, y, facing|
+      next if blocked.include?([x, y])
+      dx, dy = STEPS[facing]
+      seen = (1..MAP_GIVER_SIGHT).map { |i| [x + (dx * i), y + (dy * i)] }.take_while { |cell| ground[cell] }
+      next if seen.empty? || seen.any? { |cell| blocked.include?(cell) }
+      reached = walk_cells(ground, exits[0], [[x, y], *seen])
+      return [x, y, facing, seen.length] if exits.any? { |cell| !reached[cell] }
+    end
+    return nil
+  end
+
+  # Cells of ground reached from start without stepping on cut.
+  def walk_cells(ground, start, cut)
+    seen = { start => true }
+    queue = [start]
+    until queue.empty?
+      x, y = queue.shift
+      STEPS.each_value do |dx, dy|
+        cell = [x + dx, y + dy]
+        next if seen[cell] || !ground[cell] || cut.include?(cell)
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    return seen
   end
 
   FACINGS = %w[haut bas gauche droite].freeze
@@ -110,7 +160,8 @@ module WorldEvents
 
   # One trainer: its event, and its team in PBS/trainers.txt (version
   # TRAINER_VERSION, one name per type in the world).
-  def add_trainer(plans, trainers, names, map, cell, type, zone, pool, cousin, (lines, town), rng)
+  # extra: more [key, value] lines (rewards).
+  def add_trainer(plans, trainers, names, map, cell, type, zone, pool, cousin, (lines, town), rng, extra = [])
     x, y, facing, sight = cell
     name = trainer_name(type, names, rng)
     return if !name
@@ -120,7 +171,7 @@ module WorldEvents
     label = cousin ? "Cousin" : "Dresseur"
     add(plans, map, "Trainer", "#{label}#{plans[map].count { |*, text| text.start_with?("[Trainer #{label}") } + 1}",
         x, y, ["Facing", facing], ["Sight", sight], ["Type", type], ["Name", name],
-        ["BattleID", TRAINER_VERSION], ["Battle", battle], ["EndBattle", lose])
+        ["BattleID", TRAINER_VERSION], ["Battle", battle], ["EndBattle", lose], *extra)
   end
 
   # [[species, level]] of a trainer of that zone: PARTY_SIZES Pokémon, up to

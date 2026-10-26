@@ -196,6 +196,24 @@ def check_trainers(result, zones, plans, sections, species, ttypes)
   end
 end
 
+# The Cousin who gives the Town Map: one, on a route, whose sight (with the
+# cell where it stands) cuts the way between two exits.
+def check_map_giver(atlas, plans)
+  givers = plans.flat_map do |name, plan|
+    plan.events.select { |e| e.kind == :trainer && e.value("Gift") == W::MAP_ITEM.to_s }.map { |e| [name, e] }
+  end
+  raise MapEvents::Error, "pas de Cousin qui donne la carte" if givers.empty?
+  raise MapEvents::Error, "#{givers.length} Cousins donnent la carte" if givers.length > 1
+  name, entry = givers[0]
+  spots = atlas[:maps][name]
+  ground = spots[:ground].to_h { |cell| [cell, true] }
+  dx, dy = W::STEPS[entry.value("Facing")]
+  cut = [[entry.x, entry.y], *(1..entry.value("Sight").to_i).map { |k| [entry.x + (dx * k), entry.y + (dy * k)] }]
+  exits = spots[:exits].map { |_side, x, y| [x, y] }.select { |cell| ground[cell] }
+  reached = W.walk_cells(ground, exits[0], cut)
+  raise MapEvents::Error, "#{name} : on contourne le Cousin qui donne la carte" if exits.all? { |cell| reached[cell] }
+end
+
 # The professor (in the lab or outside, never both) and a gate on each exit
 # of the first town, gone once the starter is chosen.
 def check_start(atlas, plans)
@@ -459,6 +477,7 @@ W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK :
   end
 end
 CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
+CI.error(settings, nil, "MAP_ITEM : objet #{W::MAP_ITEM} absent de items.txt") if !items.include?(W::MAP_ITEM.to_s)
 [W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
   CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
 end
@@ -501,6 +520,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
+      check_map_giver(atlas, plans)
       check_league(atlas, plans, events[:league], events[:leaders])
       check_sets(events[:leaders] + events[:league], atlas[:gyms].length, items)
       check_lines(drawn)

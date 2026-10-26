@@ -50,6 +50,11 @@ module WorldEvents
   TOWN_COUSINS   = 0..1
   COUSIN_CHANCE  = 25
   SIGHT          = 3..4
+  # The Town Map (#115): a Cousin of the first route where one can stand so
+  # that the sight (up to MAP_GIVER_SIGHT) cuts the way between two exits
+  # gives it once beaten.
+  MAP_ITEM        = :TOWNMAP
+  MAP_GIVER_SIGHT = 6
   # Pokémon of a trainer by the seals won on the way (0 to 8).
   PARTY_SIZES = [1..2, 1..2, 2..3, 2..3, 3..4, 3..4, 4..5, 4..6, 5..6].freeze
   # Their levels: up to the highest of the zone's wild Pokémon, this much less.
@@ -241,9 +246,9 @@ module WorldEvents
   BATTLE_TOKENS = %w[ville region].freeze
   DIALOGUE_SECTIONS = {
     "habitant" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
-    "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS,
+    "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS, "cousin_carte" => PLACE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
-    "professeur_apres" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
+    "professeur_apres" => %w[joueur type], "professeur_pokedex" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
     "vendeur" => [], "maitre_intro" => %w[joueur], "maitre_sans_ecaille" => %w[joueur],
     "maitre_aucun" => %w[joueur], "maitre_fin" => %w[joueur],
     "don" => PLACE_TOKENS, "don_apres" => PLACE_TOKENS, "terrain_attente" => PLACE_TOKENS,
