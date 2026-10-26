@@ -118,6 +118,8 @@ module WorldEvents
                  PROTECT SUBSTITUTE LIGHTSCREEN REFLECT ROOST TAILWIND TRICKROOM SPIKES STEALTHROCK
                  TOXICSPIKES QUIVERDANCE SHELLSMASH AGILITY ROCKPOLISH IRONDEFENSE AMNESIA
                  SLEEPPOWDER SPORE HYPNOSIS GLARE DRAININGKISS MOONLIGHT MORNINGSUN SYNTHESIS].freeze
+  # Moves counted at this power for a useful TM (Weather Ball doubles in weather).
+  TM_POWER_OVERRIDES = { WEATHERBALL: 100 }.freeze
 
   # The rooms of the League (LEAGUE_ROOMS of MapProceduralGenerator), by
   # template: where the fighter stands, and the cell in front of the door to
@@ -203,6 +205,16 @@ module WorldEvents
            WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1 },
     4 => { RARECANDY: 4, BIGNUGGET: 2, TM: 4, PPUP: 2, LEFTOVERS: 1, LIFEORB: 1, CHOICESCARF: 1,
            FOCUSSASH: 1, EXPSHARE: 1, LUCKYEGG: 1, HPUP: 1 }
+  }.freeze
+  # Weather (#120): when the imposed type plays with a weather, its TMs and
+  # its rock go to nooks spread along the way (the TM that casts it first),
+  # in WEATHER_CHANCE % of the games. Types => items.
+  WEATHER_CHANCE = 85
+  WEATHER_ITEMS = {
+    %i[WATER ELECTRIC FLYING] => %i[TM18 TM25 TM102 TM103 DAMPROCK],
+    %i[FIRE GRASS]            => %i[TM11 TM22 TM103 HEATROCK],
+    %i[ROCK GROUND STEEL]     => %i[TM37 TM103 SMOOTHROCK],
+    %i[ICE]                   => %i[TM07 TM14 TM103 ICYROCK]
   }.freeze
   # Heart Scales of a world: spread along the way and among the sources, in
   # place of other items.
