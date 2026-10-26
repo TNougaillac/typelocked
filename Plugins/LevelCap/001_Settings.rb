@@ -7,14 +7,11 @@ module LevelCap
   # Cap with n seals = level of the strongest Pokémon of LEADERS[n] (the next
   # lieutenant; with 8 seals, the Parrain), read from PBS/trainers.txt.
   # Each entry: [trainer type, name] or [trainer type, name, version].
-  LEADERS = [
-    [:LEADER_Brock, "Brock"],
-    nil, nil, nil, nil, nil, nil, nil,
-    [:CHAMPION, "Blue"]
-  ]
+  LEADERS = [nil, nil, nil, nil, nil, nil, nil, nil, nil]
   # Used when LEADERS[n] is nil or missing from trainers.txt. nil = no cap.
-  # Placeholder: Kanto gym leaders of the demo.
-  FALLBACK_CAPS = [14, 21, 24, 29, 36, 43, 47, 50, 63]
+  # Placeholder: Kanto gym leaders of the demo, +2 on the first gym and the
+  # others raised by the same factor (16/14).
+  FALLBACK_CAPS = [16, 24, 27, 33, 41, 49, 54, 57, 72]
   # Items that give levels or Exp. outside battle, blocked at the cap.
   LEVEL_ITEMS = %i[RARECANDY EXPCANDYXS EXPCANDYS EXPCANDYM EXPCANDYL EXPCANDYXL]
 end
