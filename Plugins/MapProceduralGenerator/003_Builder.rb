@@ -23,16 +23,23 @@ module MapProceduralGenerator
   # [side, x, y] (first street cell on the map edge)
   # deep: cells of deep water, where the player can dive; terminal: [x, y] of
   # the ferry terminal's door (its top middle cell, entered from the pier);
-  # spots: the place's inventory (see PlaceBuilder#inventory)
-  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance)
+  # spots: the place's inventory (see PlaceBuilder#inventory); levels: the
+  # [Layer3] rows of the raised levels (nil without), see level_rows
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance, :levels)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
   CASE_SIZE = 20
   CAVE = "grotte"   # type of the cave entrance bricks
-  # The only bricks on the raised levels of a mountain route (the others have
-  # grass under them), and only there
+  # Bricks only on the raised levels of a mountain route; bricks never on a
+  # raised level (water, rock, caves, the port)
   HIGHLAND = ["rocaille"].freeze
+  LOWLAND = [LAKE, HILL, "montagne", CAVE, "port", "gare"].freeze
+  # [Legend] symbols of a place with « Relief »: a cliff cell on the map (its
+  # ground; the level draws the cliff on [Layer3]) and a stair on [Layer3]
+  # (nothing, joined by the levels)
+  CLIFF = "ɸ"
+  HOLE = "ʘ"
   # Most bricks an excess « fill » adds after the others (until none fits)
   FILL_LIMIT = 80
   PORT = "port"   # type of the port buildings, only put along the quay
@@ -65,7 +72,7 @@ module MapProceduralGenerator
     # Whether the place is worth building again plain, after an error: a
     # town with another plan than « carrefour », or a route with sand.
     def plain_retry?
-      !@plain && (![nil, "carrefour"].include?(@plan) || !@zone.nil?)
+      !@plain && (![nil, "carrefour"].include?(@plan) || !@zone.nil? || (!@level.nil? && !@place.mountain))
     end
 
     def initialize(place, bricks, palette, seed, plain = false)
@@ -125,6 +132,7 @@ module MapProceduralGenerator
       close_lock if @place.lock
       cross if @place.crossing
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)
+      raise_levels if terrace?
       if @place.mountain
         choose_river if @place.river
         raise_levels
@@ -144,7 +152,7 @@ module MapProceduralGenerator
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       draw_banks(rows) if @place.banks
-      return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory, @place.ambiance)
+      return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory, @place.ambiance, level_rows)
     end
 
     # Where the events of the place can go (MapEvents, items, NPCs), every cell
@@ -208,13 +216,27 @@ module MapProceduralGenerator
 
     private
 
+    # The raised levels are drawn apart (level_rows): on the map, a level
+    # shows its ground, streets and bricks, its cliffs CLIFF.
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
-      rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
-      # A street shows on the raised levels too (the levels join it, with=)
       return @cells[y][x] || zone || @place.street if @street[y][x]
-      return @cells[y][x] || rock || zone || @place.ground
+      return @cells[y][x] || zone || @place.ground
+    end
+
+    # [Layer3] of the map: each raised level's symbol on all its cells, its
+    # stairs and the border trees HOLE (every level joins it: no cliff drawn
+    # over the trees, which block anyway), "." elsewhere. The level terrains
+    # draw their rims and cliffs there, whatever stands on them below.
+    def level_rows
+      return nil if !@level
+      return Array.new(@h) do |y|
+        Array.new(@w) do |x|
+          next HOLE if @stairs_at.key?([x, y]) || (@border[y][x] && [@place.border, @place.filler].include?(@cells[y][x]))
+          level_at(x, y) > 0 ? level_symbol(level_at(x, y)) : MapGenerator::OVERLAY_EMPTY
+        end.join
+      end
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.
@@ -426,6 +448,14 @@ module MapProceduralGenerator
       end
     end
 
+    # A town in terraces (TERRACE_CHANCE): big enough for a square, with a
+    # « Relief », not plain, a port, an island, a canal or a mask.
+    def terrace?
+      return false if @plain || @place.kind != "ville" || !@place.levels || @place.mountain
+      return false if @place.port || @place.island || @mask || @plan.nil? || @plan == "canal"
+      return Random.new(@seed ^ TERRACE_SALT).rand(100) < TERRACE_CHANCE
+    end
+
     # A stretch of another ground across a long plain route (TRANSITION),
     # like the desert in the middle of Hoenn's Route 111: its edges waver,
     # the trail crosses it on that ground, no brick goes there, only a few
@@ -597,7 +627,7 @@ module MapProceduralGenerator
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
         # so does a port town, for its decoration
-        next if @level || (@port_depth && with_door.call(kind) == 1)
+        next if (@level && @place.mountain) || (@port_depth && with_door.call(kind) == 1)
         # The monument goes where it can, or not at all
         if kind == MONUMENT
           place_brick(kind)
@@ -1180,6 +1210,7 @@ module MapProceduralGenerator
       ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
                     (0...@h).select { |y| @water[y].any? }
       wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
+      wanted = TERRACE_FACES if !@place.mountain
       wanted = crossings.length if excess[:colossal]
       wanted = [wanted, crossings.length].min
       # East-west routes may end up with cliffs and no stairs; a route with no
@@ -1197,6 +1228,7 @@ module MapProceduralGenerator
         picks.push(r) if picks.none? { |p| (p - r).abs < FACE_GAP }
         break if picks.length == count
       end
+      picks = terrace_picks(crossings, ground_rows) if !@place.mountain
       return false if picks.length < count
       # Stairs somewhere, even on an east-west route
       return false if stairs && picks.all? { |r| crossings[r] == 0 }
@@ -1206,24 +1238,38 @@ module MapProceduralGenerator
       return false if !levels
       waves = []
       relief = Random.new(@seed ^ RELIEF_SALT)
-      picks.each_with_index { |r, i| waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last, relief)) }
+      picks.each_with_index do |r, i|
+        # The north rim of a level (the higher band to the south) stays nearly
+        # flat: its steps would only show the rock of its corners
+        rim = levels[i + 1] > levels[i]
+        waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last, relief, rim))
+      end
       band = Array.new(@h) do |y|
         Array.new(@w) { |x| picks.each_index.count { |i| picks[i] + waves[i][x] <= y } }
       end
       level = band.map { |row| row.map { |i| levels[i] } }
       trim_sides(level, band, levels, relief)
-      raise_peaks(level)
+      raise_peaks(level) if @place.mountain
       faces, stairs_at = draw_faces(level)
       return false if !faces
       @level, @face, @stairs_at = level, faces, stairs_at
       @h.times do |y|
         @w.times do |x|
           next if !faces[y][x]
-          @cells[y][x] = level_symbol(level_at(x, y))
+          @cells[y][x] = CLIFF
           @solid[y][x] = true
         end
       end
       return true
+    end
+
+    # The two boundaries of a town's terrace, TERRACE_DEPTH rows apart at
+    # least, with no exit nor water between them (ground_rows).
+    def terrace_picks(crossings, ground_rows)
+      pairs = crossings.keys.product(crossings.keys).select do |a, b|
+        b - a >= TERRACE_DEPTH && ground_rows.none? { |y| y >= a - 1 && y <= b + 1 }
+      end
+      return pairs.sample(random: @rng) || []
     end
 
     # Number of streets going straight across the boundary above row r, or nil
@@ -1238,7 +1284,8 @@ module MapProceduralGenerator
             run += 1
             next
           end
-          return nil if run != 0 && run != STREET_WIDTH
+          # A town's avenues are one wider (AVENUE_MARGIN)
+          return nil if run != 0 && run != STREET_WIDTH && (@place.mountain || run != STREET_WIDTH + 1)
           crossings += 1 if run > 0 && y == r
           run = 0
         end
@@ -1273,10 +1320,11 @@ module MapProceduralGenerator
     # (SLOPE_CHANCE, drawn with relief); flat around the streets crossing it,
     # never moves past a street, the water or an exit, and keeps a band of
     # BAND_MIN rows at least below the boundary above (prev, its wave).
-    def face_wave(r, prev = nil, prev_wave = nil, relief = @rng)
+    def face_wave(r, prev = nil, prev_wave = nil, relief = @rng, rim = false)
       keep = ->(x, y) { inside?(x, y) && (@street[y][x] || @water[y][x] || exit_at?(x, y)) }
       crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
       slope = (relief.rand(100) < SLOPE_CHANCE) ? [-1, 1].sample(random: relief) : 0
+      slope = 0 if rim
       wave = (slope == 0) ? FACE_WAVE : SLOPE_WAVE
       offset = (slope == 0) ? 0 : -slope * relief.rand(0..SLOPE_WAVE)
       run = 0
@@ -1792,7 +1840,7 @@ module MapProceduralGenerator
           cx, cy = x + dx, y + dy
           return false if @solid[cy][cx] || @street[cy][cx] || @zone&.[](cy)&.[](cx)
           raised = level_at(cx, cy) > 0
-          return false if HIGHLAND.include?(brick.kind) != raised
+          return false if HIGHLAND.include?(brick.kind) ? !raised : (raised && LOWLAND.include?(brick.kind))
           (-1..1).each do |oy|
             (-1..1).each do |ox|
               nx, ny = cx + ox, cy + oy
@@ -2003,7 +2051,7 @@ module MapProceduralGenerator
       raise if !builder.plain_retry?
       layout = PlaceBuilder.new(place, bricks, palette, seed, true).build
     end
-    text = plan_text(place, seed, layout.rows)
+    text = plan_text(place, seed, layout.rows, layout.levels)
     return MapGenerator.parse(text, place.file), text, layout
   end
 end

@@ -53,7 +53,7 @@ end
 def check_water(plan, name, place)
   sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.cover?(t) } }.keys
   wet = sea + plan.objects.select { |_c, o| sea.include?(o.ground) }.keys + plan.terrains.select { |_c, t| sea.include?(t.ground) }.keys
-  clean = wet + place.banks.to_s.chars + place.levels.to_a
+  clean = wet + place.banks.to_s.chars + place.levels.to_a + [M::CLIFF]
   rows = plan.rows
   at = ->(x, y) { y < 0 || y >= rows.length || x < 0 || x >= rows[y].length || wet.include?(rows[y][x]) }
   rows.each_with_index do |row, y|
@@ -377,7 +377,7 @@ worlds.each do |path|
     result = M.generate_world(world, town, route, bricks, seed, {}, name_table)
     # Levels shown on the mountain routes (each level its own symbol)
     result.places.each do |wp, place, _text, layout|
-      highest = [highest, (layout.rows.join.chars.uniq & place.levels).length].max if wp.mountain
+      highest = [highest, (layout.levels.to_a.join.chars.uniq & place.levels).length].max if wp.mountain
     end
     plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
     titles = plan.places.values.map(&:display_name)

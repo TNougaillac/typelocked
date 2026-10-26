@@ -106,6 +106,15 @@ module MapProceduralGenerator
   SLOPE_WAVE = 5
   SIDE_WAVE = 3
   RELIEF_SALT = 0x5E1F
+  # Towns in terraces: that often (%) a town big enough for a square (and not
+  # a port, an island, a canal or a mask) gets a raised quarter, a band
+  # between TERRACE_FACES boundaries, TERRACE_DEPTH rows deep at least, its
+  # sides cut like a mesa. Drawn with TERRACE_SALT; built again flat when
+  # its bricks don't fit.
+  TERRACE_CHANCE = 35
+  TERRACE_FACES = 2
+  TERRACE_DEPTH = 9
+  TERRACE_SALT = 0x7E44
   MOUNTAIN_PEAKS = 0.5..1.5
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.

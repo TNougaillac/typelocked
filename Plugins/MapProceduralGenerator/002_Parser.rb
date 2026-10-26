@@ -431,7 +431,8 @@ module MapProceduralGenerator
   end
 
   # MapGen plan text of a place: header, palette, then the assembled rows.
-  def plan_text(place, seed, rows)
+  # levels: the [Layer3] rows of the raised levels (Layout#levels), if any.
+  def plan_text(place, seed, rows, levels = nil)
     text = +"Name    = #{place.name}\n"
     text << "Tileset = #{place.tileset_id}\n"
     text << "MapID   = #{place.map_id}\n" if place.map_id
@@ -440,6 +441,10 @@ module MapProceduralGenerator
     text << palette_text(place)
     text << "\n[Map]\n"
     rows.each { |row| text << row << "\n" }
+    if levels
+      text << "\n[Layer3]\n"
+      levels.each { |row| text << row << "\n" }
+    end
     return text
   end
 
