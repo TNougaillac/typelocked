@@ -1,5 +1,5 @@
 Name       = Nuzlocke
-Version    = 1.2.3
+Version    = 1.3.0
 Essentials = 21.1
 Credits    = TypeLocked
 Requires   = NewGameSetup

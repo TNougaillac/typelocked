@@ -15,4 +15,10 @@ module Nuzlocke
 
   # Name of the graveyard boxes ("Cimetière 1", "Cimetière 2"...).
   GRAVEYARD_NAME = "Cimetière"
+  # Wallpaper of a new graveyard box (PokemonStorage#allWallpapers: 1 = City).
+  GRAVEYARD_BACKGROUND = 1
+
+  # After a defeat (back to the Pokémon Center), the game is saved, so a save
+  # from before the defeat can't be loaded again.
+  SAVE_ON_DEFEAT = true
 end

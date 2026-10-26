@@ -29,6 +29,7 @@ module Nuzlocke
   def create_graveyard_box
     boxes = $PokemonStorage.boxes
     boxes.push(PokemonBox.new(graveyard_name(data.graveyard_boxes.length + 1)))
+    boxes.last.background = GRAVEYARD_BACKGROUND
     data.graveyard_boxes.push(boxes.length - 1)
     boxes.length - 1
   end
@@ -37,8 +38,23 @@ module Nuzlocke
     box = data.graveyard_boxes.find { |b| !$PokemonStorage[b].full? } || create_graveyard_box
     slot = $PokemonStorage[box].pokemon.index(nil)
     $PokemonStorage[box, slot] = pkmn
-    pbMessage(_INTL("{1} est mort. Il repose désormais dans la boîte {2}.",
-                    pkmn.name, $PokemonStorage[box].name))
+    with_panel(pkmn) do |panel|
+      pbMessage(_INTL("{1} est mort. Il repose désormais dans la boîte {2}.",
+                      pkmn.name, $PokemonStorage[box].name)) { panel.update }
+    end
+  end
+
+  # Shows pkmn's party panel (icon, name, level, HP) above the message.
+  def with_panel(pkmn)
+    viewport = Viewport.new(0, 0, Graphics.width, Graphics.height)
+    viewport.z = 99998
+    panel = PokemonPartyPanel.new(pkmn, 1, viewport)
+    panel.x = Graphics.width / 4
+    panel.y = 96
+    yield panel
+  ensure
+    panel&.dispose
+    viewport&.dispose
   end
 
   # Moves dead party members to the graveyard.
@@ -65,6 +81,28 @@ module Nuzlocke
     pbMessage(_INTL("Le mode Nuzlocke est désactivé. L'aventure continue normalement."))
     data.active = false
   end
+
+  def blacked_out!
+    @blacked_out = true if active?
+  end
+
+  # Once the dead are buried, so the save holds the graveyard.
+  def save_after_defeat
+    return if !@blacked_out
+    @blacked_out = false
+    return if !SAVE_ON_DEFEAT
+    if Game.save
+      pbMessage("\\se[]" + _INTL("La partie a été sauvegardée.") + "\\me[GUI save game]\\wtnp[20]")
+    else
+      pbMessage(_INTL("La sauvegarde a échoué."))
+    end
+  end
+end
+
+alias __nuzlocke_pbStartOver pbStartOver
+def pbStartOver(*args)
+  __nuzlocke_pbStartOver(*args)
+  Nuzlocke.blacked_out!
 end
 
 # A fainted player Pokémon is dead at once, even if revived later in the battle.
@@ -82,5 +120,6 @@ EventHandlers.add(:on_end_battle, :nuzlocke,
   proc { |*_args|
     Nuzlocke.clear_battle
     Nuzlocke.bury_dead_party_members if Nuzlocke.active?
+    Nuzlocke.save_after_defeat
   }
 )
