@@ -16,8 +16,10 @@ module WorldEvents
   # caps (level cap by seals), for the gyms; zones and tms, for the items.
   # Without them, none. dialogues: parse_dialogues of dialogues.txt (read
   # from the game's folder when nil); dex: load_dex (the same), for the
-  # sets of the lieutenants and of the League.
-  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil, dex: nil)
+  # sets of the lieutenants and of the League. type: the imposed type, for
+  # its weather items (nil: none).
+  def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil, dex: nil,
+                   type: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
     lines = Lines.new(dialogues || load_dialogues, region_name(result), Random.new((seed * 1000) + 750))
@@ -27,7 +29,7 @@ module WorldEvents
     trainers = []
     leaders = []
     league = []
-    names = Hash.new { |hash, type| hash[type] = [] }
+    names = Hash.new { |hash, trainer_type| hash[trainer_type] = [] }
     if species && tms && caps
       sets = Sets.new(dex || load_dex, tms, Random.new((seed * 1000) + 770))
       leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 720))
@@ -36,10 +38,13 @@ module WorldEvents
     if zones && encounters
       trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710))
     end
-    items = zones && tms ? item_events(result, atlas, zones, tms, leaders, plans, lines, Random.new((seed * 1000) + 730)) : []
+    if zones && tms
+      weather = weather_items(type, Random.new((seed * 1000) + 780))
+      items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730))
+    end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760))
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
-             league: league, items: items }
+             league: league, items: items || [] }
   end
 
   def plan_text(name, events)
@@ -136,7 +141,8 @@ module WorldEvents
       rng.rand(TOWN_HABITANTS).times do |i|
         cell = item_cell(spots, npc_cells(spots, rng), plans[town])
         break if !cell
-        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng)
+        police = rng.rand(100) < POLICE_CHANCE
+        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng, police: police)
       end
     end
     atlas[:maps].each do |name, map|
@@ -148,9 +154,11 @@ module WorldEvents
     end
   end
 
-  def habitant(plans, map, label, cell, town, lines, rng)
+  # police: a policeman, with the lines of [policier].
+  def habitant(plans, map, label, cell, town, lines, rng, police: false)
     x, y, facing = cell
-    add(plans, map, "Npc", label, x, y, ["Graphic", GIFT_GRAPHICS.sample(random: rng)], ["Facing", facing],
-        *lines.boxes("habitant", town).map { |box| ["Text", box] })
+    graphic = police ? POLICE_GRAPHIC : GIFT_GRAPHICS.sample(random: rng)
+    add(plans, map, "Npc", label, x, y, ["Graphic", graphic], ["Facing", facing],
+        *lines.boxes(police ? "policier" : "habitant", town).map { |box| ["Text", box] })
   end
 end

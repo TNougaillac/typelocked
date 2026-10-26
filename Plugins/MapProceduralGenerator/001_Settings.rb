@@ -233,4 +233,14 @@ module MapProceduralGenerator
   # this file
   ISLAND_NAMES_FILE = "Lore/noms.txt"
   ISLAND_NAME_SECTIONS = %w[Italien Americain Francais].freeze
+
+  # Decor maps (see 013_Fillers.rb): the empty squares of the world next to a
+  # place become maps that can't be walked, so the screen never shows black
+  # past a place's edge. Their map names; rocks on a mountain decor (share of
+  # its tiles); symbols of the world grid for them (one per map, the decor
+  # squares left over stay empty).
+  FILLERS = true
+  FILLER_NAME = "Décor généré"
+  FILLER_ROCKS = 0.04
+  FILLER_SYMBOLS = ((0x3B1..0x3C9).to_a + (0x391..0x3A9).to_a - [0x3A2] + (0x410..0x44F).to_a).map { |c| c.chr(Encoding::UTF_8) }.freeze
 end

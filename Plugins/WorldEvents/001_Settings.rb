@@ -123,6 +123,8 @@ module WorldEvents
                  PROTECT SUBSTITUTE LIGHTSCREEN REFLECT ROOST TAILWIND TRICKROOM SPIKES STEALTHROCK
                  TOXICSPIKES QUIVERDANCE SHELLSMASH AGILITY ROCKPOLISH IRONDEFENSE AMNESIA
                  SLEEPPOWDER SPORE HYPNOSIS GLARE DRAININGKISS MOONLIGHT MORNINGSUN SYNTHESIS].freeze
+  # Moves counted at this power for a useful TM (Weather Ball doubles in weather).
+  TM_POWER_OVERRIDES = { WEATHERBALL: 100 }.freeze
 
   # The rooms of the League (LEAGUE_ROOMS of MapProceduralGenerator), by
   # template: where the fighter stands, and the cell in front of the door to
@@ -209,6 +211,16 @@ module WorldEvents
     4 => { RARECANDY: 4, BIGNUGGET: 2, TM: 4, PPUP: 2, LEFTOVERS: 1, LIFEORB: 1, CHOICESCARF: 1,
            FOCUSSASH: 1, EXPSHARE: 1, LUCKYEGG: 1, HPUP: 1 }
   }.freeze
+  # Weather (#120): when the imposed type plays with a weather, its TMs and
+  # its rock go to nooks spread along the way (the TM that casts it first),
+  # in WEATHER_CHANCE % of the games. Types => items.
+  WEATHER_CHANCE = 85
+  WEATHER_ITEMS = {
+    %i[WATER ELECTRIC FLYING] => %i[TM18 TM25 TM102 TM103 DAMPROCK],
+    %i[FIRE GRASS]            => %i[TM11 TM22 TM103 HEATROCK],
+    %i[ROCK GROUND STEEL]     => %i[TM37 TM103 SMOOTHROCK],
+    %i[ICE]                   => %i[TM07 TM14 TM103 ICYROCK]
+  }.freeze
   # Heart Scales of a world: spread along the way and among the sources, in
   # place of other items.
   HEART_SCALES = 10
@@ -217,9 +229,13 @@ module WorldEvents
   # most each number of seals (the first one before the 2nd seal).
   RELEARNERS = [1, 4, 7].freeze
   RELEARNER_GRAPHIC = "NPC 13"
+  # Policemen (#122): POLICE_CHANCE % of the inhabitants of the streets wear
+  # this uniform and say the lines of [policier]; no one else wears it.
+  POLICE_GRAPHIC = "NPC 01"
+  POLICE_CHANCE  = 20
   # Inhabitants who give an item, and the member of the Family who gives a
   # field item once the lieutenant of the town is beaten.
-  GIFT_GRAPHICS = (1..29).map { |i| format("NPC %02d", i) }.freeze
+  GIFT_GRAPHICS = ((1..29).map { |i| format("NPC %02d", i) } - [POLICE_GRAPHIC]).freeze
   FIELD_GRAPHIC = "trainer_COUSIN_M"
 
   # Inhabitants: by the streets of each town (islands too, not the first
@@ -245,7 +261,7 @@ module WorldEvents
   PLACE_TOKENS  = %w[joueur ville region].freeze
   BATTLE_TOKENS = %w[ville region].freeze
   DIALOGUE_SECTIONS = {
-    "habitant" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
+    "habitant" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
     "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
     "professeur_apres" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
