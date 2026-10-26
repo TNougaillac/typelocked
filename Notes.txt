@@ -19,3 +19,5 @@
 - mettre par défaut le fond city dans chaque boite cimetière du pc
 - au moment du choix du repousse, mettre le même écran de choix que le raccourci de poké ball en combat sauvage
 - générer des extérieurs et intérieurs d'arènes différents : l'extérieur s'adapte juste à la couleur du type de l'arène et chaque type doit avoir son intérieur différent. Plus qu'un simple re-skin de l'arène de base.
+- faire que les PNJ de type policiers aient des dialogues cohérents de policier (ou corrompus) en parlant de la mafia ou autre histoires parallèles/liés.
+- rajoute des combats doubles.
