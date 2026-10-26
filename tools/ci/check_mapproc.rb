@@ -73,6 +73,7 @@ def walkable_symbols(place, bricks)
   symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
+  symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
 end

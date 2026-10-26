@@ -58,8 +58,15 @@ module MapProceduralGenerator
   DARK_CAVE = "grotte sombre"
 
   class PlaceBuilder
-    # The town's plan (see choose_plan); plain: always « carrefour ».
+    # The town's plan (see choose_plan); plain: always « carrefour », and
+    # no stretch of sand (lay_transition).
     attr_reader :plan
+
+    # Whether the place is worth building again plain, after an error: a
+    # town with another plan than « carrefour », or a route with sand.
+    def plain_retry?
+      !@plain && (![nil, "carrefour"].include?(@plan) || !@zone.nil?)
+    end
 
     def initialize(place, bricks, palette, seed, plain = false)
       @place = place
@@ -123,6 +130,7 @@ module MapProceduralGenerator
         # Its cave is left out when no spot fits
         place_mountain_cave if @place.cave
       end
+      lay_transition
       reserve_banks
       place_port_bricks if @port_depth
       place_bricks
@@ -201,8 +209,9 @@ module MapProceduralGenerator
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
-      return @cells[y][x] || rock || @place.street if @street[y][x]
-      return @cells[y][x] || rock || @place.ground
+      zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
+      return @cells[y][x] || rock || zone || @place.street if @street[y][x]
+      return @cells[y][x] || rock || zone || @place.ground
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.
@@ -414,6 +423,42 @@ module MapProceduralGenerator
       end
     end
 
+    # A stretch of another ground across a long plain route (TRANSITION),
+    # like the desert in the middle of Hoenn's Route 111: its edges waver,
+    # the trail crosses it on that ground, no brick goes there, only a few
+    # rocks away from the trail. Its own draws (TRANSITION_SALT).
+    def lay_transition
+      return if @plain || !trail? || @place.excess || !TRANSITION[:ambiances].include?(@place.ambiance)
+      return if !@palette.legend[TRANSITION[:ground]] || !@palette.legend[TRANSITION[:rock]]
+      rng = Random.new(@seed ^ TRANSITION_SALT)
+      return if rng.rand(100) >= TRANSITION[:chance]
+      down = @h >= @w
+      length, across = down ? [@h, @w] : [@w, @h]
+      return if length < TRANSITION[:min_length]
+      size = rng.rand(TRANSITION[:size])
+      start = rng.rand((length * 0.3).to_i..[(length * 0.3).to_i, (length * 0.7).to_i - size].max)
+      @zone = Array.new(@h) { Array.new(@w, false) }
+      top, bottom = start, start + size
+      across.times do |b|
+        top = (top + rng.rand(-1..1)).clamp(start - 5, start + 5)
+        bottom = (bottom + rng.rand(-1..1)).clamp(start + size - 5, start + size + 5)
+        (top...bottom).each do |a|
+          x, y = down ? [b, a] : [a, b]
+          @zone[y][x] = true if !@border[y][x] && !@water[y][x] && !@solid[y][x]
+        end
+      end
+      # Rocks, one tile each, two tiles off the trail and from each other
+      cells = (0...@h).to_a.product((0...@w).to_a).select do |y, x|
+        @zone[y][x] && !near?(x, y, 2) { |nx, ny| @street[ny][nx] || @border[ny][nx] }
+      end
+      (cells.length * TRANSITION[:rocks] / 100.0).round.times do
+        y, x = cells.sample(random: rng)
+        next if near?(x, y, 2) { |nx, ny| @cells[ny][nx] == TRANSITION[:rock] }
+        @cells[y][x] = TRANSITION[:rock]
+        @solid[y][x] = true
+      end
+    end
+
     # The plan of a town (TOWN_PLANS, by weight; its own draws, PLAN_SALT):
     # « carrefour » (streets from the exits to a square), « grille » (a grid
     # of streets as well), « canal » (a canal from north to south, crossed
@@ -551,7 +596,10 @@ module MapProceduralGenerator
         # so does a port town, for its decoration
         next if @level || (@port_depth && with_door.call(kind) == 1)
         # The monument goes where it can, or not at all
-        next if kind == MONUMENT && (place_brick(kind) || true)
+        if kind == MONUMENT
+          place_brick(kind)
+          next
+        end
         next if i >= required.length || place_smallest(kind)
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]")
       end
@@ -675,7 +723,7 @@ module MapProceduralGenerator
 
     # Ground on the lowest level that nothing uses yet.
     def free_ground?(x, y)
-      return false if level_at(x, y) > 0
+      return false if level_at(x, y) > 0 || @zone&.[](y)&.[](x)
       return !@border[y][x] && !@solid[y][x] && !@cells[y][x] && !@stairs_at&.key?([x, y])
     end
 
@@ -1664,7 +1712,7 @@ module MapProceduralGenerator
         row.each_char.with_index do |c, dx|
           next if c == " "
           cx, cy = x + dx, y + dy
-          return false if @solid[cy][cx] || @street[cy][cx]
+          return false if @solid[cy][cx] || @street[cy][cx] || @zone&.[](cy)&.[](cx)
           raised = level_at(cx, cy) > 0
           return false if HIGHLAND.include?(brick.kind) != raised
           (-1..1).each do |oy|
@@ -1874,7 +1922,7 @@ module MapProceduralGenerator
     begin
       layout = builder.build
     rescue Error
-      raise if [nil, "carrefour"].include?(builder.plan)
+      raise if !builder.plain_retry?
       layout = PlaceBuilder.new(place, bricks, palette, seed, true).build
     end
     text = plan_text(place, seed, layout.rows)

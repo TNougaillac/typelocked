@@ -38,6 +38,15 @@ module MapProceduralGenerator
   # many tiles of its square, when it has one.
   MONUMENT_REACH = 3
 
+  # A stretch of sand across a long plain route (see
+  # PlaceBuilder#lay_transition), that often (%) on routes of these
+  # ambiances at least min_length tiles long: size tiles along the route,
+  # rocks % of its cells; ground and rock: symbols of route.txt.
+  # TRANSITION_SALT: its own draws.
+  TRANSITION = { chance: 40, ambiances: ["verdoyante", "automne"], min_length: 60, size: 14..22,
+                 rocks: 3, ground: "§", rock: "¤" }.freeze
+  TRANSITION_SALT = 0x5A4D
+
   # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
   # by weight; boost: [Briques] types raised to that many times their
   # highest count. GRID: tiles between two streets of a « grille » (across,
