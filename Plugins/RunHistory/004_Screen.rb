@@ -122,21 +122,37 @@ class PokemonLoad_Scene
     panel.x = old.x
     old.dispose
     @sprites["panel#{@run_history_command}"] = panel
+    # Base steps (every panel's bitmap is as tall as the Continue one, but the
+    # others only draw a 46-pixel band), ours as tall as its card
+    show_continue = args[0]
     y = 32
     @run_history_panels = commands.length.times.map do |i|
+      height = 46
+      height = 222 if show_continue && i == 0
+      height = RunHistory::PANEL_HEIGHT if i == @run_history_command
       sprite = @sprites["panel#{i}"]
       sprite.y = y
-      y += sprite.bitmap.height + 2
-      [sprite, sprite.y]
+      y += height + 2
+      [sprite, sprite.y, height]
     end
   end
 
+  # The base scene scrolls by steps of 48: put the panels back, and the
+  # player and party drawn on the Continue panel with them.
   def pbUpdate
     __run_history_pbUpdate
-    return if !@run_history_panels || !@sprites["cmdwindow"] || @run_history_panels.any? { |sprite, _y| sprite.disposed? }
-    panel, y = @run_history_panels[@sprites["cmdwindow"].index] || @run_history_panels.first
-    shift = [y + panel.bitmap.height + 16 - Graphics.height, 0].max
-    @run_history_panels.each { |sprite, base| sprite.y = base - shift }
+    return if !@run_history_panels || !@sprites["cmdwindow"] || @run_history_panels.any? { |sprite, _y, _h| sprite.disposed? }
+    _panel, y, height = @run_history_panels[@sprites["cmdwindow"].index] || @run_history_panels.first
+    shift = [y + height + 16 - Graphics.height, 0].max
+    first, base = @run_history_panels.first
+    delta = base - shift - first.y
+    return if delta == 0
+    @run_history_panels.each { |sprite, _y, _h| sprite.y += delta }
+    6.times do |i|
+      break if !@sprites["party#{i}"]
+      @sprites["party#{i}"].y += delta
+    end
+    @sprites["player"].y += delta if @sprites["player"]
   end
 
   def pbChoose(commands)
