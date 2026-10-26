@@ -30,7 +30,7 @@ Caillou = o
 # 1er au 6e (chacun a ses bords, dessinés contre le niveau du dessous), puis les
 # escaliers (2 de large) : face sud et rebord nord du niveau 1, puis des
 # niveaux 2 et plus ; enfin les hautes herbes sur les niveaux.
-Relief   = ^ & k K m M
+Relief   = ¬ & k K m M
 Escalier = ef gh EF GH
 HerbeHaute = n
 
@@ -127,12 +127,13 @@ parc  = 0
 lac   = 0
 decor = 2..4 par case
 # La roche grise remplace la brune (montagnes, rochers, corniches)
-^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnz L2 @.
-& = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnz
-k = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnz L2 @z
-K = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnz
-m = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=MEFGHquvwnz L2 @z
-M = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=EFGHquvwnz
+¬ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnzP L2 @.
+^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+& = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnzP
+k = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnzP L2 @z
+K = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnzP
+m = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=MEFGHquvwnzP L2 @z
+M = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=EFGHquvwnzP
 z = T873
 E = T873 T777
 F = T873 T778
@@ -143,6 +144,10 @@ q = T873 T895
 u = T873 T911
 v = T873 T919
 w = T873 T927
+ø = T873 T895
+ö = T873 T911
+õ = T873 T919
+ó = T873 T927
 1 = T867
 2 = T870
 3 = T869
@@ -244,6 +249,10 @@ q = {sol} T815          # rochers et cailloux sur un niveau de montagne
 u = {sol} T831
 v = {sol} T839
 w = {sol} T847
+ø = T793 T815           # rochers sur la roche (dessus des montagnes au-delà d'une route, 013_Fillers.rb)
+ö = T793 T831
+õ = T793 T839
+ó = T793 T847
 < = {sol} T810          # corniche (on la saute vers le sud)
 - = {sol} T828
 > = {sol} T814
@@ -255,12 +264,14 @@ w = {sol} T847
 # côtés et leur bord sud une falaise de roche. Les niveaux impairs ont les bords
 # du niveau 1, les pairs ceux du niveau 2 ; chaque niveau rejoint ceux du
 # dessus (with=), pour que seul le plus haut dessine son bord.
-^ = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnz L2 @.   # montagne, niveau 1 (dessus praticable)
-& = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnz L2 @.   # niveau 2
-k = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnz L2 @.   # niveau 3
-K = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnz L2 @.   # niveau 4
-m = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnz L2 @.   # niveau 5
-M = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnz L2 @.   # niveau 6
+¬ = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnzP L2 @.   # niveau 1 (dessus praticable)
+# Massif de roche (briques « montagne », recoins) : son dessus est de la roche.
+^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.
+& = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnzP L2 @.   # niveau 2
+k = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnzP L2 @.   # niveau 3
+K = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnzP L2 @.   # niveau 4
+m = T731 N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnzP L2 @.   # niveau 5
+M = T731 N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnzP L2 @.   # niveau 6
 
 [Objects]
 é = T440 3x3         # grand pin

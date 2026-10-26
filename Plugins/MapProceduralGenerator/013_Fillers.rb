@@ -110,7 +110,7 @@ module MapProceduralGenerator
     if kind == :mer && place.water
       return Array.new(height) { place.water * width }
     elsif kind == :montagne && palette.legend["z"]
-      rocks = %w[q u v w].select { |c| palette.legend[c] }
+      rocks = FILLER_ROCK_SYMBOLS.select { |c| palette.legend[c] }
       return Array.new(height) do
         Array.new(width) { (!rocks.empty? && rng.rand < FILLER_ROCKS) ? rocks.sample(random: rng) : "z" }.join
       end

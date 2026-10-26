@@ -212,7 +212,8 @@ module MapProceduralGenerator
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
-      return @cells[y][x] || rock || zone || @place.street if @street[y][x]
+      # A street shows on the raised levels too (the levels join it, with=)
+      return @cells[y][x] || zone || @place.street if @street[y][x]
       return @cells[y][x] || rock || zone || @place.ground
     end
 
@@ -653,7 +654,7 @@ module MapProceduralGenerator
     # can be walked around. For the Grappling Hook, the corridor is rock too.
     # Returns the brick and the loot cell (a back corner).
     def nook_brick
-      rock = @place.levels&.first || "^"
+      rock = "^"
       ground = @place.ground
       depth = @rng.rand(2..3)
       rows = [" #{rock * 5} ", rock * 7]
@@ -1204,10 +1205,14 @@ module MapProceduralGenerator
       levels = band_levels(count + 1, ground)
       return false if !levels
       waves = []
-      picks.each_with_index { |r, i| waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last)) }
-      level = Array.new(@h) do |y|
-        Array.new(@w) { |x| levels[picks.each_index.count { |i| picks[i] + waves[i][x] <= y }] }
+      relief = Random.new(@seed ^ RELIEF_SALT)
+      picks.each_with_index { |r, i| waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last, relief)) }
+      band = Array.new(@h) do |y|
+        Array.new(@w) { |x| picks.each_index.count { |i| picks[i] + waves[i][x] <= y } }
       end
+      level = band.map { |row| row.map { |i| levels[i] } }
+      trim_sides(level, band, levels, relief)
+      raise_peaks(level)
       faces, stairs_at = draw_faces(level)
       return false if !faces
       @level, @face, @stairs_at = level, faces, stairs_at
@@ -1264,19 +1269,24 @@ module MapProceduralGenerator
     end
 
     # Offset (rows) of the boundary above row r at each column: it wanders by
-    # one now and then, up to FACE_WAVE, flat around the streets crossing it,
+    # one now and then, up to FACE_WAVE, or slopes one way up to SLOPE_WAVE
+    # (SLOPE_CHANCE, drawn with relief); flat around the streets crossing it,
     # never moves past a street, the water or an exit, and keeps a band of
     # BAND_MIN rows at least below the boundary above (prev, its wave).
-    def face_wave(r, prev = nil, prev_wave = nil)
+    def face_wave(r, prev = nil, prev_wave = nil, relief = @rng)
       keep = ->(x, y) { inside?(x, y) && (@street[y][x] || @water[y][x] || exit_at?(x, y)) }
       crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
-      offset = 0
+      slope = (relief.rand(100) < SLOPE_CHANCE) ? [-1, 1].sample(random: relief) : 0
+      wave = (slope == 0) ? FACE_WAVE : SLOPE_WAVE
+      offset = (slope == 0) ? 0 : -slope * relief.rand(0..SLOPE_WAVE)
       run = 0
       return Array.new(@w) do |x|
         # A step every few columns at most, so that the edges stay drawable
         run += 1
         if run >= 3 && @rng.rand(3) == 0
-          offset = (offset + [-1, 1].sample(random: @rng)).clamp(-FACE_WAVE, FACE_WAVE)
+          step = [-1, 1].sample(random: @rng)
+          step = slope if slope != 0 && relief.rand(100) < SLOPE_BIAS
+          offset = (offset + step).clamp(-wave, wave)
           run = 0
         end
         offset = 0 if crossing.any? { |c| (c - x).abs <= STREET_WIDTH + 1 }
@@ -1314,6 +1324,67 @@ module MapProceduralGenerator
       seen = walk_levels(@exits[0][1, 2], faces, stairs)
       return nil if @exits.any? { |_side, x, y| !seen[y][x] }
       return faces, stairs
+    end
+
+    # A raised band no longer runs from side to side: it stops short of a
+    # side (SIDE_TRIM % of the time) between that side and its streets,
+    # one level lower beyond, so that it stands as a mesa.
+    def trim_sides(level, band, levels, relief = @rng)
+      levels.each_index do |i|
+        next if levels[i] == 0
+        cells = (0...@h).flat_map { |y| (0...@w).select { |x| band[y][x] == i }.map { |x| [x, y] } }
+        streets = cells.select { |x, y| @street[y][x] }.map(&:first)
+        left, right = streets.empty? ? [@w / 2, @w / 2] : [streets.min - SIDE_GAP, streets.max + SIDE_GAP]
+        cut_left = (@rng.rand(100) < SIDE_TRIM && left > 3) ? @rng.rand(2..left) : 0
+        cut_right = (@rng.rand(100) < SIDE_TRIM && right < @w - 3) ? @rng.rand(right..@w - 2) : @w
+        next if cut_right - cut_left < SIDE_GAP * 2
+        # The cut wanders from row to row (SIDE_WAVE), never past the streets
+        shift = side_wave(relief)
+        cells.each do |x, y|
+          lo = cut_left.zero? ? 0 : (cut_left + shift[y % shift.length]).clamp(1, left)
+          hi = (cut_right == @w) ? @w : (cut_right - shift[(y + 7) % shift.length]).clamp(right, @w - 1)
+          level[y][x] = levels[i] - 1 if x < lo || x >= hi
+        end
+      end
+    end
+
+    # Column offsets of a cut side, row after row: a step of one every few
+    # rows, up to SIDE_WAVE, sloping one way more often than not.
+    def side_wave(relief)
+      slope = [-1, 1].sample(random: relief)
+      offset = 0
+      run = 0
+      return Array.new(@h) do
+        run += 1
+        if run >= 2 && relief.rand(2) == 0
+          offset = (offset + ((relief.rand(100) < SLOPE_BIAS) ? slope : -slope)).clamp(-SIDE_WAVE, SIDE_WAVE)
+          run = 0
+        end
+        offset
+      end
+    end
+
+    # Peaks: rough ovals one level above the ground around them, away from the
+    # streets, the water and the exits (MOUNTAIN_PEAKS per CASE_SIZE square).
+    def raise_peaks(level)
+      top = @place.levels.length
+      count = (@w * @h * @rng.rand(MOUNTAIN_PEAKS) / (CASE_SIZE * CASE_SIZE).to_f).round
+      keep = ->(x, y) { !inside?(x, y) || @border[y][x] || @street[y][x] || @water[y][x] || exit_at?(x, y) }
+      (count * 20).times do
+        break if count == 0
+        rx, ry = @rng.rand(2.5..5.0), @rng.rand(2.0..3.5)
+        cx, cy = @rng.rand(@w), @rng.rand(@h)
+        here = level[cy][cx]
+        next if here >= top
+        cells = (cy - 4..cy + 4).flat_map do |y|
+          (cx - 6..cx + 6).select { |x| ((((x - cx) / rx)**2) + (((y - cy) / ry)**2)) <= 1.0 }.map { |x| [x, y] }
+        end
+        next if cells.any? do |x, y|
+          (-1..1).any? { |oy| (-1..1).any? { |ox| keep.call(x + ox, y + oy) || level[y + oy][x + ox] != here } }
+        end
+        cells.each { |x, y| level[y][x] = here + 1 }
+        count -= 1
+      end
     end
 
     # Like walk, with the cliffs in the way (stairs excepted).
