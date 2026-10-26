@@ -38,6 +38,12 @@ module MapProceduralGenerator
   # wider than STREET_WIDTH, except within AVENUE_MARGIN tiles of the edges.
   AVENUE_MARGIN = 6
 
+  # The streets of a plain route wind: one tile sideways every few steps
+  # (every), at most sway tiles off the straight line. TRAIL_SALT: its own
+  # draws.
+  TRAIL = { every: 3..6, sway: 4 }.freeze
+  TRAIL_SALT = 0x7EA11
+
   # A building goes at most that many tiles further from its street than the
   # closest spot found, by kind of place (2 for the others): towns line their
   # buildings along the streets.

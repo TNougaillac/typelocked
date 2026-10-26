@@ -1,0 +1,10 @@
+# Une tache de hautes herbes irrégulière, comme sur les routes officielles.
+Brique = Hautes herbes (tache)
+Type   = herbes
+Poids  = 2
+[Map]
+  """"
+ """"""""
+""""""""""
+ """"""""
+   """""

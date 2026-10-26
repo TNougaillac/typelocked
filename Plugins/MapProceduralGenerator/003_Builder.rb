@@ -288,12 +288,66 @@ module MapProceduralGenerator
     # the exit keeps its width.
     def carve_line(x0, y0, x1, y1, wide = false)
       far_bend = @rng.rand(2) == 0
+      return carve_trail(x0, y0, x1, y1) if trail?
       far_bend = true if @place.mountain && !vertical_route?
       far_bend = !far_bend if @mask && !line_covered?(x0, y0, x1, y1, far_bend)
       line_steps(x0, y0, x1, y1, far_bend).each do |x, y|
         paint(x, y)
         next if !wide || [x, y, @w - x, @h - y].min <= AVENUE_MARGIN
         paint(x + 1, y + 1)
+      end
+    end
+
+    # The streets of a plain route wind (TRAIL): not on a mountain route, with
+    # a mask, a lock or a crossing, whose streets must stay straight.
+    def trail?
+      return @place.kind == "route" && !@mask && !@place.mountain && !@place.lock && !@place.crossing && !@place.island
+    end
+
+    # A winding street: along the longer way, drifting one tile sideways now
+    # and then (TRAIL), never more than half the steps from either end nor
+    # into the border, so that it leaves and reaches its ends straight. Its
+    # own draws (TRAIL_SALT), so the rest of the route stays the same.
+    def carve_trail(x0, y0, x1, y1)
+      @trail_rng ||= Random.new(@seed ^ TRAIL_SALT)
+      across = (x1 - x0).abs < (y1 - y0).abs   # the trail runs down the map
+      length = across ? (y1 - y0).abs : (x1 - x0).abs
+      step = across ? (y1 <=> y0) : (x1 <=> x0)
+      drift = 0
+      wait = @trail_rng.rand(TRAIL[:every])
+      last = nil
+      (0..length).each do |i|
+        t = (length == 0) ? 1.0 : i / length.to_f
+        main = (across ? y0 : x0) + (i * step)
+        line = ((across ? x0 : y0) + (((across ? x1 : y1) - (across ? x0 : y0)) * t)).round
+        if (wait -= 1) <= 0
+          drift += @trail_rng.rand(-1..1)
+          wait = @trail_rng.rand(TRAIL[:every])
+        end
+        limit = [TRAIL[:sway], i / 2, (length - i) / 2].min
+        drift = drift.clamp(-limit, limit)
+        side = line + drift
+        x, y = across ? [side, main] : [main, side]
+        # Back towards the line where the border is in the way
+        while drift != 0 && !brush_clear?(x, y)
+          drift -= (drift <=> 0)
+          side = line + drift
+          x, y = across ? [side, main] : [main, side]
+        end
+        # Sideways steps join up with the step before
+        if last
+          lx, ly = last
+          line_steps(lx, ly, x, y, false).each { |px, py| paint(px, py) }
+        end
+        paint(x, y)
+        last = [x, y]
+      end
+    end
+
+    # True if a brush at x, y stays inside the map and off the border.
+    def brush_clear?(x, y)
+      return (0...STREET_WIDTH).all? do |oy|
+        (0...STREET_WIDTH).all? { |ox| inside?(x + ox, y + oy) && !@border[y + oy][x + ox] }
       end
     end
 
@@ -414,7 +468,8 @@ module MapProceduralGenerator
         # A mountain route keeps little ground: what doesn't fit is left out;
         # so does a port town, for its decoration
         next if @level || (@port_depth && with_door.call(kind) == 1)
-        error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
+        next if i >= required.length || place_smallest(kind)
+        error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]")
       end
       flood_ground
       place_nook
@@ -637,8 +692,11 @@ module MapProceduralGenerator
     # Draws the banks: the left end, middle and right end symbols of « Rive »
     # on the ground below the water.
     def draw_banks(rows)
-      # On the ground (an islet's too) or a carpet of grass
-      cells = bank_cells.select { |x, y| [@place.ground, excess[:carpet]].include?(rows[y][x]) }.to_h { |cell| [cell, true] }
+      # On the ground (an islet's too) or a carpet of grass, and on a route's
+      # trail where the water comes down to it
+      under = [@place.ground, excess[:carpet]]
+      under.push(@place.street) if @place.kind == "route"
+      cells = bank_cells.select { |x, y| under.include?(rows[y][x]) }.to_h { |cell| [cell, true] }
       cells.each_key do |x, y|
         left, right = cells[[x - 1, y]], cells[[x + 1, y]]
         part = (left == right) ? 1 : (left ? 2 : 0)
@@ -1456,6 +1514,14 @@ module MapProceduralGenerator
     # returns false if none does.
     def place_brick(kind, allowed = nil, shrink = 0)
       return put_brick(pick_brick(kind, shrink), allowed)
+    end
+
+    # A required brick whose drawn brick didn't fit: any brick of that type,
+    # smallest first.
+    def place_smallest(kind)
+      return false if [LAKE, HILL].include?(kind)
+      bricks = @bricks.select { |b| b.kind == kind }
+      return bricks.sort_by { |b| [b.rows.sum { |r| r.delete(" ").length }, b.name] }.any? { |b| put_brick(b) }
     end
 
     def put_brick(brick, allowed = nil)
