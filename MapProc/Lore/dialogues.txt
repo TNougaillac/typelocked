@@ -103,6 +103,26 @@ Bienvenue. La Famille tient ce commerce, comme les autres. Que veux-tu ?
 Entre. Ici, les prix sont fixés par qui tu sais.
 La Famille te souhaite de bonnes affaires. Elle y tient.
 
+#-------------------------------------------------------------------------------
+# Infirmière des Centres Pokémon (dite en jeu) : elle travaille pour la Famille.
+# Une seule boîte par réplique : la dernière pose la question (oui / non).
+#-------------------------------------------------------------------------------
+[infirmiere_fin_gratuit]
+La Famille t'a offert tes premiers soins, {joueur}. À partir de maintenant, c'est {prix} $. On soigne ?
+Les cadeaux de bienvenue, c'est fini. Les soins, ça se paie, mon chou : {prix} $. On y va ?
+Trois soins gratuits, c'est la politesse de la Famille. Le quatrième coûte {prix} $. Je m'occupe d'eux ?
+
+[infirmiere_prix]
+Les soins, ça se paie, mon chou. {prix} $, comme tout le monde. On y va ?
+{prix} $ pour remettre ton équipe sur pied. La Famille fait un prix d'ami. On soigne ?
+C'est {prix} $. Le Parrain tient à ce que les comptes soient justes. Je les prends ?
+{prix} $, {joueur}. Ici, rien n'est gratuit, sauf les conseils. On soigne ?
+
+[infirmiere_sans_argent]
+Tu n'as pas de quoi payer ? La Famille n'oublie pas les mauvais payeurs.
+Pas assez d'argent, {joueur}. Reviens quand tu pourras payer. Tes Pokémon attendront.
+Désolée, pas de crédit. C'est la règle de la maison, et la maison appartient à la Famille.
+
 [maitre_intro]
 Je suis le Maître des Capacités. Une Écaille Cœur, et ton Pokémon se souviendra d'une capacité oubliée.
 

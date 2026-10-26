@@ -75,7 +75,8 @@ module WorldEvents
       next if map[:kind] != "interieur"
       if (events = CENTRE_EVENTS[map[:template]])
         events.each_with_index do |(id, x, y), i|
-          add(plans, name, "Copy", CENTRE_LABELS[i], x, y, ["From", "#{map[:template]},#{id}"])
+          nurse = (i == 0) ? [["Graphic", NURSE_GRAPHIC], ["Confirm", "WorldEvents.nurse_pay"]] : []
+          add(plans, name, "Copy", CENTRE_LABELS[i], x, y, ["From", "#{map[:template]},#{id}"], *nurse)
         end
       elsif (clerk = MART_CLERK[map[:template]]) && map[:building] == "boutique"
         add(plans, name, "Npc", "Vendeur", *clerk, ["Graphic", CLERK_GRAPHIC],

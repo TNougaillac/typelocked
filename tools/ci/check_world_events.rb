@@ -229,6 +229,10 @@ def check_services(atlas, plans)
     when "centre"
       missing = W::CENTRE_LABELS - labels
       raise MapEvents::Error, "#{name} : Centre sans #{missing.join(', ')}" if !missing.empty?
+      nurse = plans[name].events.find { |e| e.label == W::CENTRE_LABELS[0] }
+      if nurse.value("Graphic") != W::NURSE_GRAPHIC || nurse.value("Confirm") != "WorldEvents.nurse_pay"
+        raise MapEvents::Error, "#{name} : infirmière sans l'apparence ou les soins payants de la Famille"
+      end
     when "boutique"
       raise MapEvents::Error, "#{name} : boutique sans vendeur" if !labels.include?("Vendeur")
     end
@@ -458,8 +462,15 @@ W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK :
     CI.error(settings, nil, "#{key} : objet #{item} absent de items.txt") if item != :TM && !items.include?(item.to_s)
   end
 end
+# The nurse of each Centre template asks a question (Confirm goes in its first answer)
+W::CENTRE_EVENTS.each do |template, events|
+  event = load_rxdata(File.join(ROOT, "Data", format("Map%03d.rxdata", template))).instance_variable_get(:@events)[events[0][0]]
+  list = event&.instance_variable_get(:@pages)&.first&.instance_variable_get(:@list) || []
+  next if list.any? { |c| c.instance_variable_get(:@code) == 402 && c.instance_variable_get(:@parameters)[0] == 0 }
+  CI.error(settings, nil, "CENTRE_EVENTS : l'infirmière de la carte #{template} ne pose pas de question")
+end
 CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
-[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
+[W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, W::NURSE_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
   CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
 end
 

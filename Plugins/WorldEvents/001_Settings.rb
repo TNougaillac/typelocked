@@ -25,6 +25,11 @@ module WorldEvents
     53 => [[1, 7, 2], [3, 11, 1], [4, 5, 2]]
   }.freeze
   CENTRE_LABELS = %w[Infirmiere PC Machine].freeze
+  # The nurse works for the Family (#114): her look, and the heals of each
+  # Centre: FREE_HEALS free, then a price by the seals won (0 to 8).
+  NURSE_GRAPHIC = "NPC Famille infirmiere"
+  FREE_HEALS    = 3
+  HEAL_PRICES   = [100, 200, 300, 400, 600, 800, 1000, 1200, 1500].freeze
   # The clerk of each shop template ([x, y]), a member of the Family.
   MART_CLERK = { 25 => [2, 3], 54 => [2, 3] }.freeze
   CLERK_GRAPHIC = "trainer_COUSIN_F"
@@ -244,7 +249,8 @@ module WorldEvents
     "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
     "professeur_apres" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
-    "vendeur" => [], "maitre_intro" => %w[joueur], "maitre_sans_ecaille" => %w[joueur],
+    "vendeur" => [], "infirmiere_fin_gratuit" => %w[joueur prix], "infirmiere_prix" => %w[joueur prix],
+    "infirmiere_sans_argent" => %w[joueur], "maitre_intro" => %w[joueur], "maitre_sans_ecaille" => %w[joueur],
     "maitre_aucun" => %w[joueur], "maitre_fin" => %w[joueur],
     "don" => PLACE_TOKENS, "don_apres" => PLACE_TOKENS, "terrain_attente" => PLACE_TOKENS,
     "terrain_don" => PLACE_TOKENS, "terrain_apres" => PLACE_TOKENS,

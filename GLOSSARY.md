@@ -38,6 +38,10 @@ _Avoid_ : chef d'arène
 Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
 _Avoid_ : sbires, Team, grunts
 
+**Infirmière** :
+L'infirmière d'un Centre Pokémon, membre de la Famille comme les vendeurs. Elle soigne gratuitement trois fois par Centre, puis fait payer.
+_Avoid_ : Infirmière Joëlle
+
 **Professeur** :
 Le Professeur Castellane, le même à chaque graine. Il raconte le Pacte au joueur dans sa version flatteuse, lui annonce son type imposé et lui propose les trois starters. Il travaille en secret pour la Famille.
 _Avoid_ : Prof

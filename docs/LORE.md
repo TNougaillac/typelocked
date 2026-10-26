@@ -25,6 +25,8 @@ Il y a longtemps, la Famille a passé un **Pacte** avec Arceus. Arceus lui a don
 
 Chaque champion battu remet au joueur un **sceau** : une chevalière de la Famille, qui lui ouvre le territoire suivant. Le joueur la passe à un de ses doigts, et un dialogue le dit à chaque fois. Le code garde le mot « badge », seul le texte en jeu change.
 
+Les commerces vivent aussi sous sa coupe : les vendeurs des boutiques et les **infirmières** des Centres Pokémon sont de la Famille. L'infirmière porte sa tenue sombre et offre trois soins par Centre ; ensuite, elle les fait payer, plus cher à mesure que le joueur gagne des sceaux.
+
 Les arènes et la Ligue n'acceptent que les Pokémon du **type imposé** : c'est la règle du Pacte, que la Famille fait respecter.
 
 ## Le joueur
