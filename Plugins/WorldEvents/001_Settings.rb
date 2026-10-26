@@ -50,6 +50,11 @@ module WorldEvents
   TOWN_COUSINS   = 0..1
   COUSIN_CHANCE  = 25
   SIGHT          = 3..4
+  # Double battles (#123): from DOUBLE_FROM seals won on the way, this % of
+  # the trainers of the routes, caves and towns fight two Pokémon at once
+  # (at least 2 in their party). A player with one able Pokémon fights single.
+  DOUBLE_FROM   = 3
+  DOUBLE_CHANCE = 25
   # Pokémon of a trainer by the seals won on the way (0 to 8).
   PARTY_SIZES = [1..2, 1..2, 2..3, 2..3, 3..4, 3..4, 4..5, 4..6, 5..6].freeze
   # Their levels: up to the highest of the zone's wild Pokémon, this much less.
