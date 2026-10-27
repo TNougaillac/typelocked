@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - "online/server/**"
+      - "online/**"
       - ".github/workflows/online.yml"
   pull_request:
     paths:
-      - "online/server/**"
+      - "online/**"
       - ".github/workflows/online.yml"
   workflow_dispatch:
 
@@ -27,4 +27,17 @@ jobs:
           cache-dependency-path: online/server/package-lock.json
       - run: npm ci
       - name: Tests du serveur des salons
+        run: npm test
+
+  bridge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: online/bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Tests du pont
         run: npm test

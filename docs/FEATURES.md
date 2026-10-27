@@ -718,6 +718,32 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `test/room.test.js` | Tests d'intégration (`npm test`, runtime Workers local). |
 | `wrangler.jsonc` | Configuration du Worker et migration du Durable Object (SQLite). |
 
+## F18. Partie multi (Online et pont local)
+**Statut :** Online v1.0.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
+**Dossiers :** `Plugins/Online/` (jeu), `online/bridge/` (pont Node.js 22.4 ou plus, repris plus tard par le launcher #52).
+
+### Règles
+- **Pont :** `node online/bridge/src/cli.js create --name Tom [--nuzlocke required] [--type-draw required] [--same-type]` crée un salon et affiche son code ; `node online/bridge/src/cli.js join <code> [--name Léo]` le rejoint. Le pseudo n'est demandé qu'une fois : il est gardé avec un code secret dans `%APPDATA%/TypeLocked/online/player.json`. L'adresse du serveur et la clé de groupe viennent de `online/bridge/config.json` (modèle : `config.example.json`). Quand tout le monde est connecté, l'hôte tape `go` dans la fenêtre du pont.
+- **Service local :** le pont écoute sur `127.0.0.1:47120` (`BRIDGE_URL`) : `GET /state` (le salon), `GET /events?after=N` (événements des autres joueurs), `POST /event` (envoi aux autres). Il se reconnecte seul après une coupure et garde les envois faits pendant ce temps.
+- **Nouvelle partie :** si le pont est dans un salon, la nouvelle partie est une **partie multi**. Tant que l'hôte n'a pas lancé, une fenêtre attend (« Salon X : en attente du lancement… », avec le nombre de joueurs connectés) ; Retour joue en solo. La graine du monde est celle du salon. Sans pont, une nouvelle partie est une partie solo, inchangée.
+- **Règles du salon :** appliquées avant les choix de mode (`NewGameSetup`, ordre 5). Nuzlocke obligatoire : le mode est activé sans le choix, avec un message. Même type pour tous : le type est tiré de la graine du salon, donc identique chez chacun. Tirage obligatoire : le type de chaque joueur est tiré au hasard. Sinon, le joueur choisit comme en solo. Le Monotype reste imposé (ADR 0001).
+- **Événements :** sur la carte, le jeu lit ceux des autres joueurs toutes les `POLL_INTERVAL` (0,5 s) dans `Online.inbox` ; `Online.publish(données)` les envoie. Les tickets suivants (#144 à #148) s'en servent. Si le pont ne répond pas, le jeu ne le rappelle pas avant `RETRY_AFTER` (10 s), pour ne jamais ralentir.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `Plugins/Online/001_Settings.rb` | Adresse du pont, intervalles. |
+| `Plugins/Online/002_Json.rb` | Lecture et écriture JSON (le Ruby du jeu n'a pas de bibliothèque JSON). |
+| `Plugins/Online/003_Rules.rb` | Règles du salon : Nuzlocke imposé, type imposé ou commun. |
+| `Plugins/Online/004_Data.rb` | Salon de la partie, dans la sauvegarde (`$online`). |
+| `Plugins/Online/005_Bridge.rb` | Requêtes au pont (`HTTPLite`). |
+| `Plugins/Online/006_Game.rb` | Nouvelle partie multi, attente, règles, lecture des événements. |
+| `online/bridge/src/*.js` | Pont : identité, configuration, connexion au salon, service local, ligne de commande. |
+| `tools/ci/check_online.rb` | Contrôle CI du JSON et des règles du salon. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -810,3 +836,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 26/10/2026 | MapProceduralGenerator v0.30.0, MapGenerator v1.12.0 (#111) : relief d'après les cartes officielles : niveaux en plateaux du sol de l'ambiance (rebord fin au nord, falaise sur les côtés et au sud), falaises en pente, plateaux isolés aux bords serpentants, chemins et briques sur les plateaux (niveaux dessinés sur la couche 3), villes en gradins avec jardins surélevés et escaliers larges ; massifs, buttes et recoins de roche ; terrain sans tuile intérieure (`-`) dans MapGenerator | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/002_Parser.rb`, `Plugins/MapGenerator/meta.txt`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/rocaille_*.txt`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.31.0 : routes marines (`Mers`) d'après les routes de Hoenn : mer d'un bout à l'autre, plages aux bouts, crêtes et massifs de roche sur l'eau (`RocherMarin`), rochers et bancs de sable, couloir libre pour surfer, butins sur les bancs de sable ; WorldEvents v1.15.0 (pas d'objets ordinaires sur une route marine) | `Plugins/MapProceduralGenerator/*`, `Plugins/WorldEvents/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Serveur des salons v1.0.0 (#142) : Worker Cloudflare, un Durable Object par salon (code, règles, graine, présence, départ, relais des événements), clé de groupe ; tests d'intégration et CI | `online/server/*`, `.github/workflows/online.yml`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.0.0 et pont local (#143) : partie multi lancée depuis un salon (attente de l'hôte, graine du salon, règles imposées), lecture et envoi des événements des joueurs ; pont Node.js (identité, connexion, service local) ; contrôle CI | `Plugins/Online/*`, `online/bridge/*`, `tools/ci/check_online.rb`, `.github/workflows/*`, `docs/FEATURES.md` |

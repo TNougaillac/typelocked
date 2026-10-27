@@ -1,0 +1,11 @@
+{
+  "name": "typelocked-pont",
+  "private": true,
+  "type": "module",
+  "description": "Local bridge between the game and its room server (ADR 0002). The launcher (#52) will take it over.",
+  "engines": { "node": ">=22.4" },
+  "bin": { "typelocked-pont": "src/cli.js" },
+  "scripts": {
+    "test": "node --test"
+  }
+}
