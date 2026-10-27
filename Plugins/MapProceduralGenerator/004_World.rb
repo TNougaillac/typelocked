@@ -761,11 +761,12 @@ module MapProceduralGenerator
                      end
                    end
           frames.each do |frame, turn|
-            route_spots(a, side, turn, frame).each do |route, far, out|
+            route_spots(a, side, turn, frame).each do |route, far, out, squares|
               next if OPPOSITE[out] == b.port
               dx, dy = DIRECTIONS[out]
               next if far.none? { |x, y| on_place?(b, x + dx, y + dy) }
               next if !free.call(route.x, route.y, route.w, route.h, [a, b], false)
+              mask_route(route, squares)
               route.shape = shape
               route.span = frame[0].map(&:first).max + 1
               options.push([route, side, out])
@@ -959,7 +960,8 @@ module MapProceduralGenerator
             end
     spots = route_spots(town, side, turn, frame)
     return nil if spots.empty?
-    route, ends, out = spots[rng.rand(spots.length)]
+    route, ends, out, squares = spots[rng.rand(spots.length)]
+    mask_route(route, squares)
     route.shape = shape
     route.span = length
     spots = town_spots(ends, out, *size)
@@ -989,7 +991,8 @@ module MapProceduralGenerator
   end
 
   # The routes of that frame against place a on that side, the frame's v
-  # going towards turn: [route, far squares, side towards the next place] for
+  # going towards turn: [route, far squares, side towards the next place,
+  # squares (for mask_route, once the route is kept)] for
   # each spot along the side, those fully against a first, then those that
   # only touch it, from the top or left.
   def route_spots(a, side, turn, frame)
@@ -1014,9 +1017,6 @@ module MapProceduralGenerator
       cells = squares.map { |u, v| cell.call(u, v) }
       xs, ys = cells.map(&:first), cells.map(&:last)
       route = WorldPlace.new(nil, "route", nil, xs.min, ys.min, xs.max - xs.min + 1, ys.max - ys.min + 1, [], false)
-      if cells.length < route.w * route.h
-        route.mask = Array.new(route.h) { |y| Array.new(route.w) { |x| cells.include?([route.x + x, route.y + y]) ? "1" : "0" }.join }
-      end
       route.joints = joints.map do |ju, jv, jdu, jdv|
         corners = [cell.call(ju, jv), cell.call(ju + jdu - 1, jv + jdv - 1)]
         jx, jy = corners.map(&:first).min, corners.map(&:last).min
@@ -1029,9 +1029,17 @@ module MapProceduralGenerator
       end
       out = { ahead: side, turn: turn, back: OPPOSITE[side] }[way]
       first = horizontal ? ys.min : xs.min
-      [facing.all? ? 0 : 1, first, route, ends.map { |u, v| cell.call(u, v) }, out]
+      [facing.all? ? 0 : 1, first, route, ends.map { |u, v| cell.call(u, v) }, out, cells]
     end
     return spots.sort_by { |full, first, *| [full, first] }.map { |_full, _first, *spot| spot }
+  end
+
+  # The mask of a route that doesn't fill its rectangle (squares: all of
+  # its squares).
+  def mask_route(route, squares)
+    return if squares.length >= route.w * route.h
+    covered = squares.to_h { |c| [c, true] }
+    route.mask = Array.new(route.h) { |y| Array.new(route.w) { |x| covered[[route.x + x, route.y + y]] ? "1" : "0" }.join }
   end
 
   # A coordinate in half squares of the frame (p) along an axis of the grid,

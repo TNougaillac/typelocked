@@ -1881,11 +1881,12 @@ module MapProceduralGenerator
     def put_brick(brick, allowed = nil)
       bw, bh = brick.rows.map(&:length).max, brick.rows.length
       distances = brick.door ? street_distances : nil
+      blocked = blocked_cells(brick)
       spots = []
       (0..@h - bh).each do |y|
         (0..@w - bw).each do |x|
           next if allowed && !allowed.call(brick, x, y)
-          next if !fits?(brick, x, y)
+          next if !fits?(brick, x, y, blocked)
           next if brick.by_street && !touches_street?(brick, x, y)
           if brick.door
             d = distances[y + bh][x + brick.door[0]]
@@ -1928,26 +1929,10 @@ module MapProceduralGenerator
     end
 
     # The brick's cells must be free, with one free tile around it (streets
-    # may touch it) so that two bricks never stick together.
-    def fits?(brick, x, y)
-      brick.rows.each_with_index do |row, dy|
-        row.each_char.with_index do |c, dx|
-          next if c == " "
-          cx, cy = x + dx, y + dy
-          return false if @solid[cy][cx] || @street[cy][cx] || @zone&.[](cy)&.[](cx)
-          raised = level_at(cx, cy) > 0
-          return false if HIGHLAND.include?(brick.kind) ? !raised : (raised && LOWLAND.include?(brick.kind))
-          (-1..1).each do |oy|
-            (-1..1).each do |ox|
-              nx, ny = cx + ox, cy + oy
-              next if !inside?(nx, ny) || !@solid[ny][nx] || @border[ny][nx]
-              # A cave entrance may lean against a cliff
-              next if brick.kind == CAVE && @face&.[](ny)&.[](nx)
-              return false if brick.kind != @dense || @kinds[ny][nx] != @dense
-            end
-          end
-        end
-      end
+    # may touch it) so that two bricks never stick together. blocked: the
+    # cells where none of its cells may go (blocked_cells).
+    def fits?(brick, x, y, blocked = blocked_cells(brick))
+      brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] }
       return false if !bank_free?(brick, x, y)
       return true if !brick.door
       # The path under the door must be free or already a street
@@ -1959,10 +1944,49 @@ module MapProceduralGenerator
       return true
     end
 
+    # The cells of a brick that are part of it: [dx, dy].
+    def brick_cells(brick)
+      @brick_cells ||= {}.compare_by_identity
+      return @brick_cells[brick] ||= brick.rows.each_with_index.flat_map do |row, dy|
+        row.each_char.with_index.filter_map { |c, dx| [dx, dy] if c != " " }
+      end
+    end
+
+    # Cells where no cell of brick may go, worked out once for all its spots:
+    # taken (solid, street, zone), on the wrong level, or next to another
+    # brick (not the border; a cave entrance may lean against a cliff, fill
+    # bricks of a « dense » excess against each other).
+    def blocked_cells(brick)
+      cave = brick.kind == CAVE
+      dense = brick.kind == @dense
+      near = Array.new(@h) { Array.new(@w, false) }
+      @h.times do |y|
+        @w.times do |x|
+          next if !@solid[y][x] || @border[y][x]
+          next if (cave && @face&.[](y)&.[](x)) || (dense && @kinds[y][x] == @dense)
+          ([y - 1, 0].max..[y + 1, @h - 1].min).each do |ny|
+            row = near[ny]
+            row[x - 1] = true if x > 0
+            row[x] = true
+            row[x + 1] = true if x + 1 < @w
+          end
+        end
+      end
+      highland = HIGHLAND.include?(brick.kind)
+      lowland = LOWLAND.include?(brick.kind)
+      return Array.new(@h) do |y|
+        Array.new(@w) do |x|
+          next true if near[y][x] || @solid[y][x] || @street[y][x] || @zone&.[](y)&.[](x)
+          raised = level_at(x, y) > 0
+          highland ? !raised : (raised && lowland)
+        end
+      end
+    end
+
     # A brick of water keeps the cells below its bottom edge off the streets
     # of a town (their paving can't show the bank).
     def bank_free?(brick, x, y)
-      return true if @place.street == @place.ground
+      return true if @place.street == @place.ground || !wet_brick?(brick)
       brick.rows.each_with_index do |row, dy|
         row.each_char.with_index do |c, dx|
           next if !sea_symbols.include?(c) || wet_symbols.include?(brick.rows[dy + 1]&.[](dx))
@@ -1970,6 +1994,11 @@ module MapProceduralGenerator
         end
       end
       return true
+    end
+
+    def wet_brick?(brick)
+      @wet_bricks ||= {}.compare_by_identity
+      return @wet_bricks.fetch(brick) { @wet_bricks[brick] = brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } } }
     end
 
     def touches_street?(brick, x, y)
@@ -2030,19 +2059,22 @@ module MapProceduralGenerator
     def street_distances
       @parents = Array.new(@h) { Array.new(@w) }
       distances = Array.new(@h) { Array.new(@w) }
+      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) } }
       queue = []
       @h.times do |y|
         @w.times do |x|
-          next if !brush_free?(x, y) || !brush_on_street?(x, y)
+          next if !free[y][x] || !brush_on_street?(x, y)
           distances[y][x] = 0
           queue.push([x, y])
         end
       end
-      until queue.empty?
-        x, y = queue.shift
+      head = 0
+      while head < queue.length
+        x, y = queue[head]
+        head += 1
         NEIGHBOURS.each do |ox, oy|
           nx, ny = x + ox, y + oy
-          next if !brush_free?(nx, ny) || distances[ny][nx]
+          next if nx < 0 || ny < 0 || nx >= @w || ny >= @h || !free[ny][nx] || distances[ny][nx]
           distances[ny][nx] = distances[y][x] + 1
           @parents[ny][nx] = [x, y]
           queue.push([nx, ny])
