@@ -85,3 +85,10 @@ test("the game reads the room and the events, and publishes through the local se
     server.close();
   }
 });
+
+test("the bridge reads its settings from the game's Online plugin", async () => {
+  const { loadConfig } = await import("../src/config.js");
+  const config = loadConfig("/nonexistent/config.json", {});
+  assert.deepEqual(config, { server: "http://127.0.0.1:8787", groupKey: "test", port: 47120 });
+  assert.equal(loadConfig("/nonexistent/config.json", { TYPELOCKED_PORT: "47121" }).port, 47121);
+});
