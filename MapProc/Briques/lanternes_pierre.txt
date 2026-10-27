@@ -1,0 +1,8 @@
+# Deux lanternes de pierre blanche.
+Brique    = Lanternes de pierre
+Type      = decor
+Ambiances = verdoyante, minérale
+[Map]
+ċċ ċċ
+ċċ ċċ
+ċċ ċċ

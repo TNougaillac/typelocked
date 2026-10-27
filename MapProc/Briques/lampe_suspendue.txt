@@ -1,0 +1,8 @@
+# Potence et lanterne suspendue, le long d'une rue.
+Brique    = Lanterne suspendue
+Type      = lampe
+Contre    = rue
+[Map]
+ĵĵ
+ĵĵ
+ĵĵ

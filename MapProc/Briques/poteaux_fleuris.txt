@@ -1,0 +1,8 @@
+# Trois poteaux couverts de fleurs.
+Brique    = Poteaux fleuris
+Type      = decor
+Ambiances = verdoyante, terre battue, chemins de terre
+[Map]
+Ĉ Ĉ Ĉ
+Ĉ Ĉ Ĉ
+Ĉ Ĉ Ĉ

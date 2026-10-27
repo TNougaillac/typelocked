@@ -1,0 +1,8 @@
+# Camion garé, quelques caisses.
+Brique    = Camion
+Type      = foire
+Ambiances = terre battue, chemins de terre, sable, forêt tropicale, prairie
+[Map]
+ĽĽĽĽĽĽġ
+ĽĽĽĽĽĽġ
+ĽĽĽĽĽĽĠ

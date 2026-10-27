@@ -1,0 +1,8 @@
+# Banc de bois, le long d'une rue.
+Brique    = Banc de bois
+Type      = lampe
+Contre    = rue
+Ambiances = terre battue, chemins de terre, sable, forêt tropicale
+[Map]
+ŅŅ
+ŅŅ

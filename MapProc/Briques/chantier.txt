@@ -1,0 +1,9 @@
+# Rondins, caisses et un cône.
+Brique    = Chantier
+Type      = decor
+Ambiances = terre battue, chemins de terre
+Poids     = 2
+[Map]
+ęę  ġ
+ęęĚĚġĠ
+  ĚĚğ

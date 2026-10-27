@@ -1,0 +1,7 @@
+# Boîte aux lettres et panneau d'information, le long d'une rue.
+Brique    = Boîte aux lettres
+Type      = lampe
+Contre    = rue
+[Map]
+đ Ĵ
+đ Ĵ

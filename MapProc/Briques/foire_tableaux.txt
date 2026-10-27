@@ -1,0 +1,6 @@
+# Deux tableaux d'affichage et un panneau.
+Brique    = Tableaux d'affichage
+Type      = foire
+[Map]
+ĝĝĞĞĘĘ
+ĝĝĞĞĘĘ

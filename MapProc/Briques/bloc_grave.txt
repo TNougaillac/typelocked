@@ -1,0 +1,8 @@
+# Un bloc gravé et un rocher blanc.
+Brique    = Bloc gravé
+Type      = decor
+Ambiances = minérale, sable
+[Map]
+ľľ
+ľľŁŁ
+ľľŁŁ

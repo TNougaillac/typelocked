@@ -1,0 +1,8 @@
+# Lampadaire en fer, le long d'une rue.
+Brique    = Lampadaire d'Émeraude
+Type      = lampe
+Contre    = rue
+Poids     = 2
+[Map]
+Ă
+Ă

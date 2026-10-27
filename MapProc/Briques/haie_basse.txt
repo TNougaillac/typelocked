@@ -1,0 +1,8 @@
+# Verdure : deux haies basses.
+Brique    = Haies basses
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre
+[Map]
+ĊĊĊ
+ĊĊĊ ĊĊĊ
+    ĊĊĊ
