@@ -75,3 +75,13 @@ _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 **Starter** :
 Le premier Pokémon du joueur, choisi parmi trois Pokémon de son type imposé.
 _Avoid_ : Pokémon de départ
+
+## Multijoueur
+
+**Salon** :
+Un groupe d'amis qui jouent en même temps la même graine du monde, avec les règles fixées à sa création.
+_Avoid_ : lobby, room, serveur
+
+**Hôte** :
+Le joueur qui crée le salon et en choisit les règles.
+_Avoid_ : admin, maître du salon
