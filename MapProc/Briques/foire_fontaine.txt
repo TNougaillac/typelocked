@@ -1,0 +1,7 @@
+# Fontaine de pierre, entre deux lanternes de pierre.
+Brique    = Fontaine
+Type      = foire
+[Map]
+ċċćććċċ
+ċċćććċċ
+ċċćććċċ

@@ -26,6 +26,7 @@ TILESET = "Graphics/Tilesets/Outside.png"
 BLOCK, WALK, TALL = 475, -1, 420   # source tiles of the passages/priorities
 KT_SHADOW = (120, 120, 120, 255)
 SHADOW = (24, 32, 24, 70)
+TRIM_TOP = {"aiguille rouge": 1}   # pixel rows of another tile above the object
 
 # name, pack, first tile, width, height, passages:
 #   block: every tile blocks; walk: none; tall: the bottom row blocks, the
@@ -81,6 +82,65 @@ PROPS = [
     ("parasol de plage", "KA", 413, 3, 3, "tree"),
     ("brouette", "KA", 453, 3, 1, "block"),
     ("caisse en bois", "KA", 110, 2, 2, "block"),
+    # Trees and mounds for the ambiances (#162)
+    ("grand arbre rond", "E", 408, 3, 3, "tree"),
+    ("sapin", "E", 419, 2, 2, "tall"),
+    ("arbre touffu", "E", 435, 2, 3, "tall"),
+    ("aiguille rouge", "E", 725, 2, 3, "tall"),
+    # Wide pass over the packs (#162)
+    ("statue blanche", "E", 817, 1, 2, "tall"),
+    ("lampadaire", "E", 818, 1, 2, "tall"),
+    ("étal du marché", "E", 832, 5, 5, "tall"),
+    ("parterre octogonal", "E", 837, 3, 3, "block"),
+    ("fontaine", "E", 901, 3, 3, "block"),
+    ("poteau fleuri", "E", 972, 1, 3, "tall"),
+    ("bassin rocheux", "E", 1792, 5, 4, "block"),
+    ("haie basse", "E", 1624, 3, 2, "block"),
+    ("lanterne de pierre", "E", 1640, 2, 3, "tall"),
+    ("arbre de Galar", "KG", 0, 3, 5, "tree"),
+    ("arbre de Galar fleuri", "KG", 4, 2, 3, "tall"),
+    ("panneau de Galar", "KG", 14, 2, 2, "tall"),
+    ("grand panneau de Galar", "KG", 29, 3, 3, "tall"),
+    ("boîte aux lettres", "KG", 28, 1, 2, "tall"),
+    ("distributeur", "KG", 41, 1, 3, "tall"),
+    ("gacha rouge", "KG", 44, 1, 2, "tall"),
+    ("gacha jaune", "KG", 53, 1, 2, "tall"),
+    ("gacha bleu", "KG", 60, 1, 2, "tall"),
+    ("panneau vert", "KG", 54, 2, 2, "tall"),
+    ("rondins gris", "KG", 64, 2, 2, "block"),
+    ("rondins roses", "KG", 66, 2, 2, "block"),
+    ("double lampadaire", "KG", 80, 4, 5, "tree"),
+    ("menhir moussu", "KG", 69, 3, 6, "tall"),
+    ("tableau d'affichage", "KO", 0, 2, 2, "tall"),
+    ("tableau d'affichage simple", "KO", 2, 2, 2, "tall"),
+    ("cône", "KO", 18, 1, 1, "block"),
+    ("caisse plate", "KO", 19, 1, 1, "block"),
+    ("caisse haute", "KO", 27, 1, 2, "block"),
+    ("lanterne de Corrifey", "KO", 57, 1, 6, "tall"),
+    ("banc", "KO", 353, 2, 1, "block"),
+    ("long banc", "KO", 355, 3, 1, "block"),
+    ("arbre mort géant", "KV", 96, 8, 13, "tree"),
+    ("statue ailée", "KA", 6, 2, 4, "tall"),
+    ("statue à pointes", "KA", 46, 2, 3, "tall"),
+    ("totem miroir", "KA", 70, 2, 5, "tall"),
+    ("cyprès", "KA", 128, 3, 4, "tree"),
+    ("plaque de pierre", "KA", 134, 2, 1, "block"),
+    ("stèle", "KA", 150, 2, 2, "block"),
+    ("monument de pierre", "KA", 174, 2, 2, "block"),
+    ("panneau d'affichage en bois", "KA", 160, 3, 3, "tall"),
+    ("petit panneau en bois", "KA", 171, 2, 2, "tall"),
+    ("panneau d'information", "KA", 201, 1, 2, "tall"),
+    ("lanterne suspendue", "KA", 206, 2, 3, "tall"),
+    ("torche dorée", "KA", 257, 1, 3, "tall"),
+    ("grande tablette", "KA", 259, 5, 3, "block"),
+    ("totem croisé", "KA", 280, 3, 3, "tall"),
+    ("totem drapé", "KA", 304, 3, 3, "tall"),
+    ("portique de totems", "KA", 328, 6, 3, "tall"),
+    ("camion", "KA", 352, 6, 3, "block"),
+    ("bloc gravé", "KA", 456, 2, 3, "block"),
+    ("rocher blanc d'Alola", "KA", 458, 2, 2, "block"),
+    ("statue chauve-souris", "KA", 460, 3, 3, "tall"),
+    ("banc de bois", "KA", 485, 2, 2, "block"),
 ]
 
 
@@ -89,6 +149,9 @@ def sources(emerald, kingtapir):
         "E": os.path.join(emerald, "Graphics", "Tilesets", "Outside E.png"),
         "KS": os.path.join(kingtapir, "KingTapirSandstreamDesert.png"),
         "KA": os.path.join(kingtapir, "KingTapirAlolaMisc.png"),
+        "KG": os.path.join(kingtapir, "KingTapirGalarMisc.png"),
+        "KO": os.path.join(kingtapir, "KingTapirStowOnSide.png"),
+        "KV": os.path.join(kingtapir, "KingTapirAgateVillage.png"),
     }
 
 
@@ -135,8 +198,10 @@ def main():
     images = {k: Image.open(v).convert("RGBA") for k, v in sources(args[0], args[1]).items()}
     spots, rows = layout()
     sheet = Image.new("RGBA", (256, rows * 32), (0, 0, 0, 0))
-    for (_name, pack, tile, w, h, _kind), (col, row) in zip(PROPS, spots):
-        sheet.alpha_composite(crop(images[pack], tile, w, h, pack), (col * 32, row * 32))
+    for (name, pack, tile, w, h, _kind), (col, row) in zip(PROPS, spots):
+        part = crop(images[pack], tile, w, h, pack)
+        part.paste((0, 0, 0, 0), (0, 0, w * 32, TRIM_TOP.get(name, 0)))
+        sheet.alpha_composite(part, (col * 32, row * 32))
     if preview:
         sheet.save(preview)
         return
