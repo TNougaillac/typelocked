@@ -24,6 +24,8 @@ Profond = %
 # Des rochers et des bancs de sable dans l'eau qui traverse une route.
 Recif   = µ
 Banc    = £
+# Routes marines (« Mers » dans monde.txt) : les masses de roche sur la mer.
+RocherMarin = ŕ
 Roche   = R
 Caillou = o
 # Routes de montagne (« Montagnes » dans monde.txt) : un symbole par niveau, du
@@ -129,6 +131,7 @@ decor = 2..4 par case
 # La roche grise remplace la brune (montagnes, rochers, corniches)
 ¬ = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
 ^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+ŕ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 L3 @~
 & = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnzPʘ
 k = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnzPʘ L2 @z
 K = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnzPʘ
@@ -272,6 +275,7 @@ w = {sol} T847
 ¬ = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnzPʘ L2 @.   # niveau 1 (dessus praticable)
 # Massif de roche (briques « montagne », recoins) : son dessus est de la roche.
 ^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.
+ŕ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 L3 @~   # roche sur la mer (routes marines)
 & = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnzPʘ L2 @.   # niveau 2
 k = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnzPʘ L2 @.   # niveau 3
 K = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnzPʘ L2 @.   # niveau 4

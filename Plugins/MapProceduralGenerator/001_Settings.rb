@@ -322,6 +322,16 @@ module MapProceduralGenerator
   # own draws, SEA_LIFE_SALT), when the place has « Recif » and « Banc »
   SEA_LIFE = { banks: 0..2, reefs: 1..3 }.freeze
   SEA_LIFE_SALT = 0x5EA1
+  # Sea routes (« mer », see « Mers » in a world): a beach of shore rows
+  # (wavering) at each end, the sea between; on it, per CASE_SIZE square,
+  # ridges of rocks (2 wide, ridge stamps long, along the route as on
+  # Hoenn's sea routes), masses of rock (mass stamps), small rocks and
+  # sandbanks, off a lane kept free
+  # along the route's way (lane tiles on each side). Their own draws
+  # (SEA_ROUTE_SALT).
+  SEA_ROUTE = { shore: 3..6, ridges: 0.8..1.4, ridge: 3..7, masses: 0.5..1.0, mass: 4..10,
+                rocks: 0.6..1.2, banks: 0.3..0.8, lane: 2 }.freeze
+  SEA_ROUTE_SALT = 0x5EA2
   # Island names: « Île » and a name, or a name alone, from these sections of
   # this file
   ISLAND_NAMES_FILE = "Lore/noms.txt"
