@@ -42,7 +42,8 @@ module Online
       raise "status #{response[:status]}" if !response.is_a?(Hash) || response[:status] >= 300
       @failed_at = nil
       return (response[:status] == 204) ? {} : Json.parse(response[:body])
-    rescue StandardError
+    # mkxp-z raises MKXPError (not a StandardError) when nothing listens.
+    rescue StandardError, MKXPError
       @failed_at = System.uptime
       return nil
     end
