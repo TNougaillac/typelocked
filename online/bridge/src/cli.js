@@ -3,6 +3,7 @@
 //   node online/bridge/src/cli.js create --name Tom [--nuzlocke required] [--type-draw required] [--same-type]
 //   node online/bridge/src/cli.js join ABC234 [--name Léo]
 // Then launch the game: a new game starts in the room once the host types "go".
+import { writeFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { parseArgs } from "node:util";
 import { loadConfig } from "./config.js";
@@ -23,6 +24,7 @@ async function main() {
       nuzlocke: { type: "string", default: "free" },
       "type-draw": { type: "string", default: "free" },
       "same-type": { type: "boolean", default: false },
+      "code-file": { type: "string" }, // writes the room code there (online/test-multi.bat)
     },
   });
   const [command, code] = positionals;
@@ -36,6 +38,7 @@ async function main() {
   const roomCode = command === "create"
     ? await client.createRoom({ nuzlocke: values.nuzlocke, typeDraw: values["type-draw"], sameType: values["same-type"] })
     : code.toUpperCase();
+  if (values["code-file"]) writeFileSync(values["code-file"], roomCode);
   await startLocalServer(client, config.port);
   client.connect(roomCode);
   console.log(`Salon ${roomCode} (${identity.name}). Laisse cette fenêtre ouverte pendant la partie.`);
