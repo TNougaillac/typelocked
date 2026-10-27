@@ -68,7 +68,7 @@ module Online
     current = (@duel && @duel.id == id && @duel.foe == from) ? @duel : nil
     case info["what"]
     when "challenge"
-      if @duel || @challenge
+      if busy?
         publish(duel_message(id, from, "refuse", "busy" => true))
       else
         @challenge = { "from" => from, "info" => info }
@@ -116,9 +116,15 @@ module Online
     return room
   end
 
-  # Pause menu > Salon > a player: challenged once back on the map.
-  def request_duel(foe)
-    @duel_request = foe
+  # Pause menu > Salon > a player: a duel or a trade (013) proposed to them
+  # once back on the map.
+  def request_meeting(kind, foe)
+    @request = [kind, foe]
+  end
+
+  # In a duel or a trade, or asked for one: other proposals are refused.
+  def busy?
+    return !(@duel || @challenge || @trade || @trade_offer).nil?
   end
 
   # On the map, with nothing else going on.
@@ -128,16 +134,49 @@ module Online
     return !$game_player.move_route_forcing
   end
 
-  # Called on the map: sends the challenge asked for, or shows the one received.
-  def duel_update
+  # Called on the map: sends the proposal asked for, or shows the one received.
+  def meeting_update
     return if !map_free?
-    if @duel_request
-      foe = @duel_request
-      @duel_request = nil
-      send_challenge(foe)
+    if @request
+      kind, foe = @request
+      @request = nil
+      (kind == :trade) ? send_trade_offer(foe) : send_challenge(foe)
     elsif @challenge && !@challenge["asked"]
       @challenge["withdrawn"] ? (@challenge = nil) : answer_challenge
+    elsif @trade_offer && !@trade_offer["asked"]
+      @trade_offer["withdrawn"] ? (@trade_offer = nil) : answer_trade_offer
     end
+  end
+
+  # Shows text and reads the room until the block returns something, which
+  # is returned. Returns nil after Back (if cancel), a pause of the room or
+  # time seconds, saying why (late_text) when it is not Back.
+  def wait_for(text, time: nil, cancel: true, late_text: nil)
+    viewport = Viewport.new(0, 0, Graphics.width, Graphics.height)
+    viewport.z = 99_999
+    window = Window_UnformattedTextPokemon.newWithSize("", 0, Graphics.height - 96, Graphics.width, 96, viewport)
+    window.setSkin(MessageConfig.pbGetSpeechFrame)
+    window.text = cancel ? text + "\n" + _INTL("Retour : annuler.") : text
+    give_up = time && System.uptime + time
+    next_poll = 0
+    loop do
+      Graphics.update
+      Input.update
+      window.update
+      return nil if cancel && Input.trigger?(Input::BACK)
+      next if System.uptime < next_poll
+      next_poll = System.uptime + POLL_INTERVAL
+      cut = pause_reason(pump)
+      value = yield
+      return value if value
+      next if !cut && (!give_up || System.uptime < give_up)
+      window.visible = false
+      pbMessage(cut ? _INTL("Annulé : la connexion au salon est coupée.") : late_text)
+      return nil
+    end
+  ensure
+    window&.dispose
+    viewport&.dispose
   end
 
   def able_to_duel?
@@ -150,7 +189,8 @@ module Online
     @duel = Duel.new(format("%08x", rand(2**32)), foe, rand(1_000_000_000), true, pack_team($player.party))
     publish(duel_message(@duel.id, foe, "challenge", "seed" => @duel.seed, "team" => @duel.team,
                                                       "trainer" => duel_trainer))
-    answer = wait_answer(name)
+    answer = wait_for(_INTL("Défi envoyé à {1}. En attente de sa réponse…", name),
+                      time: CHALLENGE_TIME, late_text: _INTL("{1} n'a pas répondu.", name)) { @duel.answer }
     if !answer
       publish(duel_message(@duel.id, foe, "withdraw"))
       return
@@ -164,36 +204,6 @@ module Online
     fight_duel(name)
   ensure
     @duel = nil
-  end
-
-  # The answer to this player's challenge, or nil (gave up, no answer, cut off).
-  def wait_answer(name)
-    viewport = Viewport.new(0, 0, Graphics.width, Graphics.height)
-    viewport.z = 99_999
-    window = Window_UnformattedTextPokemon.newWithSize("", 0, Graphics.height - 96, Graphics.width, 96, viewport)
-    window.setSkin(MessageConfig.pbGetSpeechFrame)
-    window.text = _INTL("Défi envoyé à {1}. En attente de sa réponse…\nRetour : annuler.", name)
-    give_up = System.uptime + CHALLENGE_TIME
-    next_poll = 0
-    loop do
-      Graphics.update
-      Input.update
-      window.update
-      return nil if Input.trigger?(Input::BACK)
-      next if System.uptime < next_poll
-      next_poll = System.uptime + POLL_INTERVAL
-      cut = pause_reason(pump)
-      return @duel.answer if @duel.answer
-      if cut || System.uptime >= give_up
-        window.visible = false
-        pbMessage(cut ? _INTL("Défi annulé : la connexion au salon est coupée.") :
-                        _INTL("{1} n'a pas répondu.", name))
-        return nil
-      end
-    end
-  ensure
-    window&.dispose
-    viewport&.dispose
   end
 
   def answer_challenge

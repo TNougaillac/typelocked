@@ -719,7 +719,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `wrangler.jsonc` | Configuration du Worker et migration du Durable Object (SQLite). |
 
 ## F18. Partie multi (Online et pont local)
-**Statut :** Online v1.3.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
+**Statut :** Online v1.4.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
 **Dossiers :** `Plugins/Online/` (jeu), `online/bridge/` (pont Node.js 22.4 ou plus, repris plus tard par le launcher #52).
 
 ### Règles
@@ -736,10 +736,14 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 - **Pause du salon (#145) :** dès qu'un joueur est déconnecté, tout le salon se met en pause sur la carte (hors messages) : « Partie en pause : Léo déconnecté depuis 1:23. » Le jeu reprend seul à son retour. Le joueur coupé, lui, voit « connexion au salon perdue » (ou « le pont ne répond plus »). Après `KICK_AFTER` (5 min), l'hôte peut retirer l'absent (touche Z, avec confirmation) : les autres reprennent et l'annonce « Léo a été retiré du salon » s'affiche ; le joueur retiré l'apprend à sa reconnexion et continue en solo. Un joueur coupé depuis 5 min peut aussi quitter le salon (Retour) et jouer en solo. Le serveur garde l'heure de départ de chaque absent et refuse un retrait trop tôt.
 
-- **Combats entre joueurs (#146) :** menu Pause > Salon, flèches pour choisir un autre joueur connecté, C pour le défier (avec confirmation). Le défi part une fois revenu sur la carte ; le défiant attend la réponse `CHALLENGE_TIME` (30 s, Retour : annuler). Le défié le voit dès qu'il est libre sur la carte (hors message, événement, menu ou combat) : « Tom te défie en combat ! Accepter ? ». Un joueur déjà en duel ou défié refuse seul (« Léo est déjà occupé »). Il faut au moins un Pokémon capable de combattre.
+- **Combats entre joueurs (#146) :** menu Pause > Salon, flèches pour choisir un autre joueur connecté, C puis « Un combat ». Le défi part une fois revenu sur la carte ; le défiant attend la réponse `CHALLENGE_TIME` (30 s, Retour : annuler). Le défié le voit dès qu'il est libre sur la carte (hors message, événement, menu ou combat) : « Tom te défie en combat ! Accepter ? ». Un joueur déjà en duel ou défié refuse seul (« Léo est déjà occupé »). Il faut au moins un Pokémon capable de combattre.
 - **Le combat :** simple, en direct, chacun choisit ses actions ; l'autre attend (« En attente de Léo… », Retour : abandonner). Les équipes sont prises telles qu'elles sont (PV, statuts, PP, objets tenus) puis **copiées** : après le combat, l'équipe est exactement comme avant. Ni objets du Sac, ni Méga-Évolution, ni expérience, ni argent, ni évolution ; le Nuzlocke ne s'applique pas (un K.O. n'est pas une mort) ; pas de plafond de niveau. Ni météo, ni terrain, ni environnement : les deux joueurs ne sont pas sur la même carte.
 - **Même combat sur les deux écrans :** les deux jeux jouent le même combat avec les mêmes nombres aléatoires (graine du défi) ; l'ordre des égalités de vitesse est tiré dans l'ordre du défiant chez les deux. Anticipation, Prédiction et Fouille marchent pour les deux camps (sinon un seul jeu tirerait un nombre). Chaque choix envoyé porte le tour et les PV des deux équipes : si l'autre jeu ne voit pas la même chose, le combat est annulé (« les deux parties ne voient plus le même combat »).
 - **Fin :** victoire, défaite, abandon (Fuite ou Retour pendant l'attente : l'autre gagne), ou annulation (perdu pour personne) dès que le salon se met en pause (coupure d'un joueur ou du pont).
+
+- **Échanges entre joueurs (#147) :** menu Pause > Salon, un joueur connecté, C puis « Un échange ». Comme un défi : réponse attendue 30 s, refus automatique si l'autre est occupé. Ensuite : celui qui propose choisit son Pokémon, l'autre le voit (« Tom propose Dracaufeu (Nv. 36) ») et choisit le sien, puis celui qui propose confirme ; les deux jeux font alors l'échange (scène d'échange d'Essentials, évolutions par échange, nom du dresseur d'origine).
+- **Règles :** on ne donne qu'un Pokémon du type de celui qui le reçoit (Monotype ; grisé sinon dans l'écran d'équipe), jamais un Pokémon mort, un Œuf, un Pokémon verrouillé ni son dernier Pokémon capable de combattre. Le receveur revérifie le Pokémon reçu (type, mort) avant de choisir le sien. Un Pokémon reçu n'est pas une capture : la zone Nuzlocke n'est pas consommée (il compte seulement comme possédé dans le Pokédex, comme tout échange).
+- **Coupure :** avant la confirmation, l'échange est annulé et personne ne donne rien. Après avoir donné son Pokémon, le receveur ne peut plus annuler (Retour) : celui qui propose est peut-être déjà en train d'échanger.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -756,8 +760,9 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `Plugins/Online/010_Pause.rb` | Pause du salon, retrait d'un absent, départ en solo. |
 | `Plugins/Online/011_Duel.rb` | Défi, réponse, messages d'un duel, choix envoyés et contrôle. |
 | `Plugins/Online/012_DuelBattle.rb` | Équipes envoyées et recréées, combat du duel (`Online::DuelBattle < Battle`). |
+| `Plugins/Online/013_Trade.rb` | Proposition d'échange, choix des Pokémon, règles, échange (`pbStartTrade`). |
 | `online/bridge/src/*.js` | Pont : identité, configuration, connexion au salon, service local, ligne de commande. |
-| `tools/ci/check_online.rb` | Contrôle CI du JSON, des règles du salon, des annonces, de la pause et des messages d'un duel. |
+| `tools/ci/check_online.rb` | Contrôle CI du JSON, des règles du salon, des annonces, de la pause, des messages d'un duel et des règles et messages d'un échange. |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
@@ -858,3 +863,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | Online v1.1.0 (#144) : course en direct (progression envoyée quand elle change, annonces des autres joueurs, vainqueur, spectateur), panneau du salon dans le menu Pause ; le serveur garde la dernière progression de chaque joueur | `Plugins/Online/*`, `online/server/src/room.js`, `online/server/test/room.test.js`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Online v1.2.0 (#145) : pause de tout le salon pendant une coupure, retrait d'un absent par l'hôte après 5 minutes, départ en solo d'un joueur coupé ; serveur et pont : heure de départ des absents, retrait | `Plugins/Online/*`, `online/server/src/*`, `online/bridge/src/*`, tests, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Online v1.3.0 (#146) : combats en direct entre joueurs (défi depuis le panneau du salon, même combat sur les deux écrans par graine partagée et choix échangés, équipes copiées, abandon, annulation à la coupure ou en cas de désaccord) | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.4.0 (#147) : échanges entre joueurs depuis le panneau du salon (type du receveur, ni mort ni Œuf ni dernier Pokémon, pas une capture, annulés à la coupure) | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |

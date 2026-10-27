@@ -87,16 +87,18 @@ CI.error(PAUSE, nil, "absent depuis le plus longtemps pas en premier") if Online
 CI.error(PAUSE, nil, "durée mal écrite") if Online.duration_text(Online::KICK_AFTER) != "5:00"
 
 # Duels: messages of a duel between Tom (a, challenger) and Léo (b), as Léo's game
-require File.join(ROOT, "Plugins", "Online", "011_Duel")
+%w[011_Duel 013_Trade].each { |f| require File.join(ROOT, "Plugins", "Online", f) }
 DUEL = File.join(ROOT, "Plugins", "Online", "011_Duel.rb")
 module Online
   Me = Struct.new(:you)
   def self.data = Me.new("b")
   def self.sent = (@sent ||= [])
   def self.publish(message) = sent.push(message)
-  def self.reset_duels(duel = nil)
+  def self.reset_duels(duel = nil, trade = nil)
     @duel = duel
     @challenge = nil
+    @trade = trade
+    @trade_offer = nil
     sent.clear
   end
 end
@@ -131,5 +133,41 @@ CI.error(DUEL, nil, "choix d'attaque mal envoyé") if Online.encode_choice([:Use
 CI.error(DUEL, nil, "changement mal envoyé") if Online.encode_choice([:SwitchOut, 3, nil, -1, 0]) != ["switch", 3, -1]
 CI.error(DUEL, nil, "cibles mal retournées") if [0, 1, -1].map { |i| Online.flip(i) } != [1, 0, -1]
 CI.error(DUEL, nil, "contrôle des deux combats") if Online.duel_check(3, [10, 0], [25]) != "3:10,0|25"
+
+# Trades: rules, and messages of a trade between Tom (a) and Léo (b), as Léo's game
+TRADE = File.join(ROOT, "Plugins", "Online", "013_Trade.rb")
+{
+  [%i[FIRE FLYING], false, false, :FIRE, true] => nil,
+  [%i[WATER], false, false, :FIRE, true] => :type,
+  [%i[WATER], false, false, nil, true] => nil,
+  [%i[FIRE], true, false, :FIRE, true] => :dead,
+  [%i[FIRE], false, true, :FIRE, true] => :egg,
+  [%i[FIRE], false, false, :FIRE, false] => :last
+}.each do |args, wanted|
+  got = Online.trade_refusal(*args)
+  CI.error(TRADE, nil, "échange #{args.inspect} : #{got.inspect} au lieu de #{wanted.inspect}") if got != wanted
+end
+CI.error(TRADE, nil, "Pokémon verrouillé échangé") if Online.trade_refusal(%i[FIRE], false, false, :FIRE, true, true) != :locked
+%i[egg dead locked type last unknown].each do |reason|
+  CI.error(TRADE, nil, "refus #{reason} sans texte") if !Online.trade_refusal_text(reason, "Feu")
+end
+Online.reset_duels
+offer = Online.trade_message("t1", "b", "offer", "type" => "FIRE")
+Online.trade_event("a", offer)
+CI.error(TRADE, nil, "proposition non reçue") if Online.trade_offer&.dig("info", "type") != "FIRE"
+Online.duel_event("c", Online.duel_message("d3", "b", "challenge"))
+CI.error(TRADE, nil, "défi pendant une proposition d'échange pas refusé") if Online.sent.last&.[]("busy") != true
+Online.trade_event("a", Online.trade_message("t1", "b", "withdraw"))
+CI.error(TRADE, nil, "proposition retirée encore proposée") if !Online.trade_offer["withdrawn"]
+trade = Online::Trade.new("t1", "a")
+Online.reset_duels(nil, trade)
+Online.trade_event("a", Online.trade_message("t1", "b", "pick", "pokemon" => {}, "dead" => false))
+Online.trade_event("c", Online.trade_message("t1", "b", "confirm"))
+CI.error(TRADE, nil, "Pokémon proposé non gardé") if !trade.foe_pick
+CI.error(TRADE, nil, "confirmation d'un autre joueur prise en compte") if trade.confirmed
+Online.trade_event("a", Online.trade_message("t1", "b", "confirm"))
+CI.error(TRADE, nil, "confirmation non reçue") if !trade.confirmed
+Online.trade_event("a", Online.trade_message("t1", "b", "cancel"))
+CI.error(TRADE, nil, "annulation non reçue") if trade.ended != :cancel
 
 CI.finish("Mode multijoueur")

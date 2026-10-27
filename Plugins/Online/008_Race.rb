@@ -59,6 +59,8 @@ module Online
       end
     when "duel"
       duel_event(from, info)
+    when "trade"
+      trade_event(from, info)
     end
   end
 
@@ -91,7 +93,7 @@ module Online
       @next_status = System.uptime + STATUS_INTERVAL
       send_status
     end
-    duel_update
+    meeting_update
     show_news
   end
 

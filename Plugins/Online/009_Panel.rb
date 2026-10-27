@@ -3,7 +3,7 @@
 # Pause menu > Salon, in a multiplayer game only: for each player of the
 # room, their seals, place, team, deaths and score, who is connected, who
 # lost their run (spectator) and who won the race. Choosing another connected
-# player challenges them to a duel (011), once back on the map.
+# player proposes them a duel (011) or a trade (013), once back on the map.
 #===============================================================================
 module Online
   class RoomPanel
@@ -18,7 +18,7 @@ module Online
     ICON_X     = 280
     ICON_STEP  = 36
 
-    # The player to challenge to a duel, or nil.
+    # The player to propose a duel or a trade to, or nil.
     def main
       start
       chosen = nil
@@ -68,13 +68,13 @@ module Online
       pbSetSmallFont(overlay)
       @rows = rows
       @rows.each_with_index { |row, i| draw_row(overlay, i, *row) }
-      # Other connected players can be challenged to a duel.
+      # Other connected players can be proposed a duel or a trade.
       @choices = @rows.each_index.select { |i| @rows[i][0] != Online.data.you && @rows[i][3] }
       @cursor = @choices.first
       @sprites["cursor"] = BitmapSprite.new(Graphics.width - 8, ROW_HEIGHT - 4, @viewport)
       @sprites["cursor"].x = 4
       draw_cursor
-      footer = @cursor ? _INTL("C : défier ce joueur · Retour : fermer") : _INTL("Retour : fermer")
+      footer = @cursor ? _INTL("C : combat ou échange · Retour : fermer") : _INTL("Retour : fermer")
       return if TOP + (@rows.length * ROW_HEIGHT) > Graphics.height - 24   # No room left
       pbDrawTextPositions(overlay, [[footer, Graphics.width / 2, Graphics.height - 24, :center, DIM, SHADOW]])
     end
@@ -146,8 +146,11 @@ MenuHandlers.add(:pause_menu, :online_room, {
       foe = Online::RoomPanel.new.main
       menu.pbRefresh
     end
-    next false if !foe || !pbConfirmMessage(_INTL("Défier {1} en combat ?", Online.player_name(foe)))
-    Online.request_duel(foe)
+    next false if !foe
+    choice = pbMessage(_INTL("Que proposer à {1} ?", Online.player_name(foe)),
+                       [_INTL("Un combat"), _INTL("Un échange"), _INTL("Rien")], 3)
+    next false if choice == 2
+    Online.request_meeting((choice == 0) ? :duel : :trade, foe)
     menu.pbEndScene
     $game_temp.in_menu = false
     next true
