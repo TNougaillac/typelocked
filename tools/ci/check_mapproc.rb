@@ -8,7 +8,7 @@ require_relative "lib/ci"
 %w[001_Settings 002_Parser 003_Builder].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
 require_relative "lib/essentials"
 Essentials.load_scripts("Overworld_RandomDungeons")
-%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
+%w[001_Settings 002_Parser 003_Builder 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
 SEEDS = 1..10
 # Seeds of the worlds (WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others
@@ -53,7 +53,7 @@ end
 def check_water(plan, name, place)
   sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.cover?(t) } }.keys
   wet = sea + plan.objects.select { |_c, o| sea.include?(o.ground) }.keys + plan.terrains.select { |_c, t| sea.include?(t.ground) }.keys
-  clean = wet + place.banks.to_s.chars + place.levels.to_a
+  clean = wet + place.banks.to_s.chars + place.levels.to_a + [M::CLIFF]
   rows = plan.rows
   at = ->(x, y) { y < 0 || y >= rows.length || x < 0 || x >= rows[y].length || wet.include?(rows[y][x]) }
   rows.each_with_index do |row, y|
@@ -73,6 +73,7 @@ def walkable_symbols(place, bricks)
   symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
+  symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
 end
@@ -104,7 +105,7 @@ end
 def reached(place, bricks, layout, surf:, blocked: nil, exits: layout.exits, through: [])
   stairs = place.stairs&.join&.chars || []
   walkable = walkable_symbols(place, bricks) - stairs
-  walkable += [place.water, place.deep].compact if surf
+  walkable += [place.water, place.deep, place.bank].compact if surf  # a sandbank is surfed to
   height = ->(c) { place.levels&.index(c) || -1 }
   rows = layout.rows
   ok = lambda do |x, y|
@@ -334,6 +335,21 @@ places.each do |path|
       check_spots(name, themed, bricks, layout)
     end
   end
+  # Every plan of a town on a few seeds (a town whose bricks don't fit its
+  # plan is built as a « carrefour »)
+  if place.kind == "ville"
+    M::TOWN_PLANS.each_key do |plan_name|
+      (1..5).each do |seed|
+        planned = place.dup.tap { |p| p.plan = plan_name }
+        plan, _text, layout = M.generate_place(planned, bricks, seed)
+        name = "#{File.basename(path)} (plan #{plan_name}, graine #{seed})"
+        MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+        check_spill(plan, name)
+        check_water(plan, name, planned)
+        check_spots(name, planned, bricks, layout)
+      end
+    end
+  end
   # A port on each side with no exit, at the size of a world's town
   next if !place.pier
   (M::SIDES - place.exits.map(&:first)).each do |side|
@@ -361,7 +377,7 @@ worlds.each do |path|
     result = M.generate_world(world, town, route, bricks, seed, {}, name_table)
     # Levels shown on the mountain routes (each level its own symbol)
     result.places.each do |wp, place, _text, layout|
-      highest = [highest, (layout.rows.join.chars.uniq & place.levels).length].max if wp.mountain
+      highest = [highest, (layout.levels.to_a.join.chars.uniq & place.levels).length].max if wp.mountain
     end
     plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
     titles = plan.places.values.map(&:display_name)
@@ -460,6 +476,26 @@ worlds.each do |path|
     end
     result.seabeds.each do |_wp, name, text|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::SEABED_TILESET])
+    end
+    # Decor maps: their tiles, never walked (no ground tile, no warp), every
+    # place's side and corner with an empty square next to it covered
+    result.fillers.each do |f|
+      decor = MapGenerator.parse(f.text, f.name)
+      MapGenerator.check_tiles(decor, tilesets[decor.tileset_id])
+      CI.error(path, nil, "#{f.name} (graine #{seed}) : #{f.w * world.cell}x#{f.h * world.cell} attendu") if decor.rows.length != f.h * world.cell || decor.rows.any? { |row| row.length != f.w * world.cell }
+      CI.error(path, nil, "#{f.name} (graine #{seed}) : sol praticable") if decor.rows.join.include?(".")
+    end
+    grid = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})").rows
+    grid.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if c != MapGenerator::WORLD_EMPTY
+        near = M::FILLER_REACH.any? do |dx, dy, _w|
+          next false if y + dy < 0 || x + dx < 0
+          other = grid[y + dy]&.[](x + dx)
+          other && other != MapGenerator::WORLD_EMPTY && !M::FILLER_SYMBOLS.include?(other)
+        end
+        CI.error(path, nil, "graine #{seed} : case #{x},#{y} vide à côté d'un lieu (sans décor)") if near
+      end
     end
     # Each building door leads to its interior, whose exit leads back
     plans = (result.places.map { |wp, place, text, _layout| [wp.name, MapGenerator.parse(text, place.file)] } +

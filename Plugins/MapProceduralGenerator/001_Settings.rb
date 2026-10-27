@@ -17,6 +17,66 @@ module MapProceduralGenerator
   # Street width in tiles (exits, streets and paths to the doors).
   STREET_WIDTH = 2
 
+  # Natural border: past its first row of trees, the border of a place of that
+  # kind (« Lieu ») grows inwards by that many more rows of trees, changing by
+  # one row every BORDER_STRETCH trees along each side, at most BORDER_SHARE
+  # of the map across. BORDER_SALT: its own draws, apart from the place's.
+  BORDER_DEPTH = { "ville" => 0..1, "route" => 0..2 }.freeze
+  BORDER_STRETCH = 2..5
+  BORDER_SHARE = 0.2
+  BORDER_SALT = 0x5B0D
+
+  # Paved square of a town around its hub (tiles across, tiles down), the
+  # fountain object of ville.txt in the middle, only in towns at least
+  # min_side tiles across both ways (not in villages). PLAZA_SALT: its own
+  # draws.
+  PLAZA = { width: 9..12, height: 8..10, fountain: "f", min_side: 30 }.freeze
+  PLAZA_KIND = "fontaine"
+  PLAZA_SALT = 0x91A2A
+
+  # The monument of a town (« monument » in [Briques]) stands within that
+  # many tiles of its square, when it has one.
+  MONUMENT_REACH = 3
+
+  # A stretch of sand across a long plain route (see
+  # PlaceBuilder#lay_transition), that often (%) on routes of these
+  # ambiances at least min_length tiles long: size tiles along the route,
+  # rocks % of its cells; ground and rock: symbols of route.txt.
+  # TRANSITION_SALT: its own draws.
+  TRANSITION = { chance: 40, ambiances: ["verdoyante", "automne"], min_length: 60, size: 14..22,
+                 rocks: 3, ground: "§", rock: "¤" }.freeze
+  TRANSITION_SALT = 0x5A4D
+
+  # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
+  # by weight; boost: [Briques] types raised to that many times their
+  # highest count. GRID: tiles between two streets of a « grille » (across,
+  # down); CANAL: width of the canal of a « canal ». PLAN_SALT: their own
+  # draws.
+  TOWN_PLANS = {
+    "carrefour" => { weight: 4 },
+    "grille"    => { weight: 2 },
+    "canal"     => { weight: 1 },
+    "clairière" => { weight: 1, boost: { "arbre" => 3 } }
+  }.freeze
+  GRID = { across: 14..16, down: 12..14 }.freeze
+  CANAL = { width: 4..5 }.freeze
+  PLAN_SALT = 0x91A45
+
+  # The avenue of a town (the streets of its first two exits) is one tile
+  # wider than STREET_WIDTH, except within AVENUE_MARGIN tiles of the edges.
+  AVENUE_MARGIN = 6
+
+  # The streets of a plain route wind: one tile sideways every few steps
+  # (every), at most sway tiles off the straight line. TRAIL_SALT: its own
+  # draws.
+  TRAIL = { every: 3..6, sway: 4 }.freeze
+  TRAIL_SALT = 0x7EA11
+
+  # A building goes at most that many tiles further from its street than the
+  # closest spot found, by kind of place (2 for the others): towns line their
+  # buildings along the streets.
+  DOOR_SLACK = { "ville" => 0 }.freeze
+
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 
@@ -32,6 +92,33 @@ module MapProceduralGenerator
   MOUNTAIN_CLIMB = 0.7
   FACE_WAVE = 2
   MOUNTAIN_GRASS = 1..3
+  # A raised band stops short of a side of the map that often (%), at least
+  # SIDE_GAP tiles from its streets; peaks (one level above the ground
+  # around them) per 20x20 tiles.
+  SIDE_TRIM = 60
+  SIDE_GAP = 4
+  # Slopes, as on the official maps: that often (%) a boundary runs
+  # diagonally (each step goes its way SLOPE_BIAS % of the time) and wanders
+  # up to SLOPE_WAVE rows; the cut side of a mesa wanders up to SIDE_WAVE
+  # columns. Their own draws (RELIEF_SALT).
+  SLOPE_CHANCE = 60
+  SLOPE_BIAS = 80
+  SLOPE_WAVE = 5
+  SIDE_WAVE = 3
+  RELIEF_SALT = 0x5E1F
+  # Towns in terraces: that often (%) a town big enough for a square (and not
+  # a port, an island, a canal or a mask) climbs in steps, bands between
+  # TERRACE_FACES boundaries, TERRACE_DEPTH rows deep at least, up to as many
+  # levels as its « Relief » has symbols, their sides cut like a mesa. Drawn
+  # with TERRACE_SALT; drawn again (TERRACE_TRIES in all), then built flat,
+  # when its bricks don't fit.
+  TERRACE_CHANCE = 65
+  TERRACE_TRIES = 4
+  TERRACE_PEAKS = 0.5..1.0
+  TERRACE_FACES = 2..4
+  TERRACE_DEPTH = 7
+  TERRACE_SALT = 0x7E44
+  MOUNTAIN_PEAKS = 0.5..1.5
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
@@ -61,10 +148,12 @@ module MapProceduralGenerator
   # drawn among those of its brick type: [map ID, x, y of its exit (the door
   # mat, the player arrives just above it)]. The copy keeps the map's tiles,
   # not its events. A centre's copy is the healing spot of its town.
+  HOUSE_INTERIORS = [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]].freeze
   INTERIORS = {
     "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
     "boutique" => [[25, 4, 8], [54, 4, 8]],
-    "maison"   => [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]],
+    "maison"   => HOUSE_INTERIORS,
+    "refuge"   => HOUSE_INTERIORS,
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
@@ -229,8 +318,33 @@ module MapProceduralGenerator
   # Sandbanks and rocks in the sea around an island
   ISLAND_BANKS = 1..3
   ISLAND_REEFS = 3..6
+  # The same in the sea of a port and in the water crossing a route (their
+  # own draws, SEA_LIFE_SALT), when the place has « Recif » and « Banc »
+  SEA_LIFE = { banks: 0..2, reefs: 1..3 }.freeze
+  SEA_LIFE_SALT = 0x5EA1
+  # Sea routes (« mer », see « Mers » in a world): a beach of shore rows
+  # (wavering) at each end, the sea between; on it, per CASE_SIZE square,
+  # ridges of rocks (2 wide, ridge stamps long, along the route as on
+  # Hoenn's sea routes), masses of rock (mass stamps), small rocks and
+  # sandbanks, off a lane kept free
+  # along the route's way (lane tiles on each side). Their own draws
+  # (SEA_ROUTE_SALT).
+  SEA_ROUTE = { shore: 3..6, ridges: 0.8..1.4, ridge: 3..7, masses: 0.5..1.0, mass: 4..10,
+                rocks: 0.6..1.2, banks: 0.3..0.8, lane: 2 }.freeze
+  SEA_ROUTE_SALT = 0x5EA2
   # Island names: « Île » and a name, or a name alone, from these sections of
   # this file
   ISLAND_NAMES_FILE = "Lore/noms.txt"
   ISLAND_NAME_SECTIONS = %w[Italien Americain Francais].freeze
+
+  # Decor maps (see 013_Fillers.rb): the empty squares of the world next to a
+  # place become maps that can't be walked, so the screen never shows black
+  # past a place's edge. Their map names; rocks on a mountain decor (share of
+  # its tiles, [Legend] symbols of rocks on rock); symbols of the world grid
+  # for them (one per map, the decor squares left over stay empty).
+  FILLERS = true
+  FILLER_NAME = "Décor généré"
+  FILLER_ROCKS = 0.04
+  FILLER_ROCK_SYMBOLS = %w[ø ö õ ó].freeze
+  FILLER_SYMBOLS = ((0x3B1..0x3C9).to_a + (0x391..0x3A9).to_a - [0x3A2] + (0x410..0x44F).to_a).map { |c| c.chr(Encoding::UTF_8) }.freeze
 end

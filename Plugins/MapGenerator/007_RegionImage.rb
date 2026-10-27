@@ -55,7 +55,10 @@ module MapGenerator
     width = [REGION_SIZE[0], plan.origin[0] + plan.rows.map(&:length).max].max * REGION_SQUARE
     height = [REGION_SIZE[1], plan.origin[1] + plan.rows.length].max * REGION_SQUARE
     canvas = RegionCanvas.new(width, height, REGION_COLORS[:sea])
-    paint_region(canvas, plan, links)
+    # The decor around the places is not drawn
+    shown = plan.dup
+    shown.places = plan.places.reject { |_symbol, place| place.kind == "decor" }
+    paint_region(canvas, shown, links.select { |a, _ea, _pa, b, *| shown.places.value?(a) && shown.places.value?(b) })
     canvas.save(path)
     return _INTL("Carte de région dessinée : {1}.", path)
   end

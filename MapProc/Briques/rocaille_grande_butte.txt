@@ -1,7 +1,7 @@
 Brique = Grande butte (montagne)
 Type   = rocaille
 [Map]
-&&&&&&
-&&&&&&
-&&&&&&
-&&&&&&
+^^^^^^
+^^^^^^
+^^^^^^
+^^^^^^
