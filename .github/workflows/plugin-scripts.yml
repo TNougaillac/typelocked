@@ -1,0 +1,44 @@
+name: PluginScripts.rxdata
+
+# After each merge into main, recompiles Data/PluginScripts.rxdata and commits
+# it, so main runs as is without debug mode (JoiPlay, plain Game.exe).
+# Pull requests never touch this file: it would conflict between them.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Plugins/**"
+      - "Data/Scripts.rxdata"
+      - "tools/build/compile_plugins.rb"
+      - ".github/workflows/plugin-scripts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One run at a time, so two quick merges do not push over each other
+concurrency:
+  group: plugin-scripts
+  cancel-in-progress: false
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # latest main, not the commit that triggered the run
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"   # same Ruby as the game (x64-msvcrt-ruby310.dll)
+      - name: Compiler les plugins
+        run: ruby tools/build/compile_plugins.rb
+      # A commit pushed with GITHUB_TOKEN does not start another workflow run.
+      - name: Commit sur main
+        run: |
+          git diff --quiet -- Data/PluginScripts.rxdata && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Data/PluginScripts.rxdata
+          git commit -m "PluginScripts.rxdata recompilé (${GITHUB_SHA::7})"
+          git push origin HEAD:main
