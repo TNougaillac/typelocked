@@ -82,6 +82,10 @@ _Avoid_ : Pokémon de départ
 Un groupe d'amis qui jouent en même temps la même graine du monde, avec les règles fixées à sa création.
 _Avoid_ : lobby, room, serveur
 
+**Partie multi** :
+Une partie lancée depuis un salon ; tout ce qui touche au multijoueur n'existe que dans une partie multi.
+_Avoid_ : partie en ligne, online
+
 **Hôte** :
 Le joueur qui crée le salon et en choisit les règles.
 _Avoid_ : admin, maître du salon
