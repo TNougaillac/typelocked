@@ -265,6 +265,21 @@ w = {sol} T847
 # bordure (rien, joint aux niveaux).
 ɸ = {sol}
 ʘ = -
+
+# Objets de décor propres aux ambiances (tools/art/ambiance_props.py, fond
+# transparent : posés sur n'importe quel sol)
+ĵ = {sol} T4230         # jarres (sable)
+ć = {sol} T4231         # cristaux (minérale)
+ż = {sol} T4232         # wagonnet de minerai (minérale)
+ś = {sol} T4233         # pierres taillées (minérale)
+ĥ = {sol} T4234         # ruche (verdoyante, prairie)
+č = {sol} T4235         # citrouilles (automne)
+ň = {sol} T4236         # botte de foin (automne, terre battue)
+ĺ = {sol} T4237         # tas de feuilles (automne ; on marche dessus)
+ę = {sol} T4238         # fougère géante (forêt tropicale)
+ź = {sol} T4239         # fleurs exotiques (forêt tropicale ; on marche dessus)
+ť = {sol} T4240         # tonneau (terre battue, chemins de terre)
+
 [Terrains]
 # Les niveaux sont des plateaux, comme sur les routes des jeux : leur dessus
 # garde le sol de l'ambiance (« - » : rien par-dessus), leur bord nord est un rebord fin
@@ -298,3 +313,8 @@ t = T420 2x3         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
 W = T1816 4x4        # maison en bois (refuge)
 V = T1336 5x4        # maison verte à cheminée (refuge)
+ĉ = T4216 1x2         # cactus (sable)
+ŭ = T4217 1x2         # bambous (forêt tropicale)
+ŝ = T4218 2x2         # puits (sable, terre battue)
+ř = T4220 2x2         # charrette de foin (terre battue, chemins de terre, automne)
+ĝ = T4222 2x1         # potager (verdoyante, prairie, chemins de terre)

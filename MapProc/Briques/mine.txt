@@ -1,0 +1,8 @@
+# Minéral : un wagonnet de minerai et des pierres taillées.
+Brique    = Mine abandonnée
+Type      = decor
+Ambiances = minérale
+Poids     = 2
+[Map]
+śż
+x ś

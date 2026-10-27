@@ -1,0 +1,8 @@
+# Automne : citrouilles, botte de foin et feuilles mortes.
+Brique    = Récolte
+Type      = decor
+Ambiances = automne
+Poids     = 2
+[Map]
+čň
+ĺ č

@@ -1,0 +1,7 @@
+# Verdoyante et prairie : quelques ruches.
+Brique    = Rucher
+Type      = decor
+Ambiances = verdoyante, prairie
+[Map]
+ĥ ĥ
+ ĥ

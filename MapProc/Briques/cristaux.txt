@@ -1,0 +1,8 @@
+# Minéral : des cristaux sortant des rochers.
+Brique    = Cristaux
+Type      = decor
+Ambiances = minérale
+Poids     = 2
+[Map]
+ć x
+jć

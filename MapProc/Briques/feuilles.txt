@@ -1,0 +1,7 @@
+# Automne : des tas de feuilles mortes (on marche dessus).
+Brique    = Feuilles mortes
+Type      = decor
+Ambiances = automne
+[Map]
+ĺĺ
+ ĺĺ

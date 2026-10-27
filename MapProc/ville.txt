@@ -216,6 +216,21 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 # bordure (rien, joint aux niveaux).
 ɸ = {sol}
 ʘ = -
+
+# Objets de décor propres aux ambiances (tools/art/ambiance_props.py, fond
+# transparent : posés sur n'importe quel sol)
+ĵ = {sol} T4230         # jarres (sable)
+ć = {sol} T4231         # cristaux (minérale)
+ż = {sol} T4232         # wagonnet de minerai (minérale)
+ś = {sol} T4233         # pierres taillées (minérale)
+ĥ = {sol} T4234         # ruche (verdoyante, prairie)
+č = {sol} T4235         # citrouilles (automne)
+ň = {sol} T4236         # botte de foin (automne, terre battue)
+ĺ = {sol} T4237         # tas de feuilles (automne ; on marche dessus)
+ę = {sol} T4238         # fougère géante (forêt tropicale)
+ź = {sol} T4239         # fleurs exotiques (forêt tropicale ; on marche dessus)
+ť = {sol} T4240         # tonneau (terre battue, chemins de terre)
+
 [Terrains]
 # Terrasse : le dessus garde le sol (« - » : rien par-dessus), un rebord fin au nord
 # ({rive}), une falaise de roche sur les côtés et au sud.
@@ -273,3 +288,8 @@ J = T3344 4x4        # entrepôt du port
 b = T1096 5x3 L3 @~  # bateau amarré, sur l'eau
 L = T3088 8x5        # labo du Professeur (posé par le monde dans la ville de départ)
 I = T3136 8x5        # bâtiment de la Ligue (posé par le monde sur le plateau)
+ĉ = T4216 1x2         # cactus (sable)
+ŭ = T4217 1x2         # bambous (forêt tropicale)
+ŝ = T4218 2x2         # puits (sable, terre battue)
+ř = T4220 2x2         # charrette de foin (terre battue, chemins de terre, automne)
+ĝ = T4222 2x1         # potager (verdoyante, prairie, chemins de terre)

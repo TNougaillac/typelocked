@@ -1,0 +1,7 @@
+# Terre battue et chemins de terre : des tonneaux, une botte de foin.
+Brique    = Tonneaux
+Type      = decor
+Ambiances = terre battue, chemins de terre
+[Map]
+ťť
+ť ň
