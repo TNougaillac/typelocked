@@ -22,10 +22,13 @@
 #                               blocks a route crossed through a cave)
 #   Caillou = o                (optional: 1x1 [Legend] symbol filling the gaps
 #                               of that wall)
-#   Relief  = ^ & k K          (optional: [Terrains] symbols of the levels of a
-#                               mountain route of a world, from the 1st up, 2
-#                               at least; each joins the higher ones so that
-#                               only the higher level shows its edge)
+#   Relief  = ¬ & k K          (optional: [Terrains] symbols of the levels of a
+#                               mountain route of a world or of a town in
+#                               terraces, from the 1st up, 2 at least; each
+#                               joins the higher ones so that only the higher
+#                               level shows its edge; drawn on [Layer3], they
+#                               join HOLE too, and need CLIFF and HOLE in
+#                               [Legend])
 #   Escalier = ef gh EF GH     (optional, with Relief: pairs of [Legend]
 #                               symbols for 2-wide stairs, in a south face of
 #                               level 1, a north edge of level 1, then the same
@@ -68,7 +71,9 @@
 #   [Legend] [Terrains] [Objects]
 #   ...                        (MapGen palette, shared by every brick; with
 #                               ambiances, « {sol} » stands for the first tile
-#                               of the drawn ground, under flowers, water...)
+#                               of the drawn ground, under flowers, water...;
+#                               « {rive} » for the middle tile of its « Rive »,
+#                               the north rim of a plateau)
 # Brick file (MapProc/Briques/*.txt):
 #   Brique = Centre Pokémon    (required: name, for error messages)
 #   Type   = centre            (required: the type named in [Briques])
@@ -337,6 +342,9 @@ module MapProceduralGenerator
     place.levels&.each do |sym|
       raise Error, "#{place.file} : « Relief » : « #{sym} » doit être un symbole de [Terrains]" if !palette.terrains[sym]
     end
+    if place.levels && !(palette.legend[CLIFF] && palette.legend[HOLE])
+      raise Error, "#{place.file} : « Relief » demande « #{CLIFF} » et « #{HOLE} » dans [Legend] (falaise, case vide de la couche 3)"
+    end
     raise Error, "#{place.file} : « HerbeHaute = #{place.high_grass} » doit être un symbole de [Legend]" if place.high_grass && !palette.legend[place.high_grass]
     place.stairs&.join&.each_char do |sym|
       raise Error, "#{place.file} : « Escalier » : « #{sym} » doit être un symbole de [Legend]" if !palette.legend[sym]
@@ -372,9 +380,10 @@ module MapProceduralGenerator
   # Palette with the ambiance's ground and street.
   def palette_text(place)
     chosen = ambiance(place)
-    return place.palette if !chosen
+    rive = chosen&.banks&.[](1) || default_rive(place)
+    return place.palette.gsub("{rive}", rive) if !chosen
     ground = chosen.ground.split("|").first.split.first
-    text = place.palette.gsub("{sol}", ground)
+    text = place.palette.gsub("{sol}", ground).gsub("{rive}", rive)
     text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
     if chosen.street && place.street != place.ground
       section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
@@ -385,9 +394,17 @@ module MapProceduralGenerator
       place.banks.each_char.with_index { |sym, i| text << "#{sym} = #{chosen.banks[i]}\n" }
     end
     chosen.palette.each do |sym, (value, _lineno)|
-      text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground)}\n"
+      text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground).gsub('{rive}', rive)}\n"
     end
     return text
+  end
+
+  # The middle tile of the place's own « Rive » (« T849 » for « ' = T849 »),
+  # or an empty tile.
+  def default_rive(place)
+    sym = place.banks&.[](1)
+    line = sym && place.palette.each_line.find { |l| l.start_with?("#{sym} ") }
+    return line ? line.split("=", 2)[1].split.first : "T731"
   end
 
   # Section of the place's palette ([Legend], [Objects], [Terrains]) where
@@ -420,7 +437,8 @@ module MapProceduralGenerator
   end
 
   # MapGen plan text of a place: header, palette, then the assembled rows.
-  def plan_text(place, seed, rows)
+  # levels: the [Layer3] rows of the raised levels (Layout#levels), if any.
+  def plan_text(place, seed, rows, levels = nil)
     text = +"Name    = #{place.name}\n"
     text << "Tileset = #{place.tileset_id}\n"
     text << "MapID   = #{place.map_id}\n" if place.map_id
@@ -429,6 +447,10 @@ module MapProceduralGenerator
     text << palette_text(place)
     text << "\n[Map]\n"
     rows.each { |row| text << row << "\n" }
+    if levels
+      text << "\n[Layer3]\n"
+      levels.each { |row| text << row << "\n" }
+    end
     return text
   end
 

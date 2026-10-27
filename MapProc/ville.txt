@@ -28,6 +28,11 @@ Rebord  = (_)
 Bateau  = b
 Recif   = %
 Banc    = $
+# Ville en terrasses (TERRACE_CHANCE %) : un quartier en hauteur, comme
+# Oreburgh ou Ever Grande, un plateau du sol de la ville bordé d'une falaise,
+# des escaliers où les rues la franchissent (deux niveaux au plus).
+Relief   = ¬ ł
+Escalier = ŀĿ ĳĲ ŀĿ ĳĲ
 
 [Briques]
 centre   = 1
@@ -188,6 +193,10 @@ x = {sol} T919          # cailloux gris
 { = {sol} T1019         # pieds du stand jaune
 } = {sol} T1021
 e = {sol} T777          # escalier taillé dans une montagne
+ŀ = {sol} T777          # escalier dans la falaise d'une terrasse (gauche, droite)
+Ŀ = {sol} T778
+ĳ = {sol} T769          # escalier dans le rebord nord d'une terrasse
+Ĳ = {sol} T770
 ( = {sol} A1 T1221      # rebord sud d'un ponton, sur l'eau (gauche, milieu, droite)
 _ = {sol} A1 T1222
 ) = {sol} A1 T1223
@@ -202,7 +211,16 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 7 = {sol} A1 T3841
 8 = {sol} A1 T3857
 
+# Relief : une case de falaise sur la carte (son sol ; le niveau dessine la
+# falaise sur la couche 3) et, sur la couche 3, un escalier ou un arbre de
+# bordure (rien, joint aux niveaux).
+ɸ = {sol}
+ʘ = -
 [Terrains]
+# Terrasse : le dessus garde le sol (« - » : rien par-dessus), un rebord fin au nord
+# ({rive}), une falaise de roche sur les côtés et au sud.
+¬ = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=ŀĿĳĲłPʘ L2 @.
+ł = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=ŀĿĳĲPʘ L2 @.
 ^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.   # montagne (dessus praticable)
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
