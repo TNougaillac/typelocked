@@ -66,3 +66,6 @@ jobs:
         run: |
           gem install rubocop -v 1.69.2 --no-document
           rubocop --format github
+      - name: Mode multijoueur
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_online.rb

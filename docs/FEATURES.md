@@ -693,6 +693,85 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Un fichier `RunHistory.rxdata` écrit par la v1.0.0 (sans score) n'est plus lisible : l'historique repart de zéro.
 - Les dresseurs battus avant la v1.1.0 dans une sauvegarde existante ne sont pas comptés.
 
+## F17. Serveur des salons (multijoueur)
+**Statut :** v1.0.0, écrit et testé hors jeu (tests d'intégration), **non déployé**. Spec #141, ticket #142, ADR 0002.
+**Dossier :** `online/server/` (Worker Cloudflare en JavaScript, hors du jeu).
+
+### Règles
+- **Clé de groupe :** chaque requête porte `Authorization: Bearer <GROUP_KEY>` ; sans elle, rien n'est possible (le jeu reste privé).
+- **Créer un salon :** `POST /rooms` avec le pseudo, le code secret de l'hôte et les règles (`nuzlocke` : `required`/`free`, `typeDraw` : `required`/`free`, `sameType` : `true`/`false`). Renvoie un code de 6 caractères sans 0/O ni 1/I/L. Un Durable Object par salon tire la graine (0 à 999 999, comme MapProc).
+- **Voir un salon :** `GET /rooms/<code>` donne les règles, si la partie a démarré et les joueurs (connectés ou non).
+- **Rejoindre :** WebSocket sur `/rooms/<code>/ws?name=&secret=`. L'identifiant d'un joueur vient de son code secret : deux pseudos identiques restent distincts, et le même code secret retrouve sa place (nouvelle connexion, retour après une coupure). 8 joueurs au plus ; après le départ, seuls les joueurs déjà inscrits peuvent revenir.
+- **Messages reçus :** `welcome` (son identifiant, l'hôte, les règles, la graine), `presence` (joueurs, connectés, `allConnected`), `start` (graine et règles), `event` (événement d'un autre joueur), `error`.
+- **Messages envoyés :** `event` (objet libre de 8 Ko au plus, relayé aux autres joueurs) et `start` (hôte seulement, quand tout le monde est connecté).
+- **Coût :** API Hibernation des WebSockets, donc un salon au repos ne consomme pas de durée.
+
+### Offre gratuite de Cloudflare (vérifiée le 27/10/2026)
+100 000 requêtes par jour (un message reçu compte pour 1/20 de requête, les messages envoyés sont gratuits), 13 000 Go-s de durée par jour, 5 millions de lignes SQLite lues et 100 000 écrites par jour, 5 Go stockés. Remise à zéro à minuit UTC. Un salon de 4 joueurs reste très loin de ces limites.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `src/index.js` | Clé de groupe, création d'un salon, aiguillage vers le Durable Object. |
+| `src/room.js` | Le salon : règles, graine, joueurs, présence, départ, relais des événements. |
+| `src/protocol.js` | Règles du protocole (codes, règles du salon, pseudos, identifiants). |
+| `test/room.test.js` | Tests d'intégration (`npm test`, runtime Workers local). |
+| `wrangler.jsonc` | Configuration du Worker et migration du Durable Object (SQLite). |
+
+## F18. Partie multi (Online et pont local)
+**Statut :** Online v1.5.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
+**Dossiers :** `Plugins/Online/` (jeu), `online/bridge/` (pont Node.js 22.4 ou plus, repris plus tard par le launcher #52).
+
+### Règles
+- **Pont :** `node online/bridge/src/cli.js create --name Tom [--nuzlocke required] [--type-draw required] [--same-type]` crée un salon et affiche son code ; `node online/bridge/src/cli.js join <code> [--name Léo]` le rejoint. Le pseudo n'est demandé qu'une fois : il est gardé avec un code secret dans `%APPDATA%/TypeLocked/online/player.json`. L'adresse du serveur (`SERVER_URL`), la clé de groupe (`GROUP_KEY`) et le port (`BRIDGE_PORT`) sont lus dans `Plugins/Online/001_Settings.rb` : le jeu et son pont se règlent au même endroit. Par défaut, ce sont ceux du serveur local (`online/serveur-local.bat` à double-cliquer : installe les dépendances la première fois puis lance `npm run dev`, clé `test`), donc un essai en local ne demande aucune configuration. `online/test-multi.bat` ouvre d'un coup le serveur local, le pont de l'hôte qui crée le salon (règles en tête du fichier) et celui d'un 2e joueur simulé qui le rejoint (dossier `online/joueur2/`, port 47121) ; il reste à lancer une Nouvelle partie puis à taper `go` chez l'hôte. `online/bridge/config.json` ou les variables `TYPELOCKED_SERVER`, `TYPELOCKED_KEY` et `TYPELOCKED_PORT` peuvent les remplacer. Quand tout le monde est connecté, l'hôte tape `go` dans la fenêtre du pont.
+- **Service local :** le pont écoute sur `127.0.0.1:47120` (`BRIDGE_URL`) : `GET /state` (le salon), `GET /events?after=N` (événements des autres joueurs), `POST /event` (envoi aux autres). Il se reconnecte seul après une coupure et garde les envois faits pendant ce temps.
+- **Nouvelle partie :** si le pont est dans un salon, la nouvelle partie est une **partie multi**. Tant que l'hôte n'a pas lancé, une fenêtre attend (« Salon X : en attente du lancement… », avec le nombre de joueurs connectés) ; Retour joue en solo. La graine du monde est celle du salon. Sans pont, une nouvelle partie est une partie solo, inchangée.
+- **Règles du salon :** appliquées avant les choix de mode (`NewGameSetup`, ordre 5). Nuzlocke obligatoire : le mode est activé sans le choix, avec un message. Même type pour tous : le type est tiré de la graine du salon, donc identique chez chacun. Tirage obligatoire : le type de chaque joueur est tiré au hasard. Sinon, le joueur choisit comme en solo. Le Monotype reste imposé (ADR 0001).
+- **Événements :** sur la carte, le jeu lit ceux des autres joueurs toutes les `POLL_INTERVAL` (0,5 s) dans `Online.inbox` ; `Online.publish(données)` les envoie. Les tickets suivants (#144 à #148) s'en servent. Si le pont ne répond pas, le jeu ne le rappelle pas avant `RETRY_AFTER` (10 s), pour ne jamais ralentir.
+
+- **Course en direct (#144) :** toutes les `STATUS_INTERVAL` (2 s) sur la carte, le jeu compare la progression du joueur (sceaux, lieu, équipe, morts, Anciens, Parrain, Arceus, score RunHistory, run Nuzlocke perdu) à la dernière envoyée ; si elle a changé, il l'envoie au salon avec ses annonces (sceau gagné, Pokémon perdu, Ancien, Parrain, Arceus, élimination). Le serveur garde la dernière progression de chacun (`GET /rooms/<code>`, pour le launcher).
+- **Annonces :** celles des autres joueurs s'affichent en haut à droite pendant `NEWS_TIME` (3 s), l'une après l'autre, jamais pendant un message, un événement ou un combat.
+- **Vainqueur :** le premier à battre Arceus gagne la course ; tout le salon l'apprend. Un joueur qui perd son run Nuzlocke devient spectateur : il continue l'aventure et garde le panneau du salon.
+- **Panneau du salon :** menu Pause > Salon (partie multi seulement) : pour chaque joueur (8 au plus), pseudo, hôte, absent, spectateur ou vainqueur, sceaux, morts, score, lieu et icônes de l'équipe (les morts grisés).
+
+- **Pause du salon (#145) :** dès qu'un joueur est déconnecté, tout le salon se met en pause sur la carte (hors messages) : « Partie en pause : Léo déconnecté depuis 1:23. » Le jeu reprend seul à son retour. Le joueur coupé, lui, voit « connexion au salon perdue » (ou « le pont ne répond plus »). Après `KICK_AFTER` (5 min), l'hôte peut retirer l'absent (touche Z, avec confirmation) : les autres reprennent et l'annonce « Léo a été retiré du salon » s'affiche ; le joueur retiré l'apprend à sa reconnexion et continue en solo. Un joueur coupé depuis 5 min peut aussi quitter le salon (Retour) et jouer en solo. Le serveur garde l'heure de départ de chaque absent et refuse un retrait trop tôt.
+
+- **Combats entre joueurs (#146) :** menu Pause > Salon, flèches pour choisir un autre joueur connecté, C puis « Un combat ». Le défi part une fois revenu sur la carte ; le défiant attend la réponse `CHALLENGE_TIME` (30 s, Retour : annuler). Le défié le voit dès qu'il est libre sur la carte (hors message, événement, menu ou combat) : « Tom te défie en combat ! Accepter ? ». Un joueur déjà en duel ou défié refuse seul (« Léo est déjà occupé »). Il faut au moins un Pokémon capable de combattre.
+- **Le combat :** simple, en direct, chacun choisit ses actions ; l'autre attend (« En attente de Léo… », Retour : abandonner). Les équipes sont prises telles qu'elles sont (PV, statuts, PP, objets tenus) puis **copiées** : après le combat, l'équipe est exactement comme avant. Ni objets du Sac, ni Méga-Évolution, ni expérience, ni argent, ni évolution ; le Nuzlocke ne s'applique pas (un K.O. n'est pas une mort) ; pas de plafond de niveau. Ni météo, ni terrain, ni environnement : les deux joueurs ne sont pas sur la même carte.
+- **Même combat sur les deux écrans :** les deux jeux jouent le même combat avec les mêmes nombres aléatoires (graine du défi) ; l'ordre des égalités de vitesse est tiré dans l'ordre du défiant chez les deux. Anticipation, Prédiction et Fouille marchent pour les deux camps (sinon un seul jeu tirerait un nombre). Chaque choix envoyé porte le tour et les PV des deux équipes : si l'autre jeu ne voit pas la même chose, le combat est annulé (« les deux parties ne voient plus le même combat »).
+- **Fin :** victoire, défaite, abandon (Fuite ou Retour pendant l'attente : l'autre gagne), ou annulation (perdu pour personne) dès que le salon se met en pause (coupure d'un joueur ou du pont).
+
+- **Échanges entre joueurs (#147) :** menu Pause > Salon, un joueur connecté, C puis « Un échange ». Comme un défi : réponse attendue 30 s, refus automatique si l'autre est occupé. Ensuite : celui qui propose choisit son Pokémon, l'autre le voit (« Tom propose Dracaufeu (Nv. 36) ») et choisit le sien, puis celui qui propose confirme ; les deux jeux font alors l'échange (scène d'échange d'Essentials, évolutions par échange, nom du dresseur d'origine).
+- **Règles :** on ne donne qu'un Pokémon du type de celui qui le reçoit (Monotype ; grisé sinon dans l'écran d'équipe), jamais un Pokémon mort, un Œuf, un Pokémon verrouillé ni son dernier Pokémon capable de combattre. Le receveur revérifie le Pokémon reçu (type, mort) avant de choisir le sien. Un Pokémon reçu n'est pas une capture : la zone Nuzlocke n'est pas consommée (il compte seulement comme possédé dans le Pokédex, comme tout échange).
+- **Coupure (échange) :** avant la confirmation, l'échange est annulé et personne ne donne rien. Après avoir donné son Pokémon, le receveur ne peut plus annuler (Retour) : celui qui propose est peut-être déjà en train d'échanger.
+
+- **Les autres joueurs dans le monde (#148) :** un ami sur la même carte y apparaît avec son sprite du moment (marche, course, vélo…) et son pseudo au-dessus, et refait les mêmes cases que lui avec un léger retard (≈ 0,5 à 1 s). Il ne bloque pas le passage. Il disparaît quand il change de carte et réapparaît sur la nouvelle si on y est. Lui parler (C en face de lui) : « Défier / Échanger / Retour », comme depuis le panneau du salon.
+- **Envoi :** la carte, les cases parcourues, la direction, le sprite et la vitesse partent toutes les `POLL_INTERVAL` (0,5 s) tant qu'ils changent, et toutes les `POS_REFRESH` (10 s) sinon. Un personnage en retard de `CATCH_UP_STEPS` (3) cases marche une vitesse plus vite ; au-delà de `MAX_STEPS` (16), il saute. Coût Cloudflare : 8 joueurs qui marchent sans arrêt font environ 2 900 requêtes par heure (un message reçu compte pour 1/20 de requête), loin des 100 000 par jour.
+- **Hypothèse :** les mondes des joueurs viennent de la même graine, donc leurs numéros de carte sont les mêmes.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `Plugins/Online/001_Settings.rb` | Serveur, clé de groupe et port du pont (lus aussi par le pont), intervalles. |
+| `Plugins/Online/002_Json.rb` | Lecture et écriture JSON (le Ruby du jeu n'a pas de bibliothèque JSON). |
+| `Plugins/Online/003_Rules.rb` | Règles du salon : Nuzlocke imposé, type imposé ou commun. |
+| `Plugins/Online/004_Data.rb` | Salon de la partie, dans la sauvegarde (`$online`). |
+| `Plugins/Online/005_Bridge.rb` | Requêtes au pont (`HTTPLite`). |
+| `Plugins/Online/006_Game.rb` | Nouvelle partie multi, attente, règles, lecture des événements. |
+| `Plugins/Online/007_News.rb` | Annonces tirées de deux progressions d'un joueur. |
+| `Plugins/Online/008_Race.rb` | Progression envoyée, événements reçus, vainqueur, fenêtre d'annonce. |
+| `Plugins/Online/009_Panel.rb` | Panneau du salon (menu Pause). |
+| `Plugins/Online/010_Pause.rb` | Pause du salon, retrait d'un absent, départ en solo. |
+| `Plugins/Online/011_Duel.rb` | Défi, réponse, messages d'un duel, choix envoyés et contrôle. |
+| `Plugins/Online/012_DuelBattle.rb` | Équipes envoyées et recréées, combat du duel (`Online::DuelBattle < Battle`). |
+| `Plugins/Online/013_Trade.rb` | Proposition d'échange, choix des Pokémon, règles, échange (`pbStartTrade`). |
+| `Plugins/Online/014_Ghosts.rb` | Position envoyée, personnages des autres joueurs sur la carte (`Online::Ghost < Game_Character`), pseudo, dialogue. |
+| `online/bridge/src/*.js` | Pont : identité, configuration, connexion au salon, service local, ligne de commande. |
+| `tools/ci/check_online.rb` | Contrôle CI du JSON, des règles du salon, des annonces, de la pause, des messages d'un duel et des règles et messages d'un échange, des pas des autres joueurs. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -784,4 +863,11 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 26/10/2026 | MapProceduralGenerator v0.29.0 : d'après l'analyse des cartes officielles, bordures naturelles, places et avenues, plans de ville (carrefour, grille, canal, clairière), monument, sentiers sinueux, étendues de sable, rochers et bancs de sable dans les ports et les traversées, refuges sur les routes | `Plugins/MapProceduralGenerator/001_Settings.rb`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 26/10/2026 | MapProceduralGenerator v0.30.0, MapGenerator v1.12.0 (#111) : relief d'après les cartes officielles : niveaux en plateaux du sol de l'ambiance (rebord fin au nord, falaise sur les côtés et au sud), falaises en pente, plateaux isolés aux bords serpentants, chemins et briques sur les plateaux (niveaux dessinés sur la couche 3), villes en gradins avec jardins surélevés et escaliers larges ; massifs, buttes et recoins de roche ; terrain sans tuile intérieure (`-`) dans MapGenerator | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/002_Parser.rb`, `Plugins/MapGenerator/meta.txt`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/rocaille_*.txt`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.31.0 : routes marines (`Mers`) d'après les routes de Hoenn : mer d'un bout à l'autre, plages aux bouts, crêtes et massifs de roche sur l'eau (`RocherMarin`), rochers et bancs de sable, couloir libre pour surfer, butins sur les bancs de sable ; WorldEvents v1.15.0 (pas d'objets ordinaires sur une route marine) | `Plugins/MapProceduralGenerator/*`, `Plugins/WorldEvents/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Serveur des salons v1.0.0 (#142) : Worker Cloudflare, un Durable Object par salon (code, règles, graine, présence, départ, relais des événements), clé de groupe ; tests d'intégration et CI | `online/server/*`, `.github/workflows/online.yml`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.0.0 et pont local (#143) : partie multi lancée depuis un salon (attente de l'hôte, graine du salon, règles imposées), lecture et envoi des événements des joueurs ; pont Node.js (identité, connexion, service local) ; contrôle CI | `Plugins/Online/*`, `online/bridge/*`, `tools/ci/check_online.rb`, `.github/workflows/*`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.1.0 (#144) : course en direct (progression envoyée quand elle change, annonces des autres joueurs, vainqueur, spectateur), panneau du salon dans le menu Pause ; le serveur garde la dernière progression de chaque joueur | `Plugins/Online/*`, `online/server/src/room.js`, `online/server/test/room.test.js`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.2.0 (#145) : pause de tout le salon pendant une coupure, retrait d'un absent par l'hôte après 5 minutes, départ en solo d'un joueur coupé ; serveur et pont : heure de départ des absents, retrait | `Plugins/Online/*`, `online/server/src/*`, `online/bridge/src/*`, tests, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.3.0 (#146) : combats en direct entre joueurs (défi depuis le panneau du salon, même combat sur les deux écrans par graine partagée et choix échangés, équipes copiées, abandon, annulation à la coupure ou en cas de désaccord) | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.4.0 (#147) : échanges entre joueurs depuis le panneau du salon (type du receveur, ni mort ni Œuf ni dernier Pokémon, pas une capture, annulés à la coupure) | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.5.0 (#148) : les autres joueurs visibles sur la même carte (sprite, pseudo, déplacements suivis), leur parler propose un combat ou un échange | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Monotype v1.7.0 : les starters sont tirés dans tout le Pokédex des rencontres (806 espèces, 481 starters possibles au lieu de 176) et plus dans la liste des 300 | `Plugins/Monotype/*`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
