@@ -1,0 +1,8 @@
+# Verdure : un grand arbre rond isolé, son ombre au pied.
+Brique    = Grand arbre rond
+Type      = decor
+Ambiances = verdoyante, prairie, forêt tropicale
+[Map]
+ǚǚǚ
+ǚǚǚ
+ǚǚǚ

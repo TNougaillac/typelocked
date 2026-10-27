@@ -26,6 +26,7 @@ TILESET = "Graphics/Tilesets/Outside.png"
 BLOCK, WALK, TALL = 475, -1, 420   # source tiles of the passages/priorities
 KT_SHADOW = (120, 120, 120, 255)
 SHADOW = (24, 32, 24, 70)
+TRIM_TOP = {"aiguille rouge": 1}   # pixel rows of another tile above the object
 
 # name, pack, first tile, width, height, passages:
 #   block: every tile blocks; walk: none; tall: the bottom row blocks, the
@@ -81,6 +82,11 @@ PROPS = [
     ("parasol de plage", "KA", 413, 3, 3, "tree"),
     ("brouette", "KA", 453, 3, 1, "block"),
     ("caisse en bois", "KA", 110, 2, 2, "block"),
+    # Trees and mounds for the ambiances (#162)
+    ("grand arbre rond", "E", 408, 3, 3, "tree"),
+    ("sapin", "E", 419, 2, 2, "tall"),
+    ("arbre touffu", "E", 435, 2, 3, "tall"),
+    ("aiguille rouge", "E", 725, 2, 3, "tall"),
 ]
 
 
@@ -135,8 +141,10 @@ def main():
     images = {k: Image.open(v).convert("RGBA") for k, v in sources(args[0], args[1]).items()}
     spots, rows = layout()
     sheet = Image.new("RGBA", (256, rows * 32), (0, 0, 0, 0))
-    for (_name, pack, tile, w, h, _kind), (col, row) in zip(PROPS, spots):
-        sheet.alpha_composite(crop(images[pack], tile, w, h, pack), (col * 32, row * 32))
+    for (name, pack, tile, w, h, _kind), (col, row) in zip(PROPS, spots):
+        part = crop(images[pack], tile, w, h, pack)
+        part.paste((0, 0, 0, 0), (0, 0, w * 32, TRIM_TOP.get(name, 0)))
+        sheet.alpha_composite(part, (col * 32, row * 32))
     if preview:
         sheet.save(preview)
         return

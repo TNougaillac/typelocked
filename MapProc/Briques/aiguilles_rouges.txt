@@ -1,0 +1,9 @@
+# Désert et terre battue : deux aiguilles de roche rouge.
+Brique    = Aiguilles rouges
+Type      = decor
+Ambiances = sable, terre battue
+[Map]
+ȍȍ
+ȍȍ ȍȍ
+ȍȍ ȍȍ
+   ȍȍ

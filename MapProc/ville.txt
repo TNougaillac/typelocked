@@ -314,3 +314,7 @@ I = T3136 8x5        # bâtiment de la Ligue (posé par le monde sur le plateau)
 ņ = T4356 3x3         # parasol de plage
 ǖ = T4360 3x1         # brouette
 ǘ = T4368 2x2         # caisse en bois
+ǚ = T4378 3x3         # grand arbre rond
+ǜ = T4381 2x2         # sapin
+ȁ = T4384 2x3         # arbre touffu
+ȍ = T4397 2x3         # aiguille rouge
