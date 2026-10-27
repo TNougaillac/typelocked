@@ -105,7 +105,7 @@ end
 def reached(place, bricks, layout, surf:, blocked: nil, exits: layout.exits, through: [])
   stairs = place.stairs&.join&.chars || []
   walkable = walkable_symbols(place, bricks) - stairs
-  walkable += [place.water, place.deep].compact if surf
+  walkable += [place.water, place.deep, place.bank].compact if surf  # a sandbank is surfed to
   height = ->(c) { place.levels&.index(c) || -1 }
   rows = layout.rows
   ok = lambda do |x, y|

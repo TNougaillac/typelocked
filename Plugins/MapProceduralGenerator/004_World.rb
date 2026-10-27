@@ -40,6 +40,9 @@
 #                               surfing; 0 by default)
 #   Lacs     = 0..1            (routes crossed by a lake, only by surfing;
 #                               0 by default)
+#   Mers     = 0..2            (sea routes: the sea over nearly all their
+#                               length, a beach at each end, rocks and
+#                               sandbanks, only by surfing; 0 by default)
 #   Grottes  = 0..2            (routes blocked by a rock wall and passed
 #                               through a cave; 0 by default)
 #   Montagnes = 0..2           (mountain routes, climbing from level to level
@@ -100,9 +103,9 @@ module MapProceduralGenerator
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
                      :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river,
                      :ports, :islands, :island_gyms, :names_file, :field_items, :nooks, :route_shapes, :route_width, :town_sizes, :loops, :shortcuts,
-                     :margin)
+                     :margin, :seas)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
-  # crossing: nil, "chenal", "lac" or "grotte" (routes); surf, dive: the town
+  # crossing: nil, "chenal", "lac", "mer" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
   # route climbing by levels (with a crossing or not); cave: a mountain route
   # with a cave; port: the sea side of a port town; island: name of the island
@@ -162,7 +165,7 @@ module MapProceduralGenerator
 
   def parse_world(text, file = "monde")
     world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, 0..0, 0, 0, nil,
-                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"], 1..1, ["2x2"], 0..0, 0..0, 0)
+                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"], 1..1, ["2x2"], 0..0, 0..0, 0, 0..0)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -197,6 +200,7 @@ module MapProceduralGenerator
       when "surf"     then world.surf = integer(value, fail_at)
       when "chenaux"  then world.channels = range(value, fail_at)
       when "lacs"     then world.lakes = range(value, fail_at)
+      when "mers"     then world.seas = range(value, fail_at)
       when "grottes"  then world.caves = range(value, fail_at)
       when "montagnes" then world.mountains = range(value, fail_at)
       when "grottemontagne" then world.mountain_cave = integer(value, fail_at)
@@ -876,7 +880,7 @@ module MapProceduralGenerator
     route_after = ->(town) { routes.any? { |r| r.index > town.index } }
     candidates = gyms.drop(world.surf - 1)
     # A town with a water route after it, when water is wanted
-    if world.channels.max + world.lakes.max > 0
+    if world.channels.max + world.lakes.max + world.seas.max > 0
       wet_after = candidates.select(&route_after)
       candidates = wet_after if !wet_after.empty?
     end
@@ -897,11 +901,12 @@ module MapProceduralGenerator
     end
     rng.rand(world.channels).times { (wet.shift || break).crossing = "chenal" }
     rng.rand(world.lakes).times { (wet.shift || break).crossing = "lac" }
+    rng.rand(world.seas).times { (wet.shift || break).crossing = "mer" } if world.seas.max > 0
     dry = routes.select { |r| !r.crossing }.shuffle(random: rng)
     rng.rand(world.caves).times { (dry.shift || break).crossing = "grotte" }
     # Mountains on any route but those of a cave, a river or a lake included;
     # north-south routes first: they climb best
-    climbs = routes.select { |r| r.crossing != "grotte" }.shuffle(random: rng)
+    climbs = routes.select { |r| !%w[grotte mer].include?(r.crossing) }.shuffle(random: rng)
     climbs = climbs.sort_by.with_index { |r, i| [(r.h > r.w) ? 0 : 1, i] }
     rng.rand(world.mountains).times do
       route = climbs.shift || break
@@ -912,7 +917,7 @@ module MapProceduralGenerator
     end
     return if !dive_town
     # Deep water only on water routes after the Dive town
-    deep = routes.select { |r| %w[chenal lac].include?(r.crossing) && r.index > dive_town.index }.shuffle(random: rng)
+    deep = routes.select { |r| %w[chenal lac mer].include?(r.crossing) && r.index > dive_town.index }.shuffle(random: rng)
     rng.rand(world.dives).times { (deep.shift || break).deep = true }
   end
 

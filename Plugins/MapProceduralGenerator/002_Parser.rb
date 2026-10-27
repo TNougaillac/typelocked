@@ -48,6 +48,9 @@
 #                               by a ferry terminal that leads to an island)
 #   Recif   = %                (optional: [Legend] symbols of rocks and of
 #   Banc    = $                 sandbanks in the sea around an island)
+#   RocherMarin = ŕ            (optional: [Terrains] symbol of the masses of
+#                               rock on the sea of a sea route, over the
+#                               water; small rocks of « Recif » without it)
 #   Port    = sud              (optional: a port town, the sea on that side;
 #                               in a world, the world picks its port towns)
 #   MapID   = 52               (optional: overwrite this map instead of
@@ -96,7 +99,7 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock, :plan)
+                     :mask, :joints, :filler, :lock, :plan, :sea_rock)
   # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
@@ -204,6 +207,7 @@ module MapProceduralGenerator
       when "bateau"  then place.boat = symbol(value, fail_at)
       when "recif"   then place.reef = symbol(value, fail_at)
       when "banc"    then place.bank = symbol(value, fail_at)
+      when "rochermarin" then place.sea_rock = symbol(value, fail_at)
       when "rive"
         fail_at.call("3 symboles attendus (gauche, milieu, droite), trouvé « #{value} »") unless value.length == 3
         place.banks = value
@@ -335,6 +339,7 @@ module MapProceduralGenerator
     if place.boat && !palette.objects[place.boat]
       raise Error, "#{place.file} : « Bateau = #{place.boat} » doit être un symbole de [Objects]"
     end
+    raise Error, "#{place.file} : « RocherMarin = #{place.sea_rock} » doit être un symbole de [Terrains]" if place.sea_rock && !palette.terrains[place.sea_rock]
     { "Recif" => place.reef, "Banc" => place.bank }.each do |key, sym|
       raise Error, "#{place.file} : « #{key} = #{sym} » doit être un symbole de [Legend]" if sym && !palette.legend[sym]
     end

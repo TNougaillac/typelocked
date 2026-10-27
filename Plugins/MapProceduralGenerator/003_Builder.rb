@@ -604,8 +604,9 @@ module MapProceduralGenerator
     def place_bricks
       required = []
       optional = []
-      # The squares of a mask only
+      # The squares of a mask only; the beaches of a sea route only
       area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
+      area = @water.sum { |row| row.count(false) } / (CASE_SIZE * CASE_SIZE).to_f if @place.crossing == "mer"
       @place.counts.each do |kind, range|
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = @rng.rand(range)
@@ -634,8 +635,8 @@ module MapProceduralGenerator
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
-        # so does a port town, for its decoration
-        next if (@level && @place.mountain) || (@port_depth && with_door.call(kind) == 1)
+        # so does a sea route, and a port town for its decoration
+        next if (@level && @place.mountain) || @place.crossing == "mer" || (@port_depth && with_door.call(kind) == 1)
         # The monument goes where it can, or not at all
         if kind == MONUMENT
           place_brick(kind)
@@ -1094,8 +1095,10 @@ module MapProceduralGenerator
 
     # Sandbanks (walked on after surfing) and rocks in the sea around an
     # island or a port, or in the water crossing a route: off the shore, the
-    # piers, the way across and one another.
-    def scatter_reefs(banks, reefs, rng)
+    # piers, the way across and one another. Returns the [x, y, w, h, symbol]
+    # placed.
+    def scatter_reefs(banks, reefs, rng, lane = nil)
+      placed = []
       # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
       # the hand-made maps
       [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
@@ -1104,14 +1107,16 @@ module MapProceduralGenerator
           w, h = rng.rand(ws[0]..ws[1]), rng.rand(hs[0]..hs[1])
           spots = (0..@h - h).flat_map { |y| (0..@w - w).map { |x| [x, y] } }
           spot = spots.shuffle(random: rng).find do |x, y|
-            open_sea?(x, y, w, h, 2) && (y - 3...y + h + 3).none? do |cy|
+            open_sea?(x, y, w, h, 2) && !(lane && near_lane?(lane, x, y, w, h)) && (y - 3...y + h + 3).none? do |cy|
               (x - 3...x + w + 3).any? { |cx| inside?(cx, cy) && @street[cy][cx] }
             end
           end
           break if !spot
           reef(*spot, w, h, sym)
+          placed.push([*spot, w, h, sym])
         end
       end
+      return placed
     end
 
     # Only plain sea in that rectangle and the margin around it, off the map
@@ -1190,6 +1195,9 @@ module MapProceduralGenerator
         wobble = (@place.crossing == "lac") ? 1 : 0
         flood_band(start, thickness, wobble)
         deepen(start, thickness) if @place.dive
+      when "mer"
+        error("« Eau » manquant pour traverser la mer") if !@place.water
+        lay_sea_route(length)
       when "grotte"
         error("« Roche » et « Caillou » manquants pour traverser une grotte") if !@place.rock || !@place.pebble
         start = @rng.rand((length * 0.4).to_i..(length * 0.6).to_i - 3)
@@ -1625,6 +1633,69 @@ module MapProceduralGenerator
         end
       end
       error("eau profonde vide ; élargis la route") if @deep.empty?
+    end
+
+    # A sea route: the sea from one beach to the other (SEA_ROUTE), its
+    # shores wavering like a lake's, deep water where the player dives, then
+    # ridges of rocks, lone rocks and sandbanks off the lane of its way.
+    def lay_sea_route(length)
+      rng = Random.new(@seed ^ SEA_ROUTE_SALT)
+      bw, bh = border_size
+      edge = vertical_route? ? bh : bw
+      start = edge + rng.rand(SEA_ROUTE[:shore])
+      thickness = length - edge - rng.rand(SEA_ROUTE[:shore]) - start
+      error("route trop courte pour la mer") if thickness < 10
+      # The way across, kept free of rocks
+      lane = {}
+      (0...@h).each do |y|
+        (0...@w).each do |x|
+          next if !@street[y][x]
+          (-SEA_ROUTE[:lane]..SEA_ROUTE[:lane]).each { |o| lane[vertical_route? ? [x + o, y] : [x, y + o]] = true }
+        end
+      end
+      flood_band(start, thickness, 1)
+      deepen(start, thickness) if @place.dive
+      cases = @w * @h / (CASE_SIZE * CASE_SIZE).to_f
+      rock = @place.sea_rock || @place.reef
+      if rock
+        lay_ridges((cases * rng.rand(SEA_ROUTE[:ridges])).round, lane, rng, rock, true)
+        lay_ridges((cases * rng.rand(SEA_ROUTE[:masses])).round, lane, rng, rock, false)
+      end
+      scatter_reefs(0..0, (cases * rng.rand(SEA_ROUTE[:rocks])).round.then { |n| n..n }, rng, lane)
+      banks = scatter_reefs([(cases * rng.rand(SEA_ROUTE[:banks])).round, 1].max.then { |n| n..n }, 0..0, rng, lane)
+      # Each sandbank is an islet with its loot, reached by surfing
+      banks.each { |x, y, w, _h, _sym| @nooks.push([x + (w / 2), y, ISLET]) }
+    end
+
+    # Rocks on the sea, of 2x2 stamps one after the other, all on open sea
+    # off the lane: ridges along the route, drifting sideways now and then,
+    # or masses, the stamps wandering every way.
+    def lay_ridges(count, lane, rng, sym, ridge)
+      count.times do
+        20.times.any? do
+          x, y = rng.rand(@w), rng.rand(@h)
+          stamps = []
+          rng.rand(SEA_ROUTE[ridge ? :ridge : :mass]).times do
+            stamps.push([x, y])
+            if ridge
+              step = rng.rand(1..2)
+              drift = [-1, 0, 0, 1].sample(random: rng)
+              x, y = vertical_route? ? [x + drift, y + step] : [x + step, y + drift]
+            else
+              x, y = stamps.sample(random: rng)
+              x, y = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].sample(random: rng)
+            end
+          end
+          next false if stamps.any? { |sx, sy| !open_sea?(sx, sy, 2, 2, 1) || near_lane?(lane, sx, sy, 2, 2) }
+          stamps.each { |sx, sy| reef(sx, sy, 2, 2, sym) }
+          true
+        end
+      end
+    end
+
+    # Whether that rectangle lies on the lane or within 1 of it.
+    def near_lane?(lane, x, y, w, h)
+      return (y - 1..y + h).any? { |cy| (x - 1..x + w).any? { |cx| lane[[cx, cy]] } }
     end
 
     # A wall of rocks across the whole map (border included), gaps filled with

@@ -45,7 +45,11 @@ module WorldEvents
     slots = []
     add = ->(name, count) { count.times { slots.push(slot(zones, name)) } if zones[name] }
     result.places.sort_by { |wp, *| wp.index }.each do |wp, *|
-      count = (wp.kind == "route") ? (wp.mask ? wp.mask.join.count("1") : wp.w * wp.h).times.sum { rng.rand(ROUTE_ITEMS) } : rng.rand(TOWN_ITEMS)
+      cells = (wp.mask ? wp.mask.join.count("1") : wp.w * wp.h)
+      # A sea route's beaches hold its trainers: its items are the loot of
+      # its sandbanks
+      cells = 0 if wp.crossing == "mer"
+      count = (wp.kind == "route") ? cells.times.sum { rng.rand(ROUTE_ITEMS) } : rng.rand(TOWN_ITEMS)
       add.call(wp.name, count)
     end
     (result.islands || []).each { |wp, *| add.call(wp.name, rng.rand(TOWN_ITEMS)) }
