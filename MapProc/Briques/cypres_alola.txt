@@ -1,0 +1,11 @@
+# Deux cyprès.
+Brique    = Cyprès d'Alola
+Type      = decor
+Ambiances = verdoyante, automne, minérale
+Poids     = 2
+[Map]
+ĪĪĪ
+ĪĪĪ ĪĪĪ
+ĪĪĪ ĪĪĪ
+ĪĪĪ ĪĪĪ
+    ĪĪĪ

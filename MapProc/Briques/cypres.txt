@@ -1,11 +1,8 @@
-# Deux cyprès.
+# Verdoyante et prairie : une rangée de cyprès.
 Brique    = Cyprès
 Type      = decor
-Ambiances = verdoyante, automne, minérale
-Poids     = 2
+Ambiances = verdoyante, prairie
 [Map]
-ĪĪĪ
-ĪĪĪ ĪĪĪ
-ĪĪĪ ĪĪĪ
-ĪĪĪ ĪĪĪ
-    ĪĪĪ
+ê ê ê
+ê ê ê
+ê ê ê
