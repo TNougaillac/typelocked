@@ -104,7 +104,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - Un terrain choisit un seul angle rentrant par case : une case entourée de plusieurs angles rentrants prend le premier (haut-gauche, haut-droite, bas-gauche, bas-droite).
 
 ## F04. Mode Monotype
-**Statut :** v1.6.0, écrit, **non testé**.
+**Statut :** v1.7.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -114,7 +114,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 - **Évolutions :** le sens inverse ne compte pas. Un Pokémon qui perd le type en évoluant (Évoli → Pyroli en Eau) devient inutilisable et part au PC.
 - **Dons et échanges hors du type :** envoyés directement au PC, présents mais inutilisables.
 - **Inutilisable :** ne peut pas quitter le PC pour l'équipe. Un Pokémon inutilisable dans l'équipe (évolution, échange, Pension) est envoyé au PC à la fin du combat ou au pas suivant.
-- **Starter :** le joueur choisit son starter, niveau 5, parmi 3 Pokémon tirés au hasard pour la partie. Ils viennent des 300 Pokémon du jeu (`docs/roster/liste-300.csv`) : formes de base (leur pré-évolution n'est pas dans la liste) qui respectent la règle de capture et évoluent en un Pokémon de la liste (#115), sans les pseudo-légendaires (évolution finale à plus de `STARTER_MAX_FINAL_STATS` = 599 de stats de base). Le tirage est gardé dans la sauvegarde pour que chaque Poké Ball du professeur garde son Pokémon.
+- **Starter :** le joueur choisit son starter, niveau 5, parmi 3 Pokémon tirés au hasard pour la partie. Ils viennent de tout le Pokédex des rencontres (`docs/roster/pokedex.csv`, 806 espèces hors légendaires) : formes de base (leur pré-évolution n'est pas dans la liste) qui respectent la règle de capture et évoluent en un Pokémon de la liste (#115), sans les pseudo-légendaires (évolution finale à plus de `STARTER_MAX_FINAL_STATS` = 599 de stats de base). Le tirage est gardé dans la sauvegarde pour que chaque Poké Ball du professeur garde son Pokémon.
 - **Où :** chez le professeur (carte 4) : chacune des 3 Poké Balls appelle `Monotype.starter_ball(0)`, `(1)` ou `(2)` et propose « Tu veux X (type) ? ». Avec `STARTER_AT_SETUP = true`, le choix s'affiche à la place juste après celui du type, dans une seule liste (`Monotype.starter_dialog`).
 - **Arènes et Ligue :** avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, s'il n'y a aucun Pokémon du type dans l'équipe (par exemple un seul Pokémon qui a perdu le type en évoluant), le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
@@ -129,7 +129,7 @@ Aucun alias. Utilise `Compiler.compile_connections`, `compile_map_metadata` et `
 | `003_Setup.rb` | Fenêtres du début de partie (type puis starter), inscrites auprès de NewGameSetup. |
 | `004_Capture.rb` | Blocage des captures. |
 | `005_Party.rb` | Combats d'arène et de Ligue, dons au PC, Pokémon inutilisables, verrous du PC. |
-| `006_Roster.rb` | `ROSTER` : les 300 Pokémon du jeu, copie de `docs/roster/liste-300.csv` (vérifiée par la CI, qui vérifie aussi qu'il y a au moins 3 starters possibles par type). |
+| `006_Roster.rb` | `ROSTER` : les 806 Pokémon du jeu, copie de `docs/roster/pokedex.csv` (vérifiée par la CI, qui vérifie aussi qu'il y a au moins 3 starters possibles par type). |
 
 ### Intégration
 - Rien à placer dans l'éditeur : les choix de mode s'affichent seuls en début de partie, les dresseurs d'arène et de Ligue sont reconnus par le nom de la carte dans l'éditeur (« Gym », « Arène », « League » ou « Ligue », réglable avec `GYM_MAP_PATTERN`), et les champions, le Conseil 4 et le Maître par leur type de dresseur (`LEADER_…`, `ELITEFOUR_…`, `CHAMPION…`, et ceux de la Famille `LIEUTENANT_…`, `ANCIEN_…`, `PARRAIN`, réglable avec `GYM_LEADER_PATTERN`).
@@ -784,3 +784,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 26/10/2026 | MapProceduralGenerator v0.29.0 : d'après l'analyse des cartes officielles, bordures naturelles, places et avenues, plans de ville (carrefour, grille, canal, clairière), monument, sentiers sinueux, étendues de sable, rochers et bancs de sable dans les ports et les traversées, refuges sur les routes | `Plugins/MapProceduralGenerator/001_Settings.rb`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 26/10/2026 | MapProceduralGenerator v0.30.0, MapGenerator v1.12.0 (#111) : relief d'après les cartes officielles : niveaux en plateaux du sol de l'ambiance (rebord fin au nord, falaise sur les côtés et au sud), falaises en pente, plateaux isolés aux bords serpentants, chemins et briques sur les plateaux (niveaux dessinés sur la couche 3), villes en gradins avec jardins surélevés et escaliers larges ; massifs, buttes et recoins de roche ; terrain sans tuile intérieure (`-`) dans MapGenerator | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/002_Parser.rb`, `Plugins/MapGenerator/meta.txt`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/rocaille_*.txt`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.31.0 : routes marines (`Mers`) d'après les routes de Hoenn : mer d'un bout à l'autre, plages aux bouts, crêtes et massifs de roche sur l'eau (`RocherMarin`), rochers et bancs de sable, couloir libre pour surfer, butins sur les bancs de sable ; WorldEvents v1.15.0 (pas d'objets ordinaires sur une route marine) | `Plugins/MapProceduralGenerator/*`, `Plugins/WorldEvents/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Monotype v1.7.0 : les starters sont tirés dans tout le Pokédex des rencontres (806 espèces, 481 starters possibles au lieu de 176) et plus dans la liste des 300 | `Plugins/Monotype/*`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
