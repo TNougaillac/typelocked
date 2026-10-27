@@ -38,6 +38,10 @@ _Avoid_ : chef d'arène
 Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
 _Avoid_ : sbires, Team, grunts
 
+**Infirmière** :
+L'infirmière d'un Centre Pokémon, membre de la Famille comme les vendeurs. Elle soigne gratuitement trois fois par Centre, puis fait payer.
+_Avoid_ : Infirmière Joëlle
+
 **Professeur** :
 Le Professeur Castellane, le même à chaque graine. Il raconte le Pacte au joueur dans sa version flatteuse, lui annonce son type imposé et lui propose les trois starters. Il travaille en secret pour la Famille.
 _Avoid_ : Prof
@@ -71,3 +75,17 @@ _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 **Starter** :
 Le premier Pokémon du joueur, choisi parmi trois Pokémon de son type imposé.
 _Avoid_ : Pokémon de départ
+
+## Multijoueur
+
+**Salon** :
+Un groupe d'amis qui jouent en même temps la même graine du monde, avec les règles fixées à sa création.
+_Avoid_ : lobby, room, serveur
+
+**Partie multi** :
+Une partie lancée depuis un salon ; tout ce qui touche au multijoueur n'existe que dans une partie multi.
+_Avoid_ : partie en ligne, online
+
+**Hôte** :
+Le joueur qui crée le salon et en choisit les règles.
+_Avoid_ : admin, maître du salon

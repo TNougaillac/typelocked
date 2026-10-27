@@ -52,9 +52,12 @@ Raccourcis = 1..3
 # L'eau qui barre une route (chenal tout droit ou lac d'un bord à l'autre) ne se
 # traverse qu'avec Surf : elle n'apparaît qu'après la ville de la 2e arène.
 # Les lacs posés dans les villes et les routes ne bloquent jamais le passage.
+# Mers : routes presque entièrement sur la mer (plages aux deux bouts, crêtes et
+# massifs de roche, bancs de sable), comme les routes marines de Hoenn.
 Surf     = 2
 Chenaux  = 1..2
 Lacs     = 0..1
+Mers     = 1..2
 # Routes barrées par un mur de rochers, que l'on passe par une grotte.
 Grottes  = 1..2
 # Routes de montagne : on y monte et descend de niveau en niveau par des

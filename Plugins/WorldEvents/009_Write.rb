@@ -18,7 +18,9 @@ module WorldEvents
     species = ProceduralEncounters.load_species
     zones = ProceduralEncounters.world_zones(result, caps)
     _lines, generated = ProceduralEncounters.world_encounters(result, species, caps, seed)
-    events = world_events(result, seed, zones: zones, encounters: generated, species: species, tms: game_tms, caps: caps)
+    type = Monotype.active? ? Monotype.data.type : nil
+    events = world_events(result, seed, zones: zones, encounters: generated, species: species, tms: game_tms, caps: caps,
+                                        type: type)
     write_trainers(events[:trainers])
     events[:plans].each_value do |text|
       plan = MapEvents.parse(text, File.basename(export))

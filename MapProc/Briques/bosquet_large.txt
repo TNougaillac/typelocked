@@ -1,0 +1,11 @@
+# Un bosquet de six arbres, comme les bosquets des routes officielles.
+Brique = Grand bosquet
+Type      = decor
+Ambiances = verdoyante, automne
+[Map]
+tttttt
+tttttt
+tttttt
+ tttt
+ tttt
+ tttt

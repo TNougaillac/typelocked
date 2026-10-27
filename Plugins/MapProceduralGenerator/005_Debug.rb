@@ -77,7 +77,7 @@ module MapProceduralGenerator
     infos = load_data("Data/MapInfos.rxdata")
     names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name } +
             result.seabeds.map { |_wp, name, _text| name } + result.islands.map { |wp, *| wp.name } +
-            result.interiors.map(&:name)
+            result.interiors.map(&:name) + result.fillers.map(&:name)
     names.each do |name|
       clash = infos.find { |id, info| info.name == name && map_ids[name] != id }
       next if !clash
@@ -89,7 +89,8 @@ module MapProceduralGenerator
     plans = result.places.map { |_wp, _place, text, _layout| text } +
             result.caves.map { |_wp, name, text, _floor| with_id.call(name, text) } +
             result.seabeds.map { |_wp, name, text| with_id.call(name, text) } +
-            result.islands.map { |_wp, _port, _place, text, _layout| text }
+            result.islands.map { |_wp, _port, _place, text, _layout| text } +
+            result.fillers.map(&:text)
     unlinked = []
     plans.each do |text|
       plan = MapGenerator.parse(text, File.basename(path))

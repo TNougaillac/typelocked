@@ -81,7 +81,7 @@ module WorldEvents
   def useful_tms(tms, type, gym = nil)
     min_power = (gym && gym < EARLY_GYMS) ? EARLY_TM_MIN_POWER : TM_MIN_POWER
     return tms.select do |_item, move, move_type, power, status|
-      move_type == type && (status ? TM_STATUS.include?(move) : power.to_i >= min_power)
+      move_type == type && (status ? TM_STATUS.include?(move) : (TM_POWER_OVERRIDES[move] || power).to_i >= min_power)
     end
   end
 

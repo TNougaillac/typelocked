@@ -7,7 +7,9 @@ Nom     = Route générée
 Tileset = 1
 Taille  = 20x60
 Sol     = .
-Rue     = .
+# Rue : le sentier (sur les routes de montagne, il passe sous la roche des
+# niveaux) ; chaque ambiance donne le sien.
+Rue     = P
 Bordure = t
 # Comble : bouche les trous que laissent les arbres de bordure hors du tracé
 # d'un lieu en L ou en U (un buisson).
@@ -19,13 +21,18 @@ Eau     = ~
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
 Profond = %
+# Des rochers et des bancs de sable dans l'eau qui traverse une route.
+Recif   = µ
+Banc    = £
+# Routes marines (« Mers » dans monde.txt) : les masses de roche sur la mer.
+RocherMarin = ŕ
 Roche   = R
 Caillou = o
 # Routes de montagne (« Montagnes » dans monde.txt) : un symbole par niveau, du
 # 1er au 6e (chacun a ses bords, dessinés contre le niveau du dessous), puis les
 # escaliers (2 de large) : face sud et rebord nord du niveau 1, puis des
 # niveaux 2 et plus ; enfin les hautes herbes sur les niveaux.
-Relief   = ^ & k K m M
+Relief   = ¬ & k K m M
 Escalier = ef gh EF GH
 HerbeHaute = n
 
@@ -41,6 +48,8 @@ colline = 0..1 par case
 # Rochers sur les niveaux d'une route de montagne (seulement là).
 rocaille = 2..5 par case
 lac    = 0..1
+# Refuge : une maison isolée au bord du chemin, que l'on peut visiter.
+refuge = 0..1
 # Entrées de grotte : posées seulement sur les routes que le monde fait passer
 # par une grotte (« Grottes » dans monde.txt).
 grotte = 0
@@ -53,11 +62,13 @@ decor  = 0
 [Ambiance verdoyante]
 Poids = 6
 Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 decor = 0..1 par case
 
 [Ambiance prairie]
 Poids = 1
 Sol   = T50
+Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
 " = T143                # hautes herbes sur la prairie
 : = T151 T7             # herbes très hautes, leur pied sur la prairie
 ; = T151
@@ -78,6 +89,7 @@ decor = 1..3 par case
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+Rue   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 : = T175 T7             # herbes très hautes, leur pied sur le sable
 ; = T175
@@ -99,6 +111,7 @@ decor = 2..4 par case
 [Ambiance minérale]
 Poids = 1
 Sol   = T218
+Rue   = T218
 " = T133                # hautes herbes sur le gravier
 : = T189 T7             # herbes très hautes, leur pied sur le gravier
 ; = T189
@@ -116,12 +129,14 @@ parc  = 0
 lac   = 0
 decor = 2..4 par case
 # La roche grise remplace la brune (montagnes, rochers, corniches)
-^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnz L2 @.
-& = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnz
-k = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnz L2 @z
-K = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnz
-m = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=MEFGHquvwnz L2 @z
-M = T873 N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=EFGHquvwnz
+¬ = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
+^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+ŕ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 L3 @~
+& = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnzPʘ
+k = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnzPʘ L2 @z
+K = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnzPʘ
+m = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=MEFGHquvwnzPʘ L2 @z
+M = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=EFGHquvwnzPʘ
 z = T873
 E = T873 T777
 F = T873 T778
@@ -132,6 +147,10 @@ q = T873 T895
 u = T873 T911
 v = T873 T919
 w = T873 T927
+ø = T873 T895
+ö = T873 T911
+õ = T873 T919
+ó = T873 T927
 1 = T867
 2 = T870
 3 = T869
@@ -151,6 +170,7 @@ o = {sol} T895
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+Rue   = T106
 " = T125                # hautes herbes sur la terre
 : = T181 T7             # herbes très hautes, leur pied sur la terre
 ; = T181
@@ -171,6 +191,7 @@ decor = 1..2 par case
 [Ambiance automne]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 0..1 par case
 decor = 3..5 par case
 
@@ -178,6 +199,7 @@ decor = 3..5 par case
 [Ambiance forêt tropicale]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 0..1 par case
 decor = 2..4 par case
 
@@ -189,6 +211,8 @@ decor = 2..4 par case
 â = {sol} T523          # buisson jaune
 ï = {sol} T606          # buisson tropical
 c = {sol} T847          # rocher brun (désert)
+§ = T162                # sable d'une étendue de désert au milieu d'une longue route
+¤ = T162 T847           # rocher brun sur ce sable
 d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
@@ -202,6 +226,8 @@ x = {sol} T919          # cailloux gris
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
 % = {sol} A1 A3         # eau profonde (on y plonge avec Plongée)
+µ = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
+£ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 o = {sol} T815          # caillou (comble les trous du mur de rochers)
 1 = T787             # rocher de l'entrée de grotte
 2 = T790
@@ -216,30 +242,45 @@ e = {sol} T777          # escalier taillé dans une montagne (gauche, droite)
 f = {sol} T778
 g = {sol} T769          # escalier dans le rebord nord du niveau 1
 h = {sol} T770
-E = T793 T777           # escaliers du niveau 2, sur la roche
-F = T793 T778
-G = T793 T769
-H = T793 T770
+E = {sol} T777          # escaliers du niveau 2
+F = {sol} T778
+G = {sol} T769
+H = {sol} T770
 z = T793                # dessus d'une montagne (sous les bords des niveaux 3 et 5)
-n = T147                # hautes herbes sur un niveau de montagne (T6 sur la roche, son fond vert ôté)
-q = T793 T815           # rochers et cailloux sur la roche d'une montagne
-u = T793 T831
-v = T793 T839
-w = T793 T847
+n = {sol} T147          # hautes herbes sur un niveau de montagne
+q = {sol} T815          # rochers et cailloux sur un niveau de montagne
+u = {sol} T831
+v = {sol} T839
+w = {sol} T847
+ø = T793 T815           # rochers sur la roche (dessus des montagnes au-delà d'une route, 013_Fillers.rb)
+ö = T793 T831
+õ = T793 T839
+ó = T793 T847
 < = {sol} T810          # corniche (on la saute vers le sud)
 - = {sol} T828
 > = {sol} T814
 
+# Relief : une case de falaise sur la carte (son sol ; le niveau dessine la
+# falaise sur la couche 3) et, sur la couche 3, un escalier ou un arbre de
+# bordure (rien, joint aux niveaux).
+ɸ = {sol}
+ʘ = -
 [Terrains]
-# Les niveaux impairs ont les bords du niveau 1, les pairs ceux du niveau 2 ;
-# chaque niveau rejoint ceux du dessus (with=), pour que seul le plus haut
-# dessine son bord.
-^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnz L2 @.   # montagne, niveau 1 (dessus praticable)
-& = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnz   # niveau 2
-k = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnz L2 @z   # niveau 3
-K = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnz   # niveau 4
-m = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnz L2 @z   # niveau 5
-M = T793 N=T788 S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnz   # niveau 6
+# Les niveaux sont des plateaux, comme sur les routes des jeux : leur dessus
+# garde le sol de l'ambiance (« - » : rien par-dessus), leur bord nord est un rebord fin
+# ({rive} : la rive de l'ambiance, que l'on ne franchit pas vers le nord), leurs
+# côtés et leur bord sud une falaise de roche. Les niveaux impairs ont les bords
+# du niveau 1, les pairs ceux du niveau 2 ; chaque niveau rejoint ceux du
+# dessus (with=), pour que seul le plus haut dessine son bord.
+¬ = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnzPʘ L2 @.   # niveau 1 (dessus praticable)
+# Massif de roche (briques « montagne », recoins) : son dessus est de la roche.
+^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.
+ŕ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 L3 @~   # roche sur la mer (routes marines)
+& = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnzPʘ L2 @.   # niveau 2
+k = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnzPʘ L2 @.   # niveau 3
+K = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnzPʘ L2 @.   # niveau 4
+m = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnzPʘ L2 @.   # niveau 5
+M = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnzPʘ L2 @.   # niveau 6
 
 [Objects]
 é = T440 3x3         # grand pin
@@ -255,3 +296,5 @@ a = T836 2x4         # flèche rocheuse brune (désert)
 i = T916 2x4         # flèche rocheuse grise (minéral)
 t = T420 2x3         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
+W = T1816 4x4        # maison en bois (refuge)
+V = T1336 5x4        # maison verte à cheminée (refuge)

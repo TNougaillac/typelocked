@@ -110,7 +110,7 @@ module MapProceduralGenerator
     atlas[:maps].each do |name, spots|
       text << "\n[#{label.call(name)}]\n"
       spots.each do |key, value|
-        next if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+        next if value.nil? || (value.respond_to?(:empty?) && value.empty?) || key == :ground
         text << "#{key} = #{atlas_value(value)}\n"
       end
     end
@@ -137,7 +137,9 @@ module MapProceduralGenerator
     return atlas[:maps]&.[](map_id)
   end
 
+  # The cells walked on (ground) are only for drawing the world's events.
   def save_atlas(atlas, map_ids)
+    atlas = atlas.merge(maps: atlas[:maps].transform_values { |spots| spots.except(:ground) })
     @atlas = atlas_by_id(atlas, map_ids)
     save_data(@atlas, ATLAS_FILE)
   end

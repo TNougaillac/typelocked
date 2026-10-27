@@ -17,7 +17,9 @@ module WorldEvents
       return
     end
     Monotype.starter_dialog
-    pbSet(STARTER_VARIABLE, 1) if Monotype.data.starter_given
+    return if !Monotype.data.starter_given
+    pbSet(STARTER_VARIABLE, 1)
+    give_pokedex
   end
 
   # A Poké Ball of the lab: true once its starter is taken.
@@ -29,7 +31,16 @@ module WorldEvents
     return false if !Monotype.starter_ball(index)
     $game_switches[CHOOSING_STARTER_SWITCH] = false
     pbSet(STARTER_VARIABLE, index + 1)
+    give_pokedex
     return true
+  end
+
+  # The professor gives the Pokédex with the starter (#115).
+  def give_pokedex
+    return if $player.has_pokedex
+    say("professeur_pokedex")
+    $player.has_pokedex = true
+    pbMessage(_INTL("\\me[Key item get]{1} reçoit le Pokédex !\\wtnp[30]", $player.name))
   end
 
   # The clerk of a shop where that many seals are won on the way.
@@ -55,6 +66,26 @@ module WorldEvents
     say("maitre_fin")
   end
 
+  # The nurse, before healing (#114): FREE_HEALS free heals in each Centre,
+  # then HEAL_PRICES by the seals won. false: no heal (refused, or not enough
+  # money).
+  def nurse_pay
+    heals = $PokemonGlobal.centre_heals
+    count = heals[$game_map.map_id] || 0
+    if count >= FREE_HEALS
+      price = HEAL_PRICES[[$player.badge_count, HEAL_PRICES.length - 1].min]
+      section = (count == FREE_HEALS) ? "infirmiere_fin_gratuit" : "infirmiere_prix"
+      return false if !pbConfirmMessage(line(section, "prix" => price.to_s_formatted))
+      if $player.money < price
+        say("infirmiere_sans_argent")
+        return false
+      end
+      $player.money -= price
+    end
+    heals[$game_map.map_id] = count + 1
+    return true
+  end
+
   # The door of a room of the League, before its fight is won.
   def league_door
     say("porte_ligue")
@@ -69,5 +100,24 @@ module WorldEvents
     $game_switches[switch] = true
     $game_map.need_refresh = true
     say("arceus_fin")
+  end
+end
+
+# Heals done in each Centre (map ID => count), saved with the game.
+class PokemonGlobalMetadata
+  def centre_heals
+    @centre_heals ||= {}
+    return @centre_heals
+  end
+end
+
+# A double battle (DoubleBattle = oui) with fewer than two able Pokémon is
+# fought single (#123).
+class << TrainerBattle
+  alias_method :__world_events_start_core, :start_core
+
+  def start_core(*args)
+    setBattleRule("single") if $game_temp.battle_rules["size"] == "double" && !pbCanDoubleBattle?
+    return __world_events_start_core(*args)
   end
 end
