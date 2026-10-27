@@ -24,4 +24,6 @@ module Online
   # Seconds before the host can remove a disconnected player (same as the
   # server's KICK_AFTER_MS), or a player cut off can leave the room.
   KICK_AFTER = 300
+  # Seconds a challenge to a duel waits for the other player's answer.
+  CHALLENGE_TIME = 30
 end

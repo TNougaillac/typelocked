@@ -57,6 +57,8 @@ module Online
         data.winner = from
         @news.push(_INTL("{1} gagne la course !", player_name(from)))
       end
+    when "duel"
+      duel_event(from, info)
     end
   end
 
@@ -89,6 +91,7 @@ module Online
       @next_status = System.uptime + STATUS_INTERVAL
       send_status
     end
+    duel_update
     show_news
   end
 

@@ -2,7 +2,8 @@
 # Online - Room panel
 # Pause menu > Salon, in a multiplayer game only: for each player of the
 # room, their seals, place, team, deaths and score, who is connected, who
-# lost their run (spectator) and who won the race.
+# lost their run (spectator) and who won the race. Choosing another connected
+# player challenges them to a duel (011), once back on the map.
 #===============================================================================
 module Online
   class RoomPanel
@@ -13,20 +14,29 @@ module Online
     DIM        = Color.new(168, 168, 176)
     BACKGROUND = Color.new(28, 30, 40)
     ROW_COLOR  = Color.new(44, 47, 62)
+    CURSOR     = Color.new(240, 200, 80)
     ICON_X     = 280
     ICON_STEP  = 36
 
+    # The player to challenge to a duel, or nil.
     def main
       start
+      chosen = nil
       loop do
         Graphics.update
         Input.update
         @sprites.each_value { |sprite| sprite.update if sprite.respond_to?(:update) }
-        break if Input.trigger?(Input::BACK) || Input.trigger?(Input::USE)
+        move_cursor(-1) if Input.repeat?(Input::UP)
+        move_cursor(1) if Input.repeat?(Input::DOWN)
+        break if Input.trigger?(Input::BACK)
+        next if !Input.trigger?(Input::USE)
+        chosen = @rows[@cursor]&.first if @cursor
+        break
       end
       pbPlayCloseMenuSE
       pbDisposeSpriteHash(@sprites)
       @viewport.dispose
+      return chosen
     end
 
     private
@@ -56,7 +66,36 @@ module Online
       texts.push([_INTL("Vainqueur : {1}", Online.player_name(winner)), Graphics.width - 12, 8, :right, BASE, SHADOW]) if winner
       pbDrawTextPositions(overlay, texts)
       pbSetSmallFont(overlay)
-      rows.each_with_index { |row, i| draw_row(overlay, i, *row) }
+      @rows = rows
+      @rows.each_with_index { |row, i| draw_row(overlay, i, *row) }
+      # Other connected players can be challenged to a duel.
+      @choices = @rows.each_index.select { |i| @rows[i][0] != Online.data.you && @rows[i][3] }
+      @cursor = @choices.first
+      @sprites["cursor"] = BitmapSprite.new(Graphics.width - 8, ROW_HEIGHT - 4, @viewport)
+      @sprites["cursor"].x = 4
+      draw_cursor
+      footer = @cursor ? _INTL("C : défier ce joueur · Retour : fermer") : _INTL("Retour : fermer")
+      return if TOP + (@rows.length * ROW_HEIGHT) > Graphics.height - 24   # No room left
+      pbDrawTextPositions(overlay, [[footer, Graphics.width / 2, Graphics.height - 24, :center, DIM, SHADOW]])
+    end
+
+    def move_cursor(step)
+      return if !@cursor || @choices.length < 2
+      @cursor = @choices[(@choices.index(@cursor) + step) % @choices.length]
+      pbPlayCursorSE
+      draw_cursor
+    end
+
+    def draw_cursor
+      sprite = @sprites["cursor"]
+      sprite.visible = !@cursor.nil?
+      return if !@cursor
+      bitmap = sprite.bitmap
+      bitmap.clear
+      w = bitmap.width
+      h = bitmap.height
+      [[0, 0, w, 2], [0, h - 2, w, 2], [0, 0, 2, h], [w - 2, 0, 2, h]].each { |r| bitmap.fill_rect(*r, CURSOR) }
+      sprite.y = TOP + (@cursor * ROW_HEIGHT)
     end
 
     def draw_row(overlay, index, id, name, status, connected)
@@ -102,10 +141,15 @@ MenuHandlers.add(:pause_menu, :online_room, {
   "condition" => proc { next Online.multi? },
   "effect"    => proc { |menu|
     pbPlayDecisionSE
+    foe = nil
     pbFadeOutIn do
-      Online::RoomPanel.new.main
+      foe = Online::RoomPanel.new.main
       menu.pbRefresh
     end
-    next false
+    next false if !foe || !pbConfirmMessage(_INTL("Défier {1} en combat ?", Online.player_name(foe)))
+    Online.request_duel(foe)
+    menu.pbEndScene
+    $game_temp.in_menu = false
+    next true
   }
 })
