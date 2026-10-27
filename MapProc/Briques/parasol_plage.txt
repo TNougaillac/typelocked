@@ -1,0 +1,8 @@
+# Désert : un grand parasol de paille, des poteries.
+Brique    = Parasol de paille
+Type      = decor
+Ambiances = sable
+[Map]
+ņņņ
+ņņņ
+ņņņā

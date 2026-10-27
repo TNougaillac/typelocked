@@ -1,0 +1,7 @@
+# Terre battue, chemins de terre, automne : une brouette, une caisse.
+Brique    = Brouette
+Type      = decor
+Ambiances = terre battue, chemins de terre, automne
+[Map]
+ǖǖǖ
+ ē

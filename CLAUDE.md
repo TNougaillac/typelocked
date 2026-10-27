@@ -15,3 +15,7 @@ Les cinq labels par défaut (`needs-triage`, `needs-info`, `ready-for-agent`, `r
 ### Domain docs
 
 Single-context : `GLOSSARY.md` et `docs/adr/` à la racine. See `docs/agents/domain.md`.
+
+## Génération procédurale
+
+Pour améliorer la génération procédurale (MapProc), piocher notamment dans les tilesets libres importés : packs complets dans le dossier `tilesets/` des fichiers du projet (Emerald Outdoor, KingTapir, Ekat's Tiny Interiors), import dans le tileset Outside avec `tools/art/import_props.py`, crédits à tenir à jour dans `docs/CREDITS.md`.

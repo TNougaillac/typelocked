@@ -1,0 +1,8 @@
+# Minéral : des rochers blancs parmi les gris.
+Brique    = Rochers blancs
+Type      = decor
+Ambiances = minérale
+Poids     = 2
+[Map]
+űx
+jű

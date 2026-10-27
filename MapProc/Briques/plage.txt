@@ -1,0 +1,9 @@
+# Désert : des parasols de plage.
+Brique    = Parasols
+Type      = decor
+Ambiances = sable
+[Map]
+œœ ßß
+œœ ßß
+  ÿÿ
+  ÿÿ

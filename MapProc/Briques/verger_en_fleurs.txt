@@ -1,0 +1,7 @@
+# Verdoyante et prairie : un petit verger en fleurs.
+Brique    = Verger en fleurs
+Type      = decor
+Ambiances = verdoyante, prairie
+[Map]
+ðð ąą
+ðð ąą

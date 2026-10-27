@@ -1,0 +1,11 @@
+# Désert et forêt tropicale : un grand palmier, un petit à son pied.
+Brique    = Palmeraie
+Type      = decor
+Ambiances = sable, forêt tropicale
+Poids     = 2
+[Map]
+ţţţ
+ţţţ
+ţţţǎǎ
+ţţţǎǎ
+ţţţ
