@@ -1,0 +1,9 @@
+# Étal au toit bleu et sa table.
+Brique    = Étal du marché
+Type      = foire
+[Map]
+ĄĄĄĄĄ
+ĄĄĄĄĄ
+ĄĄĄĄĄ
+ĄĄĄĄĄ
+ĄĄĄĄĄ

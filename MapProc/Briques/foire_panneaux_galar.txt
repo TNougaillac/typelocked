@@ -1,0 +1,7 @@
+# Grand panneau et petit panneau de bois sombre.
+Brique    = Panneaux
+Type      = foire
+[Map]
+ĐĐĐ
+ĐĐĐĎĎ
+ĐĐĐĎĎ

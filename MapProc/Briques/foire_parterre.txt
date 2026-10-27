@@ -1,0 +1,7 @@
+# Parterre de fleurs octogonal et deux statues blanches.
+Brique    = Parterre octogonal
+Type      = foire
+[Map]
+ ĆĆĆ
+ĀĆĆĆĀ
+ĀĆĆĆĀ

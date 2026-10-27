@@ -1,0 +1,9 @@
+# Totem croisé et totem drapé.
+Brique    = Totems
+Type      = decor
+Ambiances = forêt tropicale, sable
+Poids     = 2
+[Map]
+ĹĹĹĺĺĺ
+ĹĹĹĺĺĺ
+ĹĹĹĺĺĺ

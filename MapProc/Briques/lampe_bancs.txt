@@ -1,0 +1,6 @@
+# Deux bancs, le long d'une rue.
+Brique    = Bancs
+Type      = lampe
+Contre    = rue
+[Map]
+ĤĤ ĥĥĥ

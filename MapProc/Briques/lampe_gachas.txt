@@ -1,0 +1,8 @@
+# Distributeur et machines à boules, le long d'une rue.
+Brique    = Distributeurs
+Type      = lampe
+Contre    = rue
+[Map]
+Ē
+ĒĔĖė
+ĒĔĖė

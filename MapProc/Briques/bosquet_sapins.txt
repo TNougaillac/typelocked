@@ -1,0 +1,10 @@
+# Bosquet : deux sapins et un arbre touffu.
+Brique    = Bosquet de sapins
+Type      = decor
+Ambiances = verdoyante, minérale, automne
+[Map]
+ǜǜ ȁȁ
+ǜǜ ȁȁ
+   ȁȁ
+ ǜǜ
+ ǜǜ

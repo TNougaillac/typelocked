@@ -1,0 +1,11 @@
+# Verdure : un arbre de Galar et un arbre fleuri.
+Brique    = Arbres de Galar
+Type      = decor
+Ambiances = verdoyante, prairie, automne
+Poids     = 2
+[Map]
+ČČČ
+ČČČ
+ČČČčč
+ČČČčč
+ČČČčč

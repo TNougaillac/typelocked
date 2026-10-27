@@ -1,0 +1,12 @@
+# Haute lanterne violette, le long d'une rue.
+Brique    = Lanterne de Corrifey
+Type      = lampe
+Contre    = rue
+Ambiances = terre battue, chemins de terre, minérale, automne
+[Map]
+Ģ
+Ģ
+Ģ
+Ģ
+Ģ
+Ģ
