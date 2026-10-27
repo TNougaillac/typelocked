@@ -1,8 +1,0 @@
-# Forêt tropicale : fougères géantes et fleurs exotiques.
-Brique    = Fougères
-Type      = decor
-Ambiances = forêt tropicale
-Poids     = 2
-[Map]
-ę ę
-źęź

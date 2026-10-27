@@ -1,7 +1,0 @@
-# Désert et terre battue : un puits couvert, une jarre à côté.
-Brique    = Puits
-Type      = decor
-Ambiances = sable, terre battue
-[Map]
-ŝŝ
-ŝŝĵ

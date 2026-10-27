@@ -1,9 +1,0 @@
-# Désert : deux cactus, des jarres à leur pied.
-Brique    = Cactus
-Type      = decor
-Ambiances = sable
-Poids     = 2
-[Map]
-ĉ
-ĉ ĉ
- ĵĉ

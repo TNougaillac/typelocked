@@ -1,7 +1,0 @@
-# Terre battue, chemins de terre, automne : une charrette de foin.
-Brique    = Charrette de foin
-Type      = decor
-Ambiances = terre battue, chemins de terre, automne
-[Map]
-řř
-řřň

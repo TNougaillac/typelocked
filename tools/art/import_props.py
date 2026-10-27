@@ -1,8 +1,7 @@
 """Decor objects taken from free fan tilesets (TypeLocked, issue #110).
 
-Copies objects of three packs (see docs/CREDITS.md) below
-Graphics/Tilesets/Outside.png, after the objects of ambiance_props.py, and
-gives them their passages and priorities in Data/Tilesets.rxdata (via
+Copies objects of two packs (see docs/CREDITS.md) below
+Graphics/Tilesets/Outside.png and gives them their passages and priorities in Data/Tilesets.rxdata (via
 tools/art/tileset_tables.rb):
 - Emerald Outdoor (glassbetelgeuse, from Heartlessdragoon's rips):
   Graphics/Tilesets/Outside E.png

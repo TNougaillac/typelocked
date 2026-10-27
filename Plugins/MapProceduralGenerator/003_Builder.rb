@@ -44,6 +44,7 @@ module MapProceduralGenerator
   FILL_LIMIT = 80
   PORT = "port"   # type of the port buildings, only put along the quay
   MONUMENT = "monument"   # a town's monument, by its square
+  DECOR = "decor"         # pure decoration of an ambiance, after the other required bricks
   TERMINAL = "gare"   # type of the ferry terminal, on piles at the end of a pier
   # Sea depth of a port town, at most PORT_SHARE of the map across
   PORT_DEPTH = 9..11
@@ -620,7 +621,9 @@ module MapProceduralGenerator
       with_door = ->(kind) { @bricks.any? { |b| b.kind == kind && b.door } ? 0 : 1 }
       # The bricks an excess boosts go first among the optional ones
       boosted = ->(kind) { excess[:boost]&.key?(kind) ? 0 : 1 }
-      order = required.shuffle(random: @rng).sort_by { |k| with_door.call(k) } +
+      # Required decoration after the other required bricks, so it never
+      # takes the room of a meadow or a building
+      order = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == DECOR) ? 1 : 0] } +
               optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] }
       # With « dense », the fill bricks may touch each other (not the others)
       @dense = excess[:fill] if excess[:dense]

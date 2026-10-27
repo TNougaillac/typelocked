@@ -1,7 +1,0 @@
-# Désert : des jarres de terre cuite.
-Brique    = Jarres
-Type      = decor
-Ambiances = sable
-[Map]
-ĵĵ
- ĵ

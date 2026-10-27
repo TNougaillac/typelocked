@@ -1,8 +1,0 @@
-# Verdoyante, prairie, chemins de terre : deux carrés de potager, une ruche.
-Brique    = Potager
-Type      = decor
-Ambiances = verdoyante, prairie, chemins de terre
-Poids     = 2
-[Map]
-ĝĝ ĥ
-ĝĝ
