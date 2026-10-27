@@ -5,6 +5,8 @@ export const MAX_PLAYERS = 8;
 export const MAX_NAME = 16;
 export const MIN_SECRET = 16;
 export const MAX_EVENT_BYTES = 8192;
+// A disconnected player can be removed by the host after this long (#145).
+export const KICK_AFTER_MS = 5 * 60 * 1000;
 export const SEED_MAX = 1_000_000; // same range as MapProceduralGenerator's rand(1_000_000)
 
 // No 0/O, 1/I/L: the code is read aloud between friends.

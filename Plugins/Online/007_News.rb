@@ -32,6 +32,7 @@ module Online
     when "godfather" then return _INTL("{1} a battu le Parrain !", name)
     when "arceus"    then return _INTL("{1} a battu Arceus !", name)
     when "eliminated" then return _INTL("{1} a perdu son run Nuzlocke : spectateur.", name)
+    when "kicked"     then return _INTL("{1} a été retiré du salon.", news["name"] || name)
     end
     return nil
   end

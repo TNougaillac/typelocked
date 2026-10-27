@@ -83,6 +83,7 @@ module Online
 
   def race_update
     return if !multi?
+    return if pause_update
     @inbox.shift(@inbox.length).each { |event| handle(event) }
     if System.uptime >= (@next_status || 0)
       @next_status = System.uptime + STATUS_INTERVAL

@@ -14,14 +14,20 @@ module Online
       return result ? result["room"] : nil
     end
 
-    # Events of the other players after number after: [events, last].
+    # Events of the other players after number after, and the room:
+    # [events, last, room]; nil when the bridge does not answer.
     def events_after(after)
       result = request(:get, "/events?after=#{after}")
-      return [[], after] if !result
+      return nil if !result
       last = result["last"] || after
       # A new bridge numbers its events from 1 again: read them all.
       return events_after(0) if last < after
-      return [result["events"] || [], last]
+      return [result["events"] || [], last, result["room"]]
+    end
+
+    # Host only: removes a player gone for KICK_AFTER seconds.
+    def kick(id)
+      request(:post, "/kick", { "id" => id })
     end
 
     # Sends data (a Hash) to the other players of the room.

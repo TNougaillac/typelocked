@@ -76,7 +76,9 @@ test("the game reads the room and the events, and publishes through the local se
   try {
     assert.equal((await (await fetch(`${base}/state`)).json()).room.seed, 7);
     const events = await (await fetch(`${base}/events?after=1`)).json();
-    assert.deepEqual(events, { events: [{ n: 2, from: "b2", data: { kind: "death" } }], last: 2 });
+    assert.deepEqual(events.events, [{ n: 2, from: "b2", data: { kind: "death" } }]);
+    assert.equal(events.last, 2);
+    assert.equal(events.room.seed, 7);
     const posted = await fetch(`${base}/event`, { method: "POST", body: JSON.stringify({ data: { kind: "place", map: 3 } }) });
     assert.equal(posted.status, 204);
     assert.deepEqual(ws.sent.at(-1), { type: "event", data: { kind: "place", map: 3 } });
@@ -91,4 +93,28 @@ test("the bridge reads its settings from the game's Online plugin", async () => 
   const config = loadConfig("/nonexistent/config.json", {});
   assert.deepEqual(config, { server: "http://127.0.0.1:8787", groupKey: "test", port: 47120 });
   assert.equal(loadConfig("/nonexistent/config.json", { TYPELOCKED_PORT: "47121" }).port, 47121);
+});
+
+test("a removed player is told so, and another's removal becomes an announcement", () => {
+  const client = new RoomClient(IDENTITY, { WebSocketImpl: FakeWebSocket });
+  client.connect("ABC234");
+  const ws = FakeWebSocket.last;
+  ws.open();
+  ws.serverSends({ type: "welcome", you: "a1", host: "h0", seed: 7, started: true });
+  ws.serverSends({ type: "kicked", id: "b2", name: "Léo" });
+  assert.deepEqual(client.events.at(-1), { n: 1, from: "b2", data: { kind: "news", what: "kicked", name: "Léo" } });
+  assert.equal(client.room.kicked, undefined);
+  ws.serverSends({ type: "kicked", id: "a1" });
+  assert.equal(client.room.kicked, true);
+  client.kick("b2");
+  assert.deepEqual(ws.sent.at(-1), { type: "kick", id: "b2" });
+});
+
+test("the game sees for how long a player has been gone", () => {
+  const client = new RoomClient(IDENTITY, { WebSocketImpl: FakeWebSocket });
+  client.connect("ABC234");
+  FakeWebSocket.last.open();
+  FakeWebSocket.last.serverSends({ type: "presence", players: [{ id: "b2", name: "Léo", connected: false, goneFor: 10 }], allConnected: false });
+  const later = client.snapshot(Date.now() + 30_000);
+  assert.ok(later.players[0].goneFor >= 40 && later.players[0].goneFor <= 41);
 });

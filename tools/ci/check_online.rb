@@ -14,7 +14,8 @@ RULES = File.join(ROOT, "Plugins", "Online", "003_Rules.rb")
 def _INTL(text, *args)
   text.gsub(/\{(\d)\}/) { args[Regexp.last_match(1).to_i - 1].to_s }
 end
-require File.join(ROOT, "Plugins", "Online", "007_News")
+%w[001_Settings 007_News 010_Pause].each { |f| require File.join(ROOT, "Plugins", "Online", f) }
+PAUSE = File.join(ROOT, "Plugins", "Online", "010_Pause.rb")
 NEWS = File.join(ROOT, "Plugins", "Online", "007_News.rb")
 
 # JSON: what the bridge sends comes back the same
@@ -66,5 +67,23 @@ Online.news(start, later).each do |item|
   CI.error(NEWS, nil, "annonce « #{item['what']} » sans texte") if !text&.include?("Léo")
 end
 CI.error(NEWS, nil, "3e sceau mal écrit") if Online.news_text("Léo", { "what" => "seal", "count" => 3 }) != "Léo a gagné son 3e sceau !"
+
+# Pause of the room
+here = { "id" => "a", "name" => "Tom", "connected" => true, "goneFor" => nil }
+gone = { "id" => "b", "name" => "Léo", "connected" => false, "goneFor" => 400 }
+playing = { "started" => true, "connected" => true, "allConnected" => true, "players" => [here] }
+{
+  nil => :bridge,
+  playing => nil,
+  playing.merge("connected" => false) => :self,
+  playing.merge("allConnected" => false, "players" => [here, gone]) => :others,
+  playing.merge("kicked" => true, "connected" => false) => nil
+}.each do |room, wanted|
+  reason = Online.pause_reason(room)
+  CI.error(PAUSE, nil, "pause : #{reason.inspect} au lieu de #{wanted.inspect} pour #{room.inspect}") if reason != wanted
+end
+late = gone.merge("id" => "c", "goneFor" => 30)
+CI.error(PAUSE, nil, "absent depuis le plus longtemps pas en premier") if Online.missing_players({ "players" => [here, late, gone] }).map { |p| p["id"] } != %w[b c]
+CI.error(PAUSE, nil, "durée mal écrite") if Online.duration_text(Online::KICK_AFTER) != "5:00"
 
 CI.finish("Mode multijoueur")

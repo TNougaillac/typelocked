@@ -45,7 +45,8 @@ export class RoomClient {
       if (this.ws !== ws) return;
       this.ws = null;
       if (this.room) this.room.connected = false;
-      if (this.closed || e.code === 4000) return; // 4000: this player joined from elsewhere
+      // 4000: this player joined from elsewhere; 4001: removed from the room.
+      if (this.closed || e.code === 4000 || e.code === 4001) return;
       this.log("connection_lost", this.retryMs);
       setTimeout(() => !this.closed && this.connect(code), this.retryMs);
       this.retryMs = Math.min(this.retryMs * 2, RETRY_MAX_MS);
@@ -59,18 +60,34 @@ export class RoomClient {
         this.room = { ...this.room, ...welcome, connected: true };
         break;
       }
-      case "presence":
-        this.room = { ...this.room, players: msg.players, allConnected: msg.allConnected };
+      case "presence": {
+        // goneFor counts on from here: the server only sends changes.
+        const now = Date.now();
+        const players = msg.players.map(({ goneFor, ...p }) => ({ ...p, goneAt: goneFor == null ? null : now - (goneFor * 1000) }));
+        this.room = { ...this.room, players, allConnected: msg.allConnected };
         break;
+      }
       case "start":
         this.room = { ...this.room, started: true, seed: msg.seed, rules: msg.rules };
         break;
+      case "kicked":
+        if (msg.id === this.room?.you) {
+          this.room = { ...this.room, kicked: true };
+        } else {
+          // Shown to the game like an announcement of that player.
+          this.pushEvent(msg.id, { kind: "news", what: "kicked", name: msg.name });
+        }
+        break;
       case "event":
-        this.events.push({ n: ++this.lastEvent, from: msg.from, data: msg.data });
-        if (this.events.length > MAX_EVENTS) this.events.shift();
+        this.pushEvent(msg.from, msg.data);
         break;
     }
     this.log(msg.type, msg);
+  }
+
+  pushEvent(from, data) {
+    this.events.push({ n: ++this.lastEvent, from, data });
+    if (this.events.length > MAX_EVENTS) this.events.shift();
   }
 
   // Sent to the other players; kept for later while disconnected.
@@ -81,6 +98,18 @@ export class RoomClient {
 
   start() {
     this.ws?.send(JSON.stringify({ type: "start" }));
+  }
+
+  // Host only: removes a player gone for 5 minutes (the server checks).
+  kick(id) {
+    this.ws?.send(JSON.stringify({ type: "kick", id }));
+  }
+
+  // The room as the game sees it: how long each absent player has been gone.
+  snapshot(now = Date.now()) {
+    if (!this.room) return null;
+    const players = this.room.players?.map(({ goneAt, ...p }) => ({ ...p, goneFor: goneAt == null ? null : Math.floor((now - goneAt) / 1000) }));
+    return { ...this.room, players };
   }
 
   eventsAfter(n) {

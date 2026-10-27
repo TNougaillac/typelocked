@@ -1,4 +1,5 @@
-import { exports } from "cloudflare:workers";
+import { runInDurableObject } from "cloudflare:test";
+import { env, exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 
 const KEY = "test-group-key";
@@ -131,5 +132,29 @@ describe("room server", () => {
     const info = await (await call(`/rooms/${code}`)).json();
     expect(info.players.find((p) => p.name === "Tom").status).toEqual({ kind: "status", seals: 2, score: 230 });
     expect(info.players.find((p) => p.name === "Léo").status).toBe(null);
+  });
+
+  it("pauses on a lost player, and lets the host remove them after 5 minutes", async () => {
+    const code = await createRoom();
+    const tom = await connect(code, "Tom", "secret-of-tom-0001");
+    const leo = await connect(code, "Léo", "secret-of-leo-0001");
+    const leoId = (await leo.next("welcome")).you;
+    tom.send({ type: "start" });
+    await tom.next("start");
+    leo.ws.close(1000);
+    let presence;
+    do presence = await tom.next("presence"); while (presence.allConnected);
+    expect(presence.players.find((p) => p.id === leoId).goneFor).toBe(0);
+    tom.send({ type: "kick", id: leoId });
+    expect((await tom.next("error")).error).toBe("too_soon");
+    // Six minutes later
+    const stub = env.ROOMS.get(env.ROOMS.idFromName(code));
+    await runInDurableObject(stub, (_room, state) => state.storage.put(`gone:${leoId}`, Date.now() - 6 * 60 * 1000));
+    tom.send({ type: "kick", id: leoId });
+    expect(await tom.next("kicked")).toEqual({ type: "kicked", id: leoId, name: "Léo" });
+    do presence = await tom.next("presence"); while (presence.players.length > 1);
+    expect(presence.allConnected).toBe(true);
+    const back = await connect(code, "Léo", "secret-of-leo-0001");
+    expect((await back.next("kicked")).id).toBe(leoId);
   });
 });

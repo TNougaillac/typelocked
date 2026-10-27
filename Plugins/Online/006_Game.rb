@@ -80,12 +80,29 @@ module Online
     data.rules_applied = true
   end
 
-  # Reads the other players' events now and then while on the map.
+  # Reads the other players' events and the room now and then on the map.
   def poll
     return if !multi? || System.uptime < (@next_poll || 0)
+    poll_now
+  end
+
+  def poll_now
     @next_poll = System.uptime + POLL_INTERVAL
-    events, data.last_event = Bridge.events_after(data.last_event)
+    result = Bridge.events_after(data.last_event)
+    @polled = true
+    @room = nil
+    return if !result
+    events, data.last_event, @room = result
     @inbox.concat(events)
+  end
+
+  # The room at the last read (nil: the bridge did not answer).
+  def room
+    @room
+  end
+
+  def polled?
+    @polled
   end
 end
 

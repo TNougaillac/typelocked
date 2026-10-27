@@ -64,6 +64,9 @@ function show(client, type, msg) {
     case "start":
       console.log("La partie est lancée : démarre une nouvelle partie dans le jeu.");
       break;
+    case "kicked":
+      console.log(msg.id === room?.you ? "L'hôte t'a retiré du salon : ta partie continue en solo." : `${msg.name} a été retiré du salon.`);
+      break;
     case "error":
       console.log(`Refusé par le serveur : ${msg.error}`);
       break;

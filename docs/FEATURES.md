@@ -719,7 +719,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `wrangler.jsonc` | Configuration du Worker et migration du Durable Object (SQLite). |
 
 ## F18. Partie multi (Online et pont local)
-**Statut :** Online v1.1.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
+**Statut :** Online v1.2.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
 **Dossiers :** `Plugins/Online/` (jeu), `online/bridge/` (pont Node.js 22.4 ou plus, repris plus tard par le launcher #52).
 
 ### Règles
@@ -734,6 +734,8 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Vainqueur :** le premier à battre Arceus gagne la course ; tout le salon l'apprend. Un joueur qui perd son run Nuzlocke devient spectateur : il continue l'aventure et garde le panneau du salon.
 - **Panneau du salon :** menu Pause > Salon (partie multi seulement) : pour chaque joueur (8 au plus), pseudo, hôte, absent, spectateur ou vainqueur, sceaux, morts, score, lieu et icônes de l'équipe (les morts grisés).
 
+- **Pause du salon (#145) :** dès qu'un joueur est déconnecté, tout le salon se met en pause sur la carte (hors messages) : « Partie en pause : Léo déconnecté depuis 1:23. » Le jeu reprend seul à son retour. Le joueur coupé, lui, voit « connexion au salon perdue » (ou « le pont ne répond plus »). Après `KICK_AFTER` (5 min), l'hôte peut retirer l'absent (touche Z, avec confirmation) : les autres reprennent et l'annonce « Léo a été retiré du salon » s'affiche ; le joueur retiré l'apprend à sa reconnexion et continue en solo. Un joueur coupé depuis 5 min peut aussi quitter le salon (Retour) et jouer en solo. Le serveur garde l'heure de départ de chaque absent et refuse un retrait trop tôt.
+
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
@@ -746,6 +748,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `Plugins/Online/007_News.rb` | Annonces tirées de deux progressions d'un joueur. |
 | `Plugins/Online/008_Race.rb` | Progression envoyée, événements reçus, vainqueur, fenêtre d'annonce. |
 | `Plugins/Online/009_Panel.rb` | Panneau du salon (menu Pause). |
+| `Plugins/Online/010_Pause.rb` | Pause du salon, retrait d'un absent, départ en solo. |
 | `online/bridge/src/*.js` | Pont : identité, configuration, connexion au salon, service local, ligne de commande. |
 | `tools/ci/check_online.rb` | Contrôle CI du JSON et des règles du salon. |
 
@@ -846,3 +849,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | Serveur des salons v1.0.0 (#142) : Worker Cloudflare, un Durable Object par salon (code, règles, graine, présence, départ, relais des événements), clé de groupe ; tests d'intégration et CI | `online/server/*`, `.github/workflows/online.yml`, `docs/FEATURES.md` |
 | 27/10/2026 | Online v1.0.0 et pont local (#143) : partie multi lancée depuis un salon (attente de l'hôte, graine du salon, règles imposées), lecture et envoi des événements des joueurs ; pont Node.js (identité, connexion, service local) ; contrôle CI | `Plugins/Online/*`, `online/bridge/*`, `tools/ci/check_online.rb`, `.github/workflows/*`, `docs/FEATURES.md` |
 | 27/10/2026 | Online v1.1.0 (#144) : course en direct (progression envoyée quand elle change, annonces des autres joueurs, vainqueur, spectateur), panneau du salon dans le menu Pause ; le serveur garde la dernière progression de chaque joueur | `Plugins/Online/*`, `online/server/src/room.js`, `online/server/test/room.test.js`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.2.0 (#145) : pause de tout le salon pendant une coupure, retrait d'un absent par l'hôte après 5 minutes, départ en solo d'un joueur coupé ; serveur et pont : heure de départ des absents, retrait | `Plugins/Online/*`, `online/server/src/*`, `online/bridge/src/*`, tests, `tools/ci/check_online.rb`, `docs/FEATURES.md` |

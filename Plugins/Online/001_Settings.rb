@@ -21,4 +21,7 @@ module Online
   STATUS_INTERVAL = 2
   # Seconds an announcement of another player stays on screen.
   NEWS_TIME = 3
+  # Seconds before the host can remove a disconnected player (same as the
+  # server's KICK_AFTER_MS), or a player cut off can leave the room.
+  KICK_AFTER = 300
 end
