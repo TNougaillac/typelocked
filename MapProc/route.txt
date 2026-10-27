@@ -7,7 +7,9 @@ Nom     = Route générée
 Tileset = 1
 Taille  = 20x60
 Sol     = .
-Rue     = .
+# Rue : le sentier (sur les routes de montagne, il passe sous la roche des
+# niveaux) ; chaque ambiance donne le sien.
+Rue     = P
 Bordure = t
 # Comble : bouche les trous que laissent les arbres de bordure hors du tracé
 # d'un lieu en L ou en U (un buisson).
@@ -19,6 +21,9 @@ Eau     = ~
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
 Profond = %
+# Des rochers et des bancs de sable dans l'eau qui traverse une route.
+Recif   = µ
+Banc    = £
 Roche   = R
 Caillou = o
 # Routes de montagne (« Montagnes » dans monde.txt) : un symbole par niveau, du
@@ -41,6 +46,8 @@ colline = 0..1 par case
 # Rochers sur les niveaux d'une route de montagne (seulement là).
 rocaille = 2..5 par case
 lac    = 0..1
+# Refuge : une maison isolée au bord du chemin, que l'on peut visiter.
+refuge = 0..1
 # Entrées de grotte : posées seulement sur les routes que le monde fait passer
 # par une grotte (« Grottes » dans monde.txt).
 grotte = 0
@@ -53,11 +60,13 @@ decor  = 0
 [Ambiance verdoyante]
 Poids = 6
 Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 decor = 0..1 par case
 
 [Ambiance prairie]
 Poids = 1
 Sol   = T50
+Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
 " = T143                # hautes herbes sur la prairie
 : = T151 T7             # herbes très hautes, leur pied sur la prairie
 ; = T151
@@ -78,6 +87,7 @@ decor = 1..3 par case
 [Ambiance sable]
 Poids = 1
 Sol   = T162
+Rue   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 : = T175 T7             # herbes très hautes, leur pied sur le sable
 ; = T175
@@ -99,6 +109,7 @@ decor = 2..4 par case
 [Ambiance minérale]
 Poids = 1
 Sol   = T218
+Rue   = T218
 " = T133                # hautes herbes sur le gravier
 : = T189 T7             # herbes très hautes, leur pied sur le gravier
 ; = T189
@@ -151,6 +162,7 @@ o = {sol} T895
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
+Rue   = T106
 " = T125                # hautes herbes sur la terre
 : = T181 T7             # herbes très hautes, leur pied sur la terre
 ; = T181
@@ -171,6 +183,7 @@ decor = 1..2 par case
 [Ambiance automne]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 0..1 par case
 decor = 3..5 par case
 
@@ -178,6 +191,7 @@ decor = 3..5 par case
 [Ambiance forêt tropicale]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 0..1 par case
 decor = 2..4 par case
 
@@ -189,6 +203,8 @@ decor = 2..4 par case
 â = {sol} T523          # buisson jaune
 ï = {sol} T606          # buisson tropical
 c = {sol} T847          # rocher brun (désert)
+§ = T162                # sable d'une étendue de désert au milieu d'une longue route
+¤ = T162 T847           # rocher brun sur ce sable
 d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
@@ -202,6 +218,8 @@ x = {sol} T919          # cailloux gris
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
 % = {sol} A1 A3         # eau profonde (on y plonge avec Plongée)
+µ = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
+£ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 o = {sol} T815          # caillou (comble les trous du mur de rochers)
 1 = T787             # rocher de l'entrée de grotte
 2 = T790
@@ -255,3 +273,5 @@ a = T836 2x4         # flèche rocheuse brune (désert)
 i = T916 2x4         # flèche rocheuse grise (minéral)
 t = T420 2x3         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
+W = T1816 4x4        # maison en bois (refuge)
+V = T1336 5x4        # maison verte à cheminée (refuge)

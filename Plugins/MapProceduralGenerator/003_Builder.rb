@@ -36,6 +36,7 @@ module MapProceduralGenerator
   # Most bricks an excess « fill » adds after the others (until none fits)
   FILL_LIMIT = 80
   PORT = "port"   # type of the port buildings, only put along the quay
+  MONUMENT = "monument"   # a town's monument, by its square
   TERMINAL = "gare"   # type of the ferry terminal, on piles at the end of a pier
   # Sea depth of a port town, at most PORT_SHARE of the map across
   PORT_DEPTH = 9..11
@@ -57,8 +58,19 @@ module MapProceduralGenerator
   DARK_CAVE = "grotte sombre"
 
   class PlaceBuilder
-    def initialize(place, bricks, palette, seed)
+    # The town's plan (see choose_plan); plain: always « carrefour », and
+    # no stretch of sand (lay_transition).
+    attr_reader :plan
+
+    # Whether the place is worth building again plain, after an error: a
+    # town with another plan than « carrefour », or a route with sand.
+    def plain_retry?
+      !@plain && (![nil, "carrefour"].include?(@plan) || !@zone.nil?)
+    end
+
+    def initialize(place, bricks, palette, seed, plain = false)
       @place = place
+      @plain = plain
       cave = place.crossing == "grotte" || place.cave || place.nook == "sombre"
       @bricks = bricks.select { |b| place.counts[b.kind] || (b.kind == CAVE && cave) }
       # Bricks kept for some ambiances; a type left with none of its bricks
@@ -103,10 +115,16 @@ module MapProceduralGenerator
       lay_port(hub) if @place.port
       lay_shore if @place.island
       moor_boat if @terminal && (@place.ferry || @place.island)
-      scatter_reefs if @place.island
+      scatter_reefs(ISLAND_BANKS, ISLAND_REEFS, @rng) if @place.island
+      scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if @place.port
       @rng.rand(@place.spurs).times { carve_spur(hub) }
+      choose_plan
+      lay_grid if @plan == "grille"
+      lay_plaza(hub) if @plan != "clairière"
+      lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
       cross if @place.crossing
+      scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)
       if @place.mountain
         choose_river if @place.river
         raise_levels
@@ -114,6 +132,7 @@ module MapProceduralGenerator
         # Its cave is left out when no spot fits
         place_mountain_cave if @place.cave
       end
+      lay_transition
       reserve_banks
       place_port_bricks if @port_depth
       place_bricks
@@ -192,8 +211,9 @@ module MapProceduralGenerator
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       rock = (level_at(x, y) > 0) ? level_symbol(level_at(x, y)) : nil
-      return @cells[y][x] || rock || @place.street if @street[y][x]
-      return @cells[y][x] || rock || @place.ground
+      zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
+      return @cells[y][x] || rock || zone || @place.street if @street[y][x]
+      return @cells[y][x] || rock || zone || @place.ground
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.
@@ -229,6 +249,44 @@ module MapProceduralGenerator
           @border[y][x] = @solid[y][x] = true
         end
       end
+      deepen_border(bw, bh)
+    end
+
+    # Natural border (BORDER_DEPTH): along each side of the map, the border
+    # grows inwards by whole rows of its trees, in stretches of
+    # BORDER_STRETCH trees, each one row deeper or shallower than the last,
+    # so that its inner edge winds like the edge of a forest. At most
+    # BORDER_SHARE of the map across, so that the bricks still fit. Its own
+    # draws (BORDER_SALT), so the rest of the place stays the same.
+    def deepen_border(bw, bh)
+      depths = BORDER_DEPTH[@place.kind]
+      return if !depths || @mask || @place.island || bw == 0 || bh == 0
+      rng = Random.new(@seed ^ BORDER_SALT)
+      sides = { "nord" => [@w, bw, bh, @h], "sud" => [@w, bw, bh, @h],
+                "ouest" => [@h, bh, bw, @w], "est" => [@h, bh, bw, @w] }
+      sides.each do |side, (length, step, unit, across)|
+        deepest = [depths.max, ((across * BORDER_SHARE) / unit).floor - 1].min
+        next if deepest <= 0
+        low = [depths.min, deepest].min
+        depth = rng.rand(low..deepest)
+        a = 0
+        while a < length
+          stretch = rng.rand(BORDER_STRETCH) * step
+          (a...[a + stretch, length].min).each do |along|
+            (unit...unit * (depth + 1)).each do |d|
+              x, y = case side
+                     when "nord"  then [along, d]
+                     when "sud"   then [along, @h - 1 - d]
+                     when "ouest" then [d, along]
+                     else              [@w - 1 - d, along]
+                     end
+              @border[y][x] = @solid[y][x] = true
+            end
+          end
+          a += stretch
+          depth = (depth + rng.rand(-1..1)).clamp(low, deepest)
+        end
+      end
     end
 
     # Square brush of STREET_WIDTH tiles, top-left at x, y.
@@ -245,11 +303,71 @@ module MapProceduralGenerator
     # L-shaped street, bending at a random end (at the far end on an
     # east-west mountain route, so that the street climbs at the hub; at the
     # end that keeps it on the squares of a mask).
-    def carve_line(x0, y0, x1, y1)
+    # wide: one tile wider (an avenue), but not near the map's edges, so that
+    # the exit keeps its width.
+    def carve_line(x0, y0, x1, y1, wide = false)
       far_bend = @rng.rand(2) == 0
+      return carve_trail(x0, y0, x1, y1) if trail?
       far_bend = true if @place.mountain && !vertical_route?
       far_bend = !far_bend if @mask && !line_covered?(x0, y0, x1, y1, far_bend)
-      line_steps(x0, y0, x1, y1, far_bend).each { |x, y| paint(x, y) }
+      line_steps(x0, y0, x1, y1, far_bend).each do |x, y|
+        paint(x, y)
+        next if !wide || [x, y, @w - x, @h - y].min <= AVENUE_MARGIN
+        paint(x + 1, y + 1)
+      end
+    end
+
+    # The streets of a plain route wind (TRAIL): not on a mountain route, with
+    # a mask, a lock or a crossing, whose streets must stay straight.
+    def trail?
+      return @place.kind == "route" && !@mask && !@place.mountain && !@place.lock && !@place.crossing && !@place.island
+    end
+
+    # A winding street: along the longer way, drifting one tile sideways now
+    # and then (TRAIL), never more than half the steps from either end nor
+    # into the border, so that it leaves and reaches its ends straight. Its
+    # own draws (TRAIL_SALT), so the rest of the route stays the same.
+    def carve_trail(x0, y0, x1, y1)
+      @trail_rng ||= Random.new(@seed ^ TRAIL_SALT)
+      across = (x1 - x0).abs < (y1 - y0).abs   # the trail runs down the map
+      length = across ? (y1 - y0).abs : (x1 - x0).abs
+      step = across ? (y1 <=> y0) : (x1 <=> x0)
+      drift = 0
+      wait = @trail_rng.rand(TRAIL[:every])
+      last = nil
+      (0..length).each do |i|
+        t = (length == 0) ? 1.0 : i / length.to_f
+        main = (across ? y0 : x0) + (i * step)
+        line = ((across ? x0 : y0) + (((across ? x1 : y1) - (across ? x0 : y0)) * t)).round
+        if (wait -= 1) <= 0
+          drift += @trail_rng.rand(-1..1)
+          wait = @trail_rng.rand(TRAIL[:every])
+        end
+        limit = [TRAIL[:sway], i / 2, (length - i) / 2].min
+        drift = drift.clamp(-limit, limit)
+        side = line + drift
+        x, y = across ? [side, main] : [main, side]
+        # Back towards the line where the border is in the way
+        while drift != 0 && !brush_clear?(x, y)
+          drift -= (drift <=> 0)
+          side = line + drift
+          x, y = across ? [side, main] : [main, side]
+        end
+        # Sideways steps join up with the step before
+        if last
+          lx, ly = last
+          line_steps(lx, ly, x, y, false).each { |px, py| paint(px, py) }
+        end
+        paint(x, y)
+        last = [x, y]
+      end
+    end
+
+    # True if a brush at x, y stays inside the map and off the border.
+    def brush_clear?(x, y)
+      return (0...STREET_WIDTH).all? do |oy|
+        (0...STREET_WIDTH).all? { |ox| inside?(x + ox, y + oy) && !@border[y + oy][x + ox] }
+      end
     end
 
     # Brush steps of an L-shaped street, bending at the far end or not.
@@ -291,7 +409,138 @@ module MapProceduralGenerator
           line_covered?(x, y, hx, hy, true) || line_covered?(x, y, hx, hy, false)
         end || hub
       end
-      carve_line(x, y, hub[0], hub[1])
+      # In a town, the streets of the first two exits make its avenue
+      avenue = @place.kind == "ville" && !@mask && !@place.port && !@place.island && @exits.length <= 2
+      carve_line(x, y, hub[0], hub[1], avenue)
+    end
+
+    # Where the monument of a town goes: by the square (within MONUMENT_REACH
+    # tiles of it) when the town has one; nil = anywhere.
+    def monument_spot
+      return nil if !@plaza
+      x0, y0, x1, y1 = @plaza
+      return lambda do |brick, x, y|
+        w, h = brick.rows.map(&:length).max, brick.rows.length
+        x + w > x0 - MONUMENT_REACH && x < x1 + MONUMENT_REACH && y + h > y0 - MONUMENT_REACH && y < y1 + MONUMENT_REACH
+      end
+    end
+
+    # A stretch of another ground across a long plain route (TRANSITION),
+    # like the desert in the middle of Hoenn's Route 111: its edges waver,
+    # the trail crosses it on that ground, no brick goes there, only a few
+    # rocks away from the trail. Its own draws (TRANSITION_SALT).
+    def lay_transition
+      return if @plain || !trail? || @place.excess || !TRANSITION[:ambiances].include?(@place.ambiance)
+      return if !@palette.legend[TRANSITION[:ground]] || !@palette.legend[TRANSITION[:rock]]
+      rng = Random.new(@seed ^ TRANSITION_SALT)
+      return if rng.rand(100) >= TRANSITION[:chance]
+      down = @h >= @w
+      length, across = down ? [@h, @w] : [@w, @h]
+      return if length < TRANSITION[:min_length]
+      size = rng.rand(TRANSITION[:size])
+      start = rng.rand((length * 0.3).to_i..[(length * 0.3).to_i, (length * 0.7).to_i - size].max)
+      @zone = Array.new(@h) { Array.new(@w, false) }
+      top, bottom = start, start + size
+      across.times do |b|
+        top = (top + rng.rand(-1..1)).clamp(start - 5, start + 5)
+        bottom = (bottom + rng.rand(-1..1)).clamp(start + size - 5, start + size + 5)
+        (top...bottom).each do |a|
+          x, y = down ? [b, a] : [a, b]
+          @zone[y][x] = true if !@border[y][x] && !@water[y][x] && !@solid[y][x]
+        end
+      end
+      # Rocks, one tile each, two tiles off the trail and from each other
+      cells = (0...@h).to_a.product((0...@w).to_a).select do |y, x|
+        @zone[y][x] && !near?(x, y, 2) { |nx, ny| @street[ny][nx] || @border[ny][nx] }
+      end
+      (cells.length * TRANSITION[:rocks] / 100.0).round.times do
+        y, x = cells.sample(random: rng)
+        next if near?(x, y, 2) { |nx, ny| @cells[ny][nx] == TRANSITION[:rock] }
+        @cells[y][x] = TRANSITION[:rock]
+        @solid[y][x] = true
+      end
+    end
+
+    # The plan of a town (TOWN_PLANS, by weight; its own draws, PLAN_SALT):
+    # « carrefour » (streets from the exits to a square), « grille » (a grid
+    # of streets as well), « canal » (a canal from north to south, crossed
+    # by bridges) or « clairière » (no square, trees everywhere). Only in
+    # towns big enough for a square, not in a port, on an island or with a
+    # mask; nil for the others. A town whose bricks don't fit its plan is
+    # built again as a « carrefour » (generate_place).
+    def choose_plan
+      @plan = nil
+      return if @place.kind != "ville" || @place.port || @place.island || @mask || [@w, @h].min < PLAZA[:min_side]
+      rng = Random.new(@seed ^ PLAN_SALT)
+      roll = rng.rand(TOWN_PLANS.values.sum { |plan| plan[:weight] })
+      @plan = TOWN_PLANS.find { |_name, plan| (roll -= plan[:weight]) < 0 }[0]
+      @plan = @place.plan if @place.plan
+      @plan = "carrefour" if @plain
+      @plan = "carrefour" if @plan == "canal" && (!@place.water || !@place.pier || !@place.lips)
+    end
+
+    # A grid of straight streets (GRID: tiles between two streets), each
+    # running between the border's trees, so that the blocks hold one or
+    # two buildings each.
+    def lay_grid
+      rng = Random.new(@seed ^ PLAN_SALT ^ 1)
+      sx, sy = rng.rand(GRID[:across]), rng.rand(GRID[:down])
+      (rng.rand(sx)...@w).step(sx) { |x| @h.times { |y| paint(x, y) if brush_clear?(x, y) && grid_free?(x, y) } }
+      (rng.rand(sy)...@h).step(sy) { |y| @w.times { |x| paint(x, y) if brush_clear?(x, y) && grid_free?(x, y) } }
+    end
+
+    # The brush at x, y lies on free ground or streets only.
+    def grid_free?(x, y)
+      return (0...STREET_WIDTH).all? { |oy| (0...STREET_WIDTH).all? { |ox| !@solid[y + oy][x + ox] || @street[y + oy][x + ox] } }
+    end
+
+    # A canal (CANAL wide) from the northern to the southern edge, 2 tiles
+    # off the square and away from the exits of those sides; the streets that cross it
+    # become wooden bridges (« Ponton », with their « Rebord » lips).
+    def lay_canal(hub)
+      rng = Random.new(@seed ^ PLAN_SALT ^ 2)
+      width = rng.rand(CANAL[:width])
+      left, right = @plaza ? [@plaza[0], @plaza[2]] : [hub[0], hub[0] + STREET_WIDTH]
+      ends = @exits.select { |side, *| %w[nord sud].include?(side) }.map { |_side, x, _y| x }
+      spots = ((@w * 0.15).to_i..(@w * 0.85).to_i - width).select do |x0|
+        (x0 + width + 2 <= left || x0 >= right + 2) &&
+          ends.none? { |ex| ex + STREET_WIDTH + 2 > x0 && ex < x0 + width + 2 }
+      end
+      return if spots.empty?
+      x0 = spots.sample(random: rng)
+      @h.times do |y|
+        (x0...x0 + width).each do |x|
+          if @street[y][x]
+            @cells[y][x] = @place.pier
+          else
+            @cells[y][x] = @place.water
+            @water[y][x] = @solid[y][x] = true
+          end
+          @border[y][x] = false
+        end
+      end
+      lay_pier_lips
+    end
+
+    # A paved square around the hub of a town (PLAZA), its fountain in the
+    # middle with the street all around; none in a village, a port, on an
+    # island or with a mask, nor where the square would not be free ground.
+    def lay_plaza(hub)
+      return if @place.kind != "ville" || @place.port || @place.island || @mask
+      return if !@palette.objects[PLAZA[:fountain]] || [@w, @h].min < PLAZA[:min_side]
+      rng = Random.new(@seed ^ PLAZA_SALT)
+      pw, ph = rng.rand(PLAZA[:width]), rng.rand(PLAZA[:height])
+      x0 = hub[0] + (STREET_WIDTH / 2) - (pw / 2)
+      y0 = hub[1] + (STREET_WIDTH / 2) - (ph / 2)
+      cells = (y0...y0 + ph).to_a.product((x0...x0 + pw).to_a)
+      return if cells.any? { |y, x| !inside?(x, y) || (@solid[y][x] && !@street[y][x]) }
+      cells.each { |y, x| @street[y][x] = true }
+      @plaza = [x0, y0, x0 + pw, y0 + ph]
+      fountain = @palette.objects[PLAZA[:fountain]]
+      fx, fy = x0 + ((pw - fountain.width) / 2), y0 + ((ph - fountain.height) / 2)
+      rows = Array.new(fountain.height) { PLAZA[:fountain] * fountain.width }
+      fountain.height.times { |dy| fountain.width.times { |dx| @street[fy + dy][fx + dx] = false } }
+      stamp(Brick.new(PLAZA_KIND, "Fontaine", PLAZA_KIND, nil, 1, false, rows), fx, fy)
     end
 
     # Dead end from the square towards a random point of the inner area (in a
@@ -322,7 +571,8 @@ module MapProceduralGenerator
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = @rng.rand(range)
         boost = excess[:boost]&.[](kind)
-        count = [count, range.max * boost].max if boost
+        boost = [boost || 0, TOWN_PLANS.dig(@plan, :boost, kind) || 0].max
+        count = [count, range.max * boost].max if boost > 0
         range.min.times { required.push(kind) }
         (count - range.min).times { optional.push(kind) }
       end
@@ -341,13 +591,19 @@ module MapProceduralGenerator
         next if HIGHLAND.include?(kind) && !@level
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if @left_out.include?(kind)
-        next if place_brick(kind)
+        next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
         # so does a port town, for its decoration
         next if @level || (@port_depth && with_door.call(kind) == 1)
-        error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]") if i < required.length
+        # The monument goes where it can, or not at all
+        if kind == MONUMENT
+          place_brick(kind)
+          next
+        end
+        next if i >= required.length || place_smallest(kind)
+        error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]")
       end
       flood_ground
       place_nook
@@ -469,7 +725,7 @@ module MapProceduralGenerator
 
     # Ground on the lowest level that nothing uses yet.
     def free_ground?(x, y)
-      return false if level_at(x, y) > 0
+      return false if level_at(x, y) > 0 || @zone&.[](y)&.[](x)
       return !@border[y][x] && !@solid[y][x] && !@cells[y][x] && !@stairs_at&.key?([x, y])
     end
 
@@ -570,8 +826,11 @@ module MapProceduralGenerator
     # Draws the banks: the left end, middle and right end symbols of « Rive »
     # on the ground below the water.
     def draw_banks(rows)
-      # On the ground (an islet's too) or a carpet of grass
-      cells = bank_cells.select { |x, y| [@place.ground, excess[:carpet]].include?(rows[y][x]) }.to_h { |cell| [cell, true] }
+      # On the ground (an islet's too) or a carpet of grass, and on a route's
+      # trail where the water comes down to it
+      under = [@place.ground, excess[:carpet]]
+      under.push(@place.street) if @place.kind == "route"
+      cells = bank_cells.select { |x, y| under.include?(rows[y][x]) }.to_h { |cell| [cell, true] }
       cells.each_key do |x, y|
         left, right = cells[[x - 1, y]], cells[[x + 1, y]]
         part = (left == right) ? 1 : (left ? 2 : 0)
@@ -795,16 +1054,21 @@ module MapProceduralGenerator
     end
 
     # Sandbanks (walked on after surfing) and rocks in the sea around an
-    # island, off the shore, the piers and one another.
-    def scatter_reefs
+    # island or a port, or in the water crossing a route: off the shore, the
+    # piers, the way across and one another.
+    def scatter_reefs(banks, reefs, rng)
       # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
       # the hand-made maps
-      [[@place.bank, ISLAND_BANKS, [2, 4], [2, 3]], [@place.reef, ISLAND_REEFS, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
+      [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
         next if !sym
-        @rng.rand(count).times do
-          w, h = @rng.rand(ws[0]..ws[1]), @rng.rand(hs[0]..hs[1])
+        rng.rand(count).times do
+          w, h = rng.rand(ws[0]..ws[1]), rng.rand(hs[0]..hs[1])
           spots = (0..@h - h).flat_map { |y| (0..@w - w).map { |x| [x, y] } }
-          spot = spots.shuffle(random: @rng).find { |x, y| open_sea?(x, y, w, h, 2) }
+          spot = spots.shuffle(random: rng).find do |x, y|
+            open_sea?(x, y, w, h, 2) && (y - 3...y + h + 3).none? do |cy|
+              (x - 3...x + w + 3).any? { |cx| inside?(cx, cy) && @street[cy][cx] }
+            end
+          end
           break if !spot
           reef(*spot, w, h, sym)
         end
@@ -1391,6 +1655,14 @@ module MapProceduralGenerator
       return put_brick(pick_brick(kind, shrink), allowed)
     end
 
+    # A required brick whose drawn brick didn't fit: any brick of that type,
+    # smallest first.
+    def place_smallest(kind)
+      return false if [LAKE, HILL].include?(kind)
+      bricks = @bricks.select { |b| b.kind == kind }
+      return bricks.sort_by { |b| [b.rows.sum { |r| r.delete(" ").length }, b.name] }.any? { |b| put_brick(b) }
+    end
+
     def put_brick(brick, allowed = nil)
       bw, bh = brick.rows.map(&:length).max, brick.rows.length
       distances = brick.door ? street_distances : nil
@@ -1410,11 +1682,34 @@ module MapProceduralGenerator
         end
       end
       return false if spots.empty?
-      # Close to a street, but not always the closest spot
+      # Close to a street, but not always the closest spot (in a town, along
+      # the street: DOOR_SLACK)
       best = spots.map { |s| s[2] }.min
-      x, y, = spots.select { |s| s[2] <= best + 2 }.sample(random: @rng)
+      slack = DOOR_SLACK[@place.kind] || 2
+      near = spots.select { |s| s[2] <= best + slack }
+      if brick.door
+        # A door whose only way to the street went through the brick itself
+        # is skipped
+        x, y, = near.shuffle(random: @rng).find { |sx, sy,| door_reachable?(brick, sx, sy) }
+        return false if !x
+      else
+        x, y, = near.sample(random: @rng)
+      end
       stamp(brick, x, y)
       return [x, y]
+    end
+
+    # True if the street can still be reached from below the door once the
+    # brick stands at x, y.
+    def door_reachable?(brick, x, y)
+      cells = []
+      brick.rows.each_with_index do |row, dy|
+        row.each_char.with_index { |c, dx| cells.push([x + dx, y + dy]) if c != " " && !@solid[y + dy][x + dx] }
+      end
+      cells.each { |cx, cy| @solid[cy][cx] = true }
+      reached = street_distances[y + brick.rows.length][x + brick.door[0]]
+      cells.each { |cx, cy| @solid[cy][cx] = false }
+      return !reached.nil?
     end
 
     # The brick's cells must be free, with one free tile around it (streets
@@ -1424,7 +1719,7 @@ module MapProceduralGenerator
         row.each_char.with_index do |c, dx|
           next if c == " "
           cx, cy = x + dx, y + dy
-          return false if @solid[cy][cx] || @street[cy][cx]
+          return false if @solid[cy][cx] || @street[cy][cx] || @zone&.[](cy)&.[](cx)
           raised = level_at(cx, cy) > 0
           return false if HIGHLAND.include?(brick.kind) != raised
           (-1..1).each do |oy|
@@ -1630,7 +1925,13 @@ module MapProceduralGenerator
     end
     place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
-    layout = PlaceBuilder.new(place, bricks, palette, seed).build
+    builder = PlaceBuilder.new(place, bricks, palette, seed)
+    begin
+      layout = builder.build
+    rescue Error
+      raise if !builder.plain_retry?
+      layout = PlaceBuilder.new(place, bricks, palette, seed, true).build
+    end
     text = plan_text(place, seed, layout.rows)
     return MapGenerator.parse(text, place.file), text, layout
   end

@@ -1,0 +1,9 @@
+# Une longue tache de hautes herbes, que le sentier longe.
+Brique = Hautes herbes (longue tache)
+Type   = herbes
+Poids  = 2
+[Map]
+ """"""
+""""""""""""
+""""""""""""
+  """"""""

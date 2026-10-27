@@ -17,6 +17,66 @@ module MapProceduralGenerator
   # Street width in tiles (exits, streets and paths to the doors).
   STREET_WIDTH = 2
 
+  # Natural border: past its first row of trees, the border of a place of that
+  # kind (« Lieu ») grows inwards by that many more rows of trees, changing by
+  # one row every BORDER_STRETCH trees along each side, at most BORDER_SHARE
+  # of the map across. BORDER_SALT: its own draws, apart from the place's.
+  BORDER_DEPTH = { "ville" => 0..1, "route" => 0..2 }.freeze
+  BORDER_STRETCH = 2..5
+  BORDER_SHARE = 0.2
+  BORDER_SALT = 0x5B0D
+
+  # Paved square of a town around its hub (tiles across, tiles down), the
+  # fountain object of ville.txt in the middle, only in towns at least
+  # min_side tiles across both ways (not in villages). PLAZA_SALT: its own
+  # draws.
+  PLAZA = { width: 9..12, height: 8..10, fountain: "f", min_side: 30 }.freeze
+  PLAZA_KIND = "fontaine"
+  PLAZA_SALT = 0x91A2A
+
+  # The monument of a town (« monument » in [Briques]) stands within that
+  # many tiles of its square, when it has one.
+  MONUMENT_REACH = 3
+
+  # A stretch of sand across a long plain route (see
+  # PlaceBuilder#lay_transition), that often (%) on routes of these
+  # ambiances at least min_length tiles long: size tiles along the route,
+  # rocks % of its cells; ground and rock: symbols of route.txt.
+  # TRANSITION_SALT: its own draws.
+  TRANSITION = { chance: 40, ambiances: ["verdoyante", "automne"], min_length: 60, size: 14..22,
+                 rocks: 3, ground: "§", rock: "¤" }.freeze
+  TRANSITION_SALT = 0x5A4D
+
+  # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
+  # by weight; boost: [Briques] types raised to that many times their
+  # highest count. GRID: tiles between two streets of a « grille » (across,
+  # down); CANAL: width of the canal of a « canal ». PLAN_SALT: their own
+  # draws.
+  TOWN_PLANS = {
+    "carrefour" => { weight: 4 },
+    "grille"    => { weight: 2 },
+    "canal"     => { weight: 1 },
+    "clairière" => { weight: 1, boost: { "arbre" => 3 } }
+  }.freeze
+  GRID = { across: 14..16, down: 12..14 }.freeze
+  CANAL = { width: 4..5 }.freeze
+  PLAN_SALT = 0x91A45
+
+  # The avenue of a town (the streets of its first two exits) is one tile
+  # wider than STREET_WIDTH, except within AVENUE_MARGIN tiles of the edges.
+  AVENUE_MARGIN = 6
+
+  # The streets of a plain route wind: one tile sideways every few steps
+  # (every), at most sway tiles off the straight line. TRAIL_SALT: its own
+  # draws.
+  TRAIL = { every: 3..6, sway: 4 }.freeze
+  TRAIL_SALT = 0x7EA11
+
+  # A building goes at most that many tiles further from its street than the
+  # closest spot found, by kind of place (2 for the others): towns line their
+  # buildings along the streets.
+  DOOR_SLACK = { "ville" => 0 }.freeze
+
   # A door is placed at most this many tiles away from an existing street.
   MAX_DOOR_DISTANCE = 6
 
@@ -61,10 +121,12 @@ module MapProceduralGenerator
   # drawn among those of its brick type: [map ID, x, y of its exit (the door
   # mat, the player arrives just above it)]. The copy keeps the map's tiles,
   # not its events. A centre's copy is the healing spot of its town.
+  HOUSE_INTERIORS = [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]].freeze
   INTERIORS = {
     "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
     "boutique" => [[25, 4, 8], [54, 4, 8]],
-    "maison"   => [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]],
+    "maison"   => HOUSE_INTERIORS,
+    "refuge"   => HOUSE_INTERIORS,
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
@@ -229,6 +291,10 @@ module MapProceduralGenerator
   # Sandbanks and rocks in the sea around an island
   ISLAND_BANKS = 1..3
   ISLAND_REEFS = 3..6
+  # The same in the sea of a port and in the water crossing a route (their
+  # own draws, SEA_LIFE_SALT), when the place has « Recif » and « Banc »
+  SEA_LIFE = { banks: 0..2, reefs: 1..3 }.freeze
+  SEA_LIFE_SALT = 0x5EA1
   # Island names: « Île » and a name, or a name alone, from these sections of
   # this file
   ISLAND_NAMES_FILE = "Lore/noms.txt"
