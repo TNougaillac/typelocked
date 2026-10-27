@@ -119,4 +119,17 @@ describe("room server", () => {
     const again = await connect(code, "Tom", "secret-of-tom-0001");
     expect((await again.next("welcome")).started).toBe(true);
   });
+
+  it("keeps each player's last progress for the launcher", async () => {
+    const code = await createRoom();
+    const tom = await connect(code, "Tom", "secret-of-tom-0001");
+    const leo = await connect(code, "Léo", "secret-of-leo-0001");
+    tom.send({ type: "event", data: { kind: "status", seals: 2, score: 230 } });
+    tom.send({ type: "event", data: { kind: "news", what: "seal", count: 2 } });
+    await leo.next("event");
+    await leo.next("event");
+    const info = await (await call(`/rooms/${code}`)).json();
+    expect(info.players.find((p) => p.name === "Tom").status).toEqual({ kind: "status", seals: 2, score: 230 });
+    expect(info.players.find((p) => p.name === "Léo").status).toBe(null);
+  });
 });

@@ -719,7 +719,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `wrangler.jsonc` | Configuration du Worker et migration du Durable Object (SQLite). |
 
 ## F18. Partie multi (Online et pont local)
-**Statut :** Online v1.0.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
+**Statut :** Online v1.1.0 écrit, **non testé en jeu** ; pont testé hors jeu (tests et essai à deux ponts contre le serveur local). Spec #141, ticket #143, ADR 0002.
 **Dossiers :** `Plugins/Online/` (jeu), `online/bridge/` (pont Node.js 22.4 ou plus, repris plus tard par le launcher #52).
 
 ### Règles
@@ -728,6 +728,11 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Nouvelle partie :** si le pont est dans un salon, la nouvelle partie est une **partie multi**. Tant que l'hôte n'a pas lancé, une fenêtre attend (« Salon X : en attente du lancement… », avec le nombre de joueurs connectés) ; Retour joue en solo. La graine du monde est celle du salon. Sans pont, une nouvelle partie est une partie solo, inchangée.
 - **Règles du salon :** appliquées avant les choix de mode (`NewGameSetup`, ordre 5). Nuzlocke obligatoire : le mode est activé sans le choix, avec un message. Même type pour tous : le type est tiré de la graine du salon, donc identique chez chacun. Tirage obligatoire : le type de chaque joueur est tiré au hasard. Sinon, le joueur choisit comme en solo. Le Monotype reste imposé (ADR 0001).
 - **Événements :** sur la carte, le jeu lit ceux des autres joueurs toutes les `POLL_INTERVAL` (0,5 s) dans `Online.inbox` ; `Online.publish(données)` les envoie. Les tickets suivants (#144 à #148) s'en servent. Si le pont ne répond pas, le jeu ne le rappelle pas avant `RETRY_AFTER` (10 s), pour ne jamais ralentir.
+
+- **Course en direct (#144) :** toutes les `STATUS_INTERVAL` (2 s) sur la carte, le jeu compare la progression du joueur (sceaux, lieu, équipe, morts, Anciens, Parrain, Arceus, score RunHistory, run Nuzlocke perdu) à la dernière envoyée ; si elle a changé, il l'envoie au salon avec ses annonces (sceau gagné, Pokémon perdu, Ancien, Parrain, Arceus, élimination). Le serveur garde la dernière progression de chacun (`GET /rooms/<code>`, pour le launcher).
+- **Annonces :** celles des autres joueurs s'affichent en haut à droite pendant `NEWS_TIME` (3 s), l'une après l'autre, jamais pendant un message, un événement ou un combat.
+- **Vainqueur :** le premier à battre Arceus gagne la course ; tout le salon l'apprend. Un joueur qui perd son run Nuzlocke devient spectateur : il continue l'aventure et garde le panneau du salon.
+- **Panneau du salon :** menu Pause > Salon (partie multi seulement) : pour chaque joueur (8 au plus), pseudo, hôte, absent, spectateur ou vainqueur, sceaux, morts, score, lieu et icônes de l'équipe (les morts grisés).
 
 ### Fichiers
 | Fichier | Rôle |
@@ -738,11 +743,14 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `Plugins/Online/004_Data.rb` | Salon de la partie, dans la sauvegarde (`$online`). |
 | `Plugins/Online/005_Bridge.rb` | Requêtes au pont (`HTTPLite`). |
 | `Plugins/Online/006_Game.rb` | Nouvelle partie multi, attente, règles, lecture des événements. |
+| `Plugins/Online/007_News.rb` | Annonces tirées de deux progressions d'un joueur. |
+| `Plugins/Online/008_Race.rb` | Progression envoyée, événements reçus, vainqueur, fenêtre d'annonce. |
+| `Plugins/Online/009_Panel.rb` | Panneau du salon (menu Pause). |
 | `online/bridge/src/*.js` | Pont : identité, configuration, connexion au salon, service local, ligne de commande. |
 | `tools/ci/check_online.rb` | Contrôle CI du JSON et des règles du salon. |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`.
+`Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`.
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -837,3 +845,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.31.0 : routes marines (`Mers`) d'après les routes de Hoenn : mer d'un bout à l'autre, plages aux bouts, crêtes et massifs de roche sur l'eau (`RocherMarin`), rochers et bancs de sable, couloir libre pour surfer, butins sur les bancs de sable ; WorldEvents v1.15.0 (pas d'objets ordinaires sur une route marine) | `Plugins/MapProceduralGenerator/*`, `Plugins/WorldEvents/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Serveur des salons v1.0.0 (#142) : Worker Cloudflare, un Durable Object par salon (code, règles, graine, présence, départ, relais des événements), clé de groupe ; tests d'intégration et CI | `online/server/*`, `.github/workflows/online.yml`, `docs/FEATURES.md` |
 | 27/10/2026 | Online v1.0.0 et pont local (#143) : partie multi lancée depuis un salon (attente de l'hôte, graine du salon, règles imposées), lecture et envoi des événements des joueurs ; pont Node.js (identité, connexion, service local) ; contrôle CI | `Plugins/Online/*`, `online/bridge/*`, `tools/ci/check_online.rb`, `.github/workflows/*`, `docs/FEATURES.md` |
+| 27/10/2026 | Online v1.1.0 (#144) : course en direct (progression envoyée quand elle change, annonces des autres joueurs, vainqueur, spectateur), panneau du salon dans le menu Pause ; le serveur garde la dernière progression de chaque joueur | `Plugins/Online/*`, `online/server/src/room.js`, `online/server/test/room.test.js`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |

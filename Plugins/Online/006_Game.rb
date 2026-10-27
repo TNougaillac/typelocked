@@ -7,7 +7,6 @@
 #===============================================================================
 module Online
   @inbox = []
-  @last_event = 0
 
   module_function
 
@@ -85,7 +84,7 @@ module Online
   def poll
     return if !multi? || System.uptime < (@next_poll || 0)
     @next_poll = System.uptime + POLL_INTERVAL
-    events, @last_event = Bridge.events_after(@last_event)
+    events, data.last_event = Bridge.events_after(data.last_event)
     @inbox.concat(events)
   end
 end

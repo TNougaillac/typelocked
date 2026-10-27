@@ -18,7 +18,10 @@ module Online
     def events_after(after)
       result = request(:get, "/events?after=#{after}")
       return [[], after] if !result
-      return [result["events"] || [], result["last"] || after]
+      last = result["last"] || after
+      # A new bridge numbers its events from 1 again: read them all.
+      return events_after(0) if last < after
+      return [result["events"] || [], last]
     end
 
     # Sends data (a Hash) to the other players of the room.

@@ -10,6 +10,13 @@ J = Online::Json
 SOURCE = File.join(ROOT, "Plugins", "Online", "002_Json.rb")
 RULES = File.join(ROOT, "Plugins", "Online", "003_Rules.rb")
 
+# Message texts of the game, outside it
+def _INTL(text, *args)
+  text.gsub(/\{(\d)\}/) { args[Regexp.last_match(1).to_i - 1].to_s }
+end
+require File.join(ROOT, "Plugins", "Online", "007_News")
+NEWS = File.join(ROOT, "Plugins", "Online", "007_News.rb")
+
 # JSON: what the bridge sends comes back the same
 samples = [
   { "room" => { "code" => "ABC234", "seed" => 793_175, "started" => true, "rules" => { "nuzlocke" => "required", "sameType" => false } } },
@@ -45,5 +52,19 @@ same = free.merge("sameType" => true)
 end
 seen = (1..50).map { |seed| Online.forced_type(same, seed, types) }.uniq
 CI.error(RULES, nil, "même type pour tous : toujours le même type quelle que soit la graine") if seen.length < 2
+
+# Announcements of the race: what changed between two statuses of a player
+start = { "seals" => 0, "deaths" => 0, "elders" => 0, "godfather" => false, "won" => false, "eliminated" => false }
+CI.error(NEWS, nil, "annonce au premier envoi") if !Online.news(nil, start).empty?
+CI.error(NEWS, nil, "annonce sans changement") if !Online.news(start, start.dup).empty?
+later = start.merge("seals" => 3, "deaths" => 2, "elders" => 4, "godfather" => true, "won" => true, "eliminated" => true)
+whats = Online.news(start, later).map { |n| n["what"] }
+expected = %w[seal death elder godfather arceus eliminated]
+CI.error(NEWS, nil, "annonces #{whats} au lieu de #{expected}") if whats != expected
+Online.news(start, later).each do |item|
+  text = Online.news_text("Léo", item)
+  CI.error(NEWS, nil, "annonce « #{item['what']} » sans texte") if !text&.include?("Léo")
+end
+CI.error(NEWS, nil, "3e sceau mal écrit") if Online.news_text("Léo", { "what" => "seal", "count" => 3 }) != "Léo a gagné son 3e sceau !"
 
 CI.finish("Mode multijoueur")

@@ -6,6 +6,19 @@ module Online
   class Data
     attr_reader :code, :you, :host, :rules, :seed
     attr_accessor :rules_applied
+    # This player's last progress sent; the other players' (id => status);
+    # the id of the first player to beat Arceus.
+    attr_accessor :last_status, :winner
+    # Number of the last event of the bridge read by this game.
+    attr_writer :last_event
+
+    def last_event
+      @last_event || 0
+    end
+
+    def players
+      @players ||= {}
+    end
 
     # room: the room as the bridge describes it (Hash with string keys).
     def initialize(room)

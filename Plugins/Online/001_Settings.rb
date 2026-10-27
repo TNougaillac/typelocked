@@ -17,4 +17,8 @@ module Online
   POLL_INTERVAL = 0.5
   # Seconds without asking the bridge after it did not answer.
   RETRY_AFTER = 10
+  # Seconds between two checks of this player's progress (sent when changed).
+  STATUS_INTERVAL = 2
+  # Seconds an announcement of another player stays on screen.
+  NEWS_TIME = 3
 end

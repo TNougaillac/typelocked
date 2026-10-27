@@ -30,7 +30,10 @@ export class Room extends DurableObject {
     const room = await this.ctx.storage.get("room");
     if (!room) return json({ error: "not_found" }, 404);
     const { code, rules, started } = room;
-    return json({ code, rules, started, players: await this.presence() });
+    const players = await this.presence();
+    const statuses = await this.ctx.storage.get(players.map((p) => `status:${p.id}`));
+    for (const p of players) p.status = statuses.get(`status:${p.id}`) || null;
+    return json({ code, rules, started, players });
   }
 
   async join(request, code, params) {
@@ -69,6 +72,8 @@ export class Room extends DurableObject {
       return send(ws, { type: "error", error: "bad_json" });
     }
     if (msg?.type === "event" && msg.data && typeof msg.data === "object") {
+      // A player's last progress stays with the room (scores for the launcher).
+      if (msg.data.kind === "status") await this.ctx.storage.put(`status:${id}`, msg.data);
       return this.broadcast({ type: "event", from: id, data: msg.data }, ws);
     }
     if (msg?.type === "start") return this.start(ws, id);
