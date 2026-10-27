@@ -508,7 +508,8 @@ end
 # items not given by a lieutenant are placed once each, the first ones in
 # nooks (up to half of them).
 def check_weather(result, seed, args, events)
-  nooks = events[:items].count { |item| item[:source] == "recoin" }
+  # The nooks holding a Heart Scale keep it (see W.weather_nooks)
+  nooks = events[:items].count { |item| item[:source] == "recoin" && item[:item] != W::HEART_SCALE }
   W::WEATHER_ITEMS.each do |types, list|
     type = types.first
     typed = W.world_events(result, seed, **args, type: type)

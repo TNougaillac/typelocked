@@ -19,7 +19,8 @@
 #   [Terrains]                 (edge-aware tiles: one symbol, borders picked
 #   P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283
 #       iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=D L1 @.
-#                               from the neighbours. T<n> = inside tile; N..SE
+#                               from the neighbours. T<n> = inside tile (- for
+#                               none: edges only); N..SE
 #                               = outer edges/corners, iNW..iSE = inner corners
 #                               (missing ones fall back to the inside tile);
 #                               with=<symbols> = other terrains that join it;
@@ -116,9 +117,10 @@ module MapGenerator
       when :terrains
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?
-        fail_at.call("attendu « symbole = T<n> N=T<n> ... »") unless content =~ /\A(\S)\s*=\s*T(\d+)(.*)\z/
+        fail_at.call("attendu « symbole = T<n> N=T<n> ... »") unless content =~ /\A(\S)\s*=\s*(?:T(\d+)|#{EMPTY_TOKEN})(.*)\z/
         symbol = $1
-        terrain = Terrain.new(384 + $2.to_i, {}, symbol, 0, nil)
+        # « - » inside: only the edges are drawn (nothing over what lies below)
+        terrain = Terrain.new($2 ? 384 + $2.to_i : 0, {}, symbol, 0, nil)
         $3.split.each do |option|
           case option
           when /\A(\w+)=T(\d+)\z/

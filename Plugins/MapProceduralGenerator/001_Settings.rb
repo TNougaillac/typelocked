@@ -92,6 +92,33 @@ module MapProceduralGenerator
   MOUNTAIN_CLIMB = 0.7
   FACE_WAVE = 2
   MOUNTAIN_GRASS = 1..3
+  # A raised band stops short of a side of the map that often (%), at least
+  # SIDE_GAP tiles from its streets; peaks (one level above the ground
+  # around them) per 20x20 tiles.
+  SIDE_TRIM = 60
+  SIDE_GAP = 4
+  # Slopes, as on the official maps: that often (%) a boundary runs
+  # diagonally (each step goes its way SLOPE_BIAS % of the time) and wanders
+  # up to SLOPE_WAVE rows; the cut side of a mesa wanders up to SIDE_WAVE
+  # columns. Their own draws (RELIEF_SALT).
+  SLOPE_CHANCE = 60
+  SLOPE_BIAS = 80
+  SLOPE_WAVE = 5
+  SIDE_WAVE = 3
+  RELIEF_SALT = 0x5E1F
+  # Towns in terraces: that often (%) a town big enough for a square (and not
+  # a port, an island, a canal or a mask) climbs in steps, bands between
+  # TERRACE_FACES boundaries, TERRACE_DEPTH rows deep at least, up to as many
+  # levels as its « Relief » has symbols, their sides cut like a mesa. Drawn
+  # with TERRACE_SALT; drawn again (TERRACE_TRIES in all), then built flat,
+  # when its bricks don't fit.
+  TERRACE_CHANCE = 65
+  TERRACE_TRIES = 4
+  TERRACE_PEAKS = 0.5..1.0
+  TERRACE_FACES = 2..4
+  TERRACE_DEPTH = 7
+  TERRACE_SALT = 0x7E44
+  MOUNTAIN_PEAKS = 0.5..1.5
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
@@ -303,10 +330,11 @@ module MapProceduralGenerator
   # Decor maps (see 013_Fillers.rb): the empty squares of the world next to a
   # place become maps that can't be walked, so the screen never shows black
   # past a place's edge. Their map names; rocks on a mountain decor (share of
-  # its tiles); symbols of the world grid for them (one per map, the decor
-  # squares left over stay empty).
+  # its tiles, [Legend] symbols of rocks on rock); symbols of the world grid
+  # for them (one per map, the decor squares left over stay empty).
   FILLERS = true
   FILLER_NAME = "Décor généré"
   FILLER_ROCKS = 0.04
+  FILLER_ROCK_SYMBOLS = %w[ø ö õ ó].freeze
   FILLER_SYMBOLS = ((0x3B1..0x3C9).to_a + (0x391..0x3A9).to_a - [0x3A2] + (0x410..0x44F).to_a).map { |c| c.chr(Encoding::UTF_8) }.freeze
 end
