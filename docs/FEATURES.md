@@ -693,6 +693,31 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Un fichier `RunHistory.rxdata` écrit par la v1.0.0 (sans score) n'est plus lisible : l'historique repart de zéro.
 - Les dresseurs battus avant la v1.1.0 dans une sauvegarde existante ne sont pas comptés.
 
+## F17. Serveur des salons (multijoueur)
+**Statut :** v1.0.0, écrit et testé hors jeu (tests d'intégration), **non déployé**. Spec #141, ticket #142, ADR 0002.
+**Dossier :** `online/server/` (Worker Cloudflare en JavaScript, hors du jeu).
+
+### Règles
+- **Clé de groupe :** chaque requête porte `Authorization: Bearer <GROUP_KEY>` ; sans elle, rien n'est possible (le jeu reste privé).
+- **Créer un salon :** `POST /rooms` avec le pseudo, le code secret de l'hôte et les règles (`nuzlocke` : `required`/`free`, `typeDraw` : `required`/`free`, `sameType` : `true`/`false`). Renvoie un code de 6 caractères sans 0/O ni 1/I/L. Un Durable Object par salon tire la graine (0 à 999 999, comme MapProc).
+- **Voir un salon :** `GET /rooms/<code>` donne les règles, si la partie a démarré et les joueurs (connectés ou non).
+- **Rejoindre :** WebSocket sur `/rooms/<code>/ws?name=&secret=`. L'identifiant d'un joueur vient de son code secret : deux pseudos identiques restent distincts, et le même code secret retrouve sa place (nouvelle connexion, retour après une coupure). 8 joueurs au plus ; après le départ, seuls les joueurs déjà inscrits peuvent revenir.
+- **Messages reçus :** `welcome` (son identifiant, l'hôte, les règles, la graine), `presence` (joueurs, connectés, `allConnected`), `start` (graine et règles), `event` (événement d'un autre joueur), `error`.
+- **Messages envoyés :** `event` (objet libre de 8 Ko au plus, relayé aux autres joueurs) et `start` (hôte seulement, quand tout le monde est connecté).
+- **Coût :** API Hibernation des WebSockets, donc un salon au repos ne consomme pas de durée.
+
+### Offre gratuite de Cloudflare (vérifiée le 27/10/2026)
+100 000 requêtes par jour (un message reçu compte pour 1/20 de requête, les messages envoyés sont gratuits), 13 000 Go-s de durée par jour, 5 millions de lignes SQLite lues et 100 000 écrites par jour, 5 Go stockés. Remise à zéro à minuit UTC. Un salon de 4 joueurs reste très loin de ces limites.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `src/index.js` | Clé de groupe, création d'un salon, aiguillage vers le Durable Object. |
+| `src/room.js` | Le salon : règles, graine, joueurs, présence, départ, relais des événements. |
+| `src/protocol.js` | Règles du protocole (codes, règles du salon, pseudos, identifiants). |
+| `test/room.test.js` | Tests d'intégration (`npm test`, runtime Workers local). |
+| `wrangler.jsonc` | Configuration du Worker et migration du Durable Object (SQLite). |
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -784,3 +809,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 26/10/2026 | MapProceduralGenerator v0.29.0 : d'après l'analyse des cartes officielles, bordures naturelles, places et avenues, plans de ville (carrefour, grille, canal, clairière), monument, sentiers sinueux, étendues de sable, rochers et bancs de sable dans les ports et les traversées, refuges sur les routes | `Plugins/MapProceduralGenerator/001_Settings.rb`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
 | 26/10/2026 | MapProceduralGenerator v0.30.0, MapGenerator v1.12.0 (#111) : relief d'après les cartes officielles : niveaux en plateaux du sol de l'ambiance (rebord fin au nord, falaise sur les côtés et au sud), falaises en pente, plateaux isolés aux bords serpentants, chemins et briques sur les plateaux (niveaux dessinés sur la couche 3), villes en gradins avec jardins surélevés et escaliers larges ; massifs, buttes et recoins de roche ; terrain sans tuile intérieure (`-`) dans MapGenerator | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/002_Parser.rb`, `Plugins/MapGenerator/meta.txt`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/rocaille_*.txt`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.31.0 : routes marines (`Mers`) d'après les routes de Hoenn : mer d'un bout à l'autre, plages aux bouts, crêtes et massifs de roche sur l'eau (`RocherMarin`), rochers et bancs de sable, couloir libre pour surfer, butins sur les bancs de sable ; WorldEvents v1.15.0 (pas d'objets ordinaires sur une route marine) | `Plugins/MapProceduralGenerator/*`, `Plugins/WorldEvents/*`, `MapProc/route.txt`, `MapProc/monde.txt`, `tools/ci/check_mapproc.rb`, `docs/FEATURES.md` |
+| 27/10/2026 | Serveur des salons v1.0.0 (#142) : Worker Cloudflare, un Durable Object par salon (code, règles, graine, présence, départ, relais des événements), clé de groupe ; tests d'intégration et CI | `online/server/*`, `.github/workflows/online.yml`, `docs/FEATURES.md` |
