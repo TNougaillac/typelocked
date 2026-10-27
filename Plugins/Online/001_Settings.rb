@@ -26,4 +26,11 @@ module Online
   KICK_AFTER = 300
   # Seconds a challenge to a duel waits for the other player's answer.
   CHALLENGE_TIME = 30
+  # Seconds between two sends of this player's position when it does not
+  # change (it is sent every POLL_INTERVAL while it changes).
+  POS_REFRESH = 10
+  # Tiles another player's character may lag behind: beyond, it jumps; from
+  # CATCH_UP_STEPS, it walks one speed faster.
+  MAX_STEPS = 16
+  CATCH_UP_STEPS = 3
 end

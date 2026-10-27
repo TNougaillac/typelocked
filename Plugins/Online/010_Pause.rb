@@ -32,6 +32,7 @@ module Online
 
   # The game goes on solo: no room, no panel.
   def leave_room
+    clear_ghosts
     $online = nil
     @inbox.clear
     @room = nil

@@ -87,7 +87,8 @@ CI.error(PAUSE, nil, "absent depuis le plus longtemps pas en premier") if Online
 CI.error(PAUSE, nil, "durée mal écrite") if Online.duration_text(Online::KICK_AFTER) != "5:00"
 
 # Duels: messages of a duel between Tom (a, challenger) and Léo (b), as Léo's game
-%w[011_Duel 013_Trade].each { |f| require File.join(ROOT, "Plugins", "Online", f) }
+Game_Character = Class.new   # Engine class, only subclassed at load
+%w[011_Duel 013_Trade 014_Ghosts].each { |f| require File.join(ROOT, "Plugins", "Online", f) }
 DUEL = File.join(ROOT, "Plugins", "Online", "011_Duel.rb")
 module Online
   Me = Struct.new(:you)
@@ -169,5 +170,17 @@ Online.trade_event("a", Online.trade_message("t1", "b", "confirm"))
 CI.error(TRADE, nil, "confirmation non reçue") if !trade.confirmed
 Online.trade_event("a", Online.trade_message("t1", "b", "cancel"))
 CI.error(TRADE, nil, "annulation non reçue") if trade.ended != :cancel
+
+# The other players in the world: tiles walked by their character
+GHOSTS = File.join(ROOT, "Plugins", "Online", "014_Ghosts.rb")
+{ [[5, 5], [5, 6]] => 2, [[5, 5], [4, 5]] => 4, [[5, 5], [6, 5]] => 6, [[5, 5], [5, 4]] => 8,
+  [[5, 5], [6, 6]] => nil, [[5, 5], [5, 5]] => nil, [[5, 5], [9, 5]] => nil }.each do |(from, to), wanted|
+  got = Online.step_dir(from, to)
+  CI.error(GHOSTS, nil, "pas de #{from} à #{to} : #{got.inspect} au lieu de #{wanted.inspect}") if got != wanted
+end
+steps = Online.new_steps([1, 1], [[1, 1], [1, 2], [1, 2], [1, 3]])
+CI.error(GHOSTS, nil, "cases à parcourir : #{steps.inspect}") if steps != [[1, 2], [1, 3]]
+long = (1..40).map { |y| [0, y] }
+CI.error(GHOSTS, nil, "trop de retard gardé") if Online.new_steps([0, 0], long).length != Online::MAX_STEPS
 
 CI.finish("Mode multijoueur")

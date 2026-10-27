@@ -50,7 +50,10 @@ module Online
     case info["kind"]
     when "status"
       data.players[from] = info
+    when "pos"
+      position_event(from, info)
     when "news"
+      forget_player(from) if info["what"] == "kicked"
       text = news_text(player_name(from), info)
       @news.push(text) if text
       if info["what"] == "arceus" && !data.winner
@@ -93,6 +96,7 @@ module Online
       @next_status = System.uptime + STATUS_INTERVAL
       send_status
     end
+    ghost_update
     meeting_update
     show_news
   end
