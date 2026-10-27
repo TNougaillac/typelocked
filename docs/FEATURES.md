@@ -358,7 +358,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `ALWAYS_ON` vaut `true`.
 
 ## F10. Rythme rapide (FastPace)
-**Statut :** v1.1.0, écrit, **non testé**.
+**Statut :** v1.2.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/FastPace/`
 
@@ -369,7 +369,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Chaussures de course** dès le début.
 - **Déplacements plus rapides** (`MOVE_SPEEDS`) : course 0,1 s/case (Essentials : 0,125), vélo 0,05 s/case (0,1), surf 0,1 s/case (0,125). La marche reste à 0,25 s/case. Les déplacements imposés par un événement gardent leur vitesse.
 - **Options par défaut d'une nouvelle partie :** course activée par défaut (maintenir Retour pour marcher) et texte rapide. Le joueur peut les changer dans les Options.
-- **Choix du Repousse** (#118) : quand un Repousse s'épuise, le message liste les Repousses du Sac avec leur quantité (et « Non ») ; le choix l'utilise directement, sans ouvrir le Sac.
+- **Choix du Repousse** (#118) : quand un Repousse s'épuise, rien n'est relancé automatiquement : le même menu que le raccourci Poké Ball des combats sauvages (Enhanced Battle UI) s'ouvre, avec les Repousses du Sac et leur quantité. Gauche/Droite pour choisir, C pour l'utiliser, Z pour la description, Retour (ou « Retour » aux bouts du menu) pour ne rien utiliser.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -378,7 +378,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `001_Settings.rb` | Tous les réglages. |
 | `002_ExpMultiplier.rb` | `Pokemon#base_exp` multiplié. |
 | `003_Movement.rb` | Chaussures de course, vitesses du joueur, options par défaut. |
-| `004_Repel.rb` | Choix du Repousse suivant dans le message. |
+| `004_Repel.rb` | Menu de choix du Repousse suivant (`FastPace::RepelSelection`, graphismes d'Enhanced Battle UI). |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Player#has_running_shoes`, `Game_Player#set_movement_type`, `PokemonSystem#initialize`. Le gestionnaire `:on_player_step_taken, :repel_counter` d'Essentials est remplacé (retiré puis ajouté de nouveau).
@@ -753,4 +753,5 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | Sprites de la Famille (#103) : 18 types de dresseur `LIEUTENANT_<TYPE>`, `ANCIEN_1` à `ANCIEN_4` et `PARRAIN`, sprites copiés d'Essentials ; WorldEvents v1.8.0 (le lieutenant prend le sprite de son type), Monotype v1.5.4 (règle d'arène pour ces types) | `PBS/trainer_types.txt`, `Graphics/Trainers/`, `Graphics/Characters/`, `tools/art/family_sprites.rb`, `Plugins/WorldEvents/*`, `Plugins/Monotype/*`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
 | 26/10/2026 | FastPace v1.1.0 (#118) : quand un Repousse s'épuise, choix du suivant dans le message (liste des Repousses du Sac avec leur quantité) au lieu du Sac | `Plugins/FastPace/*`, `docs/FEATURES.md` |
+| 27/10/2026 | FastPace v1.2.0 (#118) : le choix du Repousse suivant ouvre le menu du raccourci Poké Ball d'Enhanced Battle UI (`Requires`) | `Plugins/FastPace/*`, `docs/FEATURES.md` |
 | 26/10/2026 | Nuzlocke v1.3.0 (#117) : sauvegarde automatique après une défaite, panneau d'équipe du Pokémon mort avec le message de sa mort, fond « City » pour les nouvelles boîtes Cimetière | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
