@@ -1,0 +1,8 @@
+# Désert et terre battue : des poteries de couleur, un rocher rouge.
+Brique    = Poteries
+Type      = decor
+Ambiances = sable, terre battue
+Poids     = 2
+[Map]
+āā
+ŵ ā

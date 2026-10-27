@@ -1,0 +1,8 @@
+# Terre battue et chemins de terre : caisses et poteries.
+Brique    = Réserve
+Type      = decor
+Ambiances = terre battue, chemins de terre
+Poids     = 2
+[Map]
+ńēē
+ńā

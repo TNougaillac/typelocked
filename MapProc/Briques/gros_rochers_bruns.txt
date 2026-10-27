@@ -1,0 +1,9 @@
+# Désert et terre battue : deux gros rochers bruns.
+Brique    = Gros rochers bruns
+Type      = decor
+Ambiances = sable, terre battue
+Poids     = 2
+[Map]
+ăă
+ăăĕĕ
+  ĕĕ

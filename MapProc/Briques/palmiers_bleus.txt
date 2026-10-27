@@ -1,0 +1,11 @@
+# Forêt tropicale : un grand palmier bleu, un petit à son pied.
+Brique    = Palmiers bleus
+Type      = decor
+Ambiances = forêt tropicale
+Poids     = 2
+[Map]
+ǒǒǒ
+ǒǒǒ
+ǒǒǒǔǔ
+ǒǒǒǔǔ
+ǒǒǒ

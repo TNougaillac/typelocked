@@ -1,0 +1,7 @@
+# Verdoyante, prairie, forêt tropicale : des rochers moussus.
+Brique    = Rochers moussus
+Type      = decor
+Ambiances = verdoyante, prairie, forêt tropicale
+[Map]
+ő ő
+ ő

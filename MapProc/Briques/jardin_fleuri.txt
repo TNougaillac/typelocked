@@ -1,0 +1,8 @@
+# Verdoyante, prairie, chemins de terre : pots et bacs de fleurs, une jardinière de légumes.
+Brique    = Jardin fleuri
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre
+Poids     = 2
+[Map]
+ūďū
+īď

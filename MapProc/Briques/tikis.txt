@@ -1,0 +1,7 @@
+# Forêt tropicale : deux tikis, un buisson.
+Brique    = Tikis
+Type      = decor
+Ambiances = forêt tropicale
+[Map]
+ĭ ŏ
+ĭļŏ

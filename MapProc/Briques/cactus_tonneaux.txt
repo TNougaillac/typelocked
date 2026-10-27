@@ -1,0 +1,8 @@
+# Désert : deux cactus tonneaux, une touffe sèche.
+Brique    = Cactus tonneaux
+Type      = decor
+Ambiances = sable
+Poids     = 2
+[Map]
+ý ñ
+ýģñ

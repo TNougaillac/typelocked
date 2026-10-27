@@ -1,0 +1,7 @@
+# Désert et forêt tropicale : un acacia, une touffe sèche.
+Brique    = Acacia
+Type      = decor
+Ambiances = sable, forêt tropicale
+[Map]
+ææ
+ææģ
