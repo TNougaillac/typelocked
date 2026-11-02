@@ -2,7 +2,8 @@
 # Monotype - Species of the type in the zone
 # On entering a map that has wild encounters, a small window at the top right
 # says how many species of the imposed type can be caught there (every
-# encounter method: grass, cave, water, fishing...). Nothing more.
+# encounter method: grass, cave, water, fishing...). Nothing more. Not shown
+# once the Nuzlocke zone is used (its one capture is spent).
 #===============================================================================
 module Monotype
   module_function
@@ -18,7 +19,13 @@ module Monotype
     end.map { |id| GameData::Species.get(id).species }.uniq
   end
 
+  # The Nuzlocke is on and this zone's capture is spent.
+  def zone_spent?
+    return defined?(Nuzlocke) && Nuzlocke.active? && Nuzlocke.data.zone_used?(Nuzlocke.current_zone)
+  end
+
   def zone_count_text
+    return nil if zone_spent?
     count = zone_species&.length
     return nil if count.nil?
     return _INTL("Type {1} : aucun Pokémon ici", type_name) if count == 0

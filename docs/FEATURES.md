@@ -122,7 +122,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - **Arènes et Ligue :** avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, s'il n'y a aucun Pokémon du type dans l'équipe (par exemple un seul Pokémon qui a perdu le type en évoluant), le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
-- **Pokémon du type dans la zone :** en entrant sur une carte qui a des rencontres sauvages, une petite fenêtre en haut à droite affiche « Type X : N Pokémon ici » (ou « aucun Pokémon ici ») : le nombre d'espèces capturables avec le type, toutes rencontres confondues (herbes, grotte, surf, pêche). Rien sur une carte sans rencontres. `SHOW_ZONE_COUNT = false` la retire.
+- **Pokémon du type dans la zone :** en entrant sur une carte qui a des rencontres sauvages, une petite fenêtre en haut à droite affiche « Type X : N Pokémon ici » (ou « aucun Pokémon ici ») : le nombre d'espèces capturables avec le type, toutes rencontres confondues (herbes, grotte, surf, pêche). Rien sur une carte sans rencontres, ni sur une zone déjà utilisée au Nuzlocke (sa capture est faite). `SHOW_ZONE_COUNT = false` la retire.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -148,7 +148,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - La liste des 18 types tient à l'écran (la fenêtre défile normalement).
 - Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
 - Au labo, chaque Poké Ball propose un starter différent du type, et le Pokémon pris arrive dans l'équipe ; refuser laisse la Poké Ball en place.
-- En entrant sur une route, la fenêtre « Type X : N Pokémon ici » glisse en haut à droite puis remonte ; rien en ville sans eau ni dans un intérieur.
+- En entrant sur une route, la fenêtre « Type X : N Pokémon ici » glisse en haut à droite puis remonte ; rien en ville sans eau ni dans un intérieur. Au Nuzlocke, après la première rencontre d'une route, en ressortir puis y revenir : plus de fenêtre.
 
 ### Limites connues
 - L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène ni à la Ligue).
