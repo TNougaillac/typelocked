@@ -2,7 +2,8 @@
 # WorldEvents - Lieutenants and their gyms, the Anciens, the Parrain, Arceus
 # Each gym of the world (an island's too) gets its lieutenant, a gym leader
 # with a favourite type drawn with the seed (never the same twice), who gives
-# the seal of his stretch and a useful TM of his type, and 2 to 4 members of
+# the seal of his stretch and a choice of loot (his useful TM of his type, a
+# held item or a pack of items: seal_loot), and 2 to 4 members of
 # the Family of that type, one of them standing where the player must pass.
 # Then the League: four Anciens of drawn types, the Parrain, Arceus.
 # Plain Ruby.
@@ -36,11 +37,11 @@ module WorldEvents
       title = atlas[:maps][town][:title]
       lose = lines.text("lieutenant_fin", title)
       trainers.push(team_section(trainer, name, lose, team, team_sets))
-      wins = lines.boxes("lieutenant_victoire", title) + (tm ? lines.boxes("lieutenant_ct", title) : [])
+      wins = lines.boxes("lieutenant_victoire", title) + lines.boxes("lieutenant_ct", title)
       add(plans, map, "Trainer", "Lieutenant", *layout[:leader], ["Facing", "bas"], ["Sight", 1],
           ["Type", trainer], ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("lieutenant_combat", title)],
           ["EndBattle", lose], *wins.map { |box| ["Win", box] }, ["Badge", [i + 1, 8].min],
-          *(tm ? [["Gift", tm[0]]] : []), ["Switch", GYM_SWITCH + i + 1])
+          ["Script", loot_script(i, tm, rng)], ["Switch", GYM_SWITCH + i + 1])
       members = gym_members(layout, rng)
       members.each_with_index do |(x, y, facing, sight), j|
         member = COUSIN_TYPES.sample(random: rng)
@@ -59,6 +60,15 @@ module WorldEvents
                      sets: team_sets, tm: tm, members: members.length })
     end
     return leaders
+  end
+
+  # The lieutenant's loot, offered in game by seal_loot: his TM (nil: none),
+  # a held item and a pack drawn from the seal's tier.
+  def loot_script(gym, tm, rng)
+    tier = SEAL_LOOT_TIERS[[gym, SEAL_LOOT_TIERS.length - 1].min]
+    held = SEAL_HELD_ITEMS[tier].sample(random: rng)
+    pack = SEAL_PACKS[tier].sample(random: rng)
+    return "WorldEvents.seal_loot(#{tm ? ":#{tm[0]}" : 'nil'}, :#{held}, #{pack.inspect})"
   end
 
   # One blocking cell, then the others drawn among the rest.

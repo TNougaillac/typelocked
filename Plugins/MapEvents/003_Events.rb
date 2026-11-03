@@ -132,6 +132,7 @@ module MapEvents
     Compiler.push_script(rewards, "$player.badges[#{badge.to_i - 1}] = true", 1) if badge
     gift = entry.value("Gift")
     Compiler.push_script(rewards, "pbReceiveItem(:#{gift})", 1) if gift
+    entry.fields.each { |key, value| Compiler.push_script(rewards, value, 1) if key == "Script" }
     if (switch = entry.value("Switch"))
       rewards.push(RPG::EventCommand.new(121, 1, [switch.to_i, switch.to_i, 0]))   # Switch ON
     end
