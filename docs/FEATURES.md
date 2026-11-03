@@ -539,7 +539,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.15.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
+**Statut :** v1.18.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -778,6 +778,39 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
+## F21. Casino de la Famille (FamilyCasino)
+**Statut :** v1.0.0, écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. Les croupiers sont posés par WorldEvents.
+**Dossier :** `Plugins/FamilyCasino/`
+
+### Règles
+- **Où :** un croupier (une Cousine) au bord d'une rue, dans `CASINO_CHANCE` (33 %) des villes sauf la première, au moins un par monde (WorldEvents, `011_Casinos.rb`, posé après tous les autres événements). Lui parler appelle `FamilyCasino.croupier` ; la première fois, il donne la Boîte Jetons.
+- **Jetons :** achetés avec de l'argent, plus cher qu'à Céladopole (`COIN_PACKS` : 50 pour 1 500, 500 pour 14 000).
+- **Jeux :** machines à sous (`pbSlotMachine`, difficulté `SLOT_DIFFICULTY` = 2) et Voltorbataille (`pbVoltorbFlip`) d'Essentials ; **roulette** : une mise (`BETS`), puis rouge ou noir (× 2) ou un des 18 types (× 18) ; chaque type est rouge ou noir, en alternance dans l'ordre de `types.txt`, et la roue tire un type ; **pile ou face** : × 2.
+- **Comptoir des lots :** Super Bonbon, PP Plus, pierres évolutives (`PRIZES`) et des CT fortes (Séisme, Laser Glace, Tonnerre, Lance-Flammes, Psyko, Ball'Ombre, Surf, Éco-Sphère : `PRIZE_MOVES`), contre des jetons.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Prix des jetons, mises, gains, difficulté des machines, lots. |
+| `002_Croupier.rb` | Menu du croupier, Boîte Jetons, achat de jetons, mises. |
+| `003_Games.rb` | Roulette, pile ou face. |
+| `004_Prizes.rb` | Comptoir des lots. |
+
+### Points d'accroche Essentials
+Aucun alias : `pbSlotMachine`, `pbVoltorbFlip`, `$player.coins`, `pbReceiveItem`.
+
+### À vérifier au premier lancement
+- Parler au croupier : Boîte Jetons reçue, achat de 50 jetons contre 1 500.
+- Machines à sous et Voltorbataille s'ouvrent et rendent la main au menu.
+- Roulette : miser 10 sur rouge, le message donne le type et sa couleur ; gain × 2 si la couleur sort.
+- Comptoir : une pierre contre 1 000 jetons.
+
+### Limites connues
+- Pas de salle dédiée : le croupier est dehors, au bord d'une rue (la salle cachée pourra venir avec un intérieur MapProc).
+- Les textes des mini-jeux d'Essentials restent en anglais (#113).
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -883,3 +916,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.0 (#162) : passe large dans les packs, 57 objets de plus (Emerald Outdoors, KingTapir Galar Misc, Stow-on-Side, Agate Village, Alola Misc ; tileset Outside jusqu'à T4895), 21 briques de décor par ambiance, 8 de rue (`lampe`) et 6 de place (`foire`) | `tools/art/import_props.py`, `docs/CREDITS.md`, `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/ville.txt`, `MapProc/route.txt`, `MapProc/Briques/*`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
+| 03/11/2026 | FamilyCasino v1.0.0 : casino de la Famille (jetons, machines à sous, Voltorbataille, roulette, pile ou face, comptoir des lots) ; WorldEvents v1.18.0 : un croupier dans un tiers des villes ; contrôle CI | `Plugins/FamilyCasino/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/011_Casinos.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
