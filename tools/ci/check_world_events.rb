@@ -286,6 +286,7 @@ def check_items(atlas, zones, plans, items)
   raise MapEvents::Error, "aucun Maître des Capacités avant le 2e sceau" if early.empty?
   casinos = plans.select { |_name, plan| plan.events.any? { |e| e.label == "Croupier" } }.keys
   raise MapEvents::Error, "aucun casino de la Famille" if casinos.empty?
+  raise MapEvents::Error, "#{casinos.length} casinos au lieu de #{W::CASINOS}" if !W::CASINOS.cover?(casinos.length)
   raise MapEvents::Error, "casino dans la ville de départ #{atlas[:start]}" if casinos.include?(atlas[:start])
   plans.each do |name, plan|
     plan.events.each do |e|
