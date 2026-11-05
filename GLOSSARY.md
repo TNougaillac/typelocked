@@ -16,6 +16,13 @@ _Avoid_ : monde, carte
 Le nombre qui détermine la région d'une partie ; la même graine redonne la même région.
 _Avoid_ : seed
 
+**Défi du jour** :
+Une partie sur la graine du monde du jour, la même pour tous les joueurs ce jour-là, avec le même type imposé et les mêmes starters. On peut le rejouer autant qu'on veut ; seul le meilleur score du jour compte.
+_Avoid_ : daily, graine du jour
+
+**Graine au hasard** :
+Une partie hors du défi du jour, sur une graine du monde tirée au hasard.
+
 ## La Famille
 
 **La Famille** :
