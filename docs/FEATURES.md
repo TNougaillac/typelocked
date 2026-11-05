@@ -465,14 +465,14 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Les obstacles sur la carte gardent les graphismes d'Essentials (`Object tree 1`, `Object rock`, `Object boulder`, copiés des événements de la démo).
 
 ## F13. Rencontres sauvages générées (ProceduralEncounters)
-**Statut :** v1.4.1, écrit, testé hors jeu (CI), **non testé en jeu**.
+**Statut :** v1.5.0, écrit, testé hors jeu (CI), **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapProceduralGenerator (`Requires = MapProceduralGenerator`), sans le modifier.
 **Dossier :** `Plugins/ProceduralEncounters/`
 
 ### Règles
 - Quand un monde MapProc est généré (menu debug ou nouvelle partie), chaque carte reçoit ses rencontres dans `PBS/encounters.txt` : `Land` s'il y a des hautes herbes, `Water` et les trois cannes s'il y a de l'eau, `Cave` pour chaque grotte. Seules les sections des cartes du monde sont remplacées (ou retirées si la carte n'a plus ni herbe, ni eau, ni grotte), puis le fichier est recompilé. Une copie est écrite dans `MapProc/Export/<monde>_<graine>_rencontres.txt`.
 - Source : les 806 espèces de `docs/roster/pokedex.csv` (types, types Monotype, génération, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. C'est tout le Pokédex d'Essentials v21.1 moins les légendaires, fabuleux et Ultra-Chimères. Modifier le fichier change les rencontres à la prochaine génération du monde.
-- **Pokémon du monde :** si la liste en a plus de `WORLD_SPECIES` (300), chaque graine tire des familles entières jusqu'à 300 Pokémon : d'abord au moins `TYPE_FAMILIES` (4) familles capturables par type imposé, puis, à chaque tour, la plus équilibrante (types, forces, générations) parmi `WORLD_SAMPLE` (6) tirées au hasard. Deux mondes partagent environ 55 % de leurs Pokémon. Une liste de 300 ou moins est prise entière.
+- **Pokémon du monde :** chaque monde pioche dans tout le Pokédex (806 espèces), sans limite ni garantie que chaque famille apparaisse ; les tables de chaque lieu y piochent selon le biome, les types dominants, les niveaux et les sceaux.
 - **Niveaux :** les sceaux d'une carte = les arènes avant elle dans la chaîne. Les niveaux montent du cap précédent vers 80 % de l'écart jusqu'au cap suivant (caps de LevelCap, sinon `CAPS`), en commençant à 3. Cannes : Canne -6, Super Canne -3, Méga Canne +2.
 - **Boucles et raccourcis :** une route hors de la chaîne prend les sceaux et les niveaux de la zone de son palier (là où on peut l'emprunter au plus tôt). La CI (`check_encounters.rb`) le vérifie sur chaque graine.
 - **Îles :** une île en bateau a ses propres rencontres, aux sceaux et aux niveaux de son port. L'arène d'une île compte à la place de son port pour les sceaux des lieux suivants.
@@ -481,8 +481,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Tirage :** chaque table tire 4 à 7 Pokémon (environ 60 % d'entre eux des types dominants) selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
 - **Évolutions :** une évolution par niveau apparaît à partir de ce niveau ; par pierre, bonheur, échange… à partir de 3 sceaux (stade 2) ou 6 sceaux (stade 3).
 - **Couverture Monotype :** chaque type imposé a au moins un Pokémon capturable dans un lieu du tronçon ou du tronçon précédent (herbe, grotte, ou surf une fois Surf obtenu ; les cannes ne comptent pas). Les manquants sont ajoutés au tronçon, d'abord ceux qui couvrent le plus de types d'un coup, à 5 % chacun.
-- **Couverture du Pokédex :** chaque famille tirée pour le monde apparaît au moins une fois dans le monde, à 5 %.
-- **Taille des tables :** 8 Pokémon en herbe, 7 en grotte, 5 en surf. La couverture remplit d'abord jusque-là, puis dépasse en dernier recours (14 / 12 / 8). Garder les 149 familles fait monter environ un tiers des tables à 10-12 Pokémon (choix assumé, plutôt que des familles absentes).
+- **Taille des tables :** 8 Pokémon en herbe, 7 en grotte, 5 en surf. La couverture des types remplit d'abord jusque-là, puis dépasse en dernier recours (14 / 12 / 8).
 - Même graine du monde = mêmes rencontres.
 - Nouvelle partie : écrites en silence (console seulement). Quand le monde d'une partie non sauvegardée est supprimé, les sections de ses cartes sont retirées ; quand celui de la sauvegarde est redessiné, ses rencontres sont réécrites.
 
@@ -502,7 +501,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 ### À vérifier au premier lancement
 - Générer un monde, puis marcher dans les hautes herbes d'une route, pêcher et surfer dans une ville à lac, entrer dans une grotte.
-- La console liste les types ou familles sans Pokémon s'il y en a (la CI vérifie qu'il n'y en a aucun sur 3 graines).
+- La console liste les types sans Pokémon s'il y en a (la CI vérifie qu'il n'y en a aucun sur 3 graines).
 
 ### Limites connues
 - Pas de rencontres de nuit, Éclate-Roc, Poké Radar ni sous l'eau (fonds marins).
@@ -883,4 +882,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.0 (#162) : passe large dans les packs, 57 objets de plus (Emerald Outdoors, KingTapir Galar Misc, Stow-on-Side, Agate Village, Alola Misc ; tileset Outside jusqu'à T4895), 21 briques de décor par ambiance, 8 de rue (`lampe`) et 6 de place (`foire`) | `tools/art/import_props.py`, `docs/CREDITS.md`, `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/ville.txt`, `MapProc/route.txt`, `MapProc/Briques/*`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
-| 05/11/2026 | Liste des 300 Pokémon supprimée : starters et rencontres piochent dans tout le Pokédex (`docs/roster/pokedex.csv`) | `docs/roster/liste-300.*`, `docs/FEATURES.md` |
+| 05/11/2026 | Liste des 300 Pokémon supprimée ; ProceduralEncounters v1.5.0 : plus de limite de 300 Pokémon par monde (`WORLD_SPECIES`, `TYPE_FAMILIES`, `WORLD_SAMPLE` supprimés) et plus de garantie que chaque famille apparaisse, chaque monde pioche dans tout le Pokédex (`docs/roster/pokedex.csv`) | `docs/roster/liste-300.*`, `Plugins/ProceduralEncounters/*`, `docs/FEATURES.md` |
