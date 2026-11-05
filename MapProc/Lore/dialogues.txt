@@ -223,8 +223,8 @@ Bien. Monte. Le Pacte t'attend.
 \me[Badge get]Le lieutenant te remet la chevalière de la Famille. Tu la passes à ton doigt.
 
 [lieutenant_ct]
-Prends aussi cette CT. Elle te servira.
-Et ceci. La Famille récompense ceux qui la servent.
+Et ta part. Une seule, choisis bien.
+La Famille récompense ceux qui la servent. Choisis.
 
 [membre_combat]
 Personne ne voit le lieutenant sans passer par moi.
