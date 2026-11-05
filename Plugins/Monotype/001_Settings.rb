@@ -25,4 +25,8 @@ module Monotype
   # GYM_LEADER_PATTERN). Only Pokémon of the type can fight them.
   GYM_MAP_PATTERN    = /gym|ar[eè]ne|league|ligue/i
   GYM_LEADER_PATTERN = /\A(LEADER_|ELITEFOUR_|CHAMPION|LIEUTENANT_|ANCIEN_|PARRAIN)/
+
+  # On entering a map with wild encounters, a small window at the top right
+  # shows how many species of the type can be caught there (007_ZoneCount.rb).
+  SHOW_ZONE_COUNT = true
 end

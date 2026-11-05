@@ -107,7 +107,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Caméra aux bords : une carte voisine qui ne couvre qu'une partie de la vue laisse encore voir du noir à côté d'elle (coins). En longeant un bord, la caméra peut sauter quand la carte voisine sort de la vue. Le décor n'est pas prolongé (cartes de remplissage à venir, #119).
 
 ## F04. Mode Monotype
-**Statut :** v1.7.0, écrit, **non testé**.
+**Statut :** v1.8.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -122,6 +122,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - **Arènes et Ligue :** avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, s'il n'y a aucun Pokémon du type dans l'équipe (par exemple un seul Pokémon qui a perdu le type en évoluant), le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
+- **Pokémon du type dans la zone :** en entrant sur une carte qui a des rencontres sauvages, une petite fenêtre en haut à droite affiche « Type X : N Pokémon ici » (ou « aucun Pokémon ici ») : le nombre d'espèces capturables avec le type, toutes rencontres confondues (herbes, grotte, surf, pêche). Rien sur une carte sans rencontres, ni sur une zone déjà utilisée au Nuzlocke (sa capture est faite). `SHOW_ZONE_COUNT = false` la retire.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -132,6 +133,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 | `003_Setup.rb` | Fenêtres du début de partie (type puis starter), inscrites auprès de NewGameSetup. |
 | `004_Capture.rb` | Blocage des captures. |
 | `005_Party.rb` | Combats d'arène et de Ligue, dons au PC, Pokémon inutilisables, verrous du PC. |
+| `007_ZoneCount.rb` | Fenêtre du nombre d'espèces du type à l'entrée d'une carte. |
 | `006_Roster.rb` | `ROSTER` : les 806 Pokémon du jeu, copie de `docs/roster/pokedex.csv` (vérifiée par la CI, qui vérifie aussi qu'il y a au moins 3 starters possibles par type). |
 
 ### Intégration
@@ -140,12 +142,13 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Labo du professeur (carte 4) : les 3 Poké Balls de la démo appellent `Monotype.starter_ball(i)` dans une condition « Script » ; si le joueur prend le Pokémon, elles gardent leurs effets (interrupteur 3, variable 7 = 1, 2 ou 3 selon la Poké Ball, interrupteur local A). Pour un autre lieu, recopier ces 3 événements.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
-`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
+`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle`, `:on_player_step_taken` et `:on_map_or_spriteset_change` (fenêtre de la zone, sous-classe de `LocationWindow`).
 
 ### À vérifier au premier lancement
 - La liste des 18 types tient à l'écran (la fenêtre défile normalement).
 - Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
 - Au labo, chaque Poké Ball propose un starter différent du type, et le Pokémon pris arrive dans l'équipe ; refuser laisse la Poké Ball en place.
+- En entrant sur une route, la fenêtre « Type X : N Pokémon ici » glisse en haut à droite puis remonte ; rien en ville sans eau ni dans un intérieur. Au Nuzlocke, après la première rencontre d'une route, en ressortir puis y revenir : plus de fenêtre.
 
 ### Limites connues
 - L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène ni à la Ligue).
@@ -884,3 +887,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
