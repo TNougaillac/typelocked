@@ -7,6 +7,7 @@
 # The CSV files come from github.com/PokeAPI/pokeapi (data/v2/csv). Matching is
 # done on the English names, so it also works for renamed internal IDs.
 require "csv"
+require "fileutils"
 require_relative "lib"
 
 CSV_DIR = ARGV[0] or abort("usage: build_texts.rb <pokeapi_csv_dir>")
@@ -171,7 +172,7 @@ Dir[File.join(__dir__, "manual", "*.txt")].sort.each do |file|
 end
 
 #-------------------------------------------------------------------------------
-Dir.mkdir(FrenchTr::TEXT_DIR) unless Dir.exist?(FrenchTr::TEXT_DIR)
+FileUtils.mkdir_p(FrenchTr::TEXT_DIR)
 sections.each do |name, pairs|
   FrenchTr.write_section(name, pairs.sort_by { |en, _| en })
   puts format("%-22s %4d translated, %3d missing", name, pairs.size, misses[name].uniq.size)
