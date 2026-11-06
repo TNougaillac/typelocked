@@ -779,23 +779,43 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
 ## F19. Textes en français (FrenchTexts)
-**Version cible :** Essentials v21.1. **Statut :** écrit, non testé (#113, en cours).
+**Version cible :** Essentials v21.1. **Statut :** écrit, non testé (#113).
 
 ### Règles
+- **Langue unique :** le jeu est en français. `Settings::LANGUAGES` ne contient que « Français », donc Essentials charge `Data/messages_french_core.dat` au lancement sans demander de langue.
+- **Données :** noms, catégories et entrées du Pokédex des 898 espèces, noms des formes, noms et descriptions des attaques, talents et objets, classes de dresseurs. CT/DT/CS deviennent CT01, DT01, CS01.
+- **Textes des scripts :** menus, combat, Sac, PC, Pokédex, Résumé, options, boutique, Safari, Deluxe Battle Kit et Modular UI (1 987 textes traduits à la main).
 - **Efficacité ×4 :** une attaque au moins quatre fois efficace affiche « C'est hyper efficace ! » (« C'est hyper efficace sur … ! » quand elle touche plusieurs cibles) au lieu de « super efficace ».
 - **Surnom (Nuzlocke) :** la question devient « Surnom de … ? » ; le surnom reste obligatoire.
+- **Noms en combat :** « Rattata ennemi », « Rattata sauvage », « Rattata allié » (sans article, pour éviter « de le »).
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
 | `Plugins/FrenchTexts/001_Battle.rb` | Message d'efficacité ×4. |
+| `Plugins/FrenchTexts/002_Language.rb` | Déclare le français comme seule langue. |
+| `Text_french_core/*.txt` | Textes traduits, au format « Text_<langue>_core » d'Essentials (ligne anglaise, puis ligne française). Généré. |
+| `Data/messages_french_core.dat` | Fichier compilé lu par le jeu. Généré. |
+| `tools/translate/manual/*.txt` | Traductions écrites à la main (textes des scripts, formes, classes de dresseurs, corrections). |
+| `tools/translate/build_texts.rb` | Construit `Text_french_core/` depuis les PBS, les tables CSV de PokeAPI et les fichiers `manual/`. |
+| `tools/translate/compile_texts.rb` | Compile `Text_french_core/` en `Data/messages_french_core.dat`. |
+| `tools/ci/check_translations.rb` | CI : codes conservés ({1}, \\c[1], sauts de ligne) et fichier compilé à jour. |
 | `Plugins/Nuzlocke/004_Nicknames.rb` | Question du surnom sans « (obligatoire) ». |
+
+### Mettre à jour les textes
+1. Modifier une traduction : éditer `tools/translate/manual/<SECTION>.txt` (ou directement `Text_french_core/`, puis reporter le changement dans `manual/` pour qu'il survive à la prochaine génération).
+2. `ruby tools/translate/build_texts.rb <dossier des CSV PokeAPI>` (CSV de github.com/PokeAPI/pokeapi, `data/v2/csv`), utile seulement si les PBS changent.
+3. `ruby tools/translate/compile_texts.rb`. En jeu, le menu Debug « Compile Translated Text » donne le même fichier.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 - `Battle::Move#pbEffectivenessMessage` (alias `__french_pbEffectivenessMessage`). Le plugin se charge avant le Deluxe Battle Kit (ordre alphabétique des dossiers), qui aliase à son tour la méthode pour ses déclencheurs.
+- `Settings::LANGUAGES` redéfini (`remove_const`), lu par `Game.initialize` et l'écran de chargement.
 
 ### Limites connues
-- La traduction complète des textes d'Essentials et du Deluxe Battle Kit n'est pas encore faite.
+- Restent en anglais : textes du menu Debug et des éditeurs, mini-jeux, Zone de Combat, Cadeau Mystère, téléphone, lettres, rubans, et les textes des cartes de démo d'Essentials.
+- Textes construits par interpolation Ruby (`_INTL("#{...}")`) : non traduisibles par fichier.
+- Descriptions issues de PokeAPI : la plus récente qui tient dans la place de la version anglaise, sinon la plus courte ; à vérifier dans les fenêtres du Résumé et du Sac. 20 descriptions d'objets (lettres, objets de démo) restent en anglais.
+- Les Pokédex des formes régionales reprennent l'entrée de l'espèce de base en anglais (PokeAPI ne les sépare pas).
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -903,4 +923,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
-| 06/11/2026 | FrenchTexts v1.0.0 et Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
+| 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |

@@ -11,6 +11,8 @@ on:
       - "MapProc/**"
       - "docs/roster/**"
       - "Data/**"
+      - "Text_french_core/**"
+      - "tools/translate/**"
       - "tools/ci/**"
       - ".rubocop.yml"
       - ".github/workflows/ci.yml"
@@ -23,6 +25,8 @@ on:
       - "MapProc/**"
       - "docs/roster/**"
       - "Data/**"
+      - "Text_french_core/**"
+      - "tools/translate/**"
       - "tools/ci/**"
       - ".rubocop.yml"
       - ".github/workflows/ci.yml"
@@ -43,6 +47,9 @@ jobs:
       - name: Références des PBS et des cartes
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_pbs.rb
+      - name: Textes français
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_translations.rb
       - name: Plans MapGen
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_mapgen.rb
