@@ -846,6 +846,36 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Après une rencontre d'un Pokémon errant, l'encens attend la rencontre suivante.
 - `PBS/items.txt` change : recompiler les PBS (mode debug) pour que l'objet existe en jeu.
 
+## F21. Graphismes 4G (#177)
+**Version cible :** Essentials v21.1. **Statut :** ticket 1 (sols, herbes, arbres) écrit, **non testé en jeu**.
+
+### Règles
+- **Même grille :** le tileset Outside 4G (ID 24, `Graphics/Tilesets/Outside 4G.png`) est une copie d'Outside (ID 1) où chaque tuile utilisée par MapProc prend son équivalent 4G, à la même place. Les `T<n>` de `MapProc/route.txt` et `ville.txt`, les passages et les priorités ne changent pas. Les lieux générés l'utilisent (`Tileset = 24`).
+- **Sources :** tuiles HGSS de SirMalo, à la taille DS (16 px), agrandies ×2 au plus proche voisin. Le rose des feuilles devient transparent, l'herbe 4G sous les objets aussi (le sol de la carte se voit dessous).
+- **Remplacé (ticket 1) :** herbe (`T1`-`T3`), chemin de terre et ses bords (`T97`-`T118`, `T106` sert aussi de sol « terre battue »), sable (`T162`), hautes herbes (`T6`, `T7`, `T15`), arbre de bordure (`t`), grand pin (`é`), arbre rond (`è`, sa cime `T484`), arbre jaune (`ü`, sa cime `T532`), cyprès (`ê`), arbrisseau (`ë`), buisson (`à`). Leurs variantes sur les autres sols (prairie, sable, terre battue, minérale) sont redessinées : l'herbe devient le sol, les ombres le sol assombri.
+- **Pas encore remplacé :** tout le reste garde l'ancien dessin (roches et falaises, bâtiments, mer, objets importés…), jusqu'aux tickets suivants de #177.
+- Les cartes déjà générées gardent l'ancien tileset : regénérer le monde (nouvelle partie ou menu debug).
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `tools/art/outside_4g.py` | Recompose `Outside 4G.png` depuis `Outside.png` et les feuilles de SirMalo (table des tuiles et des objets remplacés, `--preview`). |
+| `tools/art/tileset_clone.rb` | Copie le tileset 1 vers l'ID 24 dans `Data/Tilesets.rxdata` (nom et image changés, passages et priorités gardés). |
+| `Graphics/Tilesets/Outside 4G.png` | Le tileset 4G. |
+| `Data/Tilesets.rxdata` | Tileset 24 « Outside 4G ». |
+| `MapProc/route.txt`, `MapProc/ville.txt` | `Tileset = 24`. |
+
+### Mettre à jour le tileset
+Après un changement d'`Outside.png` ou du tileset 1 (`import_props.py`, `ground_variants.py`), relancer, depuis la racine du dépôt :
+```
+ruby tools/art/tileset_clone.rb 1 24 "Outside 4G" "Outside 4G"
+python3 tools/art/outside_4g.py "<dossier des feuilles de SirMalo>"
+```
+
+### Limites connues
+- Les arbres 4G sont plus grands que ceux d'Essentials : l'arbre de bordure (2×3) a sa pointe et le bas de son tronc rognés de quelques pixels, et ses côtés coupés droits (ils se cachent entre arbres voisins).
+- Les hautes herbes 4G sont une tuile pleine : sur le sable ou la terre, elles restent un carré d'herbe.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -954,3 +984,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
 | 06/11/2026 | PactIncense v1.0.0 et WorldEvents v1.16.0 (#160) : Encens du Pacte, la prochaine rencontre sauvage est capturable ; 0 à 3 par partie dans les recoins et les dons | `Plugins/PactIncense/*`, `Plugins/WorldEvents/*`, `PBS/items.txt`, `Graphics/Items/PACTINCENSE.png`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 06/11/2026 | Graphismes 4G, ticket 1 (#177) : tileset Outside 4G (ID 24) sur la grille d'Outside, herbe, chemins, sable, hautes herbes et arbres HGSS (SirMalo) ; les lieux générés l'utilisent (MapProceduralGenerator v0.36.0) | `tools/art/outside_4g.py`, `tools/art/tileset_clone.rb`, `Graphics/Tilesets/Outside 4G.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/CREDITS.md`, `docs/FEATURES.md` |

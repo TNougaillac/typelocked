@@ -3,7 +3,7 @@
 # Lancer : menu debug > Autres éditeurs > Générer un lieu (MapProc).
 Lieu    = ville
 Nom     = Ville générée
-Tileset = 1
+Tileset = 24
 Taille  = 40x34
 Sol     = .
 Rue     = P

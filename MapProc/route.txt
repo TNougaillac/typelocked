@@ -4,7 +4,7 @@
 # longue a plus d'herbes et d'arbres.
 Lieu    = route
 Nom     = Route générée
-Tileset = 1
+Tileset = 24
 Taille  = 20x60
 Sol     = .
 # Rue : le sentier (sur les routes de montagne, il passe sous la roche des
