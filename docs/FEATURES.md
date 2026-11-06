@@ -61,14 +61,14 @@
 - Cohabitation avec le Nuzlocke : le kit efface les surnoms dans `pbStorePokemon`, le Nuzlocke remet le surnom forcé après coup. Effet visible : le message « envoyé dans la boîte » affiche le nom de l'espèce.
 
 ## F03. Générateur de cartes (MapGen)
-**Statut :** v1.12.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
+**Statut :** v1.13.0, écrit, testé hors jeu sur les données du dépôt, **non testé en jeu**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/MapGenerator/`, plans dans `MapGen/*.txt` (exemples : `MapGen/exemple.txt`, `MapGen/exemple_calques.txt`, `MapGen/exemple_porte_dehors.txt` + `MapGen/exemple_porte_maison.txt`, `MapGen/place_ville.txt`, plan du monde `MapGen/exemple_monde.txt`).
 
 ### Fonctionnement
 - Un plan texte décrit la carte : un caractère par case, une légende qui associe chaque caractère à 1 à 3 calques.
 - Calques : `T<n>` = tuile n du tileset (n = ligne × 8 + colonne), `A1` à `A7` = autotile (raccords calculés automatiquement), `-` = vide, `T1|T2|T3` = variante au hasard (`Seed` pour un résultat reproductible).
-- Objets multi-cases (section `[Objects]`) : `H = T400 3x4` déclare un bloc de 3×4 tuiles à partir de la tuile 400. Dans `[Map]`, le symbole couvre toute la surface de l'objet (`HHH` sur 4 lignes). Une zone plus grande contient plusieurs copies, découpées depuis le coin haut-gauche (`HHHHHH` sur 4 lignes = deux objets). Une zone incomplète provoque une erreur qui indique la case fautive. Options : `L1` à `L3` pour le calque (`L2` par défaut), `@<symbole>` pour le sol sous l'objet (sinon la clé `Ground`).
+- Objets multi-cases (section `[Objects]`) : `H = T400 3x4` déclare un bloc de 3×4 tuiles à partir de la tuile 400. Dans `[Map]`, le symbole couvre toute la surface de l'objet (`HHH` sur 4 lignes). Une zone plus grande contient plusieurs copies, découpées depuis le coin haut-gauche (`HHHHHH` sur 4 lignes = deux objets). Une zone incomplète provoque une erreur qui indique la case fautive. Options : `L1` à `L3` pour le calque (`L2` par défaut), `@<symbole>` pour le sol sous l'objet (sinon la clé `Ground`), `halo=4x4@1,1/0,3` pour un dessin plus grand que le bloc (v1.13.0) : un dessin de 4×4 tuiles dont le bloc commence en colonne 1, ligne 1 ; ses autres tuiles sont posées sur le calque 3 autour du bloc, seulement où ce calque est vide, sauf les cases vides listées après `/` (numérotées ligne par ligne depuis 0). Le halo ne change ni la place que prend l'objet ni ses passages.
 - Grilles de calques (sections `[Layer2]` et `[Layer3]`, facultatives, même taille que `[Map]`) : dessinées par-dessus `[Map]`. `.` = rien ; un symbole de `[Legend]` est posé à partir de ce calque (un symbole à 2 calques dans `[Layer2]` remplit les calques 2 et 3) ; un objet de `[Objects]` est posé sur ce calque, quel que soit son `L`.
 - Terrains à raccords automatiques (section `[Terrains]`) : `P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268` déclare la tuile intérieure, les bords, les coins et les angles rentrants (`i…`). Dans la grille, on écrit seulement `P` : chaque case reçoit la tuile qui correspond à ses voisines. Un rôle absent prend la tuile intérieure ; une tuile intérieure `-` ne dessine que les bords (rien par-dessus le reste de la case). Options : `with=D` (terrains qui se raccordent sans bord), `L1` à `L3` (calque dans `[Map]`, `L1` par défaut), `@<symbole>` (sol dessous si le calque n'est pas `L1`). Un terrain marche aussi dans `[Layer2]` / `[Layer3]`.
 - Portes et étages (sections `[Warps]` et `[Events]`) : `1 = Maison 1 4,7 haut` déclare une téléportation vers la carte nommée « Maison 1 » (ou son ID), case 4,7 (comptée depuis 0), regard vers le haut (`haut`, `bas`, `gauche`, `droite`, ou direction conservée). La grille `[Events]` (même taille que `[Map]`, `.` = rien) place ces symboles. Chaque porte devient un événement « MapGen warp » (contact du joueur, commande « Téléporter le joueur ») ; Essentials le transforme en porte animée à la compilation si la case ressemble à une entrée. À chaque génération, les anciens « MapGen warp » de la carte sont remplacés. Avec « Tous », une porte vers une carte générée plus tard dans la même série est reliée après coup.
@@ -847,34 +847,36 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `PBS/items.txt` change : recompiler les PBS (mode debug) pour que l'objet existe en jeu.
 
 ## F21. Graphismes 4G (#177)
-**Version cible :** Essentials v21.1. **Statut :** ticket 1 (sols, herbes, arbres) écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. **Statut :** ticket 1 (#193 : sols, herbes, arbres) écrit, **non testé en jeu**.
 
 ### Règles
-- **Même grille :** le tileset Outside 4G (ID 24, `Graphics/Tilesets/Outside 4G.png`) est une copie d'Outside (ID 1) où chaque tuile utilisée par MapProc prend son équivalent 4G, à la même place. Les `T<n>` de `MapProc/route.txt` et `ville.txt`, les passages et les priorités ne changent pas. Les lieux générés l'utilisent (`Tileset = 24`).
-- **Sources :** tuiles HGSS de SirMalo, à la taille DS (16 px), agrandies ×2 au plus proche voisin. Le rose des feuilles devient transparent, l'herbe 4G sous les objets aussi (le sol de la carte se voit dessous).
-- **Remplacé (ticket 1) :** herbe (`T1`-`T3`), chemin de terre et ses bords (`T97`-`T118`, `T106` sert aussi de sol « terre battue »), sable (`T162`), hautes herbes (`T6`, `T7`, `T15`), arbre de bordure (`t`), grand pin (`é`), arbre rond (`è`, sa cime `T484`), arbre jaune (`ü`, sa cime `T532`), cyprès (`ê`), arbrisseau (`ë`), buisson (`à`). Leurs variantes sur les autres sols (prairie, sable, terre battue, minérale) sont redessinées : l'herbe devient le sol, les ombres le sol assombri.
-- **Pas encore remplacé :** tout le reste garde l'ancien dessin (roches et falaises, bâtiments, mer, objets importés…), jusqu'aux tickets suivants de #177.
+- **Tileset Outside 4G** (ID 24, `Graphics/Tilesets/Outside 4G.png`) : une copie d'Outside (ID 1), utilisée par les lieux générés (`Tileset = 24`). Les tuiles 4G sont reprises **telles quelles** : tuiles entières de SirMalo (HGSS, 16 px), agrandies ×2 au plus proche voisin, jamais rognées ni redessinées. Le rose des feuilles est transparent.
+- **Sols et herbes, à la même place :** herbe (`T1`-`T3`), chemin de terre et ses bords (`T97`-`T118`, `T106` sert aussi de sol « terre battue »), sable (`T162`), hautes herbes (`T6`, `T7`, `T15` et leurs copies sur prairie, sable, terre battue, minérale), buisson (`T475` et ses copies). Les `T<n>` de MapProc, les passages et les priorités ne changent pas.
+- **Arbres entiers, sous l'ancien tileset :** arbre de bordure (`t`), grand pin (`é`), arbre rond (`è`), arbre jaune (`ü`), cyprès (`ê`), arbrisseau (`ë`). Un arbre 4G est plus grand que le bloc que MapProc lui donne : le bloc garde sa taille et ses passages (la mise en page des lieux ne change pas) et le reste du dessin (pointe, côtés qui débordent sur les voisins) est posé sur le calque 3 par le halo de MapGen (F03), là où on marche dessous. Les arbres de forêt sont pris dans les paires d'arbres de SirMalo : la moitié gauche des arbres de gauche et la moitié droite des arbres de droite, qui sont le même dessin. Les cimes des anciens arbres ronds (`T484`, `T532`) sont vides.
+- **Autres sols :** sur prairie, sable, terre battue et minéral, l'herbe 4G sous les arbres devient transparente et ses ombres le sol assombri (seule retouche des tuiles). Une copie de chaque arbre par sol.
+- **Pas encore remplacé :** roches et falaises, bâtiments, mer, objets importés…, jusqu'aux tickets suivants de #177.
 - Les cartes déjà générées gardent l'ancien tileset : regénérer le monde (nouvelle partie ou menu debug).
 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
-| `tools/art/outside_4g.py` | Recompose `Outside 4G.png` depuis `Outside.png` et les feuilles de SirMalo (table des tuiles et des objets remplacés, `--preview`). |
+| `tools/art/outside_4g.py` | Construit `Outside 4G.png` depuis `Outside.png` et les feuilles de SirMalo, donne leurs passages aux tuiles ajoutées et affiche les lignes `[Objects]` des arbres. |
 | `tools/art/tileset_clone.rb` | Copie le tileset 1 vers l'ID 24 dans `Data/Tilesets.rxdata` (nom et image changés, passages et priorités gardés). |
 | `Graphics/Tilesets/Outside 4G.png` | Le tileset 4G. |
 | `Data/Tilesets.rxdata` | Tileset 24 « Outside 4G ». |
-| `MapProc/route.txt`, `MapProc/ville.txt` | `Tileset = 24`. |
+| `MapProc/route.txt`, `MapProc/ville.txt` | `Tileset = 24`, arbres 4G avec leur halo. |
+| `Plugins/MapGenerator/002_Parser.rb`, `003_Builder.rb` | Option `halo=` des objets. |
 
 ### Mettre à jour le tileset
-Après un changement d'`Outside.png` ou du tileset 1 (`import_props.py`, `ground_variants.py`), relancer, depuis la racine du dépôt :
+Après un changement d'`Outside.png` ou du tileset 1 (`import_props.py`, `ground_variants.py`), relancer, depuis la racine du dépôt, puis recopier les lignes affichées dans `route.txt` et `ville.txt` si les numéros changent :
 ```
 ruby tools/art/tileset_clone.rb 1 24 "Outside 4G" "Outside 4G"
 python3 tools/art/outside_4g.py "<dossier des feuilles de SirMalo>"
 ```
 
 ### Limites connues
-- Les arbres 4G sont plus grands que ceux d'Essentials : l'arbre de bordure (2×3) a sa pointe et le bas de son tronc rognés de quelques pixels, et ses côtés coupés droits (ils se cachent entre arbres voisins).
-- Les hautes herbes 4G sont une tuile pleine : sur le sable ou la terre, elles restent un carré d'herbe.
+- Dans une forêt, les arbres restent empilés tous les 3 rangs (la taille du bloc `t`) : une bande d'herbe avec les troncs se voit entre deux rangées, là où HGSS serre ses arbres tous les 2 rangs.
+- Le halo ne se pose que sur un calque 3 vide : une pointe d'arbre sous un autre objet du calque 3 n'est pas dessinée.
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -984,4 +986,4 @@ python3 tools/art/outside_4g.py "<dossier des feuilles de SirMalo>"
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
 | 06/11/2026 | PactIncense v1.0.0 et WorldEvents v1.16.0 (#160) : Encens du Pacte, la prochaine rencontre sauvage est capturable ; 0 à 3 par partie dans les recoins et les dons | `Plugins/PactIncense/*`, `Plugins/WorldEvents/*`, `PBS/items.txt`, `Graphics/Items/PACTINCENSE.png`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
-| 06/11/2026 | Graphismes 4G, ticket 1 (#177) : tileset Outside 4G (ID 24) sur la grille d'Outside, herbe, chemins, sable, hautes herbes et arbres HGSS (SirMalo) ; les lieux générés l'utilisent (MapProceduralGenerator v0.36.0) | `tools/art/outside_4g.py`, `tools/art/tileset_clone.rb`, `Graphics/Tilesets/Outside 4G.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/CREDITS.md`, `docs/FEATURES.md` |
+| 06/11/2026 | Graphismes 4G, ticket 1 (#193, #177) : tileset Outside 4G (ID 24), herbe, chemins, sable et hautes herbes HGSS (SirMalo) à la place des anciennes tuiles, arbres 4G entiers ajoutés sous le tileset ; les lieux générés l'utilisent (MapProceduralGenerator v0.36.0) ; MapGenerator v1.13.0 : option `halo=` des objets, un dessin plus grand que le bloc posé sur le calque 3 | `tools/art/outside_4g.py`, `tools/art/tileset_clone.rb`, `Graphics/Tilesets/Outside 4G.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `Plugins/MapGenerator/*`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/CREDITS.md`, `docs/FEATURES.md` |
