@@ -4,7 +4,7 @@
 # longue a plus d'herbes et d'arbres.
 Lieu    = route
 Nom     = Route générée
-Tileset = 1
+Tileset = 24
 Taille  = 20x60
 Sol     = .
 # Rue : le sentier (sur les routes de montagne, il passe sous la roche des
@@ -73,14 +73,14 @@ Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T418
 : = T151 T7             # herbes très hautes, leur pied sur la prairie
 ; = T151
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
-t = T4016 2x3
-é = T4018 3x3
-è = T4021 3x3
+t = T5001 2x3 halo=4x4@1,1/0,3,12,15
+é = T5005 3x3 halo=4x4@1,1/0,3,12
+è = T5032 3x3 halo=4x4@0,1/0,3,15
 î = T4040 2x2
 û = T4042 3x1
 à = {sol} T4045
-ê = T4192 1x3
-ë = T4193 1x2
+ê = T5028 1x3
+ë = T5056 1x2
 * = T4046                # fleurs sur la prairie (image fixe : l'autotile a un fond vert)
 Rive  = T4047 T4047 T4047
 arbre = 0..1 par case
@@ -94,14 +94,14 @@ Rue   = T162
 : = T175 T7             # herbes très hautes, leur pied sur le sable
 ; = T175
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
-t = T4056 2x3
-é = T4058 3x3
-è = T4061 3x3
+t = T5069 2x3 halo=4x4@1,1/0,3,12,15
+é = T5097 3x3 halo=4x4@1,1/0,3,12
+è = T5100 3x3 halo=4x4@0,1/0,3,15
 î = T4080 2x2
 û = T4082 3x1
 à = {sol} T4085
-ê = T4194 1x3
-ë = T4195 1x2
+ê = T5120 1x3
+ë = T5124 1x2
 Rive  = T833 T833 T833
 arbre = 0..1 par case
 parc  = 0
@@ -116,14 +116,14 @@ Rue   = T218
 : = T189 T7             # herbes très hautes, leur pied sur le gravier
 ; = T189
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
-t = T4136 2x3
-é = T4138 3x3
-è = T4141 3x3
+t = T5229 2x3 halo=4x4@1,1
+é = T5257 3x3 halo=4x4@1,1
+è = T5260 3x3 halo=4x4@0,1
 î = T4160 2x2
 û = T4162 3x1
 à = {sol} T4165
-ê = T4198 1x3
-ë = T4199 1x2
+ê = T5280 1x3
+ë = T5284 1x2
 arbre = 0..1 par case
 parc  = 0
 lac   = 0
@@ -175,14 +175,14 @@ Rue   = T106
 : = T181 T7             # herbes très hautes, leur pied sur la terre
 ; = T181
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
-t = T4096 2x3
-é = T4098 3x3
-è = T4101 3x3
+t = T5161 2x3 halo=4x4@1,1/0,3,12,15
+é = T5165 3x3 halo=4x4@1,1/0,3,12
+è = T5192 3x3 halo=4x4@0,1/0,3,15
 î = T4120 2x2
 û = T4122 3x1
 à = {sol} T4125
-ê = T4196 1x3
-ë = T4197 1x2
+ê = T5188 1x3
+ë = T5216 1x2
 Rive  = T841 T841 T841
 arbre = 0..2 par case
 decor = 1..2 par case
@@ -295,18 +295,18 @@ m = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE
 M = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnzPʘ L2 @.   # niveau 6
 
 [Objects]
-é = T440 3x3         # grand pin
-è = T491 3x3         # arbre rond (sous sa cime ò)
-ê = T470 1x3         # cyprès
-ë = T502 1x2         # arbrisseau
+é = T4909 3x3 halo=4x4@1,1/0,3,12         # grand pin
+è = T4936 3x3 halo=4x4@0,1/0,3,15         # arbre rond (sous sa cime ò)
+ê = T4960 1x3         # cyprès
+ë = T4964 1x2         # arbrisseau
 ô = T617 2x2         # champ labouré
-ü = T539 3x3         # arbre jaune (automne)
+ü = T4940 3x3 halo=4x4@0,1/0,3,15         # arbre jaune (automne)
 ç = T563 3x7         # arbre tropical
 î = T669 2x2         # haie carrée
 û = T685 3x1         # haie
 a = T836 2x4         # flèche rocheuse brune (désert)
 i = T916 2x4         # flèche rocheuse grise (minéral)
-t = T420 2x3         # arbre
+t = T4905 2x3 halo=4x4@1,1/0,3,12,15         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
 W = T1816 4x4        # maison en bois (refuge)
 V = T1336 5x4        # maison verte à cheminée (refuge)

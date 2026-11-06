@@ -16,6 +16,13 @@
 #   H = T400 3x4               (block of 3x4 tiles from tileset tile 400;
 #   F = T600 2x2 L3 @,          L1..L3 = layer, L2 by default; @<symbol> =
 #                               ground under it, Ground by default)
+#   t = T500 2x3 halo=4x4@1,1  (the drawing goes beyond the block: a 4x4
+#                               drawing whose block starts at column 1, row
+#                               1; its other tiles are drawn on layer 3 around
+#                               the block, where that layer is empty;
+#                               halo=4x4@1,1/0,3 : cells 0 and 3 of the
+#                               drawing, counted row by row from 0, are empty
+#                               and never drawn)
 #   [Terrains]                 (edge-aware tiles: one symbol, borders picked
 #   P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283
 #       iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=D L1 @.
@@ -52,8 +59,16 @@ module MapGenerator
   WARP_DIRECTIONS = { "bas" => 2, "gauche" => 4, "droite" => 6, "haut" => 8 }
   Terrain = Struct.new(:center, :roles, :with, :layer, :ground)
   TERRAIN_ROLES = %w[N S E W NW NE SW SE iNW iNE iSW iSE]
-  # Multi-tile block: first tileset tile, size in tiles, layer index (0-2)
-  MapObject = Struct.new(:tile, :width, :height, :layer, :ground)
+  # Multi-tile block: first tileset tile, size in tiles, layer index (0-2);
+  # halo: [width, height, x, y, empty cells] of a larger drawing around it
+  # (or nil)
+  MapObject = Struct.new(:tile, :width, :height, :layer, :ground, :halo) do
+    # First tile of the whole drawing, and its size
+    def drawing
+      return [tile, width, height] if !halo
+      return [tile - (halo[3] * 8) - halo[2], halo[0], halo[1]]
+    end
+  end
 
   module_function
 
@@ -105,15 +120,22 @@ module MapGenerator
       when :objects
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?
-        unless content =~ /\A(\S)\s*=\s*T(\d+)\s+(\d+)x(\d+)(?:\s+L([1-3]))?(?:\s+@(\S))?\z/
-          fail_at.call("attendu « symbole = T<n> <L>x<H> [L1-L3] [@symbole] »")
+        halo = %r{(?:\s+halo=(\d+)x(\d+)@(\d+),(\d+)(?:/([\d,]+))?)?}
+        unless content =~ /\A(\S)\s*=\s*T(\d+)\s+(\d+)x(\d+)#{halo}(?:\s+L([1-3]))?(?:\s+@(\S))?\z/
+          fail_at.call("attendu « symbole = T<n> <L>x<H> [halo=<L>x<H>@<x>,<y>[/cases vides]] [L1-L3] [@symbole] »")
         end
-        object = MapObject.new($2.to_i, $3.to_i, $4.to_i, ($5 || 2).to_i - 1, $6)
-        fail_at.call("taille nulle pour « #{$1} »") if object.width == 0 || object.height == 0
-        if object.tile % 8 + object.width > 8
-          fail_at.call("« #{$1} » dépasse le bord droit du tileset (8 tuiles de large)")
+        symbol = $1
+        halo = $5 && ([$5, $6, $7, $8].map(&:to_i) << ($9 || "").split(",").map(&:to_i))
+        object = MapObject.new($2.to_i, $3.to_i, $4.to_i, ($10 || 2).to_i - 1, $11, halo)
+        fail_at.call("taille nulle pour « #{symbol} »") if object.width == 0 || object.height == 0
+        if (h = object.halo) && (h[2] + object.width > h[0] || h[3] + object.height > h[1] || object.tile < (h[3] * 8) + h[2])
+          fail_at.call("le halo de « #{symbol} » doit contenir son bloc")
         end
-        plan.objects[$1] = object
+        first, width, _height = object.drawing
+        if first % 8 + width > 8
+          fail_at.call("« #{symbol} » dépasse le bord droit du tileset (8 tuiles de large)")
+        end
+        plan.objects[symbol] = object
       when :terrains
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?

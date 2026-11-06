@@ -43,7 +43,25 @@ module MapGenerator
         end
       end
     end
+    # Halos last, on layer 3, only where it is empty: a drawing never covers
+    # what a plan put there
+    plan.anchors.each { |x, y, symbol, _z| draw_halo(plan.objects[symbol], x, y, data) }
     return data
+  end
+
+  def draw_halo(object, x, y, data)
+    return if !object.halo
+    first, width, height = object.drawing
+    ox, oy = object.halo[2], object.halo[3]
+    height.times do |dy|
+      width.times do |dx|
+        next if dx >= ox && dx < ox + object.width && dy >= oy && dy < oy + object.height
+        next if object.halo[4].include?((dy * width) + dx)
+        cx, cy = x - ox + dx, y - oy + dy
+        next if cx < 0 || cy < 0 || cx >= data.xsize || cy >= data.ysize || data[cx, cy, 2] != 0
+        data[cx, cy, 2] = 384 + first + (dy * 8) + dx
+      end
+    end
   end
 
   # Picks each terrain cell's tile from which neighbours belong to the same
@@ -125,7 +143,8 @@ module MapGenerator
       end
     end
     plan.objects.each do |symbol, object|
-      last = 384 + object.tile + ((object.height - 1) * 8) + object.width - 1
+      first, width, height = object.drawing
+      last = 384 + first + ((height - 1) * 8) + width - 1
       next if last < tileset.passages.xsize
       raise Error, "#{plan.file} : l'objet « #{symbol} » sort du tileset « #{tileset.name} »"
     end
