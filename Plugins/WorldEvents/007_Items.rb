@@ -11,7 +11,8 @@ module WorldEvents
 
   # Draws the items of the world into plans. Returns [{ map:, source:, item: }]
   # (source: sol, cache, don, recoin, terrain). weather: see weather_items.
-  def item_events(result, atlas, zones, tms, leaders, weather, plans, lines, rng)
+  # pact: how many Pact Incenses.
+  def item_events(result, atlas, zones, tms, leaders, weather, plans, lines, rng, pact = 0)
     zones = zones.to_h { |zone| [zone.name, zone] }
     used_tms = leaders.filter_map { |leader| leader[:tm]&.first }
     weather -= used_tms
@@ -29,6 +30,7 @@ module WorldEvents
     end
     heart_scales(all)
     weather_nooks(all, weather)
+    pact_incenses(all, weather, pact)
     items = []
     # Gifts first: they need a cell by the street
     all.sort_by { |slot| (slot[:source] == "don") ? 0 : 1 }.each do |slot|
@@ -148,6 +150,15 @@ module WorldEvents
     in_nooks = [weather.length, (nooks.length + 1) / 2].min
     spread(nooks, weather.first(in_nooks))
     spread(others, weather.drop(in_nooks))
+  end
+
+  # The Pact Incenses go to nooks and gifts evenly spread along the way, in
+  # place of their item (never of a Heart Scale nor of a weather item).
+  def pact_incenses(slots, weather, count)
+    spots = slots.select do |slot|
+      %w[recoin don].include?(slot[:source]) && slot[:item] != HEART_SCALE && !weather.include?(slot[:item])
+    end
+    spread(spots, [PACT_INCENSE] * count)
   end
 
   # Items evenly spread over these slots.

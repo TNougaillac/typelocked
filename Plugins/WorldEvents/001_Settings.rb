@@ -236,6 +236,10 @@ module WorldEvents
   # place of other items.
   HEART_SCALES = 10
   HEART_SCALE  = :HEARTSCALE
+  # Pact Incenses (#160): how many in a world (drawn by the seed), in nooks
+  # or given by inhabitants, in place of other items.
+  PACT_INCENSE  = :PACTINCENSE
+  PACT_INCENSES = 0..3
   # Move Relearners (a Heart Scale per move): one in a town reached with at
   # most each number of seals (the first one before the 2nd seal).
   RELEARNERS = [1, 4, 7].freeze
