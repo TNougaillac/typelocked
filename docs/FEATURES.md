@@ -26,7 +26,7 @@
 | `001_Settings.rb` | `ZONE_GROUPS`, `DUPLICATE_BY_FAMILY`, `SHINY_CONSUMES_FREE_ZONE`, `GRAVEYARD_NAME`, `GRAVEYARD_BACKGROUND`, `SAVE_ON_DEFEAT`. |
 | `002_Data.rb` | Données de sauvegarde (`$nuzlocke`), zones utilisées, boîtes cimetière. |
 | `003_Encounters.rb` | Zones, doublons, shiny, blocage des Poké Balls. |
-| `004_Nicknames.rb` | Surnoms obligatoires. |
+| `004_Nicknames.rb` | Surnoms obligatoires (« Surnom de … ? »). |
 | `005_Permadeath.rb` | Mort, cimetière (fond, panneau du mort), verrou des PV, équipe K.O., sauvegarde à la défaite. |
 | `006_Setup.rb` | Fenêtre de choix du début de partie, inscrite auprès de NewGameSetup. |
 | `007_Storage.rb` | Verrous du PC sur les Pokémon morts. |
@@ -778,6 +778,25 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
+## F19. Textes en français (FrenchTexts)
+**Version cible :** Essentials v21.1. **Statut :** écrit, non testé (#113, en cours).
+
+### Règles
+- **Efficacité ×4 :** une attaque au moins quatre fois efficace affiche « C'est hyper efficace ! » (« C'est hyper efficace sur … ! » quand elle touche plusieurs cibles) au lieu de « super efficace ».
+- **Surnom (Nuzlocke) :** la question devient « Surnom de … ? » ; le surnom reste obligatoire.
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `Plugins/FrenchTexts/001_Battle.rb` | Message d'efficacité ×4. |
+| `Plugins/Nuzlocke/004_Nicknames.rb` | Question du surnom sans « (obligatoire) ». |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+- `Battle::Move#pbEffectivenessMessage` (alias `__french_pbEffectivenessMessage`). Le plugin se charge avant le Deluxe Battle Kit (ordre alphabétique des dossiers), qui aliase à son tour la méthode pour ses déclencheurs.
+
+### Limites connues
+- La traduction complète des textes d'Essentials et du Deluxe Battle Kit n'est pas encore faite.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -884,3 +903,4 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 06/11/2026 | FrenchTexts v1.0.0 et Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
