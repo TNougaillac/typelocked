@@ -5,7 +5,11 @@ and SirMalo's HGSS sheets. The 4G tiles are used as they are drawn: whole
 16 px tiles, scaled x2 (nearest neighbour), never cut or redrawn.
 - Grounds and plants of MapProc's palette take the place of their old tile
   (same T<n>, same passages).
-- Trees are bigger than the blocks MapProc gives them: each one is copied
+- The forest tree (route borders) is SirMalo's pair of trees, copied whole
+  twice per ground (blocked, and with a halo's passages): MapGen draws each
+  cell of a forest from it by its place, so that trees 2 tiles apart overlap
+  as the sheet draws them.
+- Other trees are bigger than the blocks MapProc gives them: each one is copied
   whole below the old tileset, with the tiles around its block (tips, sides)
   that MapGen draws on layer 3 ("halo", see Plugins/MapGenerator/002_Parser.rb).
   The script prints the new [Objects] lines.
@@ -43,6 +47,7 @@ GRASS = {(112, 216, 168, 255), (112, 208, 168, 255)}
 SHADOWS = {(96, 200, 152, 255): 0.9, (80, 176, 144, 255): 0.8, (56, 136, 112, 255): 0.6}
 TILE = 32
 TALL = 420   # passages of a halo tile: walkable, drawn over the player
+SOLID = 428  # passages of a tree tile: blocked
 
 # Tiles in place: Outside tile => (sheet, column, tile x, tile y) in 16 px
 # tiles. Opaque tiles are laid over the 4G grass (the holes of the path's
@@ -92,11 +97,16 @@ def grid_block(col, tx, ty, width, height):
     return [[("N", col, tx + dx, ty + dy) for dx in range(width)] for dy in range(height)]
 
 
+# Forest tree (t, route borders): SirMalo's 6x6 pair of trees, whole, twice
+# per ground: blocked (the trees) and with a halo's passages (the canopy
+# drawn around the forest); MapGen picks each cell by its place in the forest
+# (Plugins/MapGenerator/003_Builder.rb).
+FOREST = ("t", 2, 0)   # symbol, sheet column, first row
+FOREST_SIZE = 6
 # Trees: symbol => (old first tile, block width, block height, drawing, block
 # x, block y in the drawing). The block keeps the passages of the old tiles;
 # the rest of the drawing is the halo.
 TREES = {
-    "t": (420, 2, 3, pair_tree(0), 1, 1),     # forest tree (route borders)
     "é": (440, 3, 3, pair_tree(24), 1, 1),    # tall pine (dark)
     "è": (491, 3, 3, grid_block(3, 0, 36, 4, 4), 0, 1),   # round tree
     "ü": (539, 3, 3, grid_block(3, 0, 40, 4, 4), 0, 1),   # yellow tree (autumn)
@@ -105,7 +115,7 @@ TREES = {
 }
 # Grounds of the ambiances (tools/art/ground_variants.py) and the trees
 # drawn on each; None: the 4G grass, as drawn
-VARIED = ["t", "é", "è", "ê", "ë"]
+VARIED = ["é", "è", "ê", "ë"]
 GROUNDS = {None: list(TREES), 50: VARIED, 162: VARIED, 106: VARIED, 218: VARIED}
 # Tall grass on those grounds: ground => (tall grass, very tall grass foot),
 # in place (the grass at the foot becomes the ground)
@@ -189,13 +199,32 @@ def build(folder):
                  if not (bx <= dx < bx + width and by <= dy < by + height)
                  and not tiles[first + dy * 8 + dx].getbbox()]
         placed.append((ground_id, sym, first, empty))
-    count = ((len(placed) + 1) // 2) * 4 * 8
+    # Forests: below the trees, a blocked and a halo copy per ground, side
+    # by side on 6 rows (the last 2 columns stay empty)
+    forest_first = first_new + ((len(placed) + 1) // 2) * 4 * 8
+    sym, col, row = FOREST
+    forests = []   # (ground, first blocked tile, first halo tile)
+    for k, ground_id in enumerate(GROUNDS):
+        ground = None
+        if ground_id is not None:
+            ground = tiles[ground_id] if ground_id in tiles else old.crop(box(ground_id))
+        solid = forest_first + k * 2 * FOREST_SIZE * 8
+        halo = solid + FOREST_SIZE * 8
+        for dy in range(FOREST_SIZE):
+            for dx in range(FOREST_SIZE):
+                tile = sheet_tile(sheets, ("N", col, dx, row + dy))
+                tile = on_ground(tile, ground) if ground else tile
+                for first, passages in ((solid, SOLID), (halo, TALL)):
+                    tiles[first + dy * 8 + dx] = tile
+                    copies[first + dy * 8 + dx] = passages
+        forests.append((ground_id, solid, halo))
+    count = forest_first - first_new + len(GROUNDS) * 2 * FOREST_SIZE * 8
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, copies, count
+    return out, placed, forests, copies, count
 
 
 def object_line(sym, first, empty):
@@ -209,11 +238,14 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, copies, count = build(sys.argv[1])
+    out, placed, forests, copies, count = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
-    print(f"{TARGET} : {len(TILES) + len(CLEARED) + 2 * len(GRASS_VARIANTS)} tuiles remplacées, {len(placed)} arbres ajoutés")
+    print(f"{TARGET} : {len(TILES) + len(CLEARED) + 2 * len(GRASS_VARIANTS)} tuiles remplacées, "
+          f"{len(placed)} arbres et {len(forests)} forêts ajoutés")
+    for ground_id, solid, halo in forests:
+        print(f"[{GROUND_NAMES[ground_id]}] {FOREST[0]} = T{solid} 2x2 forest=T{halo}")
     for ground_id, sym, first, empty in placed:
         print(f"[{GROUND_NAMES[ground_id]}] {object_line(sym, first, empty)}")
 

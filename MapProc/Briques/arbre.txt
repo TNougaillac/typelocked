@@ -3,4 +3,3 @@ Type   = arbre
 [Map]
 tt
 tt
-tt

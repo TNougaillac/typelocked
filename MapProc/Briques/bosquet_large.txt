@@ -6,6 +6,4 @@ Ambiances = verdoyante, automne
 tttttt
 tttttt
 tttttt
- tttt
- tttt
- tttt
+tttttt
