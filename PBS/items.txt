@@ -6608,3 +6608,11 @@ Price = 0
 FieldUse = Direct
 Flags = KeyItem
 Description = Une lanterne qui éclaire les grottes sombres.
+#-------------------------------
+[PACTINCENSE]
+Name = Encens du Pacte
+NamePlural = Encens du Pacte
+Pocket = 1
+Price = 0
+FieldUse = Direct
+Description = Un encens qui attire les Pokémon que le Pacte vous destine : le prochain Pokémon sauvage pourra être capturé.

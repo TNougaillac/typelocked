@@ -40,7 +40,8 @@ module WorldEvents
     end
     if zones && tms
       weather = weather_items(type, Random.new((seed * 1000) + 780))
-      items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730))
+      pact = Random.new((seed * 1000) + 790).rand(PACT_INCENSES)
+      items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730), pact)
     end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760))
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
