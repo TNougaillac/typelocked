@@ -26,3 +26,11 @@ SnapToLargeGrid = true
 LargeVoidTiles = true
 LargeWallTiles = true
 ThinNorthWallOffset = -8
+#-------------------------------
+[25]   # Cave 4G
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
