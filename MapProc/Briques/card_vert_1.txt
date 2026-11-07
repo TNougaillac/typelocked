@@ -1,8 +1,7 @@
-Brique = Bâtiment Card vert
+Brique = Petite maison verte
 Type   = special
-Porte  = 2,3
+Porte  = 1,2
 [Map]
-XXXX
 XXXX
 XXXX
 XXXX

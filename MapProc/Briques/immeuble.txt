@@ -1,9 +1,7 @@
-Brique = Immeuble
+Brique = Grande maison verte
 Type   = immeuble
-Porte  = 1,4
+Porte  = 1,2
 [Map]
-BBBBB
-BBBBB
-BBBBB
-BBBBB
-BBBBB
+BBBB
+BBBB
+BBBB
