@@ -131,8 +131,8 @@ module MapProceduralGenerator
   # Caves of a world (2 floors each, see 006_Caves.rb): tileset of their maps
   # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon
   # parameters CAVE_AREA in PBS/dungeon_parameters.txt for the decorations),
-  # its floor and rock tiles. Cave 4G (HGSS, tools/art/caves_4g.py) is laid
-  # out like Dungeon cave (7): the same tiles, the same section shape.
+  # its floor and rock tiles. Cave 4G (HGSS, tools/art/caves_4g.py) keeps
+  # the rock, floor and ladder tiles of Dungeon cave (7), with single walls.
   CAVE_TILESET = 25
   CAVE_AREA = :cave
   CAVE_FLOOR = "T42"
