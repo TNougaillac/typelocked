@@ -127,6 +127,12 @@ module MapProceduralGenerator
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
+  # Street styles (several « Rue » in an ambiance): each town draws one, and
+  # each CASE_SIZE district of a town 2 districts wide or high draws another
+  # one that often (%); two styles meet without an edge between them.
+  DISTRICT_STREET_CHANCE = 40
+  # Symbols of the other styles on the plan (style k, the drawn one is Rue)
+  STREET_STYLE_SYMBOLS = "①②③④⑤⑥⑦⑧"
 
   # Caves of a world (2 floors each, see 006_Caves.rb): tileset of their maps
   # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon

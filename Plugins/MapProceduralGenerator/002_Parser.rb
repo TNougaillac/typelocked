@@ -69,7 +69,9 @@
 #   Sol   = T1|T2|T3           (tiles of the ground symbol, as in [Legend])
 #   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
 #                               with edges N=..., else as in [Legend]; not
-#                               needed when Rue and Sol are the same symbol)
+#                               needed when Rue and Sol are the same symbol;
+#                               several lines: styles, one drawn per town and
+#                               per district, see DISTRICT_STREET_CHANCE)
 #   t     = T520 2x3           (a symbol of the palette below redefined for
 #                               this ambiance, in its own section's syntax)
 #   arbre = 0..1 par case      (a type of [Briques] with another quantity for
@@ -102,7 +104,7 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock, :plan, :sea_rock, :edged_water)
+                     :mask, :joints, :filler, :lock, :plan, :sea_rock, :edged_water, :street_style)
   # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
@@ -115,12 +117,14 @@ module MapProceduralGenerator
   # banks: « Rive », the 3 symbols of the bank below the water;
   # edged_water: « EauBordee », the water draws its own bottom bank;
   # fixed_counts: quantities set by the world (plateau, islands), which the
-  # ambiance doesn't change
-  # ground, street: tile text of the ground and street symbols; banks: tiles
+  # ambiance doesn't change; street_style: the town's street style (index in
+  # its ambiance's streets, drawn by generate_place, nil = the first)
+  # ground, street: tile text of the ground and street symbols (streets: every
+  # « Rue » line, its styles; street: the first); banks: tiles
   # of the 3 bank symbols on that ground (nil = those of the palette);
   # palette: symbol => its definition for this ambiance; counts, per_case:
   # quantities of brick types for this ambiance, as in [Briques]
-  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case)
+  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
@@ -176,7 +180,9 @@ module MapProceduralGenerator
         case key.downcase
         when "poids" then ambiance.weight = integer(value, fail_at)
         when "sol"   then ambiance.ground = value
-        when "rue"   then ambiance.street = value
+        when "rue"
+          ambiance.street ||= value
+          (ambiance.streets ||= []).push(value)
         when "rive"
           ambiance.banks = value.split
           fail_at.call("3 tuiles attendues (gauche, milieu, droite), ex. « T832 T833 T834 »") unless ambiance.banks.length == 3
@@ -396,8 +402,13 @@ module MapProceduralGenerator
     text = place.palette.gsub("{sol}", ground).gsub("{rive}", rive)
     text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
     if chosen.street && place.street != place.ground
-      section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
-      text << "[#{section}]\n#{place.street} = #{chosen.street}\n"
+      symbols = street_symbols(place, chosen.streets.length)
+      chosen.streets.each_with_index do |tiles, k|
+        section = (tiles =~ /\s\w+=/) ? "Terrains" : "Legend"
+        others = symbols.join.delete(symbols[k])
+        tiles = (tiles =~ /\bwith=/) ? tiles.sub(/\bwith=(\S+)/) { "with=#{$1}#{others}" } : "#{tiles} with=#{others}" if section == "Terrains" && !others.empty?
+        text << "[#{section}]\n#{symbols[k]} = #{tiles}\n"
+      end
     end
     if chosen.banks && place.banks
       text << "[Legend]\n"
@@ -407,6 +418,14 @@ module MapProceduralGenerator
       text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground).gsub('{rive}', rive)}\n"
     end
     return text
+  end
+
+  # Plan symbol of each of the place's count street styles: Rue for its own
+  # style, STREET_STYLE_SYMBOLS for the others (the streets of other
+  # districts).
+  def street_symbols(place, count)
+    own = place.street_style || 0
+    return Array.new(count) { |k| (k == own) ? place.street : STREET_STYLE_SYMBOLS[k] }
   end
 
   # The middle tile of the place's own « Rive » (« T849 » for « ' = T849 »),

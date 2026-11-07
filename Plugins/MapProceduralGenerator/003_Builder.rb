@@ -108,6 +108,7 @@ module MapProceduralGenerator
       @seed = seed
       @rng = Random.new(seed)
       @w, @h = place.width, place.height
+      @districts = district_streets
       @mask = place.mask
       @cell = @mask && @w / @mask[0].length
       @cells = Array.new(@h) { Array.new(@w) }          # brick or border symbols
@@ -240,8 +241,29 @@ module MapProceduralGenerator
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
-      return @cells[y][x] || zone || @place.street if @street[y][x]
+      return @cells[y][x] || zone || street_symbol(x, y) if @street[y][x]
       return @cells[y][x] || zone || @place.ground
+    end
+
+    def street_symbol(x, y)
+      return @districts ? @districts[y / CASE_SIZE][x / CASE_SIZE] : @place.street
+    end
+
+    # Street symbol of each CASE_SIZE district of a town 2 districts wide or
+    # high whose ambiance has several street styles (DISTRICT_STREET_CHANCE),
+    # nil otherwise (every street is Rue).
+    def district_streets
+      styles = MapProceduralGenerator.ambiance(@place)&.streets&.length.to_i
+      return nil if styles < 2 || @place.street == @place.ground || [@w, @h].max < 2 * CASE_SIZE
+      rng = Random.new(@seed + 7933)
+      symbols = MapProceduralGenerator.street_symbols(@place, styles)
+      own = @place.street_style || 0
+      return Array.new(@h.fdiv(CASE_SIZE).ceil) do
+        Array.new(@w.fdiv(CASE_SIZE).ceil) do
+          next @place.street if rng.rand(100) >= DISTRICT_STREET_CHANCE
+          next symbols[(own + 1 + rng.rand(styles - 1)) % styles]
+        end
+      end
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.
@@ -444,6 +466,11 @@ module MapProceduralGenerator
     if !place.ambiance && place.ambiances.any?
       place = place.dup
       place.ambiance = draw_ambiance(place, Random.new(seed + 7919))
+    end
+    styles = ambiance(place)&.streets&.length.to_i
+    if styles > 1 && !place.street_style
+      place = place.dup
+      place.street_style = Random.new(seed + 7927).rand(styles)
     end
     place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
