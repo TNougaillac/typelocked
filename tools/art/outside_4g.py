@@ -39,8 +39,9 @@ from PIL import Image
 SOURCE = "Graphics/Tilesets/Outside.png"
 TARGET = "Graphics/Tilesets/Outside 4G.png"
 TILESET_ID = 24
-SHEETS = {"N": "NatureRMXP.png"}
+SHEETS = {"N": "NatureRMXP.png", "B": "BuildingsRMXP.png"}
 PINK = (240, 91, 161, 255)
+MAGENTA = (255, 0, 255, 255)   # see-through of the Buildings sheet
 UNUSED = {(255, 245, 104, 255), (255, 255, 255, 255)}
 # 4G grass and the shadows drawn on it (redrawn on the other grounds)
 GRASS = {(112, 216, 168, 255), (112, 208, 168, 255)}
@@ -142,6 +143,49 @@ CAVE_PASSAGES = [787, 790, 789, 795, 798, 797, 803, 806, 805]
 # right end; the old ones give their passages
 LEDGE = [(("N", 4, 1, 1), 810), (("N", 4, 2, 1), 828), (("N", 4, 3, 1), 814)]
 LEDGE_TILES = [810, 828, 814]
+# Buildings (BuildingsRMXP.png): symbol => (sheet column, x, y, width,
+# height of the drawing in tiles, block x, y, width, height in the drawing,
+# door x, y in the block). The block is the building (blocked, its door
+# walked into); the rest of the drawing (eaves, chimney, the shadow) is its
+# halo (Plugins/MapGenerator/002_Parser.rb): drawn over the player where it
+# holds some of the building, under him where it is only shadow.
+BUILDINGS = {
+    "C": (0, 1, 1, 6, 6, 0, 0, 5, 5, 2, 4),     # Pokémon Centre
+    "M": (0, 0, 17, 5, 5, 0, 0, 4, 4, 2, 3),    # Mart (blue)
+    "N": (0, 0, 24, 5, 5, 0, 0, 4, 4, 2, 3),    # Mart (purple)
+    "V": (15, 0, 20, 6, 6, 1, 1, 5, 4, 2, 3),   # orange house
+    "U": (5, 0, 1, 6, 5, 1, 0, 4, 4, 1, 3),     # teal house
+    "E": (13, 0, 20, 6, 6, 1, 1, 4, 4, 1, 3),   # dark green house
+    "K": (15, 0, 28, 5, 6, 1, 1, 4, 4, 1, 3),   # grey-green house
+    "D": (5, 0, 44, 6, 6, 1, 1, 4, 4, 2, 3),    # purple house with a turret
+    "O": (5, 0, 37, 6, 6, 1, 1, 4, 4, 1, 3),    # brown house
+    "h": (14, 0, 0, 6, 6, 1, 1, 4, 4, 1, 3),    # green house
+    "W": (12, 0, 0, 6, 6, 1, 1, 4, 4, 1, 3),    # red wooden house
+    "u": (5, 0, 30, 6, 6, 1, 1, 4, 4, 1, 3),    # red gabled house
+    "r": (5, 0, 23, 6, 6, 1, 1, 4, 4, 1, 3),    # pink house
+}
+SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
+# Gyms, one per type in two styles (round, square), each type's the same
+# drawing (8x7 tiles, the block 7x5 from its row 1, the door 3,4): style =>
+# (symbol, [(sheet column, first row)] for the two columns of types, every
+# 8 rows). The town draws the Normal one; WorldEvents paints the
+# lieutenant's type over it (Plugins/WorldEvents/010_GymExteriors.rb).
+GYM_TYPES = [["BUG", "DARK", "DRAGON", "ELECTRIC", "FAIRY", "FIGHTING", "FIRE", "FLYING", "GHOST"],
+             ["GRASS", "GROUND", "ICE", "NORMAL", "POISON", "PSYCHIC", "ROCK", "STEEL", "WATER"]]
+GYMS = {"round": ("G", [(1, 3), (2, 1)]), "square": ("H", [(3, 1), (4, 1)])}
+GYM_SIZE = (8, 7)
+GYM_BLOCK = (0, 1, 7, 5)
+GYM_DOOR = (3, 4)
+
+
+def building_passages(tile, inside, door):
+    """Passages of a building tile ("=<n>" or a tile to copy, see
+    tools/art/tileset_tables.rb)."""
+    if inside:
+        return "=0" if door else "=15"
+    if all(c[3] == 0 or c == SHADOW for c in tile.get_flattened_data()):
+        return "=0"
+    return TALL
 
 
 def cliff_passages(row, col, tile):
@@ -163,11 +207,13 @@ def box(tile):
 
 def sheet_tile(sheets, src):
     """One 16 px tile of a sheet, scaled x2, its pink and unused colours
-    see-through."""
+    see-through (the Buildings sheet: magenta and yellow; its white is
+    drawn)."""
     sheet, col, tx, ty = src
     left = 16 + 144 * col
     im = sheets[sheet].crop((left + tx * 16, ty * 16, left + tx * 16 + 16, ty * 16 + 16))
-    im.putdata([(0, 0, 0, 0) if c == PINK or c in UNUSED else c for c in im.getdata()])
+    clear = {MAGENTA, (255, 245, 104, 255)} if sheet == "B" else {PINK} | UNUSED
+    im.putdata([(0, 0, 0, 0) if c in clear else c for c in im.get_flattened_data()])
     return im.resize((TILE, TILE), Image.NEAREST)
 
 
@@ -287,13 +333,48 @@ def build(folder):
     blocker = extra + len(LEDGE)
     tiles[blocker] = Image.new("RGBA", (TILE, TILE))
     copies[blocker] = "=8"
-    count = extra + 8 - first_new
+    # Buildings, each from a new row of the tileset
+    buildings = []   # (symbol, first tile of the drawing, empty cells)
+    first = extra + 8
+    for sym, (col, x, y, w, h, bx, by, bw, bh, dx, dy) in BUILDINGS.items():
+        empty = []
+        for ty in range(h):
+            for tx in range(w):
+                dest = first + ty * 8 + tx
+                tile = sheet_tile(sheets, ("B", col, x + tx, y + ty))
+                inside = bx <= tx < bx + bw and by <= ty < by + bh
+                tiles[dest] = tile
+                copies[dest] = building_passages(tile, inside, (tx, ty) == (bx + dx, by + dy))
+                if not inside and not tile.getbbox():
+                    empty.append(ty * w + tx)
+        buildings.append((sym, first, empty))
+        first += h * 8
+    gyms = {}   # style => {type: first tile of its drawing}, and its empty cells
+    w, h = GYM_SIZE
+    bx, by, bw, bh = GYM_BLOCK
+    for style, (sym, columns) in GYMS.items():
+        gyms[style] = {}
+        for (col, row), types in zip(columns, GYM_TYPES):
+            for k, gym_type in enumerate(types):
+                empty = []
+                for ty in range(h):
+                    for tx in range(w):
+                        dest = first + ty * 8 + tx
+                        tile = sheet_tile(sheets, ("B", col, tx, row + k * 8 + ty))
+                        inside = bx <= tx < bx + bw and by <= ty < by + bh
+                        tiles[dest] = tile
+                        copies[dest] = building_passages(tile, inside, (tx, ty) == (bx + GYM_DOOR[0], by + GYM_DOOR[1]))
+                        if not inside and not tile.getbbox():
+                            empty.append(ty * w + tx)
+                gyms[style][gym_type] = (first, empty)
+                first += h * 8
+    count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker)
+    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms)
 
 
 def cliff_line(first):
@@ -317,7 +398,7 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker) = build(sys.argv[1])
+    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
@@ -332,6 +413,17 @@ def main():
         print(f"[{GROUND_NAMES[ground_id]}] falaise ({top}, {'grise' if col == 6 else 'brune'}) : {cliff_line(first)}")
     for first in caves:
         print("grotte : " + " ".join(f"{i + 1} = T{first + (i // 3) * 8 + i % 3}" for i in range(9)))
+    for sym, first, empty in buildings:
+        _col, _x, _y, w, h, bx, by, bw, bh, dx, dy = BUILDINGS[sym]
+        line = f"{sym} = T{first + by * 8 + bx} {bw}x{bh} halo={w}x{h}@{bx},{by}"
+        print(f"bâtiment : {line}{'/' + ','.join(map(str, empty)) if empty else ''}   (porte {dx},{dy})")
+    w, h = GYM_SIZE
+    bx, by, bw, bh = GYM_BLOCK
+    for style, (sym, _columns) in GYMS.items():
+        first, empty = gyms[style]["NORMAL"]
+        print(f"arène ({style}) : {sym} = T{first + by * 8 + bx} {bw}x{bh} halo={w}x{h}@{bx},{by}"
+              f"{'/' + ','.join(map(str, empty)) if empty else ''}   (porte {GYM_DOOR[0]},{GYM_DOOR[1]})")
+        print(f"  {style}: {{ " + ", ".join(f"{t}: {f}" for t, (f, _e) in gyms[style].items()) + " }")
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
 
 

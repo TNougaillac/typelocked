@@ -333,8 +333,8 @@ a = T836 2x4         # flèche rocheuse brune (désert)
 i = T916 2x4         # flèche rocheuse grise (minéral)
 t = T5248 2x2 forest=T5296         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
-W = T1816 4x4        # maison en bois (refuge)
-V = T1336 5x4        # maison verte à cheminée (refuge)
+W = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (refuge)
+V = T6201 5x4 halo=6x6@1,1/5           # maison orange (refuge)
 ń = T4236 1x2         # caisses empilées
 ď = T4237 1x2         # long bac de fleurs
 ž = T4240 3x1         # tas de bûches

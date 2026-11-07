@@ -263,11 +263,11 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 û = T685 3x1         # haie
 a = T836 2x4         # flèche rocheuse brune (désert)
 i = T916 2x4         # flèche rocheuse grise (minéral)
-C = T2608 5x5        # Centre Pokémon
-M = T2648 4x4        # Boutique (porte à droite)
-N = T2652 4x4        # Boutique (porte à gauche)
-G = T2800 7x5        # arène au toit de chaume
-H = T2856 6x5        # arène en brique
+C = T6064 5x5 halo=6x6@0,0/5,11        # Centre Pokémon (SirMalo, HGSS)
+M = T6112 4x4 halo=5x5@0,0/4          # Boutique (bleue)
+N = T6152 4x4 halo=5x5@0,0/4          # Boutique (violette)
+G = T7344 7x5 halo=8x7@0,1/0,6,7,15,48,55   # arène ronde (SirMalo ; WorldEvents la peint du type du lieutenant)
+H = T8352 7x5 halo=8x7@0,1/0,1,5,6,7,15,23  # arène carrée (idem)
 X = T2680 4x4        # bâtiment « Card » vert (porte à droite)
 Y = T2684 4x4        # bâtiment « Card » vert (porte à gauche)
 Z = T2712 4x4        # bâtiment « Card » orange (porte à droite)
@@ -275,19 +275,18 @@ A = T2716 4x4        # bâtiment « Card » orange (porte à gauche)
 R = T2744 7x6        # grand dôme orange
 B = T1576 5x5        # immeuble à toit rouge
 Q = T1828 4x4        # bâtiment gris à toit plat
-V = T1336 5x4        # maison verte à cheminée
-U = T1368 5x4        # maison bleue à cheminée
-E = T1400 5x4        # maison à auvent vert
-K = T1432 5x4        # garage
-D = T1467 5x4        # maison violette
-O = T1536 5x5        # maison orange
-h = T1784 4x4        # petite maison à toit plat
-W = T1816 4x4        # maison en bois
-u = T1664 4x3        # petite maison bleue
-r = T1648 4x2        # toit rouge (sur w)
-g = T1652 4x2        # toit vert (sur w)
-o = T1668 4x2        # toit orange (sur w)
-w = T1680 4x1        # façade avec porte, sous un toit r, g ou o
+V = T6201 5x4 halo=6x6@1,1/5           # maison orange
+U = T6241 4x4 halo=6x5@1,0/5,11,18,24 # maison turquoise
+E = T6289 4x4 halo=6x6@1,1/0,11,17,24,30   # maison vert sombre
+K = T6337 4x4 halo=5x6@1,1/0,20,25    # maison gris-vert
+D = T6385 4x4 halo=6x6@1,1/0,5,11,17,24,30   # maison violette à tourelle
+O = T6433 4x4 halo=6x6@1,1/0,5,11,17,30      # maison brune
+h = T6481 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison verte
+W = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois
+u = T6577 4x4 halo=6x6@1,1/0,5,11,17,24,30   # maison rouge à pignon
+r = T6625 4x4 halo=6x6@1,1/0,5,11,17,24,30   # maison rose
+g = T6481 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison verte (petite maison verte)
+o = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (petite maison orange)
 s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T5248 2x2 forest=T5296         # arbre
