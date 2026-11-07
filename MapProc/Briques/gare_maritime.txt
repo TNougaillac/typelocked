@@ -1,8 +1,9 @@
 Brique = Gare maritime
 Type   = gare
+Porte  = 2,4
 [Map]
-1FFFFF5
-2FFFFF6
-3FFFFF7
-2FFFFF6
-4FFFFF8
+FFFFF
+FFFFF
+FFFFF
+FFFFF
+FFFFF
