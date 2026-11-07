@@ -20,7 +20,7 @@ Eau     = ~
 # Rive : le rebord du bas de l'eau, dessiné sur la rangée de sol en dessous
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
-# EauBordee : l'eau 4G (mare de SirMalo) dessine sa rive du bas, pas de
+# EauBordee : l'eau 4G (lac HGSS) dessine sa rive du bas, pas de
 # rangée « Rive » dessous (Rive reste le rebord des niveaux)
 EauBordee = oui
 Profond = %

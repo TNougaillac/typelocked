@@ -5,12 +5,13 @@ repository):
 - HGSS Sea (A2): the lone tile of the "HGSS Autotiles" pack's sea, each of
   its 32 frames repeated over the whole frame (the pack crosses out the
   other parts).
-- Pond (A1) and sand bank (A4): SirMalo's rounded patches (NatureRMXP.png),
-  made into RPG Maker XP autotiles (see blob_autotile): the pond is the
-  water of lakes, rivers and the sea, with its bank on all 4 sides, its
-  still water replaced by the animated HGSS Sea (32 frames, the bank and
-  its light rim kept); the sand bank, laid over the water, is the pale
-  sand patch.
+- HGSS Lake (A1): the water of lakes, rivers and the sea, as in HGSS (Lake
+  of Rage): the pack's HGSS Ledge (dirt bank and foam, both animated) over
+  the HGSS Sea, the sea only inside the bank. The pack draws no bottom
+  edge: its top edge, flipped upside down, is the bottom one, so the bank
+  goes all around (see ledge_lake).
+- Sand bank (A4): SirMalo's rounded pale sand patch (NatureRMXP.png), made
+  into an RPG Maker XP autotile (see blob_autotile), laid over the water.
 - Deep water (A3): the animated HGSS Sea, darkened, in the rounded outline
   of the sand bank (no deep water in the sheets).
 - HGSS Rocks (A6), HGSS Flowers 01 (A5): copied as they are from the pack,
@@ -28,15 +29,14 @@ from PIL import Image
 OUT = "Graphics/Autotiles"
 TILESET_ID = 24
 DEEP = 0.75
-POND_WATER = (104, 176, 232, 255)   # the still water of SirMalo's pond
 FRAME_W, FRAME_H = 96, 128
 PINK = (240, 91, 161, 255)
 COPIED = ["HGSS Rocks", "HGSS Flowers 01"]
 # SirMalo's rounded patches (column 0 of NatureRMXP.png): first row of the
 # 4x4 patch; its copy with a hole (the inner corners) is on its right
-BLOBS = {"HGSS Pond": 39, "HGSS Sand bank": 21}
+BLOBS = {"HGSS Sand bank": 21}
 # Autotiles of tileset 24, A1 to A7 (Fountain1 is not replaced yet)
-NAMES = ["HGSS Pond", "HGSS Sea", "HGSS Pond deep", "HGSS Sand bank",
+NAMES = ["HGSS Lake", "HGSS Sea", "HGSS Sea deep", "HGSS Sand bank",
          "HGSS Flowers 01", "HGSS Rocks", "Fountain1"]
 
 
@@ -100,6 +100,50 @@ def animate(still, sea, where, dark=1.0):
     return out
 
 
+def flood(frame, seeds):
+    """See-through pixels of a frame reached from seeds, each fill kept in
+    its box: [(points, (x0, y0, x1, y1)), ...]."""
+    px = frame.load()
+    seen = set()
+    for points, (x0, y0, x1, y1) in seeds:
+        stack = list(points)
+        while stack:
+            x, y = stack.pop()
+            if (x, y) in seen or not (x0 <= x < x1 and y0 <= y < y1) or px[x, y][3] != 0:
+                continue
+            seen.add((x, y))
+            stack += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    return seen
+
+
+def border(x0, y0, x1, y1):
+    return [(x, y) for x in range(x0, x1) for y in (y0, y1 - 1)] + [(x, y) for y in range(y0, y1) for x in (x0, x1 - 1)]
+
+
+def ledge_lake(ledge, sea):
+    """Each frame: the ledge with a bottom edge (its top edge flipped: the
+    top halves of the lone tile, of the 3x3 block's top row and of the top
+    inner corners, flipped into the bottom halves), over the sea where the
+    bank closes (see-through pixels not reached from the outer sides)."""
+    out = Image.new("RGBA", (ledge.width, FRAME_H))
+    for i in range(ledge.width // FRAME_W):
+        frame = ledge.crop((i * FRAME_W, 0, i * FRAME_W + FRAME_W, FRAME_H))
+        flip = frame.transpose(Image.FLIP_TOP_BOTTOM)
+        frame.paste(flip.crop((0, 112, 32, 128)), (0, 16))       # lone tile
+        frame.paste(flip.crop((64, 112, 96, 128)), (64, 16))     # inner corners
+        frame.paste(flip.crop((0, 64, 96, 96)), (0, 96))         # bottom row
+        lake = sea.crop((i * FRAME_W, 0, i * FRAME_W + FRAME_W, FRAME_H))
+        lake.alpha_composite(frame)
+        px = lake.load()
+        beyond = flood(frame, [(border(0, 0, 32, 32), (0, 0, 32, 32)), (border(0, 32, 96, 128), (0, 32, 96, 128)),
+                               ([(64, 0)], (64, 0, 80, 16)), ([(95, 0)], (80, 0, 96, 16)),
+                               ([(64, 31)], (64, 16, 80, 32)), ([(95, 31)], (80, 16, 96, 32))])
+        for x, y in beyond:
+            px[x, y] = (0, 0, 0, 0)
+        out.paste(lake, (i * FRAME_W, 0))
+    return out
+
+
 def main():
     pack, sirmalo = sys.argv[1], sys.argv[2]
 
@@ -111,12 +155,12 @@ def main():
     sea.save(f"{OUT}/HGSS Sea.png")
     nature = Image.open(f"{sirmalo}/NatureRMXP.png").convert("RGBA")
     blobs = {name: blob_autotile(nature, row) for name, row in BLOBS.items()}
-    blobs["HGSS Pond"] = animate(blobs["HGSS Pond"], sea, lambda c: c == POND_WATER)
     for name, image in blobs.items():
         image.save(f"{OUT}/{name}.png")
-    animate(blobs["HGSS Sand bank"], sea, lambda c: c[3] > 0, DEEP).save(f"{OUT}/HGSS Pond deep.png")
+    ledge_lake(load("HGSS Ledge"), sea).save(f"{OUT}/HGSS Lake.png")
+    animate(blobs["HGSS Sand bank"], sea, lambda c: c[3] > 0, DEEP).save(f"{OUT}/HGSS Sea deep.png")
     subprocess.run(["ruby", "tools/art/tileset_autotiles.rb", str(TILESET_ID), *NAMES], check=True)
-    print(f"{OUT} : {len(COPIED) + len(BLOBS) + 2} autotiles HGSS, tileset {TILESET_ID} : {', '.join(NAMES)}")
+    print(f"{OUT} : {len(COPIED) + len(BLOBS) + 3} autotiles HGSS, tileset {TILESET_ID} : {', '.join(NAMES)}")
 
 
 if __name__ == "__main__":
