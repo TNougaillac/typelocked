@@ -1,6 +1,7 @@
 # Grows the passages, priorities and terrain tags of a tileset in
 # Data/Tilesets.rxdata by COUNT tiles, and gives each new tile the values of
-# its source (JSON { "new tile" => source tile, -1 = walkable, nothing else }).
+# its source (JSON { "new tile" => source tile, -1 = walkable, nothing else,
+# "=<n>" = passages n, no priority nor terrain tag }).
 # Tile numbers as in MapGen (T<n>, 384 is added here).
 # Usage: ruby tools/art/tileset_tables.rb TILESET_ID COUNT JSON
 require "json"
@@ -40,6 +41,15 @@ copies = JSON.parse(ARGV[2])
 %i[@passages @priorities @terrain_tags].each do |name|
   table = tileset.instance_variable_get(name)
   table.data.concat([0] * ARGV[1].to_i)
-  copies.each { |dest, src| table.data[384 + dest.to_i] = src.to_i < 0 ? 0 : table.data[384 + src.to_i] }
+  copies.each do |dest, src|
+    value = if src.to_s.start_with?("=")
+              name == :@passages ? src[1..].to_i : 0
+            elsif src.to_i < 0
+              0
+            else
+              table.data[384 + src.to_i]
+            end
+    table.data[384 + dest.to_i] = value
+  end
 end
 File.binwrite(file, Marshal.dump(tilesets))

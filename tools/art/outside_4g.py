@@ -122,6 +122,40 @@ GROUNDS = {None: list(TREES), 50: VARIED, 162: VARIED, 106: VARIED, 218: VARIED}
 GRASS_VARIANTS = {50: (143, 151), 162: (124, 175), 106: (125, 181), 218: (133, 189)}
 GROUND_NAMES = {None: "palette", 50: "prairie", 162: "sable", 106: "terre battue", 218: "minérale"}
 
+# Cliffs (MapProc's relief): SirMalo's plateaux, whole, 5 rows of 8 tiles
+# each: row 0 the rim drawn above the north edge, rows 1-3 the plateau (its
+# sides, inside and south face), row 4 its inner corners (columns 0-3) and
+# the rims where it rises beside them (columns 5-6). A grass top per ground
+# (grey rock on the mineral one), then the rock tops of the massifs.
+# (ground, sheet column, first row)
+CLIFFS = [(None, 5, 20), (50, 5, 20), (162, 5, 20), (106, 5, 20), (218, 6, 20), (None, 5, 0), (218, 6, 0)]
+CLIFF_ROWS = 5
+# The shades of grass along the rims (any green, its rock is brown or grey)
+# become the ground darkened as much as they are darker than the grass
+CLIFF_GREEN = 15     # green over red that makes a shade of grass
+GRASS_GREEN = 216    # green of the grass
+# Cave entrances: 3x3 mouths cut in a cliff face, brown then grey, each in a
+# row of 3 tiles of 8 (the legend's 1..9, row by row)
+CAVES = [(9, 9), (9, 33)]   # sheet column, first row
+CAVE_PASSAGES = [787, 790, 789, 795, 798, 797, 803, 806, 805]
+# Ledge (MapProc's corniche, jumped down to the south): left end, middle,
+# right end; the old ones give their passages
+LEDGE = [(("N", 4, 1, 1), 810), (("N", 4, 2, 1), 828), (("N", 4, 3, 1), 814)]
+LEDGE_TILES = [810, 828, 814]
+
+
+def cliff_passages(row, col, tile):
+    """Passages of a cliff tile ("=<n>", see tools/art/tileset_tables.rb):
+    a rim can't be crossed to the south (nor climbed from it), the sides and
+    the south face are blocked, the top is walked on."""
+    if not tile.getbbox():
+        return -1
+    if row == 0 or (row == 4 and col in (5, 6)):
+        return "=1"
+    if row == 4 or col in (0, 3, 4, 7) or row == 3:
+        return "=15"
+    return -1
+
 
 def box(tile):
     return ((tile % 8) * TILE, (tile // 8) * TILE, (tile % 8) * TILE + TILE, (tile // 8) * TILE + TILE)
@@ -137,18 +171,21 @@ def sheet_tile(sheets, src):
     return im.resize((TILE, TILE), Image.NEAREST)
 
 
-def on_ground(tile, ground, opaque=False):
+def on_ground(tile, ground, opaque=False, cliff=False):
     """A tile on another ground: its grass see-through (or the ground), its
-    shadows the darkened ground."""
+    shadows the darkened ground (on a cliff, every shade of grass)."""
     tile = tile.copy()
     px, g = tile.load(), ground.load()
     for y in range(TILE):
         for x in range(TILE):
             c = px[x, y]
+            shade = SHADOWS.get(c)
+            if cliff and c[3] and c[1] > c[0] + CLIFF_GREEN:
+                shade = min(1.0, c[1] / GRASS_GREEN)
             if c in GRASS:
                 px[x, y] = g[x, y] if opaque else (0, 0, 0, 0)
-            elif c in SHADOWS:
-                k = SHADOWS[c]
+            elif shade:
+                k = shade
                 r, gg, b, _a = g[x, y]
                 px[x, y] = (int(r * k), int(gg * k), int(b * k), 255)
     return tile
@@ -218,13 +255,55 @@ def build(folder):
                     tiles[first + dy * 8 + dx] = tile
                     copies[first + dy * 8 + dx] = passages
         forests.append((ground_id, solid, halo))
-    count = forest_first - first_new + len(GROUNDS) * 2 * FOREST_SIZE * 8
+    # Cliffs, cave entrances, the ledge, then a see-through tile that can't
+    # be left to the north (the north edge of a plateau under its rim)
+    cliff_first = forest_first + len(GROUNDS) * 2 * FOREST_SIZE * 8
+    cliffs = []   # (ground, column, first tile)
+    for k, (ground_id, col, row) in enumerate(CLIFFS):
+        ground = None
+        if ground_id is not None and row:
+            ground = tiles[ground_id] if ground_id in tiles else old.crop(box(ground_id))
+        first = cliff_first + k * CLIFF_ROWS * 8
+        for dy in range(CLIFF_ROWS):
+            for dx in range(8):
+                tile = sheet_tile(sheets, ("N", col, dx, row + dy))
+                tile = on_ground(tile, ground, cliff=True) if ground else tile
+                tiles[first + dy * 8 + dx] = tile
+                copies[first + dy * 8 + dx] = cliff_passages(dy, dx, tile)
+        cliffs.append((ground_id, col, row, first))
+    cave_first = cliff_first + len(CLIFFS) * CLIFF_ROWS * 8
+    caves = []
+    for k, (col, row) in enumerate(CAVES):
+        first = cave_first + k * 3 * 8
+        for i, src in enumerate(CAVE_PASSAGES):
+            dest = first + (i // 3) * 8 + i % 3
+            tiles[dest] = sheet_tile(sheets, ("N", col, 1 + i % 3, row + i // 3))
+            copies[dest] = src
+        caves.append(first)
+    extra = cave_first + len(CAVES) * 3 * 8
+    for i, (src, passages) in enumerate(LEDGE):
+        tiles[extra + i] = sheet_tile(sheets, src)
+        copies[extra + i] = passages
+    blocker = extra + len(LEDGE)
+    tiles[blocker] = Image.new("RGBA", (TILE, TILE))
+    copies[blocker] = "=8"
+    count = extra + 8 - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, forests, copies, count
+    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker)
+
+
+def cliff_line(first):
+    """The roles of a cliff block (MapGen [Terrains], see 003_Builder.rb):
+    the inside, then the edges, the inner corners and the rims above."""
+    def t(dx, dy):
+        return f"T{first + dy * 8 + dx}"
+    return (f"inside={t(1, 2)} W={t(0, 2)} E={t(3, 2)} NW={t(0, 1)} NE={t(3, 1)} SW={t(0, 3)} S={t(1, 3)} "
+            f"SE={t(3, 3)} iSE={t(0, 4)} iSW={t(1, 4)} oN={t(1, 0)} oNW={t(0, 0)} oNE={t(3, 0)} "
+            f"oiNW={t(5, 4)} oiNE={t(6, 4)}")
 
 
 def object_line(sym, first, empty):
@@ -238,7 +317,7 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, forests, copies, count = build(sys.argv[1])
+    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
@@ -248,6 +327,12 @@ def main():
         print(f"[{GROUND_NAMES[ground_id]}] {FOREST[0]} = T{solid} 2x2 forest=T{halo}")
     for ground_id, sym, first, empty in placed:
         print(f"[{GROUND_NAMES[ground_id]}] {object_line(sym, first, empty)}")
+    for ground_id, col, row, first in cliffs:
+        top = "roche" if row == 0 else "herbe"
+        print(f"[{GROUND_NAMES[ground_id]}] falaise ({top}, {'grise' if col == 6 else 'brune'}) : {cliff_line(first)}")
+    for first in caves:
+        print("grotte : " + " ".join(f"{i + 1} = T{first + (i // 3) * 8 + i % 3}" for i in range(9)))
+    print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
 
 
 if __name__ == "__main__":

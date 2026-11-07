@@ -139,8 +139,22 @@ module MapGenerator
                elsif !inside.call(1, 1) then "iSE"
                end
         data[x, y, z || terrain.layer] = terrain.roles[role] || terrain.center
+        draw_outer_rim(terrain, inside, w, e, x, y - 1, data, z || terrain.layer) if n && y > 0
       end
     end
+  end
+
+  # The rim above a north edge, on the cell outside it (rows above are
+  # already drawn: it never covers a tile there): its ends curve down at the
+  # terrain's corners and up where the terrain rises beside it.
+  def draw_outer_rim(terrain, inside, w, e, x, y, data, z)
+    role = if w then "oNW"
+           elsif e then "oNE"
+           elsif inside.call(1, -1) then "oiNW"
+           elsif inside.call(-1, -1) then "oiNE"
+           end
+    id = terrain.roles[role] || terrain.roles["oN"]
+    data[x, y, z] = id if id && data[x, y, z] == 0
   end
 
   # Autotile IDs are 48 * slot + pattern. Cells were filled with the base ID;
