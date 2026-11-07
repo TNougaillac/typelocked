@@ -174,7 +174,18 @@ BUILDINGS = {
     "W": (12, 0, 0, 6, 6, 1, 1, 4, 4, 1, 3),    # red wooden house
     "u": (5, 0, 30, 6, 6, 1, 1, 4, 4, 1, 3),    # red gabled house
     "r": (5, 0, 23, 6, 6, 1, 1, 4, 4, 1, 3),    # pink house
+    "Q": (13, 0, 9, 8, 7, 0, 2, 7, 4, 3, 3),    # grey building with round windows (immeuble gris)
+    "X": (14, 0, 0, 6, 6, 1, 2, 4, 3, 1, 2),    # small green house (Card vert)
+    "Y": (13, 0, 21, 6, 5, 1, 1, 4, 3, 1, 2),   # dark green house (Card vert, miroir)
+    "Z": (15, 0, 20, 6, 6, 1, 2, 5, 3, 1, 2),   # orange house (Card orange)
+    "A": (13, 0, 0, 7, 8, 1, 4, 6, 3, 1, 2),    # pink gabled house (Card orange, miroir)
+    "B": (14, 0, 17, 5, 6, 0, 2, 4, 3, 1, 2),   # big green house (immeuble)
 }
+# Buildings added after the streets (#199, second part): below them, so that
+# the tiles before keep their numbers. Their sheet packs drawings close
+# together: only the drawing itself is kept (what touches its door's wall),
+# the bits of its neighbours in its frame become see-through.
+LATE_BUILDINGS = ["Q", "X", "Y", "Z", "A", "B"]
 SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
 # Gyms, one per type in two styles (round, square), each type's the same
 # drawing (8x7 tiles, the block 7x5 from its row 1, the door 3,4): style =>
@@ -270,6 +281,36 @@ STREETS = {
 STREET_ROLES = [("", 0, 0, None), ("N", 1, 0, "o"), ("S", 1, 3, "o"), ("W", 0, 1, "o"), ("E", 3, 1, "o"),
                 ("NW", 0, 0, "o"), ("NE", 3, 0, "o"), ("SW", 0, 3, "o"), ("SE", 3, 3, "o"),
                 ("iNW", 2, 2, "h"), ("iNE", 1, 2, "h"), ("iSW", 2, 1, "h"), ("iSE", 1, 1, "h")]
+
+
+def drawing_pixels(sheet, col, door_x, door_y):
+    """Pixels (x, y in the sheet) of the Buildings drawing whose door is at
+    that tile: all those that touch the wall above it."""
+    px = sheet.load()
+    left = 16 + 144 * col
+    clear = {MAGENTA, (255, 245, 104, 255)}
+    start = (left + door_x * 16 + 8, door_y * 16 - 8)
+    seen = {start}
+    stack = [start]
+    while stack:
+        a, b = stack.pop()
+        for q in ((a + 1, b), (a - 1, b), (a, b + 1), (a, b - 1)):
+            if q not in seen and left <= q[0] < left + 128 and 0 <= q[1] < sheet.height and px[q] not in clear:
+                seen.add(q)
+                stack.append(q)
+    return seen
+
+
+def only_drawing(tile, keep, col, tx, ty):
+    """That tile (scaled x2) with only the pixels of the drawing kept."""
+    tile = tile.copy()
+    out = tile.load()
+    left = 16 + 144 * col
+    for y in range(TILE):
+        for x in range(TILE):
+            if (left + tx * 16 + x // 2, ty * 16 + y // 2) not in keep:
+                out[x, y] = (0, 0, 0, 0)
+    return tile
 
 
 def building_passages(tile, inside, door):
@@ -450,19 +491,26 @@ def build(folder):
     # Buildings, each from a new row of the tileset
     buildings = []   # (symbol, first tile of the drawing, empty cells)
     first = extra + 8
-    for sym, (col, x, y, w, h, bx, by, bw, bh, dx, dy) in BUILDINGS.items():
-        empty = []
-        for ty in range(h):
-            for tx in range(w):
-                dest = first + ty * 8 + tx
-                tile = sheet_tile(sheets, ("B", col, x + tx, y + ty))
-                inside = bx <= tx < bx + bw and by <= ty < by + bh
-                tiles[dest] = tile
-                copies[dest] = building_passages(tile, inside, (tx, ty) == (bx + dx, by + dy))
-                if not inside and not tile.getbbox():
-                    empty.append(ty * w + tx)
-        buildings.append((sym, first, empty))
-        first += h * 8
+    def add_buildings(symbols, first):
+        for sym in symbols:
+            col, x, y, w, h, bx, by, bw, bh, dx, dy = BUILDINGS[sym]
+            keep = drawing_pixels(sheets["B"], col, x + bx + dx, y + by + dy) if sym in LATE_BUILDINGS else None
+            empty = []
+            for ty in range(h):
+                for tx in range(w):
+                    dest = first + ty * 8 + tx
+                    tile = sheet_tile(sheets, ("B", col, x + tx, y + ty))
+                    if keep is not None:
+                        tile = only_drawing(tile, keep, col, x + tx, y + ty)
+                    inside = bx <= tx < bx + bw and by <= ty < by + bh
+                    tiles[dest] = tile
+                    copies[dest] = building_passages(tile, inside, (tx, ty) == (bx + dx, by + dy))
+                    if not inside and not tile.getbbox():
+                        empty.append(ty * w + tx)
+            buildings.append((sym, first, empty))
+            first += h * 8
+        return first
+    first = add_buildings([sym for sym in BUILDINGS if sym not in LATE_BUILDINGS], first)
     gyms = {}   # style => {type: first tile of its drawing}, and its empty cells
     w, h = GYM_SIZE
     bx, by, bw, bh = GYM_BLOCK
@@ -518,6 +566,7 @@ def build(folder):
             copies[first + i] = -1
             streets[name].append(first + i)
         first += 16
+    first = add_buildings(LATE_BUILDINGS, first)
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
