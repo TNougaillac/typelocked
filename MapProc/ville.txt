@@ -17,6 +17,9 @@ Eau     = ~
 # Rive : le rebord du bas de l'eau, dessiné sur la rangée de sol en dessous
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
+# EauBordee : l'eau 4G (lac HGSS) dessine sa rive du bas, pas de
+# rangée « Rive » dessous (Rive reste le rebord des niveaux)
+EauBordee = oui
 # Ville portuaire : la mer d'un côté sans sortie, un quai en bois, des pontons,
 # une gare maritime sur pilotis au bout de l'un d'eux (port au sud, à l'est ou
 # à l'ouest) et des entrepôts le long du quai. Dans un monde, c'est le monde qui choisit ses ports.
