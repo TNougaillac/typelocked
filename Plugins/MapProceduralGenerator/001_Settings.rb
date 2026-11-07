@@ -119,6 +119,11 @@ module MapProceduralGenerator
   TERRACE_DEPTH = 7
   TERRACE_SALT = 0x7E44
   MOUNTAIN_PEAKS = 0.5..1.5
+  # Lakes (« lac » in [Briques]): drawn for their spot, one to three
+  # overlapping ovals (round, long, bean or L-shaped ponds) in a box of that
+  # size; the ovals added after the first are that much smaller (share of
+  # the box, per side).
+  LAKE_SHAPE = { width: 4..14, height: 4..10, ovals: 1..3, first: 0.35..0.5, more: 0.2..0.4 }.freeze
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
