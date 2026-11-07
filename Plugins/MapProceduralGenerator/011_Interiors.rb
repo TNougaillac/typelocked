@@ -73,6 +73,7 @@ module MapProceduralGenerator
     template = load_data(sprintf("Data/Map%03d.rxdata", interior.template))
     map = Marshal.load(Marshal.dump(template))
     map.events = {}
+    map.tileset_id = INTERIOR_TILESETS.fetch(map.tileset_id, map.tileset_id)
     owner = map_ids[interior.owner]
     add_warp = lambda do |x, y, target, tx, ty, facing|
       event = RPG::Event.new(x, y)
