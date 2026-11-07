@@ -1,0 +1,7 @@
+Brique = Maison bordeaux à cheminée
+Type   = maison
+Porte  = 1,2
+[Map]
+ΜΜΜΜ
+ΜΜΜΜ
+ΜΜΜΜ

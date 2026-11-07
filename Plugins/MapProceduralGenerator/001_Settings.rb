@@ -170,6 +170,17 @@ module MapProceduralGenerator
   # it doesn't fit, the town is drawn without it and the professor waits
   # outside (see the inventory).
   LAB = "labo"
+  # Buildings without a door (town decor): their roof is kept free like the
+  # others' (see PlaceBuilder#brick_halo)
+  BUILDING_NO_DOOR = "batisse"
+  # Models of buildings a place draws from, so that its houses look alike:
+  # brick type => [models in a place of one square (20x20 tiles), more models
+  # for each other square]. A village has 2 house models, a big town more.
+  MODELS = { "maison" => [2, 0.6], "immeuble" => [1, 0.4], "batisse" => [1, 0.4] }.freeze
+  # Optional bricks placed after all the others (town decor that must not
+  # take the room of a park)
+  LAST_KINDS = %w[batisse special].freeze
+  EXTRA_SALT = 7951
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze
   # Animated doors of the 4G buildings (SirMalo's charsets, scaled by
@@ -184,7 +195,19 @@ module MapProceduralGenerator
     "E" => "Door_Violet01", "K" => "Door_Violet01", "h" => "Door_Violet01", "g" => "Door_Violet01",
     "D" => "Door_Goldenrod01", "O" => "Door_Goldenrod01",
     "Q" => "Door_PC", "X" => "Door_Violet01", "Y" => "Door_Violet01", "B" => "Door_Violet01",
-    "Z" => "Door_Goldenrod01", "A" => "Door_Newbark01"
+    "Z" => "Door_Goldenrod01", "A" => "Door_Newbark01",
+    # The other 4G buildings (MORE_BUILDINGS), by the colour of their walls
+    "Α" => "Door_PC", "Ψ" => "Door_PC",
+    "Β" => "Door_Violet01", "Ε" => "Door_Violet01", "Λ" => "Door_Violet01", "Μ" => "Door_Violet01",
+    "Ο" => "Door_Violet01", "Ρ" => "Door_Violet01", "η" => "Door_Violet01", "ο" => "Door_Violet01",
+    "Γ" => "Door_Gym01", "Θ" => "Door_Gym01", "Ν" => "Door_Gym01", "Υ" => "Door_Gym01", "Χ" => "Door_Gym01",
+    "Ω" => "Door_Gym01", "γ" => "Door_Gym01", "δ" => "Door_Gym01", "ε" => "Door_Gym01", "θ" => "Door_Gym01",
+    "λ" => "Door_Gym01", "ξ" => "Door_Gym01",
+    "Δ" => "Door_Olivine01", "Ξ" => "Door_Olivine01", "Π" => "Door_Olivine01", "α" => "Door_Olivine01",
+    "β" => "Door_Olivine01", "ζ" => "Door_Olivine01", "κ" => "Door_Olivine01",
+    "R" => "Door_Goldenrod01", "Ζ" => "Door_Goldenrod01", "Η" => "Door_Goldenrod01",
+    "Κ" => "Door_Goldenrod01", "Φ" => "Door_Goldenrod01", "ι" => "Door_Goldenrod01",
+    "Ι" => "Door_Newbark01", "Σ" => "Door_Newbark01", "Τ" => "Door_Newbark01"
   }.freeze
 
   # The end of every world's chain, after its last town: the Victory Road (a

@@ -1,0 +1,7 @@
+Brique = Maison turquoise à annexe
+Type   = maison
+Porte  = 1,2
+[Map]
+ΓΓΓΓΓΓ
+ΓΓΓΓΓΓ
+ΓΓΓΓΓΓ

@@ -1,0 +1,7 @@
+Brique = Maison au pignon bleu
+Type   = maison
+Porte  = 1,2
+[Map]
+ΠΠΠΠ
+ΠΠΠΠ
+ΠΠΠΠ

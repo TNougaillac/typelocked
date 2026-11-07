@@ -1,0 +1,7 @@
+Brique = Maison crème
+Type   = maison
+Porte  = 1,2
+[Map]
+ΥΥΥΥ
+ΥΥΥΥ
+ΥΥΥΥ

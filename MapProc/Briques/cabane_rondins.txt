@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Cabane en rondins
+Type   = batisse
+[Map]
+ρρρρρ
+ρρρρρ
+ρρρρρ

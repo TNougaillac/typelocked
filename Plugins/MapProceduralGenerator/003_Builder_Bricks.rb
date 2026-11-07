@@ -14,9 +14,10 @@ module MapProceduralGenerator
       # The squares of a mask only; the beaches of a sea route only
       area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
       area = @water.sum { |row| row.count(false) } / (CASE_SIZE * CASE_SIZE).to_f if @place.crossing == "mer"
+      @area = area
       @place.counts.each do |kind, range|
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
-        count = @rng.rand(range)
+        count = (LAST_KINDS.include?(kind) ? @extra_rng : @rng).rand(range)
         boost = excess[:boost]&.[](kind)
         boost = [boost || 0, TOWN_PLANS.dig(@plan, :boost, kind) || 0].max
         count = [count, range.max * boost].max if boost > 0
@@ -29,8 +30,12 @@ module MapProceduralGenerator
       boosted = ->(kind) { excess[:boost]&.key?(kind) ? 0 : 1 }
       # Required decoration after the other required bricks, so it never
       # takes the room of a meadow or a building
+      # The optional bricks of LAST_KINDS after all the others, so that they
+      # never take the room of a park or its grass
+      last, optional = optional.partition { |k| LAST_KINDS.include?(k) }
       order = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == DECOR) ? 1 : 0] } +
-              optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] }
+              optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] } +
+              last.shuffle(random: @extra_rng)
       # With « dense », the fill bricks may touch each other (not the others)
       @dense = excess[:fill] if excess[:dense]
       order.each_with_index do |kind, i|
@@ -170,6 +175,7 @@ module MapProceduralGenerator
           @kinds[y + dy][x + dx] = nil
         end
       end
+      mark_halo(brick, x, y, -1)
     end
 
     # Ground on the lowest level that nothing uses yet.
@@ -267,9 +273,29 @@ module MapProceduralGenerator
     def pick_brick(kind, shrink = 0)
       return lake_brick(shrink) if kind == LAKE
       return hill_brick if kind == HILL
-      bricks = @bricks.select { |b| b.kind == kind }
+      bricks = MODELS.key?(kind) ? models(kind) : @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       return bricks.find { |b| (roll -= b.weight) < 0 }
+    end
+
+    # The few models of buildings of that type the place draws from (MODELS),
+    # more in a bigger place: the same houses again and a few others. The
+    # first one drawn comes back more often (twice its weight).
+    def models(kind)
+      @models ||= {}
+      return @models[kind] ||= begin
+        pool = @bricks.select { |b| b.kind == kind }
+        base, per_case = MODELS[kind]
+        count = (base + (per_case * [(@area || 1) - 1, 0].max)).round
+        chosen = []
+        while chosen.length < count && !pool.empty?
+          roll = @extra_rng.rand(pool.sum(&:weight))
+          brick = pool.find { |b| (roll -= b.weight) < 0 }
+          chosen.push(brick)
+          pool.delete(brick)
+        end
+        chosen.empty? ? chosen : [chosen[0]] + chosen
+      end
     end
 
     # Puts one brick of that type where it fits (and where allowed says so);
@@ -340,8 +366,8 @@ module MapProceduralGenerator
     # may touch it) so that two bricks never stick together. blocked: the
     # cells where none of its cells may go (blocked_cells).
     def fits?(brick, x, y, blocked = blocked_cells(brick))
-      brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] }
-      return false if !bank_free?(brick, x, y)
+      brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] || @halo[y + dy][x + dx] > 0 }
+      return false if !bank_free?(brick, x, y) || !halo_free?(brick, x, y)
       return true if !brick.door
       # The path under the door must be free or already a street
       fx, fy = x + brick.door[0], y + brick.rows.length
@@ -391,6 +417,50 @@ module MapProceduralGenerator
       end
     end
 
+    # The cells a building's drawing covers beyond its brick (the roof, the
+    # eaves: its objects' halos, not their empty cells), from its top left
+    # corner: [dx, dy]. Only for buildings (a door, or « batisse »), so that
+    # no other brick goes under their roof and no roof over another brick.
+    def brick_halo(brick)
+      @brick_halo ||= {}.compare_by_identity
+      return @brick_halo[brick] ||= begin
+        cells = []
+        if brick.door || brick.kind == BUILDING_NO_DOOR
+          brick.rows.each_with_index do |row, dy|
+            row.each_char.with_index do |c, dx|
+              object = @palette.objects[c]
+              next if !object&.halo
+              # The top left cell of each object of that symbol
+              left = dx - (dx - (row.index(c) || dx)) % object.width
+              top = (0..dy).reverse_each.take_while { |ty| brick.rows[ty][dx] == c }.last
+              next if left != dx || (dy - top) % object.height != 0
+              hw, hh, hx, hy, empty = object.halo
+              hh.times do |j|
+                hw.times do |i|
+                  next if empty.include?((j * hw) + i)
+                  next if i >= hx && i < hx + object.width && j >= hy && j < hy + object.height
+                  cells.push([dx + i - hx, dy + j - hy])
+                end
+              end
+            end
+          end
+        end
+        cells.uniq - brick_cells(brick)
+      end
+    end
+
+    def mark_halo(brick, x, y, step)
+      brick_halo(brick).each { |dx, dy| @halo[y + dy][x + dx] += step if inside?(x + dx, y + dy) }
+    end
+
+    # No roof over another brick or another roof.
+    def halo_free?(brick, x, y)
+      return brick_halo(brick).none? do |dx, dy|
+        cx, cy = x + dx, y + dy
+        inside?(cx, cy) && (@halo[cy][cx] > 0 || (@kinds[cy][cx] && !@border[cy][cx]))
+      end
+    end
+
     # A brick of water keeps the cells below its bottom edge off the streets
     # of a town (their paving can't show the bank).
     def bank_free?(brick, x, y)
@@ -434,6 +504,7 @@ module MapProceduralGenerator
           @kinds[y + dy][x + dx] = brick.kind
         end
       end
+      mark_halo(brick, x, y, 1)
       reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]

@@ -1,0 +1,7 @@
+Brique = Chalet rouge
+Type   = maison
+Porte  = 2,2
+[Map]
+ΛΛΛΛΛ
+ΛΛΛΛΛ
+ΛΛΛΛΛ
