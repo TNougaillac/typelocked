@@ -249,19 +249,20 @@ module MapProceduralGenerator
       return @districts ? @districts[y / CASE_SIZE][x / CASE_SIZE] : @place.street
     end
 
-    # Street symbol of each CASE_SIZE district of a town 2 districts wide or
-    # high whose ambiance has several street styles (DISTRICT_STREET_CHANCE),
-    # nil otherwise (every street is Rue).
+    # Street symbol of each district (CASE_SIZE square) of a big town (2
+    # squares wide and high) whose ambiance has several street styles: the
+    # styles in turn from the town's own, row by row (with 3 styles, the 4th
+    # district repeats the 1st, across from it); nil otherwise (every street
+    # is Rue).
     def district_streets
       styles = MapProceduralGenerator.ambiance(@place)&.streets&.length.to_i
-      return nil if styles < 2 || @place.street == @place.ground || [@w, @h].max < 2 * CASE_SIZE
-      rng = Random.new(@seed + 7933)
+      return nil if styles < 2 || @place.street == @place.ground || [@w, @h].min < 2 * CASE_SIZE
       symbols = MapProceduralGenerator.street_symbols(@place, styles)
       own = @place.street_style || 0
-      return Array.new(@h.fdiv(CASE_SIZE).ceil) do
-        Array.new(@w.fdiv(CASE_SIZE).ceil) do
-          next @place.street if rng.rand(100) >= DISTRICT_STREET_CHANCE
-          next symbols[(own + 1 + rng.rand(styles - 1)) % styles]
+      columns = @w / CASE_SIZE
+      return Array.new(@h.fdiv(CASE_SIZE).ceil) do |dy|
+        Array.new(@w.fdiv(CASE_SIZE).ceil) do |dx|
+          symbols[(own + ([dy, @h / CASE_SIZE - 1].min * columns) + [dx, columns - 1].min) % styles]
         end
       end
     end

@@ -127,10 +127,10 @@ module MapProceduralGenerator
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
-  # Street styles (several « Rue » in an ambiance): each town draws one, and
-  # each CASE_SIZE district of a town 2 districts wide or high draws another
-  # one that often (%); two styles meet without an edge between them.
-  DISTRICT_STREET_CHANCE = 40
+  # Street styles (several « Rue » in an ambiance): a small town draws one
+  # for all its streets; a big town (2x2 squares of CASE_SIZE, or an L) is
+  # cut into districts, one per square, each with its own style (all
+  # different while there are enough), meeting without an edge.
   # Symbols of the other styles on the plan (style k, the drawn one is Rue)
   STREET_STYLE_SYMBOLS = "①②③④⑤⑥⑦⑧"
 

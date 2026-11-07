@@ -70,8 +70,9 @@
 #   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
 #                               with edges N=..., else as in [Legend]; not
 #                               needed when Rue and Sol are the same symbol;
-#                               several lines: styles, one drawn per town and
-#                               per district, see DISTRICT_STREET_CHANCE)
+#                               several lines: styles, one drawn per town,
+#                               one per district of a big town, see
+#                               STREET_STYLE_SYMBOLS)
 #   t     = T520 2x3           (a symbol of the palette below redefined for
 #                               this ambiance, in its own section's syntax)
 #   arbre = 0..1 par case      (a type of [Briques] with another quantity for
@@ -409,6 +410,7 @@ module MapProceduralGenerator
         tiles = (tiles =~ /\bwith=/) ? tiles.sub(/\bwith=(\S+)/) { "with=#{$1}#{others}" } : "#{tiles} with=#{others}" if section == "Terrains" && !others.empty?
         text << "[#{section}]\n#{symbols[k]} = #{tiles}\n"
       end
+      text << style_centre_text(place, chosen)
     end
     if chosen.banks && place.banks
       text << "[Legend]\n"
@@ -426,6 +428,17 @@ module MapProceduralGenerator
   def street_symbols(place, count)
     own = place.street_style || 0
     return Array.new(count) { |k| (k == own) ? place.street : STREET_STYLE_SYMBOLS[k] }
+  end
+
+  # The [Legend] symbols of the palette drawn with the middle tile of the
+  # first street style (the square's paving under the fountain) take that of
+  # the town's style.
+  def style_centre_text(place, chosen)
+    first = chosen.streets[0].split.first
+    own = chosen.streets[place.street_style || 0].split.first
+    return "" if first == own
+    syms = place.palette.scan(/^(\S)\s*=\s*#{first}\s*(?:#.*)?$/).flatten
+    return syms.map { |sym| "[Legend]\n#{sym} = #{own}\n" }.join
   end
 
   # The middle tile of the place's own « Rive » (« T849 » for « ' = T849 »),
