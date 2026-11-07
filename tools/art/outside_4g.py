@@ -63,6 +63,16 @@ TILES = {
     105: ("N", 0, 0, 7), 106: ("N", 0, 1, 7), 107: ("N", 0, 3, 7),
     113: ("N", 0, 0, 9), 114: ("N", 0, 1, 9), 115: ("N", 0, 3, 9),
     100: ("N", 0, 5, 7), 102: ("N", 0, 6, 7), 116: ("N", 0, 5, 8), 118: ("N", 0, 6, 8),
+    # Paved street on the grass (Rue of the verdoyante and autumn ambiances,
+    # the square under the fountain): the grey slabs of Urban, same layout
+    265: ("U", 0, 0, 11), 266: ("U", 0, 1, 11), 267: ("U", 0, 3, 11),
+    273: ("U", 0, 0, 12), 274: ("U", 0, 1, 12), 275: ("U", 0, 3, 12),
+    281: ("U", 0, 0, 14), 282: ("U", 0, 1, 14), 283: ("U", 0, 3, 14),
+    268: ("U", 0, 5, 12), 270: ("U", 0, 6, 12), 284: ("U", 0, 5, 13), 286: ("U", 0, 6, 13),
+    # Rocks and pebbles of the desert and mineral grounds (legend c d j x ,),
+    # off their grass, over the ground
+    847: ("N", 3, 0, 27), 839: ("N", 3, 2, 34), 927: ("N", 3, 1, 27),
+    919: ("N", 3, 5, 34), 895: ("N", 3, 4, 27),
     # Sand ground (sand ambiance, desert): the pale sand
     162: ("N", 0, 1, 17),
     # Tall grass (the middle of a patch: it joins its neighbours); very tall
@@ -72,7 +82,8 @@ TILES = {
     475: ("N", 3, 3, 27), 4045: ("N", 3, 3, 27), 4085: ("N", 3, 3, 27),
     4125: ("N", 3, 3, 27), 4165: ("N", 3, 3, 27),
 }
-SEE_THROUGH = {7, 475, 4045, 4085, 4125, 4165}
+SEE_THROUGH = {7, 475, 4045, 4085, 4125, 4165, 847, 839, 927, 919, 895}
+UNGROUNDED = {847, 839, 927, 919, 895}
 MIRRORED = {3}
 # Crowns of the old round trees (legend ò, ù above è, ü): the 4G trees draw
 # their own top, these become see-through
@@ -241,6 +252,9 @@ PROPS = {
     "ĥ": ("U", 5, 1, 17, 3, 2, 0, 1, 3, 1, "block"),     # bench (and its shadow)
     "Ĵ": ("U", 4, 0, 3, 3, 2, 1, 0, 1, 2, "tall"),       # bus stop sign
     "Ņ": ("U", 5, 1, 17, 3, 2, 0, 0, 2, 2, "block"),     # bench
+    "a": ("N", 3, 0, 33, 2, 2, 0, 0, 2, 2, "block"),     # brown rock pile (flèche brune, désert)
+    "i": ("N", 3, 5, 28, 3, 4, 0, 1, 3, 2, "block"),     # grey rock spire (flèche grise, minéral)
+    "v": ("U", 5, 1, 30, 2, 4, 0, 0, 2, 4, "block"),     # statue on its pedestal (statue de la Famille)
 }
 
 
@@ -328,6 +342,8 @@ def build(folder):
     tiles = {}
     for dest, src in TILES.items():
         drawing = sheet_tile(sheets, src)
+        if dest in UNGROUNDED:
+            drawing = unground(drawing)
         if dest in MIRRORED:
             drawing = drawing.transpose(Image.FLIP_LEFT_RIGHT)
         tile = Image.new("RGBA", (TILE, TILE))
