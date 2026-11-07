@@ -180,7 +180,7 @@ module MapProceduralGenerator
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
   LAST_KINDS = %w[batisse special].freeze
-  EXTRA_SALT = 7919
+  EXTRA_SALT = 7951
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze
   # Animated doors of the 4G buildings (SirMalo's charsets, scaled by
