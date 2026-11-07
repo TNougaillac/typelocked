@@ -70,9 +70,7 @@
 #   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
 #                               with edges N=..., else as in [Legend]; not
 #                               needed when Rue and Sol are the same symbol;
-#                               several lines: styles, one drawn per town,
-#                               one per district of a big town, see
-#                               STREET_STYLE_SYMBOLS)
+#                               several lines: styles, each town draws one)
 #   t     = T520 2x3           (a symbol of the palette below redefined for
 #                               this ambiance, in its own section's syntax)
 #   arbre = 0..1 par case      (a type of [Briques] with another quantity for
@@ -403,13 +401,9 @@ module MapProceduralGenerator
     text = place.palette.gsub("{sol}", ground).gsub("{rive}", rive)
     text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
     if chosen.street && place.street != place.ground
-      symbols = street_symbols(place, chosen.streets.length)
-      chosen.streets.each_with_index do |tiles, k|
-        section = (tiles =~ /\s\w+=/) ? "Terrains" : "Legend"
-        others = symbols.join.delete(symbols[k])
-        tiles = (tiles =~ /\bwith=/) ? tiles.sub(/\bwith=(\S+)/) { "with=#{$1}#{others}" } : "#{tiles} with=#{others}" if section == "Terrains" && !others.empty?
-        text << "[#{section}]\n#{symbols[k]} = #{tiles}\n"
-      end
+      tiles = chosen.streets[place.street_style || 0]
+      section = (tiles =~ /\s\w+=/) ? "Terrains" : "Legend"
+      text << "[#{section}]\n#{place.street} = #{tiles}\n"
       text << style_centre_text(place, chosen)
     end
     if chosen.banks && place.banks
@@ -420,14 +414,6 @@ module MapProceduralGenerator
       text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground).gsub('{rive}', rive)}\n"
     end
     return text
-  end
-
-  # Plan symbol of each of the place's count street styles: Rue for its own
-  # style, STREET_STYLE_SYMBOLS for the others (the streets of other
-  # districts).
-  def street_symbols(place, count)
-    own = place.street_style || 0
-    return Array.new(count) { |k| (k == own) ? place.street : STREET_STYLE_SYMBOLS[k] }
   end
 
   # The [Legend] symbols of the palette drawn with the middle tile of the

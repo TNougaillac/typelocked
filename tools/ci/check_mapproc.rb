@@ -73,7 +73,7 @@ end
 # Symbols a cell of the inventory may show: ground, streets, banks, stairs, planks
 # and the bricks walked through (grass).
 def walkable_symbols(place, bricks)
-  symbols = [place.ground, place.street, *M::STREET_STYLE_SYMBOLS.chars, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
+  symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
   symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand

@@ -63,8 +63,7 @@ monument = 1
 # pavées restent le plus courant, quelques villes changent de sol.
 # « {sol} » dans la palette = la première tuile du sol tiré (sous les fleurs,
 # l'eau, les stands).
-# Plusieurs « Rue » : des styles de dalles, un tiré par petite ville ; une
-# grande ville (2x2, L) a un style par quartier (carré de 20x20 tuiles).
+# Plusieurs « Rue » : des styles de dalles, chaque ville en tire un.
 [Ambiance verdoyante]
 Poids = 8
 Sol   = T1|T1|T1|T2|T3

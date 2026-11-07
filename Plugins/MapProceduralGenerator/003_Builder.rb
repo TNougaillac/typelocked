@@ -108,7 +108,6 @@ module MapProceduralGenerator
       @seed = seed
       @rng = Random.new(seed)
       @w, @h = place.width, place.height
-      @districts = district_streets
       @mask = place.mask
       @cell = @mask && @w / @mask[0].length
       @cells = Array.new(@h) { Array.new(@w) }          # brick or border symbols
@@ -241,30 +240,8 @@ module MapProceduralGenerator
     def symbol_at(x, y)
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
-      return @cells[y][x] || zone || street_symbol(x, y) if @street[y][x]
+      return @cells[y][x] || zone || @place.street if @street[y][x]
       return @cells[y][x] || zone || @place.ground
-    end
-
-    def street_symbol(x, y)
-      return @districts ? @districts[y / CASE_SIZE][x / CASE_SIZE] : @place.street
-    end
-
-    # Street symbol of each district (CASE_SIZE square) of a big town (2
-    # squares wide and high) whose ambiance has several street styles: the
-    # styles in turn from the town's own, row by row (with 3 styles, the 4th
-    # district repeats the 1st, across from it); nil otherwise (every street
-    # is Rue).
-    def district_streets
-      styles = MapProceduralGenerator.ambiance(@place)&.streets&.length.to_i
-      return nil if styles < 2 || @place.street == @place.ground || [@w, @h].min < 2 * CASE_SIZE
-      symbols = MapProceduralGenerator.street_symbols(@place, styles)
-      own = @place.street_style || 0
-      columns = @w / CASE_SIZE
-      return Array.new(@h.fdiv(CASE_SIZE).ceil) do |dy|
-        Array.new(@w.fdiv(CASE_SIZE).ceil) do |dx|
-          symbols[(own + ([dy, @h / CASE_SIZE - 1].min * columns) + [dx, columns - 1].min) % styles]
-        end
-      end
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.
