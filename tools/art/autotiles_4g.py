@@ -2,15 +2,17 @@
 
 Builds the autotiles of tileset 24 (see docs/CREDITS.md, sources not in the
 repository):
+- HGSS Sea (A2): the lone tile of the "HGSS Autotiles" pack's sea, each of
+  its 32 frames repeated over the whole frame (the pack crosses out the
+  other parts).
 - Pond (A1) and sand bank (A4): SirMalo's rounded patches (NatureRMXP.png),
   made into RPG Maker XP autotiles (see blob_autotile): the pond is the
-  water of lakes, rivers and the sea, with its bank on all 4 sides; the
-  sand bank, laid over the water, is the pale sand patch.
-- Deep water (A3): the middle of the pond, darkened, in the rounded outline
+  water of lakes, rivers and the sea, with its bank on all 4 sides, its
+  still water replaced by the animated HGSS Sea (32 frames, the bank and
+  its light rim kept); the sand bank, laid over the water, is the pale
+  sand patch.
+- Deep water (A3): the animated HGSS Sea, darkened, in the rounded outline
   of the sand bank (no deep water in the sheets).
-- HGSS Sea (A2): the lone tile of the "HGSS Autotiles" pack's sea, each
-  frame repeated over the whole frame (the pack crosses out the other
-  parts).
 - HGSS Rocks (A6), HGSS Flowers 01 (A5): copied as they are from the pack,
   with every frame of their animation (a rock is a 2x2 block).
 Then sets the autotile names of tileset 24 (tools/art/tileset_autotiles.rb).
@@ -26,6 +28,7 @@ from PIL import Image
 OUT = "Graphics/Autotiles"
 TILESET_ID = 24
 DEEP = 0.75
+POND_WATER = (104, 176, 232, 255)   # the still water of SirMalo's pond
 FRAME_W, FRAME_H = 96, 128
 PINK = (240, 91, 161, 255)
 COPIED = ["HGSS Rocks", "HGSS Flowers 01"]
@@ -83,14 +86,17 @@ def plain_sea(sea):
     return out
 
 
-def deep_water(pond, outline):
-    """The middle tile of the pond, darkened, where the outline autotile is
-    drawn."""
-    middle = pond.crop((32, 64, 64, 96)).get_flattened_data()
-    shape = outline.get_flattened_data()
-    out = Image.new("RGBA", (FRAME_W, FRAME_H))
-    out.putdata([(int(r * DEEP), int(g * DEEP), int(b * DEEP), 255) if shape[i][3] else (0, 0, 0, 0)
-                 for i, (r, g, b, _a) in ((i, middle[(i // FRAME_W % 32) * 32 + i % FRAME_W % 32]) for i in range(FRAME_W * FRAME_H))])
+def animate(still, sea, where, dark=1.0):
+    """One frame per frame of the sea: the pixels of `still` chosen by
+    where(pixel) take the sea's (darkened by `dark`), the others stay."""
+    base = still.get_flattened_data()
+    out = Image.new("RGBA", (sea.width, FRAME_H))
+    for i in range(sea.width // FRAME_W):
+        water = sea.crop((i * FRAME_W, 0, i * FRAME_W + FRAME_W, FRAME_H)).get_flattened_data()
+        frame = Image.new("RGBA", (FRAME_W, FRAME_H))
+        frame.putdata([(int(water[k][0] * dark), int(water[k][1] * dark), int(water[k][2] * dark), 255)
+                       if where(c) else c for k, c in enumerate(base)])
+        out.paste(frame, (i * FRAME_W, 0))
     return out
 
 
@@ -101,12 +107,14 @@ def main():
         return Image.open(f"{pack}/{name}.png").convert("RGBA")
     for name in COPIED:
         load(name).save(f"{OUT}/{name}.png")
-    plain_sea(load("HGSS Sea")).save(f"{OUT}/HGSS Sea.png")
+    sea = plain_sea(load("HGSS Sea"))
+    sea.save(f"{OUT}/HGSS Sea.png")
     nature = Image.open(f"{sirmalo}/NatureRMXP.png").convert("RGBA")
     blobs = {name: blob_autotile(nature, row) for name, row in BLOBS.items()}
+    blobs["HGSS Pond"] = animate(blobs["HGSS Pond"], sea, lambda c: c == POND_WATER)
     for name, image in blobs.items():
         image.save(f"{OUT}/{name}.png")
-    deep_water(blobs["HGSS Pond"], blobs["HGSS Sand bank"]).save(f"{OUT}/HGSS Pond deep.png")
+    animate(blobs["HGSS Sand bank"], sea, lambda c: c[3] > 0, DEEP).save(f"{OUT}/HGSS Pond deep.png")
     subprocess.run(["ruby", "tools/art/tileset_autotiles.rb", str(TILESET_ID), *NAMES], check=True)
     print(f"{OUT} : {len(COPIED) + len(BLOBS) + 2} autotiles HGSS, tileset {TILESET_ID} : {', '.join(NAMES)}")
 
