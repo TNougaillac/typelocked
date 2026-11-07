@@ -2,7 +2,7 @@ Brique = Maison à auvent vert
 Type   = maison
 Porte  = 1,3
 [Map]
-EEEEE
-EEEEE
-EEEEE
-EEEEE
+EEEE
+EEEE
+EEEE
+EEEE

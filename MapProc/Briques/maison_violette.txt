@@ -2,7 +2,7 @@ Brique = Maison violette
 Type   = maison
 Porte  = 2,3
 [Map]
-DDDDD
-DDDDD
-DDDDD
-DDDDD
+DDDD
+DDDD
+DDDD
+DDDD

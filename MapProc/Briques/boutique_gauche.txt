@@ -1,6 +1,6 @@
 Brique = Boutique (porte à gauche)
 Type   = boutique
-Porte  = 1,3
+Porte  = 2,3
 [Map]
 NNNN
 NNNN
