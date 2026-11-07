@@ -172,6 +172,18 @@ module MapProceduralGenerator
   LAB = "labo"
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze
+  # Animated doors of the 4G buildings (SirMalo's charsets, scaled by
+  # tools/art/doors_4g.py): building symbol => charset in Graphics/Characters.
+  # The door opens when the player walks in; other buildings draw their own.
+  DOOR_GRAPHICS = {
+    "C" => "Door_PC", "M" => "Door_PC", "N" => "Door_PC",
+    "G" => "Door_Gym01", "H" => "Door_Gym01",
+    "V" => "Door_Newbark01", "W" => "Door_Newbark01", "u" => "Door_Newbark01",
+    "r" => "Door_Newbark01", "o" => "Door_Newbark01",
+    "U" => "Door_Olivine01",
+    "E" => "Door_Violet01", "K" => "Door_Violet01", "h" => "Door_Violet01", "g" => "Door_Violet01",
+    "D" => "Door_Goldenrod01", "O" => "Door_Goldenrod01"
+  }.freeze
 
   # The end of every world's chain, after its last town: the Victory Road (a
   # mountain route of the longest « Longueur », with a cave) and the League's

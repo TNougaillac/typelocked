@@ -53,7 +53,8 @@
 #   [Warps]                    (doors and stairs: a symbol, then the target map
 #   1 = Maison 1 4,7 haut       by its Name or its ID, the x,y cell there
 #   2 = 12 10,3                 (from 0) and the facing: haut, bas, gauche,
-#                               droite, or kept when omitted)
+#   3 = Centre 7,8 haut porte=Door_PC   droite, or kept when omitted; porte=:
+#                               an animated door, its charset)
 #   [Events]                   (optional grid, same size as [Map]: "." =
 #   ..1.....                    nothing, a [Warps] symbol = a transfer event)
 # In [Map], an object's symbol covers its whole footprint; a wider or taller
@@ -65,7 +66,8 @@ module MapGenerator
 
   Plan = Struct.new(:file, :name, :tileset_id, :map_id, :parent_id, :seed,
                     :ground, :legend, :objects, :rows, :anchors, :overlays, :terrains, :warps, :events)
-  Warp = Struct.new(:target, :x, :y, :direction)
+  # graphic: the charset of an animated door (« porte=Door_PC »), nil = none
+  Warp = Struct.new(:target, :x, :y, :direction, :graphic)
   WARP_DIRECTIONS = { "bas" => 2, "gauche" => 4, "droite" => 6, "haut" => 8 }
   Terrain = Struct.new(:center, :roles, :with, :layer, :ground)
   TERRAIN_ROLES = %w[N S E W NW NE SW SE iNW iNE iSW iSE]
@@ -114,15 +116,15 @@ module MapGenerator
       when :warps
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?
-        unless content =~ /\A(\S)\s*=\s*(.+?)\s+(\d+),(\d+)(?:\s+(\S+))?\z/
-          fail_at.call("attendu « symbole = carte x,y [haut|bas|gauche|droite] »")
+        unless content =~ /\A(\S)\s*=\s*(.+?)\s+(\d+),(\d+)(?:\s+(haut|bas|gauche|droite|\S+?))?(?:\s+porte=(\S+))?\z/
+          fail_at.call("attendu « symbole = carte x,y [haut|bas|gauche|droite] [porte=charset] »")
         end
-        symbol, target, x, y, facing = $1, $2, $3.to_i, $4.to_i, $5
+        symbol, target, x, y, facing, graphic = $1, $2, $3.to_i, $4.to_i, $5, $6
         if facing && !WARP_DIRECTIONS[facing]
           fail_at.call("direction « #{facing} » inconnue (haut, bas, gauche, droite)")
         end
         target = target.to_i if target =~ /\A\d+\z/
-        plan.warps[symbol] = Warp.new(target, x, y, WARP_DIRECTIONS[facing] || 0)
+        plan.warps[symbol] = Warp.new(target, x, y, WARP_DIRECTIONS[facing] || 0, graphic)
       when :layer2, :layer3
         next if line.strip.empty?
         (plan.overlays[section == :layer2 ? 1 : 2] ||= []).push(line.rstrip)

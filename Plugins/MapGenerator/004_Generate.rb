@@ -72,14 +72,43 @@ module MapGenerator
         event.name = WARP_EVENT_NAME
         page = event.pages[0]
         page.trigger = 1   # Player touch
-        page.list = [
-          RPG::EventCommand.new(201, 0, [0, target_id, warp.x, warp.y, warp.direction, 0]),
-          RPG::EventCommand.new(0, 0, [])
-        ]
+        transfer = RPG::EventCommand.new(201, 0, [0, target_id, warp.x, warp.y, warp.direction, 0])
+        page.list = [transfer, RPG::EventCommand.new(0, 0, [])]
+        door_page(page, warp.graphic, transfer) if warp.graphic
         map.events[event.id] = event
       end
     end
     return missing.uniq
+  end
+
+  # An animated door on that warp's page, as Essentials compiles its own
+  # doors (Compiler.update_door_event): it opens, the player walks in, it
+  # closes, the screen fades out and the player is transferred.
+  def door_page(page, graphic, transfer)
+    page.graphic.character_name = graphic
+    page.graphic.direction = 2
+    page.walk_anime = false
+    list = []
+    route = lambda do |character, *commands|
+      move = RPG::MoveRoute.new
+      move.repeat = false
+      move.skippable = true
+      move.list = commands.map { |code, param| RPG::MoveCommand.new(code, param ? [param] : []) } + [RPG::MoveCommand.new(0)]
+      list.push(RPG::EventCommand.new(209, 0, [character, move]))
+      move.list[0...-1].each { |command| list.push(RPG::EventCommand.new(509, 0, [command])) }
+      list.push(RPG::EventCommand.new(210, 0, []))   # Wait for move's completion
+    end
+    route.call(0, [44, RPG::AudioFile.new("Door enter")], [15, 2], [17], [15, 2], [18], [15, 2], [19], [15, 2])
+    route.call(-1, [37], [4], [38])   # the player walks in
+    list.push(RPG::EventCommand.new(208, 0, [0]))   # invisible
+    route.call(0, [15, 2], [18], [15, 2], [17], [15, 2], [16], [15, 2])
+    list.push(RPG::EventCommand.new(223, 0, [Tone.new(-255, -255, -255), 6]))
+    list.push(RPG::EventCommand.new(106, 0, [8]))
+    list.push(RPG::EventCommand.new(208, 0, [1]))   # visible
+    list.push(transfer)
+    list.push(RPG::EventCommand.new(223, 0, [Tone.new(0, 0, 0), 6]))
+    list.push(RPG::EventCommand.new(0, 0, []))
+    page.list = list
   end
 
   # Second pass for plans generated before their warp targets existed.

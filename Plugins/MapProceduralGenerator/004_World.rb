@@ -332,7 +332,7 @@ module MapProceduralGenerator
     end
     interiors = place_interiors(built.map { |wp, _place, _text, layout| [wp, layout, wp.index] } +
                                 islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed)
-    interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8]) if it.door }
+    interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8, it.graphic]) if it.door }
     built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     fillers = world_fillers(world, built, seed, map_ids)
