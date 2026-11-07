@@ -191,10 +191,11 @@ SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
 # (parts, block x, y, width, height, door x, y in the drawing or None for a
 # building with no door). A part is (sheet column, x, y, width, height of its
 # frame, x, y of the frame in the drawing, x, y of a pixel of it in the
-# column): only the pixels joined to that one are kept. The sheet cuts the
-# biggest buildings in two halves, put back side by side.
+# column): only the pixels joined to that one are kept (all those of the
+# frame with -1, -1). The sheet cuts the biggest buildings in two halves, put
+# back side by side.
 # The symbols of the right part of the buildings wider than 8 tiles
-WIDE_SYMBOLS = {"μ": ["Ђ"], "ν": ["Є"], "ξ": ["Ѕ"], "ο": ["Ј"]}
+WIDE_SYMBOLS = {"μ": ["Ђ"], "ν": ["Є"], "ξ": ["Ѕ"], "ο": ["Ј"], "L": ["Ї"]}
 MORE_BUILDINGS = {
     "R": ([(14, 0, 40, 7, 7, 0, 0, 55, 643)], (1, 3, 5, 3), (3, 5)),   # Dôme crème
     "I": ([(11, 0, 69, 8, 10, 0, 0, 9, 1107)], (0, 4, 8, 5), (3, 8)),   # Bâtiment de la Ligue
@@ -260,6 +261,10 @@ MORE_BUILDINGS = {
     "Ш": ([(16, 0, 38, 5, 5, 0, 0, 10, 614)], (0, 1, 4, 3), None),   # Maison verte au toit plat
     "Щ": ([(16, 0, 43, 5, 6, 0, 0, 10, 703)], (0, 2, 4, 3), None),   # Maison vert et jaune
     "Э": ([(16, 0, 62, 6, 7, 0, 0, 6, 994)], (0, 3, 5, 3), None),   # Immeuble jaune
+    "L": ([(8, 0, 0, 8, 10, 0, 0, 75, 13), (8, 0, 10, 1, 9, 8, 1, -1, -1)], (1, 5, 8, 4), (3, 8)),   # Labo (dôme blanc)
+    "J": ([(15, 0, 58, 7, 7, 0, 0, 12, 942)], (1, 3, 5, 3), (3, 5)),   # Entrepôt du port (toit bordeaux)
+    "s": ([(11, 0, 61, 5, 4, 0, 0, 0, 982)], (0, 2, 5, 1), None),   # Stand au store bleu
+    "y": ([(11, 0, 65, 5, 4, 0, 0, 0, 1046)], (0, 2, 5, 1), None),   # Stand au store rose
 }
 # Gyms, one per type in two styles (round, square), each type's the same
 # drawing (8x7 tiles, the block 7x5 from its row 1, the door 3,4): style =>
@@ -401,7 +406,11 @@ def drawing_image(sheet, parts):
     dst = out.load()
     for col, x, y, w, h, ox, oy, sx, sy in parts:
         left = 16 + 144 * col
-        for a, b in joined_pixels(sheet, col, (sx, sy)):
+        clear = {MAGENTA, (255, 245, 104, 255)}
+        # No pixel given: the whole frame
+        pixels = joined_pixels(sheet, col, (sx, sy)) if sx >= 0 else \
+            {(a, b) for a in range(x * 16, (x + w) * 16) for b in range(y * 16, (y + h) * 16) if src[left + a, b] not in clear}
+        for a, b in pixels:
             if x * 16 <= a < (x + w) * 16 and y * 16 <= b < (y + h) * 16:
                 dst[a - x * 16 + ox * 16, b - y * 16 + oy * 16] = src[left + a, b]
     return out
