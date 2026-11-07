@@ -265,6 +265,7 @@ MORE_BUILDINGS = {
     "J": ([(15, 0, 58, 7, 7, 0, 0, 12, 942)], (1, 3, 5, 3), (3, 5)),   # Entrepôt du port (toit bordeaux)
     "s": ([(11, 0, 61, 5, 4, 0, 0, 0, 982)], (0, 2, 5, 1), None),   # Stand au store bleu
     "y": ([(11, 0, 65, 5, 4, 0, 0, 0, 1046)], (0, 2, 5, 1), None),   # Stand au store rose
+    "F": ([(0, 0, 29, 8, 9, 0, 0, 56, 504)], (1, 4, 5, 5), (3, 8)),   # Gare maritime (turquoise, escalier)
 }
 # Gyms, one per type in two styles (round, square), each type's the same
 # drawing (8x7 tiles, the block 7x5 from its row 1, the door 3,4): style =>

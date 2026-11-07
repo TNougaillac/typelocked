@@ -433,10 +433,10 @@ module MapProceduralGenerator
   end
 
   # Warp of a ferry terminal: walking into its door takes the boat, to the
-  # pier in front of the other terminal.
+  # promenade in front of the other terminal's door.
   def ferry_warp(layout, target, target_layout)
     tx, ty = target_layout.terminal
-    return [*layout.terminal, target, tx, ty - 1, 8]
+    return [*layout.terminal, target, tx, ty + 1, 2]
   end
 
   # A name for an island: « Île » and a name, or a name alone, drawn from

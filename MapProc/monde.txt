@@ -69,7 +69,7 @@ GrotteMontagne = 50
 # au pied des falaises, en parallèle du chemin (en %).
 RiviereMontagne = 50
 # Villes portuaires : la mer sur un côté sans sortie, un quai, des pontons et
-# une gare maritime sur pilotis. Une ville nommée Port, Dock ou Harbour en est
+# une gare maritime sur le quai. Une ville nommée Port, Dock ou Harbour en est
 # toujours une, en plus de celles-ci.
 Ports    = 1..2
 # Un port avec une gare maritime (mer au sud, à l'est ou à l'ouest) a, selon
