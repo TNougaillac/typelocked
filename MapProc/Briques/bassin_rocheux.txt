@@ -1,9 +1,0 @@
-# Verdure : un bassin bordé de rochers.
-Brique    = Bassin rocheux
-Type      = decor
-Ambiances = verdoyante, prairie, forêt tropicale
-[Map]
-ĉĉĉĉĉ
-ĉĉĉĉĉ
-ĉĉĉĉĉ
-ĉĉĉĉĉ

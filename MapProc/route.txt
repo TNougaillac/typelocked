@@ -290,16 +290,14 @@ w = {sol} T847
 ɸ = {sol}
 ʘ = -
 
-# Objets tirés de tilesets libres (tools/art/import_props.py, docs/CREDITS.md)
-ā = {sol} T4216|T4217|T4218|T4219   # poteries (sable, terre battue)
-ē = {sol} T4220|T4221   # caisses (terre battue, chemins de terre)
-ī = {sol} T4222         # jardinière de légumes
-ū = {sol} T4223|T4224|T4225|T4226   # pots de fleurs
-ő = {sol} T4227|T4228   # rochers moussus
-ű = {sol} T4229         # rocher blanc (minérale)
-ŵ = {sol} T4230|T4231   # rochers rouges (sable, terre battue)
-ģ = {sol} T4232         # touffe sèche (sable ; on marche dessus)
-ļ = {sol} T4233|T4234|T4235   # buissons tropicaux
+# Décor 4G de SirMalo (tools/art/outside_4g.py, docs/CREDITS.md)
+ā = {sol} T8680|T8681  # poteries
+ē = {sol} T8688        # panier de légumes
+ī = {sol} T8696        # panier de fleurs
+ū = {sol} T8704|T8705  # paniers de fleurs
+ő = {sol} T8712|T8713  # rochers gris
+ű = {sol} T8720        # rocher blanc
+ŵ = {sol} T8728|T8729  # rochers bruns
 
 [Terrains]
 # Les niveaux sont des plateaux, comme sur les routes des jeux (falaises HGSS
@@ -335,89 +333,47 @@ t = T5248 2x2 forest=T5296         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
 W = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (refuge)
 V = T6201 5x4 halo=6x6@1,1/5           # maison orange (refuge)
-ń = T4236 1x2         # caisses empilées
-ď = T4237 1x2         # long bac de fleurs
-ž = T4240 3x1         # tas de bûches
-š = T4238 1x3         # rondins
-ą = T4248 2x2         # arbre en fleurs
-þ = T4239 1x3         # arbre en fleurs étroit
-ð = T4250 2x2         # petit arbre en fleurs
-æ = T4252 2x2         # acacia
-œ = T4262 2x2         # parasol bleu
-ß = T4264 2x2         # parasol orange
-ÿ = T4266 2x2         # parasol vert
-ý = T4268 1x2         # cactus tonneau
-ñ = T4269 1x2         # cactus fleuri
-ķ = T4278 2x1         # touffe sèche large (on marche dessus)
-ŗ = T4280 1x2         # aiguille de grès
-ş = T4281 1x2         # aiguille de grès fine
-ţ = T4282 3x5         # grand palmier
-ȩ = T4285 3x4         # palmier
-ǎ = T4296 2x2         # petit palmier
-ǐ = T4317 3x3         # palmier bas
-ǒ = T4320 3x5         # grand palmier bleu
-ǔ = T4323 2x2         # petit palmier bleu
-ă = T4339 2x2         # gros rocher brun
-ĕ = T4341 2x2         # gros rocher brun (bas)
-ĭ = T4343 1x2         # tiki
-ŏ = T4355 1x2         # tiki sombre
-ņ = T4356 3x3         # parasol de plage
-ǖ = T4360 3x1         # brouette
-ǘ = T4368 2x2         # caisse en bois
-ǚ = T4378 3x3         # grand arbre rond
-ǜ = T4381 2x2         # sapin
-ȁ = T4384 2x3         # arbre touffu
-ȍ = T4397 2x3         # aiguille rouge
-Ā = T4359 1x2         # statue blanche
-Ă = T4375 1x2         # lampadaire
-Ą = T4408 5x5         # étal du marché
-Ć = T4421 3x3         # parterre octogonal
-ć = T4445 3x3         # fontaine
-Ĉ = T4391 1x3         # poteau fleuri
-ĉ = T4448 5x4         # bassin rocheux
-Ċ = T4469 3x2         # haie basse
-ċ = T4480 2x3         # lanterne de pierre
-Č = T4482 3x5         # arbre de Galar
-č = T4485 2x3         # arbre de Galar fleuri
-Ď = T4504 2x2         # panneau de Galar
-Đ = T4509 3x3         # grand panneau de Galar
-đ = T4487 1x2         # boîte aux lettres
-Ē = T4520 1x3         # distributeur
-Ĕ = T4521 1x2         # gacha rouge
-Ė = T4522 1x2         # gacha jaune
-ė = T4523 1x2         # gacha bleu
-Ę = T4532 2x2         # panneau vert
-ę = T4534 2x2         # rondins gris
-Ě = T4537 2x2         # rondins roses
-ě = T4547 4x5         # double lampadaire
-Ĝ = T4552 3x6         # menhir moussu
-ĝ = T4587 2x2         # tableau d'affichage
-Ğ = T4589 2x2         # tableau d'affichage simple
-ğ = T4243 1x1         # cône
-Ġ = T4312 1x1         # caisse plate
-ġ = T4551 1x2         # caisse haute
-Ģ = T4567 1x6         # lanterne de Corrifey
-Ĥ = T4370 2x1         # banc
-ĥ = T4402 3x1         # long banc
-Ħ = T4608 8x13        # arbre mort géant
-ħ = T4712 2x4         # statue ailée
-Ĩ = T4714 2x3         # statue à pointes
-ĩ = T4716 2x5         # totem miroir
-Ī = T4744 3x4         # cyprès
-Ĭ = T4600 2x1         # plaque de pierre
-Į = T4718 2x2         # stèle
-į = T4734 2x2         # monument de pierre
-İ = T4755 3x3         # panneau d'affichage en bois
-ı = T4750 2x2         # petit panneau en bois
-Ĵ = T4739 1x2         # panneau d'information
-ĵ = T4766 2x3         # lanterne suspendue
-Ķ = T4776 1x3         # torche dorée
-ĸ = T4777 5x3         # grande tablette
-Ĺ = T4800 3x3         # totem croisé
-ĺ = T4803 3x3         # totem drapé
-Ļ = T4824 6x3         # portique de totems
-Ľ = T4848 6x3         # camion
-ľ = T4790 2x3         # bloc gravé
-Ł = T4814 2x2         # rocher blanc d'Alola
-Ń = T4872 3x3         # statue chauve-souris
-Ņ = T4830 2x2         # banc de bois
+ļ = T8744 1x1 halo=1x2@0,1 # buisson
+ń = T8752 1x2          # panneau d'affichage
+ď = T8769 1x2 halo=3x3@1,0 # jardinière fleurie
+ž = T8792 3x1 halo=4x1@0,0 # rondins
+ą = T8818 2x2 halo=4x4@2,2/0,3,12 # arbre rond
+ð = T8850 2x2 halo=4x4@2,2/0,3,12 # arbre touffu
+œ = T8890 2x2 halo=5x5@2,3/0,3,4,9,14 # parasol et table
+ß = T8930 2x2 halo=5x5@2,3/0,3,4,9,14 # parasol et table
+ÿ = T8970 2x2 halo=5x5@2,3/0,3,4,9,14 # parasol et table
+ă = T8984 2x2          # gros rocher brun
+ĕ = T9000 2x2          # gros rocher rouge
+ņ = T9033 3x3 halo=5x5@1,2/0,3,4,9,14 # parasol et table
+ǚ = T9065 3x3 halo=4x4@1,1/0,3,12 # arbre rond
+ǜ = T9114 2x2 halo=4x5@2,3/0,3,4,7,16 # sapin
+ȁ = T9138 2x3 halo=4x4@2,1/0,3,12 # arbre touffu
+Ā = T9168 1x2 halo=2x4@0,1/1,3,7 # colonne de pierre
+Ă = T9200 1x2 halo=1x3@0,1 # lampadaire
+Ć = T9225 3x3 halo=5x4@1,1/0,4,15,19 # bac à sable
+ć = T9248 2x3          # fontaine
+Ĉ = T9272 1x3 halo=2x3@0,0/3,5 # lampadaire rouge
+Ċ = T9296 3x2 halo=4x3@0,0 # haie en bac
+ċ = T9328 2x3 halo=2x4@0,1/1 # lanterne
+Č = T9385 3x5 halo=4x5@1,0/0,4,16 # grand sapin
+č = T9434 2x3 halo=4x4@2,1/0,3,12 # arbre touffu
+Đ = T9473 3x3 halo=4x5@1,2/2,3,7,12,16 # grand panneau
+đ = T9536 1x2          # boîte aux lettres
+Ē = T9561 1x3 halo=3x5@1,1/3,5,6,8,9,11,12 # poteau à enseigne
+Ĕ = T9600 1x2 halo=1x3@0,1 # distributeur orange
+Ė = T9624 1x2 halo=1x3@0,1 # distributeur de boissons
+ė = T9648 1x2 halo=1x3@0,1 # distributeur de boissons
+Ę = T9664 2x2          # borne et écran
+ę = T9720 2x2 halo=2x3@0,0 # rondins
+Ě = T9745 2x2 halo=3x3@1,0/0,6,8 # rondins
+ĝ = T9680 2x2          # borne et écran
+Ğ = T9704 2x2 halo=2x3@0,1 # distributeurs de boissons
+ğ = T9776 1x1 halo=1x2@0,1 # borne orange
+Ġ = T9792 1x1 halo=1x2@0,1 # borne blanche
+ġ = T9800 1x2          # panneau d'affichage
+Ĥ = T9824 2x1 halo=3x2@0,1 # banc
+ĥ = T9840 3x1 halo=3x2@0,1 # banc
+İ = T9513 3x3 halo=4x5@1,2/2,3,7,12,16 # grand panneau
+Ĵ = T9849 1x2 halo=3x2@1,0/3,5 # arrêt de bus
+ĵ = T9360 2x3 halo=2x4@0,1/1 # lanterne
+Ņ = T9864 2x2 halo=3x2@0,0 # banc

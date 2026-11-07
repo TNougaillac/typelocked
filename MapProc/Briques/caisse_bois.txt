@@ -1,8 +1,0 @@
-# Terre battue et chemins de terre : une grosse caisse et des caisses empilées.
-Brique    = Caisse en bois
-Type      = decor
-Ambiances = terre battue, chemins de terre
-[Map]
-ǘǘ
-ǘǘń
-  ń
