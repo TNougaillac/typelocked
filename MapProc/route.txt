@@ -327,8 +327,8 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 ç = T563 3x7         # arbre tropical
 î = T669 2x2         # haie carrée
 û = T685 3x1         # haie
-a = T836 2x4         # flèche rocheuse brune (désert)
-i = T916 2x4         # flèche rocheuse grise (minéral)
+a = T9880 2x2        # gros rocher brun (désert)
+i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
 t = T5248 2x2 forest=T5296         # arbre
 R = T784 3x3         # rocher (mur que l'on passe par la grotte)
 W = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (refuge)
