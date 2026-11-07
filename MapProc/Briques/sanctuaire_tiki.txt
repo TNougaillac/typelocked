@@ -1,8 +1,0 @@
-# Grande tablette entre deux torches dorées.
-Brique    = Sanctuaire
-Type      = decor
-Ambiances = forêt tropicale, sable
-[Map]
-ĶĸĸĸĸĸĶ
-ĶĸĸĸĸĸĶ
-ĶĸĸĸĸĸĶ
