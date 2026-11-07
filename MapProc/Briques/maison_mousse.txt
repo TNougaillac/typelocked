@@ -1,0 +1,7 @@
+Brique = Maison au toit de mousse
+Type   = maison
+Porte  = 1,2
+[Map]
+ΝΝΝΝ
+ΝΝΝΝ
+ΝΝΝΝ

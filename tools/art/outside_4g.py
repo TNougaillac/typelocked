@@ -187,6 +187,80 @@ BUILDINGS = {
 # the bits of its neighbours in its frame become see-through.
 LATE_BUILDINGS = ["Q", "X", "Y", "Z", "A", "B"]
 SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
+# More buildings (#199, third part), after everything else: symbol =>
+# (parts, block x, y, width, height, door x, y in the drawing or None for a
+# building with no door). A part is (sheet column, x, y, width, height of its
+# frame, x, y of the frame in the drawing, x, y of a pixel of it in the
+# column): only the pixels joined to that one are kept. The sheet cuts the
+# biggest buildings in two halves, put back side by side.
+# The symbols of the right part of the buildings wider than 8 tiles
+WIDE_SYMBOLS = {"μ": ["Ђ"], "ν": ["Є"], "ξ": ["Ѕ"], "ο": ["Ј"]}
+MORE_BUILDINGS = {
+    "R": ([(14, 0, 40, 7, 7, 0, 0, 55, 643)], (1, 3, 5, 3), (3, 5)),   # Dôme crème
+    "I": ([(11, 0, 69, 8, 10, 0, 0, 9, 1107)], (0, 4, 8, 5), (3, 8)),   # Bâtiment de la Ligue
+    "Α": ([(0, 0, 8, 7, 7, 0, 0, 19, 142)], (1, 3, 5, 3), (3, 5)),   # Centre Pokémon (toit rouge)
+    "Β": ([(5, 0, 7, 7, 8, 0, 0, 55, 121)], (1, 4, 5, 3), (2, 6)),   # Haute maison turquoise
+    "Γ": ([(5, 0, 15, 8, 7, 0, 0, 18, 245)], (1, 3, 6, 3), (2, 5)),   # Maison turquoise à annexe
+    "Δ": ([(5, 0, 51, 8, 7, 0, 0, 67, 816)], (1, 3, 7, 3), (4, 5)),   # Grande maison aux tuiles violettes
+    "Ε": ([(6, 0, 25, 7, 8, 0, 0, 42, 401)], (1, 3, 5, 4), (3, 6)),   # Maison en rondins
+    "Ζ": ([(6, 0, 59, 6, 6, 0, 0, 44, 947)], (1, 2, 4, 3), (2, 4)),   # Chaumière
+    "Η": ([(6, 0, 66, 6, 6, 0, 0, 68, 1060)], (1, 2, 4, 3), (2, 4)),   # Chaumière à cheminée
+    "Θ": ([(7, 3, 0, 5, 7, 0, 0, 84, 5)], (1, 3, 3, 3), (2, 5)),   # Maison au toit rouge
+    "Ι": ([(9, 0, 45, 6, 5, 0, 0, 27, 722)], (1, 1, 4, 3), (2, 3)),   # Maison orange à balustrade
+    "Κ": ([(10, 4, 10, 4, 5, 0, 0, 70, 167)], (0, 1, 4, 3), (1, 3)),   # Maison aux bardeaux
+    "Λ": ([(10, 0, 15, 6, 7, 0, 0, 32, 241)], (0, 2, 5, 3), (2, 4)),   # Chalet rouge
+    "Μ": ([(10, 1, 39, 6, 6, 0, 0, 70, 634)], (1, 2, 4, 3), (2, 4)),   # Maison bordeaux à cheminée
+    "Ν": ([(10, 1, 46, 6, 6, 0, 0, 60, 737)], (1, 2, 4, 3), (2, 4)),   # Maison au toit de mousse
+    "Ξ": ([(11, 0, 30, 6, 6, 0, 0, 45, 488)], (1, 2, 4, 3), (2, 4)),   # Maison au toit vitré
+    "Ο": ([(11, 0, 36, 6, 6, 0, 0, 44, 582)], (1, 2, 4, 3), (2, 4)),   # Maison au toit vitré bleu
+    "Π": ([(11, 0, 43, 5, 5, 0, 0, 27, 692)], (0, 1, 4, 3), (1, 3)),   # Maison au pignon bleu
+    "Ρ": ([(12, 0, 12, 6, 6, 0, 0, 45, 204)], (1, 2, 4, 3), (2, 4)),   # Case en paille
+    "Σ": ([(14, 0, 7, 5, 5, 0, 0, 5, 113)], (0, 1, 4, 3), (1, 3)),   # Maison orange à escalier
+    "Τ": ([(15, 0, 66, 5, 6, 0, 0, 17, 1067)], (0, 2, 4, 3), (1, 4)),   # Maison rouge à auvent
+    "Υ": ([(16, 1, 0, 6, 6, 0, 0, 38, 9)], (1, 2, 4, 3), (2, 4)),   # Maison crème
+    "Φ": ([(16, 0, 49, 5, 5, 0, 0, 10, 790)], (0, 1, 4, 3), (1, 3)),   # Maison ocre
+    "Χ": ([(16, 0, 55, 5, 6, 0, 0, 10, 893)], (0, 2, 4, 3), (1, 4)),   # Maison mauve
+    "Ψ": ([(6, 0, 44, 5, 5, 0, 0, 0, 708)], (0, 1, 4, 3), (1, 3)),   # Boutique au store bleu
+    "Ω": ([(7, 0, 36, 5, 5, 0, 0, 3, 582)], (0, 1, 4, 3), (1, 3)),   # Boutique fleurie
+    "α": ([(7, 0, 42, 8, 12, 0, 0, 55, 683)], (0, 6, 7, 5), (3, 10)),   # Tour à éolienne
+    "β": ([(7, 0, 55, 7, 9, 0, 0, 21, 890)], (1, 4, 5, 4), (3, 7)),   # Immeuble orange
+    "γ": ([(7, 0, 64, 6, 6, 0, 0, 28, 1031)], (0, 2, 5, 3), (2, 4)),   # Galerie au store rayé
+    "δ": ([(7, 0, 71, 8, 6, 0, 0, 46, 1141)], (0, 2, 7, 3), (3, 4)),   # Salle de jeux violette
+    "ε": ([(13, 0, 71, 6, 6, 0, 0, 6, 1146)], (0, 2, 5, 3), (2, 4)),   # Bâtiment à bassin
+    "ζ": ([(14, 0, 47, 4, 5, 0, 0, 0, 758)], (0, 1, 4, 3), (1, 3)),   # Boutique mauve
+    "η": ([(14, 0, 53, 8, 17, 0, 0, 43, 858)], (0, 9, 7, 6), (3, 14)),   # Tour dorée
+    "θ": ([(14, 0, 70, 7, 9, 0, 0, 4, 1135)], (0, 4, 6, 4), (4, 7)),   # Immeuble vert
+    "ι": ([(15, 0, 46, 8, 6, 0, 0, 19, 736)], (1, 2, 7, 3), (4, 4)),   # Salle aux néons
+    "κ": ([(15, 0, 52, 6, 5, 0, 0, 23, 832)], (1, 1, 4, 3), (2, 3)),   # Boutique aux néons
+    "λ": ([(16, 0, 69, 8, 7, 0, 0, 33, 1112)], (0, 2, 7, 3), (3, 4)),   # Club de combat
+    "μ": ([(17, 2, 22, 6, 14, 0, 0, 124, 364), (17, 0, 35, 6, 14, 6, 0, 0, 572)], (1, 7, 10, 6), (5, 12)),   # Gratte-ciel
+    "ν": ([(10, 3, 52, 5, 9, 0, 0, 118, 846), (10, 0, 61, 5, 9, 5, 0, 0, 990)], (1, 4, 9, 4), (5, 7)),   # Grand magasin bleu
+    "ξ": ([(8, 3, 10, 5, 15, 0, 2, 127, 164), (8, 0, 21, 6, 17, 5, 0, 5, 336)], (1, 10, 9, 6), (5, 15)),   # Tour radio
+    "ο": ([(14, 4, 22, 4, 10, 0, 0, 126, 367), (14, 0, 30, 5, 10, 4, 0, 0, 495)], (1, 4, 8, 4), (4, 7)),   # Pavillon rouge
+    "π": ([(6, 0, 0, 7, 8, 0, 0, 14, 11)], (1, 4, 5, 3), None),   # Maison de pierre
+    "ρ": ([(6, 0, 8, 7, 8, 0, 0, 14, 139)], (1, 3, 5, 3), None),   # Cabane en rondins
+    "σ": ([(6, 0, 16, 7, 8, 0, 0, 47, 270)], (1, 4, 5, 3), None),   # Maison voûtée
+    "τ": ([(6, 0, 34, 8, 7, 0, 0, 35, 552)], (1, 3, 6, 3), None),   # Abri au toit fleuri
+    "υ": ([(6, 0, 73, 3, 5, 0, 0, 20, 1173)], (1, 1, 1, 3), None),   # Cabanon
+    "φ": ([(7, 0, 23, 6, 7, 0, 0, 4, 369)], (0, 3, 5, 3), None),   # Immeuble de bureaux
+    "χ": ([(7, 0, 30, 5, 6, 0, 0, 8, 485)], (0, 2, 4, 3), None),   # Petit immeuble beige
+    "ψ": ([(9, 2, 36, 6, 6, 0, 0, 44, 587)], (1, 1, 4, 2), None),   # Abri en bois
+    "ω": ([(9, 0, 51, 6, 5, 0, 0, 27, 818)], (1, 1, 4, 3), None),   # Maison à balustrade
+    "Б": ([(9, 0, 56, 8, 7, 0, 0, 31, 906)], (1, 3, 7, 3), None),   # Demeure aux tuiles bleues
+    "Г": ([(9, 0, 71, 8, 5, 0, 0, 0, 1136)], (0, 1, 7, 3), None),   # Longère
+    "Д": ([(10, 0, 22, 5, 7, 0, 0, 36, 354)], (1, 2, 3, 3), None),   # Tourelle
+    "Ж": ([(12, 1, 7, 4, 5, 0, 0, 29, 125)], (1, 1, 2, 3), None),   # Château d’eau
+    "З": ([(13, 0, 16, 6, 5, 0, 0, 22, 256)], (1, 1, 4, 3), None),   # Maison verte à volets
+    "И": ([(13, 1, 60, 5, 5, 0, 0, 26, 960)], (0, 1, 4, 3), None),   # Kiosque turquoise
+    "Л": ([(15, 0, 0, 6, 6, 0, 0, 41, 1)], (1, 2, 4, 3), None),   # Tourelle verte
+    "П": ([(15, 0, 6, 6, 8, 0, 0, 9, 97)], (0, 3, 5, 4), None),   # Immeuble à terrasses
+    "Ф": ([(15, 1, 14, 6, 6, 0, 0, 56, 230)], (0, 2, 5, 3), None),   # Jardinerie
+    "Ц": ([(15, 0, 73, 5, 6, 0, 0, 29, 1178)], (0, 2, 4, 3), None),   # Maison rose
+    "Ч": ([(16, 0, 9, 7, 9, 0, 0, 43, 145)], (0, 4, 6, 4), None),   # Dôme orange
+    "Ш": ([(16, 0, 38, 5, 5, 0, 0, 10, 614)], (0, 1, 4, 3), None),   # Maison verte au toit plat
+    "Щ": ([(16, 0, 43, 5, 6, 0, 0, 10, 703)], (0, 2, 4, 3), None),   # Maison vert et jaune
+    "Э": ([(16, 0, 62, 6, 7, 0, 0, 6, 994)], (0, 3, 5, 3), None),   # Immeuble jaune
+}
 # Gyms, one per type in two styles (round, square), each type's the same
 # drawing (8x7 tiles, the block 7x5 from its row 1, the door 3,4): style =>
 # (symbol, [(sheet column, first row)] for the two columns of types, every
@@ -299,6 +373,38 @@ def drawing_pixels(sheet, col, door_x, door_y):
                 seen.add(q)
                 stack.append(q)
     return seen
+
+
+def joined_pixels(sheet, col, start):
+    """Pixels (x, y in the column) joined to that one, in the Buildings sheet."""
+    px = sheet.load()
+    left = 16 + 144 * col
+    clear = {MAGENTA, (255, 245, 104, 255)}
+    start = (left + start[0], start[1])
+    seen = {start}
+    stack = [start]
+    while stack:
+        a, b = stack.pop()
+        for q in ((a + 1, b), (a - 1, b), (a, b + 1), (a, b - 1)):
+            if q not in seen and left <= q[0] < left + 128 and 0 <= q[1] < sheet.height and px[q] not in clear:
+                seen.add(q)
+                stack.append(q)
+    return {(a - left, b) for a, b in seen}
+
+
+def drawing_image(sheet, parts):
+    """A MORE_BUILDINGS drawing, its parts put together (16 px tiles)."""
+    width = max(p[5] + p[3] for p in parts)
+    height = max(p[6] + p[4] for p in parts)
+    out = Image.new("RGBA", (width * 16, height * 16))
+    src = sheet.load()
+    dst = out.load()
+    for col, x, y, w, h, ox, oy, sx, sy in parts:
+        left = 16 + 144 * col
+        for a, b in joined_pixels(sheet, col, (sx, sy)):
+            if x * 16 <= a < (x + w) * 16 and y * 16 <= b < (y + h) * 16:
+                dst[a - x * 16 + ox * 16, b - y * 16 + oy * 16] = src[left + a, b]
+    return out
 
 
 def only_drawing(tile, keep, col, tx, ty):
@@ -567,13 +673,34 @@ def build(folder):
             streets[name].append(first + i)
         first += 16
     first = add_buildings(LATE_BUILDINGS, first)
+    more = []   # (symbol, first tile, empty cells, its part of the drawing, block)
+    for sym, (parts, (bx, by, bw, bh), door) in MORE_BUILDINGS.items():
+        drawing = drawing_image(sheets["B"], parts)
+        w, h = drawing.width // 16, drawing.height // 16
+        # Wider than the tileset's 8 tiles: one object per 8 columns, side by
+        # side in the brick (WIDE_SYMBOLS)
+        for k, part_sym in enumerate([sym] + WIDE_SYMBOLS.get(sym, [])[:(w - 1) // 8]):
+            x0, x1 = k * 8, min(w, k * 8 + 8)
+            empty = []
+            for ty in range(h):
+                for tx in range(x0, x1):
+                    dest = first + ty * 8 + tx - x0
+                    tile = drawing.crop((tx * 16, ty * 16, tx * 16 + 16, ty * 16 + 16)).resize((TILE, TILE), Image.NEAREST)
+                    inside = bx <= tx < bx + bw and by <= ty < by + bh
+                    tiles[dest] = tile
+                    copies[dest] = building_passages(tile, inside, (tx, ty) == door)
+                    if not inside and not tile.getbbox():
+                        empty.append(ty * (x1 - x0) + tx - x0)
+            part_block = (max(bx, x0) - x0, by, min(bx + bw, x1) - max(bx, x0), bh)
+            more.append((part_sym, first, empty, (x1 - x0, h), part_block))
+            first += h * 8
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend, streets)
+    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend, streets, more)
 
 
 def cliff_line(first):
@@ -597,7 +724,7 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend, streets) = build(sys.argv[1])
+    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend, streets, more) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
@@ -634,6 +761,12 @@ def main():
     for name, ids in streets.items():
         roles = " ".join(f"{role}=T{i}" if role else f"T{i}" for (role, *_r), i in zip(STREET_ROLES, ids))
         print(f"rue ({name}) : Rue = {roles}")
+    for sym, first, empty, (w, h), (bx, by, bw, bh) in more:
+        line = f"{sym} = T{first + by * 8 + bx} {bw}x{bh}"
+        if (w, h) != (bw, bh):
+            line += f" halo={w}x{h}@{bx},{by}" + ("/" + ",".join(map(str, empty)) if empty else "")
+        door = MORE_BUILDINGS.get(sym, (None, None, None))[2]
+        print(f"bâtiment : {line}" + (f"   (porte {door[0] - bx},{door[1] - by})" if door else ""))
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
 
 

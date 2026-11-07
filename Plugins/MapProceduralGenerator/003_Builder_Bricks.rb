@@ -170,6 +170,7 @@ module MapProceduralGenerator
           @kinds[y + dy][x + dx] = nil
         end
       end
+      mark_halo(brick, x, y, -1)
     end
 
     # Ground on the lowest level that nothing uses yet.
@@ -340,8 +341,8 @@ module MapProceduralGenerator
     # may touch it) so that two bricks never stick together. blocked: the
     # cells where none of its cells may go (blocked_cells).
     def fits?(brick, x, y, blocked = blocked_cells(brick))
-      brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] }
-      return false if !bank_free?(brick, x, y)
+      brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] || @halo[y + dy][x + dx] > 0 }
+      return false if !bank_free?(brick, x, y) || !halo_free?(brick, x, y)
       return true if !brick.door
       # The path under the door must be free or already a street
       fx, fy = x + brick.door[0], y + brick.rows.length
@@ -391,6 +392,50 @@ module MapProceduralGenerator
       end
     end
 
+    # The cells a building's drawing covers beyond its brick (the roof, the
+    # eaves: its objects' halos, not their empty cells), from its top left
+    # corner: [dx, dy]. Only for buildings (a door, or « batisse »), so that
+    # no other brick goes under their roof and no roof over another brick.
+    def brick_halo(brick)
+      @brick_halo ||= {}.compare_by_identity
+      return @brick_halo[brick] ||= begin
+        cells = []
+        if brick.door || brick.kind == BUILDING_NO_DOOR
+          brick.rows.each_with_index do |row, dy|
+            row.each_char.with_index do |c, dx|
+              object = @palette.objects[c]
+              next if !object&.halo
+              # The top left cell of each object of that symbol
+              left = dx - (dx - (row.index(c) || dx)) % object.width
+              top = (0..dy).reverse_each.take_while { |ty| brick.rows[ty][dx] == c }.last
+              next if left != dx || (dy - top) % object.height != 0
+              hw, hh, hx, hy, empty = object.halo
+              hh.times do |j|
+                hw.times do |i|
+                  next if empty.include?((j * hw) + i)
+                  next if i >= hx && i < hx + object.width && j >= hy && j < hy + object.height
+                  cells.push([dx + i - hx, dy + j - hy])
+                end
+              end
+            end
+          end
+        end
+        cells.uniq - brick_cells(brick)
+      end
+    end
+
+    def mark_halo(brick, x, y, step)
+      brick_halo(brick).each { |dx, dy| @halo[y + dy][x + dx] += step if inside?(x + dx, y + dy) }
+    end
+
+    # No roof over another brick or another roof.
+    def halo_free?(brick, x, y)
+      return brick_halo(brick).none? do |dx, dy|
+        cx, cy = x + dx, y + dy
+        inside?(cx, cy) && (@halo[cy][cx] > 0 || (@kinds[cy][cx] && !@border[cy][cx]))
+      end
+    end
+
     # A brick of water keeps the cells below its bottom edge off the streets
     # of a town (their paving can't show the bank).
     def bank_free?(brick, x, y)
@@ -434,6 +479,7 @@ module MapProceduralGenerator
           @kinds[y + dy][x + dx] = brick.kind
         end
       end
+      mark_halo(brick, x, y, 1)
       reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]

@@ -1,0 +1,7 @@
+Brique = Maison au toit rouge
+Type   = maison
+Porte  = 1,2
+[Map]
+ΘΘΘ
+ΘΘΘ
+ΘΘΘ

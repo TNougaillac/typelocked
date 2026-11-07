@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Cabanon
+Type   = batisse
+[Map]
+υ
+υ
+υ

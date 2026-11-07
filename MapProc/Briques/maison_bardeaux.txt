@@ -1,0 +1,7 @@
+Brique = Maison aux bardeaux
+Type   = maison
+Porte  = 1,2
+[Map]
+ΚΚΚΚ
+ΚΚΚΚ
+ΚΚΚΚ

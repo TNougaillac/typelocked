@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Longère
+Type   = batisse
+[Map]
+ГГГГГГГ
+ГГГГГГГ
+ГГГГГГГ

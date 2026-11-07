@@ -1,0 +1,7 @@
+Brique = Maison mauve
+Type   = maison
+Porte  = 1,2
+[Map]
+ΧΧΧΧ
+ΧΧΧΧ
+ΧΧΧΧ

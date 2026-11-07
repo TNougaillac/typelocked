@@ -1,0 +1,7 @@
+Brique = Chaumière à cheminée
+Type   = maison
+Porte  = 1,2
+[Map]
+ΗΗΗΗ
+ΗΗΗΗ
+ΗΗΗΗ

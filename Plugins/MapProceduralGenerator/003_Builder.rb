@@ -115,6 +115,7 @@ module MapProceduralGenerator
       @street = Array.new(@h) { Array.new(@w, false) }
       @border = Array.new(@h) { Array.new(@w, false) }
       @kinds = Array.new(@h) { Array.new(@w) }   # brick type of each cell
+      @halo = Array.new(@h) { Array.new(@w, 0) }   # buildings' halos over each cell
       @doors = []
       @exits = []
       @dead_ends = []

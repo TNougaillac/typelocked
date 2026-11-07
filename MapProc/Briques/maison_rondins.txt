@@ -1,0 +1,8 @@
+Brique = Maison en rondins
+Type   = maison
+Porte  = 2,3
+[Map]
+ΕΕΕΕΕ
+ΕΕΕΕΕ
+ΕΕΕΕΕ
+ΕΕΕΕΕ

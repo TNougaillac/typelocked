@@ -1,0 +1,7 @@
+Brique = Chaumière
+Type   = maison
+Porte  = 1,2
+[Map]
+ΖΖΖΖ
+ΖΖΖΖ
+ΖΖΖΖ

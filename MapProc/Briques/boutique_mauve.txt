@@ -1,0 +1,7 @@
+Brique = Boutique mauve
+Type   = immeuble
+Porte  = 1,2
+[Map]
+ζζζζ
+ζζζζ
+ζζζζ
