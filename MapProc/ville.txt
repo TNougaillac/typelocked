@@ -63,10 +63,13 @@ monument = 1
 # pavées restent le plus courant, quelques villes changent de sol.
 # « {sol} » dans la palette = la première tuile du sol tiré (sous les fleurs,
 # l'eau, les stands).
+# Plusieurs « Rue » : des styles de dalles, chaque ville en tire un.
 [Ambiance verdoyante]
 Poids = 8
 Sol   = T1|T1|T1|T2|T3
-Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=f
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=f   # dalles grises
+Rue   = T9960 N=T9961 S=T9962 W=T9963 E=T9964 NW=T9965 NE=T9966 SW=T9967 SE=T9968 iNW=T9969 iNE=T9970 iSW=T9971 iSE=T9972 with=f   # dalles bleues
+Rue   = T9976 N=T9977 S=T9978 W=T9979 E=T9980 NW=T9981 NE=T9982 SW=T9983 SE=T9984 iNW=T9985 iNE=T9986 iSW=T9987 iSE=T9988 with=f   # dalles violettes
 decor = 0..1 par case
 
 [Ambiance chemins de terre]
@@ -177,7 +180,8 @@ decor = 0..1 par case
 [Ambiance automne]
 Poids = 1
 Sol   = T1|T1|T1|T2|T3
-Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=f
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=f   # dalles grises
+Rue   = T9976 N=T9977 S=T9978 W=T9979 E=T9980 NW=T9981 NE=T9982 SW=T9983 SE=T9984 iNW=T9985 iNE=T9986 iSW=T9987 iSE=T9988 with=f   # dalles violettes
 arbre = 0..1 par case
 decor = 1..1 par case
 

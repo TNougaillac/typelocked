@@ -445,6 +445,11 @@ module MapProceduralGenerator
       place = place.dup
       place.ambiance = draw_ambiance(place, Random.new(seed + 7919))
     end
+    styles = ambiance(place)&.streets&.length.to_i
+    if styles > 1 && !place.street_style
+      place = place.dup
+      place.street_style = Random.new(seed + 7927).rand(styles)
+    end
     place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
     builder = PlaceBuilder.new(place, bricks, palette, seed)
