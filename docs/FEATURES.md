@@ -847,15 +847,16 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `PBS/items.txt` change : recompiler les PBS (mode debug) pour que l'objet existe en jeu.
 
 ## F21. Graphismes 4G (#177)
-**Version cible :** Essentials v21.1. **Statut :** ticket 1 (#193 : sols, herbes, arbres) et forêts serrées écrits, **non testés en jeu**.
+**Version cible :** Essentials v21.1. **Statut :** ticket 1 (#193 : sols, herbes, arbres), forêts serrées (#223) et ticket 2 (#197 : mer, rochers, fleurs) écrits, **non testés en jeu**.
 
 ### Règles
 - **Tileset Outside 4G** (ID 24, `Graphics/Tilesets/Outside 4G.png`) : une copie d'Outside (ID 1), utilisée par les lieux générés (`Tileset = 24`). Les tuiles 4G sont reprises **telles quelles** : tuiles entières de SirMalo (HGSS, 16 px), agrandies ×2 au plus proche voisin, jamais rognées ni redessinées. Le rose des feuilles est transparent.
 - **Sols et herbes, à la même place :** herbe (`T1`-`T3`), chemin de terre et ses bords (`T97`-`T118`, `T106` sert aussi de sol « terre battue »), sable (`T162`), hautes herbes (`T6`, `T7`, `T15` et leurs copies sur prairie, sable, terre battue, minérale), buisson (`T475` et ses copies). Les `T<n>` de MapProc, les passages et les priorités ne changent pas.
 - **Forêts serrées (HGSS) :** l'arbre de bordure (`t`) fait 2×2 cases, et les arbres d'une forêt se serrent tous les 2 rangs et toutes les 2 colonnes, comme dans HGSS. Ses tuiles sont la paire d'arbres de SirMalo entière (6×6 tuiles), copiée deux fois par sol : bloquante (les arbres) et praticable sous le joueur (le halo). MapGen choisit chaque case selon sa place (option `forest=`, F03), et les chevauchements sont ceux que SirMalo a dessinés. La bordure plante ses arbres d'abord sur une grille de 2×2 (MapProceduralGenerator v0.37.0) pour qu'ils s'alignent, puis là où il reste de la place. Les briques `arbre`, `bosquet` et `bosquet_large` sont à la nouvelle taille.
 - **Arbres entiers, sous l'ancien tileset :** grand pin (`é`), arbre rond (`è`), arbre jaune (`ü`), cyprès (`ê`), arbrisseau (`ë`). Un arbre 4G est plus grand que le bloc que MapProc lui donne : le bloc garde sa taille et ses passages (la mise en page des lieux ne change pas) et le reste du dessin (pointe, côtés qui débordent sur les voisins) est posé sur le calque 3 par le halo de MapGen (F03), là où on marche dessous. Le grand pin est pris dans les paires de pins de SirMalo : la moitié gauche des arbres de gauche et la moitié droite des arbres de droite, qui sont le même dessin. Les cimes des anciens arbres ronds (`T484`, `T532`) sont vides.
+- **Mer, rochers et fleurs (#197) :** les autotiles du tileset 24 sont ceux du pack HGSS Autotiles, animés image par image comme dans le pack (32 images pour l'eau, 25 pour les fleurs) : A1 la mer et son rebord de terre avec l'écume (`HGSS Sea Ledge`, la mer posée sous le rebord, seulement à l'intérieur ; comme l'ancienne mer, pas de bord du bas, dessiné par la rive), A2 la mer seule (`HGSS Sea`, la tuile de mer du pack répétée : le pack ne dessine pas les autres morceaux), A3 l'eau profonde (`HGSS Sea deep`, la mer assombrie : le pack n'en a pas), A4 le banc de sable (`HGSS Sand bank`, la plage du pack, ses coins intérieurs et son milieu pris dans `HGSS Beach Corner`), A5 les fleurs (`HGSS Flowers 01`), A6 le rocher dans l'eau (`HGSS Rocks`, un rocher fait 2×2 cases comme avant). Les symboles de MapProc (`~ % µ £ *`) ne changent pas.
 - **Autres sols :** sur prairie, sable, terre battue et minéral, l'herbe 4G sous les arbres devient transparente et ses ombres le sol assombri (seule retouche des tuiles). Une copie de chaque arbre par sol.
-- **Pas encore remplacé :** roches et falaises, bâtiments, mer, objets importés…, jusqu'aux tickets suivants de #177.
+- **Pas encore remplacé :** roches et falaises, bâtiments, rives sous l'eau (`Rive`), fontaine (A7), objets importés…, jusqu'aux tickets suivants de #177.
 - Les cartes déjà générées gardent l'ancien tileset : regénérer le monde (nouvelle partie ou menu debug).
 
 ### Fichiers
@@ -865,6 +866,9 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `tools/art/tileset_clone.rb` | Copie le tileset 1 vers l'ID 24 dans `Data/Tilesets.rxdata` (nom et image changés, passages et priorités gardés). |
 | `Graphics/Tilesets/Outside 4G.png` | Le tileset 4G. |
 | `Data/Tilesets.rxdata` | Tileset 24 « Outside 4G ». |
+| `tools/art/autotiles_4g.py` | Construit les autotiles HGSS (`Graphics/Autotiles/HGSS *.png`) depuis le pack HGSS Autotiles et les déclare dans le tileset 24. |
+| `tools/art/tileset_autotiles.rb` | Change les noms des 7 autotiles d'un tileset dans `Data/Tilesets.rxdata`. |
+| `Graphics/Autotiles/HGSS *.png` | Mer à rebord, mer, eau profonde, banc de sable, fleurs, rocher. |
 | `MapProc/route.txt`, `MapProc/ville.txt` | `Tileset = 24`, arbres 4G avec leur halo, arbre de forêt `t`. |
 | `MapProc/Briques/arbre.txt`, `bosquet.txt`, `bosquet_large.txt` | Arbres de forêt en 2×2. |
 | `Plugins/MapGenerator/002_Parser.rb`, `003_Builder.rb` | Options `halo=` et `forest=` des objets. |
@@ -875,10 +879,15 @@ Après un changement d'`Outside.png` ou du tileset 1 (`import_props.py`, `ground
 ```
 ruby tools/art/tileset_clone.rb 1 24 "Outside 4G" "Outside 4G"
 python3 tools/art/outside_4g.py "<dossier des feuilles de SirMalo>"
+python3 tools/art/autotiles_4g.py "<dossier du pack HGSS Autotiles>"
 ```
+La copie du tileset remet les anciens autotiles : `autotiles_4g.py` se relance toujours après.
 
 ### Limites connues
 - Un arbre de forêt hors de la grille (là où la bordure n'a pas la place d'un arbre aligné) a des rangées décalées par rapport à ses voisins : il ne s'y raccorde pas, ses débords passent par-dessus.
+- Le banc de sable du pack est une petite île entourée d'écume : sur 2 à 5 cases, on voit surtout l'écume et un peu de sable.
+- L'eau profonde est un rectangle plus sombre, sans bord (le pack n'a pas d'eau profonde).
+- Les rives sous l'eau restent les anciennes tuiles, jusqu'au ticket des falaises (#198).
 - Deux halos sur la même case : le second va sur le calque 2. Les deux ont la même priorité ; l'ordre d'affichage entre les calques 2 et 3 est à vérifier en jeu.
 - Le halo ne se pose que sur un calque 3 vide : une pointe d'arbre sous un autre objet du calque 3 n'est pas dessinée.
 
@@ -992,3 +1001,4 @@ python3 tools/art/outside_4g.py "<dossier des feuilles de SirMalo>"
 | 06/11/2026 | PactIncense v1.0.0 et WorldEvents v1.16.0 (#160) : Encens du Pacte, la prochaine rencontre sauvage est capturable ; 0 à 3 par partie dans les recoins et les dons | `Plugins/PactIncense/*`, `Plugins/WorldEvents/*`, `PBS/items.txt`, `Graphics/Items/PACTINCENSE.png`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 06/11/2026 | Graphismes 4G, ticket 1 (#193, #177) : tileset Outside 4G (ID 24), herbe, chemins, sable et hautes herbes HGSS (SirMalo) à la place des anciennes tuiles, arbres 4G entiers ajoutés sous le tileset ; les lieux générés l'utilisent (MapProceduralGenerator v0.36.0) ; MapGenerator v1.13.0 : option `halo=` des objets, un dessin plus grand que le bloc posé sur le calque 3 | `tools/art/outside_4g.py`, `tools/art/tileset_clone.rb`, `Graphics/Tilesets/Outside 4G.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `Plugins/MapGenerator/*`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/CREDITS.md`, `docs/FEATURES.md` |
 | 06/11/2026 | Forêts 4G serrées façon HGSS (#223) : arbre de bordure `t` en 2×2 tiré de la paire d'arbres de SirMalo, arbres tous les 2 rangs ; MapGenerator v1.14.0 : option `forest=` des objets (chaque case dessinée selon sa place dans la forêt) ; MapProceduralGenerator v0.37.0 : bordure plantée d'abord sur une grille | `tools/art/outside_4g.py`, `Graphics/Tilesets/Outside 4G.png`, `Data/Tilesets.rxdata`, `MapProc/route.txt`, `MapProc/ville.txt`, `MapProc/Briques/arbre.txt`, `MapProc/Briques/bosquet.txt`, `MapProc/Briques/bosquet_large.txt`, `Plugins/MapGenerator/*`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `docs/FEATURES.md` |
+| 07/11/2026 | Graphismes 4G, ticket 2 (#197) : autotiles HGSS animés dans le tileset Outside 4G (mer à rebord, mer, eau profonde, banc de sable, fleurs, rocher dans l'eau) | `tools/art/autotiles_4g.py`, `tools/art/tileset_autotiles.rb`, `Graphics/Autotiles/HGSS *.png`, `Data/Tilesets.rxdata`, `docs/CREDITS.md`, `docs/FEATURES.md` |
