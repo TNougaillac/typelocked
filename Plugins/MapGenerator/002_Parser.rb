@@ -36,6 +36,10 @@
 #                               none: edges only); N..SE
 #                               = outer edges/corners, iNW..iSE = inner corners
 #                               (missing ones fall back to the inside tile);
+#                               oN oNW oNE oiNW oiNE = rim drawn on the cell
+#                               above a north edge, where it is empty (oiNW:
+#                               the terrain rises on its right, oiNE on its
+#                               left; missing ones fall back to oN);
 #                               with=<symbols> = other terrains that join it;
 #                               L1..L3 = layer in [Map], L1 by default; @<symbol>
 #                               = ground under it when not on L1)
@@ -65,6 +69,9 @@ module MapGenerator
   WARP_DIRECTIONS = { "bas" => 2, "gauche" => 4, "droite" => 6, "haut" => 8 }
   Terrain = Struct.new(:center, :roles, :with, :layer, :ground)
   TERRAIN_ROLES = %w[N S E W NW NE SW SE iNW iNE iSW iSE]
+  # Drawn on the cell above a north edge (outside the terrain): the rim of a
+  # plateau whose sheet draws it there (SirMalo's cliffs), see 003_Builder.rb
+  OUTER_ROLES = %w[oN oNW oNE oiNW oiNE]
   # A forest drawing is 6x6 tiles; a tree of a forest covers 2x2 cells
   FOREST_SIZE = 6
   # Multi-tile block: first tileset tile, size in tiles, layer index (0-2);
@@ -161,7 +168,8 @@ module MapGenerator
         $3.split.each do |option|
           case option
           when /\A(\w+)=T(\d+)\z/
-            fail_at.call("bord « #{$1} » inconnu (#{TERRAIN_ROLES.join(', ')})") unless TERRAIN_ROLES.include?($1)
+            roles = TERRAIN_ROLES + OUTER_ROLES
+            fail_at.call("bord « #{$1} » inconnu (#{roles.join(', ')})") unless roles.include?($1)
             terrain.roles[$1] = 384 + $2.to_i
           when /\Awith=(\S+)\z/ then terrain.with += $1
           when /\AL([1-3])\z/    then terrain.layer = $1.to_i - 1

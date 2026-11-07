@@ -43,7 +43,7 @@
 #                               its own tiles: « Rive = T832 T833 T834 »)
 #   EauBordee = oui            (optional: the water autotile draws its own
 #                               bottom bank, « Rive » is not drawn below it;
-#                               it still gives the rim of the levels, {rive})
+#                               « {rive} » still gives its tiles)
 #   Rebord  = (_)              (with Ponton: [Legend] symbols of water with the
 #                               south lip of a pier drawn on it, left, middle
 #                               and right: the row below the last planks)
