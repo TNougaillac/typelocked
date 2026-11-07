@@ -296,6 +296,12 @@ def check_interiors(bricks)
 end
 
 tilesets = load_rxdata(File.join(ROOT, "Data", "Tilesets.rxdata"))
+# The 4G tileset of an interior: in Tilesets.rxdata, with its image
+M::INTERIOR_TILESETS.each_value do |id|
+  name = tilesets[id]&.tileset_name.to_s
+  next if !name.empty? && File.exist?(File.join(ROOT, "Graphics", "Tilesets", "#{name}.png"))
+  CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "INTERIOR_TILESETS : tileset #{id} absent ou sans image")
+end
 folder = File.join(ROOT, M::FOLDER)
 bricks = Dir.glob(File.join(folder, M::BRICK_FOLDER, "*.txt")).sort.filter_map do |path|
   M.parse_brick(CI.read_text(path), File.basename(path))
