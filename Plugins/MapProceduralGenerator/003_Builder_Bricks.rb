@@ -14,9 +14,10 @@ module MapProceduralGenerator
       # The squares of a mask only; the beaches of a sea route only
       area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
       area = @water.sum { |row| row.count(false) } / (CASE_SIZE * CASE_SIZE).to_f if @place.crossing == "mer"
+      @area = area
       @place.counts.each do |kind, range|
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
-        count = @rng.rand(range)
+        count = (LAST_KINDS.include?(kind) ? @extra_rng : @rng).rand(range)
         boost = excess[:boost]&.[](kind)
         boost = [boost || 0, TOWN_PLANS.dig(@plan, :boost, kind) || 0].max
         count = [count, range.max * boost].max if boost > 0
@@ -29,8 +30,12 @@ module MapProceduralGenerator
       boosted = ->(kind) { excess[:boost]&.key?(kind) ? 0 : 1 }
       # Required decoration after the other required bricks, so it never
       # takes the room of a meadow or a building
+      # The optional bricks of LAST_KINDS after all the others, so that they
+      # never take the room of a park or its grass
+      last, optional = optional.partition { |k| LAST_KINDS.include?(k) }
       order = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == DECOR) ? 1 : 0] } +
-              optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] }
+              optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] } +
+              last.shuffle(random: @extra_rng)
       # With « dense », the fill bricks may touch each other (not the others)
       @dense = excess[:fill] if excess[:dense]
       order.each_with_index do |kind, i|
@@ -268,9 +273,29 @@ module MapProceduralGenerator
     def pick_brick(kind, shrink = 0)
       return lake_brick(shrink) if kind == LAKE
       return hill_brick if kind == HILL
-      bricks = @bricks.select { |b| b.kind == kind }
+      bricks = MODELS.key?(kind) ? models(kind) : @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       return bricks.find { |b| (roll -= b.weight) < 0 }
+    end
+
+    # The few models of buildings of that type the place draws from (MODELS),
+    # more in a bigger place: the same houses again and a few others. The
+    # first one drawn comes back more often (twice its weight).
+    def models(kind)
+      @models ||= {}
+      return @models[kind] ||= begin
+        pool = @bricks.select { |b| b.kind == kind }
+        base, per_case = MODELS[kind]
+        count = (base + (per_case * [(@area || 1) - 1, 0].max)).round
+        chosen = []
+        while chosen.length < count && !pool.empty?
+          roll = @extra_rng.rand(pool.sum(&:weight))
+          brick = pool.find { |b| (roll -= b.weight) < 0 }
+          chosen.push(brick)
+          pool.delete(brick)
+        end
+        chosen.empty? ? chosen : [chosen[0]] + chosen
+      end
     end
 
     # Puts one brick of that type where it fits (and where allowed says so);

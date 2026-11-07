@@ -107,6 +107,9 @@ module MapProceduralGenerator
       @palette = palette
       @seed = seed
       @rng = Random.new(seed)
+      # Its own draws for the building models and the LAST_KINDS bricks, so
+      # that they don't change the rest of the place
+      @extra_rng = Random.new(seed + EXTRA_SALT)
       @w, @h = place.width, place.height
       @mask = place.mask
       @cell = @mask && @w / @mask[0].length

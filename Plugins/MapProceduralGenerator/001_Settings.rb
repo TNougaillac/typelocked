@@ -173,6 +173,14 @@ module MapProceduralGenerator
   # Buildings without a door (town decor): their roof is kept free like the
   # others' (see PlaceBuilder#brick_halo)
   BUILDING_NO_DOOR = "batisse"
+  # Models of buildings a place draws from, so that its houses look alike:
+  # brick type => [models in a place of one square (20x20 tiles), more models
+  # for each other square]. A village has 2 house models, a big town more.
+  MODELS = { "maison" => [2, 0.6], "immeuble" => [1, 0.4], "batisse" => [1, 0.4] }.freeze
+  # Optional bricks placed after all the others (town decor that must not
+  # take the room of a park)
+  LAST_KINDS = %w[batisse special].freeze
+  EXTRA_SALT = 7919
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze
   # Animated doors of the 4G buildings (SirMalo's charsets, scaled by
