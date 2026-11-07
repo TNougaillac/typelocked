@@ -64,7 +64,8 @@ module MapProceduralGenerator
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
   # The sea autotile (A1), whose bottom edge is drawn by the bank below it
-  # (« Rive » of the place file) on the ground of the row underneath
+  # (« Rive » of the place file) on the ground of the row underneath, unless
+  # it draws its own (« EauBordee »)
   SEA_TILES = (48...96).freeze
   NOOK = "recoin"
   ISLET = "ilot"
@@ -169,7 +170,7 @@ module MapProceduralGenerator
       check_reachable
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
-      draw_banks(rows) if @place.banks
+      draw_banks(rows) if @place.banks && !@place.edged_water
       return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory, @place.ambiance, level_rows)
     end
 

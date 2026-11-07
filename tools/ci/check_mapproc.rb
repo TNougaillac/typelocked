@@ -49,7 +49,8 @@ end
 
 # Raises on a sea cell (autotile A1) with a dirty edge: below it, only more
 # water, the place's bank tiles, a mountain level (it draws its own top) or
-# the map's edge; and every sea cell in some 2x2 block of water (edges count).
+# the map's edge (anything when the water draws its own bank, « EauBordee »);
+# and every sea cell in some 2x2 block of water (edges count).
 def check_water(plan, name, place)
   sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.cover?(t) } }.keys
   wet = sea + plan.objects.select { |_c, o| sea.include?(o.ground) }.keys + plan.terrains.select { |_c, t| sea.include?(t.ground) }.keys
@@ -60,7 +61,9 @@ def check_water(plan, name, place)
     row.each_char.with_index do |c, x|
       next if !sea.include?(c)
       below = rows[y + 1]&.[](x)
-      raise MapGenerator::Error, "#{name} : eau colonne #{x + 1}, ligne #{y + 1} sans rive dessous (#{below.inspect})" if below && !clean.include?(below)
+      if below && !place.edged_water && !clean.include?(below)
+        raise MapGenerator::Error, "#{name} : eau colonne #{x + 1}, ligne #{y + 1} sans rive dessous (#{below.inspect})"
+      end
       block = [[-1, -1], [0, -1], [-1, 0], [0, 0]].any? { |ox, oy| [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |dx, dy| at.call(x + ox + dx, y + oy + dy) } }
       raise MapGenerator::Error, "#{name} : eau trop fine colonne #{x + 1}, ligne #{y + 1}" if !block
     end
