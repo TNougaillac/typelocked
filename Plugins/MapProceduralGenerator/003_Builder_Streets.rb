@@ -193,9 +193,18 @@ module MapProceduralGenerator
       rng = Random.new(@seed ^ PLAN_SALT)
       roll = rng.rand(TOWN_PLANS.values.sum { |plan| plan[:weight] })
       @plan = TOWN_PLANS.find { |_name, plan| (roll -= plan[:weight]) < 0 }[0]
+      # An excess draws among its own plans, the next one if a canal can't be
+      # laid
+      plans = excess[:plans]
+      @plan = plans[rng.rand(plans.length)] if plans
       @plan = @place.plan if @place.plan
       @plan = "carrefour" if @plain
-      @plan = "carrefour" if @plan == "canal" && (!@place.water || !@place.pier || !@place.lips)
+      @plan = (plans && plans.find { |p| p != "canal" }) || "carrefour" if @plan == "canal" && !canal?
+    end
+
+    # Whether the place can have a canal (water, its wooden bridges and their lips)
+    def canal?
+      return @place.water && @place.pier && @place.lips
     end
 
     # A grid of straight streets (GRID: tiles between two streets), each
@@ -218,7 +227,7 @@ module MapProceduralGenerator
     # become wooden bridges (« Ponton », with their « Rebord » lips).
     def lay_canal(hub)
       rng = Random.new(@seed ^ PLAN_SALT ^ 2)
-      width = rng.rand(CANAL[:width])
+      width = rng.rand(excess[:river] || CANAL[:width])
       left, right = @plaza ? [@plaza[0], @plaza[2]] : [hub[0], hub[0] + STREET_WIDTH]
       ends = @exits.select { |side, *| %w[nord sud].include?(side) }.map { |_side, x, _y| x }
       spots = ((@w * 0.15).to_i..(@w * 0.85).to_i - width).select do |x0|
@@ -228,8 +237,11 @@ module MapProceduralGenerator
       return if spots.empty?
       x0 = spots.sample(random: rng)
       @h.times do |y|
+        # With a grid, only the streets right across become bridges (not a
+        # grid's street from north to south, cut by the canal)
+        across = !excess[:grid] || (x0...x0 + width).all? { |x| @street[y][x] }
         (x0...x0 + width).each do |x|
-          if @street[y][x]
+          if @street[y][x] && across
             @cells[y][x] = @place.pier
           else
             @cells[y][x] = @place.water

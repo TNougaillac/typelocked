@@ -26,7 +26,7 @@ module MapProceduralGenerator
     # « Relief », not plain, a port, an island, a canal or a mask.
     def terrace?
       return false if @plain || @terrace.nil? || @place.kind != "ville" || !@place.levels || @place.mountain
-      return false if @place.port || @place.island || @mask || @plan.nil? || @plan == "canal"
+      return false if @place.port || @place.island || @mask || @plan.nil? || @plan == "canal" || excess[:flat]
       return Random.new(@seed ^ TERRACE_SALT).rand(100) < TERRACE_CHANCE
     end
 

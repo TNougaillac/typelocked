@@ -113,6 +113,8 @@ module MapProceduralGenerator
       # is skipped
       @left_out = @bricks.map(&:kind).uniq
       @bricks.select! { |b| !b.ambiances || b.ambiances.include?(place.ambiance) }
+      # and some left out by the place's excess
+      @bricks.reject! { |b| excess[:without]&.include?(b.name) }
       @left_out -= @bricks.map(&:kind)
       @palette = palette
       @seed = seed
@@ -161,7 +163,7 @@ module MapProceduralGenerator
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if @place.port
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       choose_plan
-      lay_grid if @plan == "grille"
+      lay_grid if @plan == "grille" || (excess[:grid] && @plan == "canal")
       lay_plaza(hub) if @plan != "clairière"
       lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
@@ -260,6 +262,7 @@ module MapProceduralGenerator
       return @stairs_at[[x, y]] if @stairs_at&.key?([x, y])
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
       return @cells[y][x] || zone || @place.street if @street[y][x]
+      return @cells[y][x] || @place.street if @paved&.[](y)&.[](x)
       return @cells[y][x] || zone || @place.ground
     end
 
@@ -358,6 +361,7 @@ module MapProceduralGenerator
     # that symbol (grass, flowers) on the free ground, and over the streets too
     # with « over_street » (walkable, but kept off the exits).
     def cover_ground
+      pave_ground if excess[:pave]
       carpet = excess[:carpet]
       return if !carpet
       @h.times do |y|
@@ -372,6 +376,15 @@ module MapProceduralGenerator
           end
           @cells[y][x] = carpet
         end
+      end
+    end
+
+    # Excess « pave »: the town's street over the free ground that close to a
+    # street (sidewalks, paved yards), walked like the ground.
+    def pave_ground
+      on_street = ->(x, y) { @street[y][x] && !@stairs_at&.key?([x, y]) && !@water[y][x] }
+      @paved = Array.new(@h) do |y|
+        Array.new(@w) { |x| free_ground?(x, y) && near?(x, y, excess[:pave]) { |nx, ny| on_street.call(nx, ny) } }
       end
     end
 

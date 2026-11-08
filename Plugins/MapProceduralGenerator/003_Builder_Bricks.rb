@@ -23,6 +23,7 @@ module MapProceduralGenerator
         boost = excess[:boost]&.[](kind)
         boost = [boost || 0, TOWN_PLANS.dig(@plan, :boost, kind) || 0].max
         count = [count, range.max * boost].max if boost > 0
+        count = range.min if excess[:trim]&.include?(kind)
         range.min.times { required.push(kind) }
         (count - range.min).times { optional.push(kind) }
       end
@@ -49,6 +50,8 @@ module MapProceduralGenerator
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if @left_out.include?(kind)
         next place_smallest(kind) if QUAY_HQS.include?(kind)
+        # « pack »: the boosted bricks, the big ones first
+        next place_big(kind) if i >= required.length && excess[:pack] && boosted.call(kind) == 0
         next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
@@ -352,6 +355,19 @@ module MapProceduralGenerator
       return false if [LAKE, HILL].include?(kind)
       bricks = @bricks.select { |b| b.kind == kind }
       return bricks.sort_by { |b| [b.rows.sum { |r| r.delete(" ").length }, b.name] }.any? { |b| put_brick(b) }
+    end
+
+    # Excess « pack »: the bricks of that type tried from the biggest (give or
+    # take PACK_JITTER), those not laid yet first, until one fits.
+    def place_big(kind)
+      @laid ||= Hash.new(0)
+      bricks = @bricks.select { |b| b.kind == kind }.sort_by do |b|
+        size = b.rows.sum { |r| r.delete(" ").length }
+        [@laid[b.name], -size * (1 + (@rng.rand * PACK_JITTER)), b.name]
+      end
+      brick = bricks.find { |b| put_brick(b) }
+      @laid[brick.name] += 1 if brick
+      return !brick.nil?
     end
 
     def put_brick(brick, allowed = nil)

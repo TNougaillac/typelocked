@@ -174,16 +174,27 @@ module MapProceduralGenerator
         @solid[y][x] = true
         @street[y][x] = @border[y][x] = false
       end
-      fill = [@place.rock, @place.border].compact.map { |sym| [sym, @palette.objects[sym]] }
-      wall.each_key do |x, y|
-        fill.each do |sym, object|
+      # The rocks first, then the border's trees where no rock fits, unless
+      # their canopy would cover a rock
+      [@place.rock, @place.border].compact.each do |sym|
+        object = @palette.objects[sym]
+        wall.each_key do |x, y|
           cells = (0...object.height).flat_map { |dy| (0...object.width).map { |dx| [x + dx, y + dy] } }
           next if !cells.all? { |cx, cy| wall[[cx, cy]] && !@cells[cy][cx] }
+          next if object.forest && canopy_covers?(object, x, y, sym)
           cells.each { |cx, cy| @cells[cy][cx] = sym }
-          break
         end
       end
       wall.each_key { |x, y| @cells[y][x] ||= @place.pebble }
+    end
+
+    # Whether the canopy of a forest object at x, y (two rows above it, a
+    # column on each side, MapGenerator's draw_forest) would cover another
+    # object.
+    def canopy_covers?(object, x, y, sym)
+      cells = (0...object.width).flat_map { |dx| [[x + dx, y - 1], [x + dx, y - 2]] } +
+              (0...object.height).flat_map { |dy| [[x - 1, y + dy], [x + object.width, y + dy]] }
+      return cells.any? { |cx, cy| inside?(cx, cy) && @cells[cy][cx] != sym && @palette.objects[@cells[cy][cx]] }
     end
 
     #---------------------------------------------------------------------------

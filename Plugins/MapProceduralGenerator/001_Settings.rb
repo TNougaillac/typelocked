@@ -349,8 +349,16 @@ module MapProceduralGenerator
   # flood: water all over the free ground, the streets kept dry; carpet: that
   # symbol all over the free ground (over_street: over the streets too, not
   # the exits); ambiance: that [Ambiance] of the place file (its ground and
-  # streets), if the file has it. Seabeds: reach: how far the floor opens from
-  # the deep water (4..9 otherwise); weed: far more and bigger spots of seaweed.
+  # streets), if the file has it; trim: those types kept to their fewest;
+  # plans: the town's plan drawn among those (TOWN_PLANS, the next one when a
+  # plan can't be laid); grid: the streets of a « grille » along its canal
+  # too (many bridges); river: the width of its canal (CANAL otherwise);
+  # pave: the town's street over the free ground that far from a street
+  # (sidewalks); big: only in towns big enough for a square, not a port nor
+  # with a mask; pack: the boosted bricks laid from the biggest of their
+  # type (PACK_JITTER), the ones not laid yet first; flat: no terraces; without: those bricks (by name)
+  # left out. Seabeds: reach: how far the floor opens from the deep water
+  # (4..9 otherwise); weed: far more and bigger spots of seaweed.
   EXCESSES = {
     "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
     "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
@@ -361,11 +369,18 @@ module MapProceduralGenerator
     "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
     "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
     "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" },
+    "métropole"          => { kind: "ville", boost: { "immeuble" => 4, "batisse" => 2, "special" => 2, "lampe" => 2 },
+                              trim: %w[maison arbre parc], plans: %w[canal grille], grid: true, river: 6..8, pave: 2, pack: true,
+                              flat: true, big: true,
+                              without: ["Abri en bois", "Cabane en rondins", "Cabanon", "Abri au toit fleuri", "Longère"] },
     "grotte immense"     => { kind: "grotte" },
     "dédale"             => { kind: "grotte" },
     "abysse"             => { kind: "fonds", reach: 10..16 },
     "forêt d'algues"     => { kind: "fonds", weed: true }
   }.freeze
+  # Excess « pack »: how much a brick's size is shuffled (times 1 to
+  # 1 + PACK_JITTER) when the biggest ones go first
+  PACK_JITTER = 0.6
   # The kinds of the places of the chain (the others are off it)
   CHAIN_KINDS = %w[ville route].freeze
 
