@@ -177,6 +177,11 @@ SNOW_TREES = {   # symbol => drawing, block x, y (the block of TREES[symbol])
 }
 SNOW_CLIFFS = [(7, 20), (8, 20)]   # sheet column, first row: levels, massifs
 SNOW_CAVE = (9, 40)
+# The straight rims of the snowy plateaux (drawn above their north edge,
+# between the rounded corners) are a line of rock that floats on the snow
+# ground, away from the plateau (its snowy top is as white as the ground):
+# they keep their passages but are not drawn. (column, row) in the block
+SNOW_HIDDEN_RIMS = {(1, 0), (2, 0), (5, 0), (6, 0), (5, 4), (6, 4)}
 
 
 def tint(tile, colours):
@@ -807,8 +812,10 @@ def build_snow(sheets, tiles, copies, first):
         for dy in range(CLIFF_ROWS):
             for dx in range(8):
                 tile = sheet_tile(sheets, ("N", col, dx, row + dy))
-                tiles[first + dy * 8 + dx] = tile
                 copies[first + dy * 8 + dx] = cliff_passages(dy, dx, tile)
+                if (dx, dy) in SNOW_HIDDEN_RIMS:
+                    tile = Image.new("RGBA", (TILE, TILE))
+                tiles[first + dy * 8 + dx] = tile
         snow["cliffs"].append(first)
         first += CLIFF_ROWS * 8
     col, row = SNOW_CAVE

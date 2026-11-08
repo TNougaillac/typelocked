@@ -250,11 +250,12 @@ module MapProceduralGenerator
       return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
     end
 
-    # A hill: a brick of rock in a rough oval made for this spot, a stair in
-    # the middle of its south face (its door, so a path leads to it).
+    # A hill: a brick of rock in a rough oval made for this spot, a stair (2
+    # tiles: left, right) in the middle of its south face (its door, so a
+    # path leads to it).
     def hill_brick
       rock = @place.levels&.first || "^"
-      stair = @place.stairs&.first&.[](0) || "e"
+      stair = @place.stairs&.first || "eɛ"
       w, h = @rng.rand(5..9), @rng.rand(4..6)
       rows = Array.new(h) do |y|
         Array.new(w) do |x|
@@ -263,9 +264,11 @@ module MapProceduralGenerator
           ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.2)) ? rock : " "
         end.join
       end
-      door = w / 2
-      rows[h - 1][door] = stair
-      rows[h - 2][door] = rock
+      door = (w - 1) / 2
+      2.times do |k|
+        rows[h - 1][door + k] = stair[k]
+        rows[h - 2][door + k] = rock
+      end
       return Brick.new(HILL, "Colline", HILL, [door, h - 1], 1, false, rows)
     end
 
