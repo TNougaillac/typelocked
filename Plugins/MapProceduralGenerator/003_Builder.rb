@@ -67,6 +67,9 @@ module MapProceduralGenerator
   # (the blades' tips), its bottom row (their foot) and a lone row; used
   # where [Legend] has them.
   GRASS_EDGES = { '"' => "ˈˌˑ", "n" => "ʼʽˀ" }.freeze
+  # Very tall grass: its top row keeps its symbol (the tips), the rows below
+  # take this one (their foot is the row of « ; » below the patch)
+  VERY_TALL = { ":" => "˸" }.freeze
   # Brick types of the nooks, drawn by the builder: a pocket of ground in the
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
@@ -263,10 +266,10 @@ module MapProceduralGenerator
     # and the foot of its bottom row would be missing.
     def edge_grass(rows)
       edges = GRASS_EDGES.select { |_c, v| v.each_char.all? { |e| @palette.legend[e] } }
-      return if edges.empty?
       grass = ->(x, y) { y >= 0 && y < @h && GRASS_EDGES.key?(rows[y][x]) }
       changed = rows.each_with_index.map do |row, y|
         row.each_char.with_index.map do |c, x|
+          next VERY_TALL[c] if VERY_TALL.key?(c) && @palette.legend[VERY_TALL[c]] && y > 0 && rows[y - 1][x] == c
           next c if !edges.key?(c)
           north, south = grass.call(x, y - 1), grass.call(x, y + 1)
           next c if north && south

@@ -930,7 +930,8 @@ def main():
         print(f"bâtiment : {line}" + (f"   (porte {door[0] - bx},{door[1] - by})" if door else ""))
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
     print_snow(snow)
-    print(f"Bords des hautes herbes : haut T{snow['edges'][0]}, bas T{snow['edges'][1]}, seule T{snow['edges'][2]}")
+    print(f"Bords des hautes herbes : haut T{snow['edges'][0]}, bas T{snow['edges'][1]}, seule T{snow['edges'][2]}, "
+          f"herbes très hautes sous leur rangée du haut T{snow['edges'][3]}")
 
 
 def build_grass_edges(sheets, tiles, copies, first):
@@ -938,7 +939,8 @@ def build_grass_edges(sheets, tiles, copies, first):
     row of 8 from `first`): its top row (the blades' tips, from the sheet's
     row above the patch), its bottom row (their foot, the ground below it
     see-through, its shade a darker veil) and a lone row (tips, then foot).
-    Tall grass (terrain tag 2, a bush), like T6. Returns [top, bottom, lone]."""
+    Tall grass (terrain tag 2, a bush), like T6; then the very tall grass
+    below its top row. Returns [top, bottom, lone, very tall middle]."""
     top = patch_grass(sheet_tile(sheets, TILES[7]))
     foot = dark_gaps(sheet_tile(sheets, TILES[15]), TILE // 2)
     px = foot.load()
@@ -953,7 +955,11 @@ def build_grass_edges(sheets, tiles, copies, first):
     for i, tile in enumerate([top, foot, lone]):
         tiles[first + i] = tile
         copies[first + i] = "=64/2"
-    return [first, first + 1, first + 2]
+    # The very tall grass below its top row: the middle of a patch, drawn
+    # over the player like its top (T7: its passages, priority and tag)
+    tiles[first + 3] = patch_grass(sheet_tile(sheets, TILES[6]))
+    copies[first + 3] = 7
+    return [first, first + 1, first + 2, first + 3]
 
 
 def print_snow(snow):

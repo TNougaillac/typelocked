@@ -17,7 +17,10 @@ WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.ne
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
 # that no half plant shows (very tall grass T7 needs itself or its base: T15, or
 # T151, T175, T181, T189, T14637 on the meadow, sand, dirt, gravel and snow).
-SPILL_BELOW = { 384 + 7 => [7, 15, 151, 175, 181, 189, 14637].map { |n| 384 + n } }.freeze
+# The very tall grass (its top row T7, the rows below T14915) has its foot
+# (or more of it) on the row below
+VERY_TALL_BELOW = [14915, 15, 151, 175, 181, 189, 14637].map { |n| 384 + n }.freeze
+SPILL_BELOW = { 384 + 7 => VERY_TALL_BELOW, 384 + 14915 => VERY_TALL_BELOW }.freeze
 
 # Records the bricks each builder lays (with its place), to check that a
 # brick kept for some ambiances is never laid elsewhere.
@@ -115,7 +118,7 @@ def walkable_symbols(place, bricks)
   symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
-  symbols += M::GRASS_EDGES.values.join.chars  # the edges of the tall grass
+  symbols += (M::GRASS_EDGES.values + M::VERY_TALL.values).join.chars  # the edges of the tall grass
   symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
@@ -127,7 +130,7 @@ def check_spots(name, place, bricks, layout)
   spots = layout.spots
   walkable = walkable_symbols(place, bricks)
   grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq + [place.high_grass] +
-          M::GRASS_EDGES.values.join.chars
+          (M::GRASS_EDGES.values + M::VERY_TALL.values).join.chars
   at = ->(x, y) { layout.rows[y]&.[](x) }
   fail = ->(msg) { raise M::Error, "#{name} : inventaire, #{msg}" }
   fail.call("portes différentes de celles posées") if spots[:doors] != layout.doors.map { |x, y, b| [x, y, b.kind] }

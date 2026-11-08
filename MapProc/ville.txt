@@ -87,7 +87,7 @@ decor = 0..1 par case
 Poids = 1
 Sol   = T50
 " = T143                # hautes herbes sur la prairie
-: = T151 T7             # herbes très hautes, leur pied sur la prairie
+: = {sol} T7             # herbes très hautes sur la prairie
 ; = T151
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
@@ -112,7 +112,7 @@ decor = 0..1 par case
 Poids = 1
 Sol   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = T175 T7             # herbes très hautes, leur pied sur le sable
+: = {sol} T7             # herbes très hautes sur le sable
 ; = T175
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
@@ -136,7 +136,7 @@ decor = 1..2 par case
 Poids = 1
 Sol   = T218
 " = T133                # hautes herbes sur le gravier
-: = T189 T7             # herbes très hautes, leur pied sur le gravier
+: = {sol} T7             # herbes très hautes sur le gravier
 ; = T189
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
@@ -161,7 +161,7 @@ decor = 1..2 par case
 Poids = 1
 Sol   = T106
 " = T125                # hautes herbes sur la terre
-: = T181 T7             # herbes très hautes, leur pied sur la terre
+: = {sol} T7             # herbes très hautes sur la terre
 ; = T181
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
@@ -195,7 +195,7 @@ decor = 1..1 par case
 Poids = 1
 Sol   = T14632|T14632|T14632|T14633|T14634|T14635
 " = T14636               # hautes herbes sur la neige
-: = T14637 T7             # herbes très hautes, leur pied sur la neige
+: = {sol} T7             # herbes très hautes sur la neige
 ; = T14637
 ǩ = T14640|T14641|T14642|T14643   # neige profonde
 ǫ = T14644|T14645|T14646|T14647   # glace
@@ -237,7 +237,8 @@ x = {sol} T919          # cailloux gris
 ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
 ˌ = {sol} T14913        # rangée du bas (pied des brins)
 ˑ = {sol} T14914        # tache d'une seule rangée
-: = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
+: = {sol} T7            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
+˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau des lacs
