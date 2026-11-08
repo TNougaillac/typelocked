@@ -127,6 +127,9 @@ module MapProceduralGenerator
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
+  # On a route with tall grass (« HerbeHaute »), that often (%) a hill's top
+  # is tall grass (wild Pokémon up there); otherwise a loot lies on it.
+  HILL_GRASS_CHANCE = 70
 
   # Caves of a world (2 floors each, see 006_Caves.rb): tileset of their maps
   # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon

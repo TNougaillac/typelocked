@@ -281,13 +281,31 @@ module MapProceduralGenerator
       return cells.flat_map { |cx, cy| NEIGHBOURS8.map { |ox, oy| [cx + ox, cy + oy] } }.uniq - cells - below
     end
 
+    # What tops a hill: on a route, mostly tall grass (HILL_GRASS_CHANCE, all
+    # of its top off the cliff), else a loot (hill_tops in the inventory).
+    def crown_hill(brick, x, y)
+      if @place.kind == "route" && @place.high_grass && @rng.rand(100) < HILL_GRASS_CHANCE
+        hill_inside(brick).each do |dx, dy|
+          @cells[y + dy][x + dx] = @place.high_grass
+          @kinds[y + dy][x + dx] = "herbes"
+        end
+        return
+      end
+      top = hill_top(brick)
+      @hill_tops.push([x + top[0], y + top[1]]) if top
+    end
+
+    # The cells of a hill off its cliff (all 8 neighbours are the hill).
+    def hill_inside(brick)
+      cells = brick_cells(brick)
+      return cells.select { |cx, cy| NEIGHBOURS8.all? { |ox, oy| cells.include?([cx + ox, cy + oy]) } }
+    end
+
     # The cell on top of a hill for its loot: off its cliff (all 8 neighbours
     # are the hill), on its top row, nearest the middle; nil if none.
     def hill_top(brick)
-      cells = brick_cells(brick)
-      inner = cells.select { |cx, cy| NEIGHBOURS8.all? { |ox, oy| cells.include?([cx + ox, cy + oy]) } }
       middle = (brick.rows[0].length - 1) / 2.0
-      return inner.min_by { |cx, cy| [cy, (cx - middle).abs, cx] }
+      return hill_inside(brick).min_by { |cx, cy| [cy, (cx - middle).abs, cx] }
     end
 
     def pick_brick(kind, shrink = 0)
@@ -529,8 +547,7 @@ module MapProceduralGenerator
       # Nothing (no path) against a hill but below its stair
       if brick.kind == HILL
         hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true }
-        top = hill_top(brick)
-        @hill_tops.push([x + top[0], y + top[1]]) if top
+        crown_hill(brick, x, y)
       end
       reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
