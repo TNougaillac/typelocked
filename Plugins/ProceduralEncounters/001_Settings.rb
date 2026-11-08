@@ -16,9 +16,10 @@ module ProceduralEncounters
   # Tiles that trigger encounters in the Outside tileset (as stored by MapGen:
   # 384 + n for T<n>, 48 * slot for an autotile): tall grass T6, the same on
   # sand, dirt, gravel, mountain rock and meadow (T124, T125, T133, T147, T148,
-  # T143), snow (T14636, Outside 4G) and very tall grass T7, water A1 (deep
-  # water included).
-  GRASS_TILES = [6, 7, 124, 125, 133, 143, 147, 148, 14636].map { |n| 384 + n }.freeze
+  # T143), snow (T14636, Outside 4G), the edges of a patch (T14912 to
+  # T14914) and very tall grass T7 and T14915, water A1 (deep water
+  # included).
+  GRASS_TILES = [6, 7, 124, 125, 133, 143, 147, 148, 14636, 14912, 14913, 14914, 14915].map { |n| 384 + n }.freeze
   WATER_TILES = [48].freeze
 
   # Ambiance of a route (MapProc, [Ambiance] of route.txt) => land biome,
