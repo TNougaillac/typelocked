@@ -339,7 +339,7 @@ module MapProceduralGenerator
 
   # Seabeds of a world (under routes with deep water): tileset and palette.
   # « . » = floor, « s » = seaweed, « R » = rock (walls, edges drawn by MapGen).
-  SEABED_TILESET = 22
+  SEABED_TILESET = 27
   SEABED_PALETTE = <<~PALETTE
     [Legend]
     . = T0|T1|T2|T3|T8|T9
