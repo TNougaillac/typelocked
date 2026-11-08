@@ -16,8 +16,8 @@ SEEDS = 1..10
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
 # that no half plant shows (very tall grass T7 needs itself or its base: T15, or
-# T151, T175, T181, T189 on the meadow, sand, dirt and gravel).
-SPILL_BELOW = { 384 + 7 => [7, 15, 151, 175, 181, 189].map { |n| 384 + n } }.freeze
+# T151, T175, T181, T189, T14637 on the meadow, sand, dirt, gravel and snow).
+SPILL_BELOW = { 384 + 7 => [7, 15, 151, 175, 181, 189, 14637].map { |n| 384 + n } }.freeze
 
 # Records the bricks each builder lays (with its place), to check that a
 # brick kept for some ambiances is never laid elsewhere.

@@ -189,6 +189,34 @@ Rue   = T9976 N=T9977 S=T9978 W=T9979 E=T9980 NW=T9981 NE=T9982 SW=T9983 SE=T998
 arbre = 0..1 par case
 decor = 1..1 par case
 
+# Neige (#204) : sol enneigé, sapins et falaises sous la neige, plaques de
+# neige profonde et de glace (briques réservées).
+[Ambiance neige]
+Poids = 1
+Sol   = T14632|T14632|T14632|T14633|T14634|T14635
+" = T14636               # hautes herbes sur la neige
+: = T14637 T7             # herbes très hautes, leur pied sur la neige
+; = T14637
+ǩ = T14640|T14641|T14642|T14643   # neige profonde
+ǫ = T14644|T14645|T14646|T14647   # glace
+# Sapins enneigés, cyprès et arbrisseaux sur la neige
+t = T14712 2x2 forest=T14760
+é = T14657 3x3 halo=4x4@1,1/0,3,12
+è = T14661 3x3 halo=4x4@1,1/0,3,12
+ê = T14680 1x3
+ë = T14684 1x2
+à = {sol} T4165
+# Falaises des terrasses et montagnes sous la neige
+¬ = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=ŀĿĳĲPʘ L2 @.
+^ = T14865 N=T14857 S=T14873 W=T14864 E=T14867 NW=T14856 NE=T14859 SW=T14872 SE=T14875 iSW=T14881 iSE=T14880 oN=T14849 oNW=T14848 oNE=T14851 oiNW=T14885 oiNE=T14886 with=e L2 @.
+Rive  = T14632 T14632 T14632
+Rue   = T274
+arbre = 0..2 par case
+parc  = 0
+lac   = 0
+decor = 1..2 par case
+
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
 à = {sol} T475          # buisson
@@ -226,6 +254,11 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 # bordure (rien, joint aux niveaux).
 ɸ = {sol}
 ʘ = -
+
+# Neige profonde et glace : leurs tuiles sont données par l'ambiance neige
+# (briques réservées à cette ambiance), le sol ailleurs.
+ǩ = {sol}
+ǫ = {sol}
 
 # Décor 4G de SirMalo (tools/art/outside_4g.py, docs/CREDITS.md)
 ā = {sol} T8680|T8681  # poteries

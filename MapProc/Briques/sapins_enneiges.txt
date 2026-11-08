@@ -1,0 +1,9 @@
+# Neige : deux sapins enneigés côte à côte.
+Brique    = Sapins enneigés
+Type      = decor
+Ambiances = neige
+Poids     = 2
+[Map]
+éééééé
+éééééé
+éééééé
