@@ -546,16 +546,19 @@ places.each do |path|
   # whole, its door reached
   M::GUILD_HQS.each do |kind, hq_ambiances|
     next if !place.counts.key?(kind)
-    hq_ambiances.each do |ambiance|
+    quay = M::QUAY_HQS.include?(kind)
+    (hq_ambiances.empty? ? [place.ambiances.first.name] : hq_ambiances).each do |ambiance|
       (1..3).each do |seed|
         themed = place.dup.tap { |p| p.ambiance = ambiance; p.counts = place.counts.merge(kind => 1..1) }
+        themed.port = (%w[est ouest sud] - place.exits.map(&:first)).first if quay
         plan, _text, layout = M.generate_place(themed, bricks, seed)
         name = "#{File.basename(path)} (QG #{kind}, ambiance #{ambiance}, graine #{seed})"
         MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
         check_spill(plan, name)
         check_spots(name, themed, bricks, layout)
         check_blocking(name, layout)
-        raise M::Error, "#{name} : QG non posé" if !hq_drawn?(layout.rows, bricks.select { |b| b.kind == kind })
+        placed = layout.spots[:doors].any? { |_x, _y, door| door == kind } || bricks.none? { |b| b.kind == kind && b.door }
+        raise M::Error, "#{name} : QG non posé" if !placed || !hq_drawn?(layout.rows, bricks.select { |b| b.kind == kind })
       end
     end
   end

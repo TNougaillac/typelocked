@@ -16,6 +16,8 @@ module MapProceduralGenerator
       area = @water.sum { |row| row.count(false) } / (CASE_SIZE * CASE_SIZE).to_f if @place.crossing == "mer"
       @area = area
       @place.counts.each do |kind, range|
+        # Along the quay only (place_port_bricks)
+        next if QUAY_HQS.include?(kind)
         range = (range.min * area).round..(range.max * area).round if @place.per_case.include?(kind)
         count = (LAST_KINDS.include?(kind) ? @extra_rng : @rng).rand(range)
         boost = excess[:boost]&.[](kind)
@@ -33,7 +35,8 @@ module MapProceduralGenerator
       # The optional bricks of LAST_KINDS after all the others, so that they
       # never take the room of a park or its grass
       last, optional = optional.partition { |k| LAST_KINDS.include?(k) }
-      order = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == DECOR) ? 1 : 0] } +
+      # A headquarters with no room on the quay first among the optional ones
+      order = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == DECOR) ? 1 : 0] } + @inland_hqs +
               optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] } +
               last.shuffle(random: @extra_rng)
       # With « dense », the fill bricks may touch each other (not the others)
@@ -45,6 +48,7 @@ module MapProceduralGenerator
         next if HIGHLAND.include?(kind) && !@level
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if @left_out.include?(kind)
+        next place_smallest(kind) if QUAY_HQS.include?(kind)
         next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
