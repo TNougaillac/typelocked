@@ -1,0 +1,14 @@
+# Chantier : le QG des Ouvriers (#213). Rondins, bornes et cônes entre
+# deux rangées de barrières. Posé seulement là où la guilde est tirée.
+Brique    = Chantier des Ouvriers
+Type      = chantier
+Ambiances = terre battue
+[Map]
+ŦŦŦ ŦŦŦ
+.......
+ęę  ĚĚ
+ęę  ĚĚ
+.......
+.......
+ğ ğ  ġ
+     ġ

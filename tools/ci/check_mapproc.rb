@@ -189,6 +189,17 @@ def check_forest_canopies(plan, name, owner)
   end
 end
 
+# True if one of those bricks stands whole somewhere in the rows (its
+# spaces left out).
+def hq_drawn?(rows, hq_bricks)
+  hq_bricks.any? do |brick|
+    cells = brick.rows.each_with_index.flat_map { |row, dy| row.each_char.with_index.filter_map { |c, dx| [dx, dy, c] if c != " " } }
+    (0...rows.length).any? do |y|
+      (0...rows[0].length).any? { |x| cells.all? { |dx, dy, c| rows[y + dy]&.[](x + dx) == c } }
+    end
+  end
+end
+
 def check_spill(plan, name)
   check_stairs(plan, name)
   check_grass_edges(plan, name)
@@ -544,7 +555,7 @@ places.each do |path|
         check_spill(plan, name)
         check_spots(name, themed, bricks, layout)
         check_blocking(name, layout)
-        raise M::Error, "#{name} : QG non posé" if layout.spots[:doors].none? { |_x, _y, k| k == kind }
+        raise M::Error, "#{name} : QG non posé" if !hq_drawn?(layout.rows, bricks.select { |b| b.kind == kind })
       end
     end
   end
