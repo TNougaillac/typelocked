@@ -16,8 +16,11 @@ SEEDS = 1..10
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
 # that no half plant shows (very tall grass T7 needs itself or its base: T15, or
-# T151, T175, T181, T189 on the meadow, sand, dirt and gravel).
-SPILL_BELOW = { 384 + 7 => [7, 15, 151, 175, 181, 189].map { |n| 384 + n } }.freeze
+# T151, T175, T181, T189, T14637 on the meadow, sand, dirt, gravel and snow).
+# The very tall grass (its top row T7, the rows below T14915) has its foot
+# (or more of it) on the row below
+VERY_TALL_BELOW = [14915, 15, 151, 175, 181, 189, 14637].map { |n| 384 + n }.freeze
+SPILL_BELOW = { 384 + 7 => VERY_TALL_BELOW, 384 + 14915 => VERY_TALL_BELOW }.freeze
 
 # Records the bricks each builder lays (with its place), to check that a
 # brick kept for some ambiances is never laid elsewhere.
@@ -32,8 +35,77 @@ module LaidBricks
 end
 M::PlaceBuilder.prepend(LaidBricks)
 
+# Stairs drawn in a cliff face, 2 tiles wide: left halves, right halves.
+STAIR_LEFT = [769, 777].map { |n| 384 + n }.freeze
+STAIR_RIGHT = [770, 778].map { |n| 384 + n }.freeze
+# Cells of a cliff in a plan: its terrains, and the relief cells (a level's
+# cliff, drawn by MapGen from the levels, or a border tree joined to them)
+RELIEF_CELLS = %w[ɸ ʘ].freeze
+
+# Raises on a stair that isn't whole (each left half followed by a right
+# half, nothing else in the run) or that leaves the cliff (the cells beside
+# the run are a cliff or a rock, not the ground).
+def check_stairs(plan, name)
+  side = lambda do |c|
+    t = (plan.legend[c] || []).flatten
+    return nil if plan.terrains.key?(c)
+    return :left if t.intersect?(STAIR_LEFT)
+    return :right if t.intersect?(STAIR_RIGHT)
+    return nil
+  end
+  plan.rows.each_with_index do |row, y|
+    x = 0
+    while x < row.length
+      if !side.call(row[x])
+        x += 1
+        next
+      end
+      start = x
+      x += 1 while x < row.length && side.call(row[x])
+      halves = (start...x).map { |i| side.call(row[i]) }
+      whole = halves.each_slice(2).all? { |pair| pair == %i[left right] }
+      raise MapGenerator::Error, "#{name} : escalier incomplet ligne #{y + 1}, colonnes #{start + 1}-#{x}" if !whole
+      [start - 1, x].each do |i|
+        next if i < 0 || i >= row.length || plan.terrains.key?(row[i]) || RELIEF_CELLS.include?(row[i])
+        raise MapGenerator::Error, "#{name} : escalier hors de la falaise ligne #{y + 1}, colonne #{i + 1}"
+      end
+    end
+  end
+end
+
+# Raises unless every patch of tall grass has the tips of its blades on its
+# top row only and their foot on its bottom row only (GRASS_EDGES: middle,
+# top, bottom, lone row), and very tall grass its tips on its top row only.
+def check_grass_edges(plan, name)
+  family = M::GRASS_EDGES.flat_map { |c, edges| [c, *edges.chars] }
+  M::GRASS_EDGES.each do |middle, edges|
+    next if !edges.each_char.all? { |e| plan.legend[e] }
+    roles = { middle => [true, true], edges[0] => [false, true], edges[1] => [true, false], edges[2] => [false, false] }
+    plan.rows.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if !(role = roles[c])
+        found = [y > 0 && family.include?(plan.rows[y - 1][x]), family.include?(plan.rows[y + 1]&.[](x))]
+        next if found == role
+        raise MapGenerator::Error, "#{name} : hautes herbes « #{c} » colonne #{x + 1}, ligne #{y + 1} : mauvais bord (pointes en haut, pied en bas)"
+      end
+    end
+  end
+  M::VERY_TALL.each do |top, below|
+    next if !plan.legend[below]
+    plan.rows.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        above = y > 0 ? plan.rows[y - 1][x] : nil
+        bad = (c == top && [top, below].include?(above)) || (c == below && ![top, below].include?(above))
+        raise MapGenerator::Error, "#{name} : herbes très hautes colonne #{x + 1}, ligne #{y + 1} : pointes ailleurs qu'en haut de la touffe" if bad
+      end
+    end
+  end
+end
+
 # Raises if a tile of SPILL_BELOW lacks its lower part on the row below.
 def check_spill(plan, name)
+  check_stairs(plan, name)
+  check_grass_edges(plan, name)
   tiles = ->(c) { (plan.legend[c] || []).flatten }
   plan.rows.each_with_index do |row, y|
     row.each_char.with_index do |c, x|
@@ -76,6 +148,7 @@ def walkable_symbols(place, bricks)
   symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
+  symbols += (M::GRASS_EDGES.values + M::VERY_TALL.values).join.chars  # the edges of the tall grass
   symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
@@ -86,7 +159,8 @@ end
 def check_spots(name, place, bricks, layout)
   spots = layout.spots
   walkable = walkable_symbols(place, bricks)
-  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq + [place.high_grass]
+  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq + [place.high_grass] +
+          (M::GRASS_EDGES.values + M::VERY_TALL.values).join.chars
   at = ->(x, y) { layout.rows[y]&.[](x) }
   fail = ->(msg) { raise M::Error, "#{name} : inventaire, #{msg}" }
   fail.call("portes différentes de celles posées") if spots[:doors] != layout.doors.map { |x, y, b| [x, y, b.kind] }

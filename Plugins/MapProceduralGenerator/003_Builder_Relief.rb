@@ -92,6 +92,7 @@ module MapProceduralGenerator
       trim_sides(level, band, levels, relief)
       raise_peaks(level) if @place.mountain
       raise_peaks(level, TERRACE_PEAKS, terraces, true) if terraces
+      return false if !thicken(level)
       faces, stairs_at = draw_faces(level)
       return false if !faces
       # Never through what stands already (a square's fountain)
@@ -214,14 +215,42 @@ module MapProceduralGenerator
           north = y > 0 && low.call(x, y - 1) < here
           side = [[-1, 0], [1, 0]].any? { |ox, _| inside?(x + ox, y) && low.call(x + ox, y) < here && !@street[y][x + ox] }
           return nil if north == south || side
-          pair = @place.stairs[(([here, 2].min - 1) * 2) + (south ? 0 : 1)]
-          stairs[[x, y]] = (x > 0 && @street[y][x - 1]) ? pair[1] : pair[0]
+          stairs[[x, y]] = [@place.stairs[(([here, 2].min - 1) * 2) + (south ? 0 : 1)], here, south]
         end
       end
+      stairs = whole_stairs(stairs, faces, low)
+      return nil if !stairs
       # The exits still reach one another, through the stairs
       seen = walk_levels(@exits[0][1, 2], faces, stairs)
       return nil if @exits.any? { |_side, x, y| !seen[y][x] }
       return faces, stairs
+    end
+
+    # Stairs as whole pairs (left half, right half, again for a wider
+    # street), framed by their cliff on both sides: a run of an odd width
+    # takes one more cell of the same face beside it, on the right, else on
+    # the left; nil if no run fits.
+    # cells: [x, y] => [pair, level, south face]. Returns [x, y] => symbol.
+    def whole_stairs(cells, faces, low)
+      stairs = {}
+      cells.keys.group_by(&:last).each do |y, row|
+        row.map(&:first).sort.slice_when { |a, b| b != a + 1 }.each do |run|
+          pair, here, south = cells[[run[0], y]]
+          # A cell of that face (its cliff on the same side)
+          face = lambda do |x|
+            inside?(x, y) && faces[y][x] && !cells.key?([x, y]) && low.call(x, y) == here &&
+              (y + 1 < @h && low.call(x, y + 1) < here) == south && (y > 0 && low.call(x, y - 1) < here) != south
+          end
+          # The run, its cliff on both sides
+          framed = ->(r) { face.call(r.first - 1) && face.call(r.last + 1) }
+          options = [run]
+          options = [run.last + 1, run.first - 1].select { |x| face.call(x) }.map { |x| (run + [x]).sort } if run.length.odd?
+          run = options.find(&framed)
+          return nil if !run
+          run.each_with_index { |x, i| stairs[[x, y]] = pair[i % 2] }
+        end
+      end
+      return stairs
     end
 
     # A raised band no longer runs from side to side: it stops short of a
@@ -285,6 +314,34 @@ module MapProceduralGenerator
         end
         cells.each { |x, y| level[y][x] = here + 1 }
         count -= 1
+      end
+    end
+
+    # Every bend of a level's edge at least 2 tiles long, like its stairs: a
+    # cell of a level in no 2x2 square of that level or higher (a tooth, a
+    # lone step) goes one level down, until none is left. false if that
+    # makes more rows with two levels side by side (a cliff two levels
+    # high).
+    def thicken(level)
+      at = ->(x, y) { inside?(x, y) ? level[y][x] : Float::INFINITY }
+      steep = steep_cells(level)
+      loop do
+        thin = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.select do |x, y|
+          here = level[y][x]
+          here > 0 && [[0, 0], [-1, 0], [0, -1], [-1, -1]].none? do |ox, oy|
+            [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |ax, ay| at.call(x + ox + ax, y + oy + ay) >= here }
+          end
+        end
+        break if thin.empty?
+        thin.each { |x, y| level[y][x] -= 1 }
+      end
+      return steep_cells(level) <= steep
+    end
+
+    # Number of rows with two levels side by side (a cliff two levels high).
+    def steep_cells(level)
+      return (0...@h).count do |y|
+        (0...@w).any? { |x| NEIGHBOURS8.any? { |ox, oy| inside?(x + ox, y + oy) && (level[y + oy][x + ox] - level[y][x]).abs > 1 } }
       end
     end
 

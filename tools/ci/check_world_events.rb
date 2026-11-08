@@ -135,7 +135,7 @@ def check_cells(plan, spots, gates)
     return
   end
   free = (spots[:street] || []) + (spots[:grass] || []) + (spots[:dead_ends] || []) + (spots[:floor] || []) +
-         (spots[:nooks] || []).map { |x, y, *| [x, y] } + [spots[:professor]].compact
+         (spots[:nooks] || []).map { |x, y, *| [x, y] } + (spots[:hill_tops] || []) + [spots[:professor]].compact
   blocked = W.blocked_cells(spots)
   plan.events.each do |entry|
     cell = [entry.x, entry.y]
@@ -260,7 +260,7 @@ def check_services(atlas, plans)
   end
 end
 
-# Every nook has its loot, every field item is given in its town once its
+# Every nook and hill top has its loot, every field item is given in its town once its
 # lieutenant is beaten, the Heart Scales reach their number, a Move
 # Relearner stands in a town reached before the 2nd seal, gifts are given
 # once and reach their share.
@@ -270,6 +270,7 @@ def check_items(atlas, zones, plans, items)
   atlas[:maps].each do |name, spots|
     nooks = (spots[:nooks] || []).count { |_x, _y, kind, *| kind != "sombre" }
     nooks = 1 if spots[:dark] && spots[:loot]
+    nooks += (spots[:hill_tops] || []).length
     raise MapEvents::Error, "#{name} : #{loot[name]} butins pour #{nooks} recoins" if loot[name] != nooks
   end
   atlas[:items].each do |item, town|

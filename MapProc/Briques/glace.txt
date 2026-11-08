@@ -1,0 +1,10 @@
+# Neige : une mare gelée, on y glisse jusqu'au bord.
+Brique    = Mare gelée
+Type      = decor
+Ambiances = neige
+Poids     = 2
+[Map]
+ ǫǫǫǫ
+ǫǫǫǫǫǫ
+ǫǫǫǫǫǫ
+ ǫǫǫǫ
