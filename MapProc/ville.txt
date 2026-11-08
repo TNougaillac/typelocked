@@ -218,6 +218,15 @@ lac   = 0
 decor = 1..2 par case
 
 # Palette MapGen partagée par toutes les briques (tileset Outside).
+# Marais (#205) : ville au bord du Grand Marais, de la boue et de l'eau peu
+# profonde en plaques entre les maisons, rues de terre.
+[Ambiance marais]
+Poids = 1
+Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100 with=f
+q     = T106               # terre sous la fontaine
+decor = 0..2 par case
+
 [Legend]
 à = {sol} T475          # buisson
 q = T274                # pavé sous la fontaine de la place (le centre de « Rue »)
@@ -282,6 +291,10 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ł = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=ŀĿĳĲPʘ L2 @.
 ^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=eɛ L2 @.   # montagne (dessus praticable)
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
+# Marais (#205), seulement dans ses briques réservées
+ɓ = T14920 N=T14921 S=T14922 W=T14923 E=T14924 NW=T14925 NE=T14926 SW=T14927 SE=T14928 iNW=T14929 iNE=T14930 iSW=T14931 iSE=T14932   # boue du marais (on n'y passe pas)
+ɗ = T14936 N=T14937 S=T14938 W=T14939 E=T14940 NW=T14941 NE=T14942 SW=T14943 SE=T14944 iNW=T14945 iNE=T14946 iSW=T14947 iSE=T14948 with=ɦ   # eau peu profonde du marais (on y marche, éclaboussures)
+ɦ = T14952 N=T14953 S=T14954 W=T14955 E=T14956 NW=T14957 NE=T14958 SW=T14959 SE=T14960   # herbe de marais (hautes herbes, ses bords dessinés)
 
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin

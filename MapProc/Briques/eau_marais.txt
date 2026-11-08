@@ -1,0 +1,12 @@
+# Marais : une mare d'eau peu profonde (on y patauge), des roseaux au milieu.
+Brique    = Mare du marais
+Type      = decor
+Ambiances = marais
+Poids     = 4
+[Map]
+ ɗɗɗɗɗɗ
+ɗɗɗɗɗɗɗɗ
+ɗɗɗɦɦɦɗɗ
+ɗɗɗɦɦɦɗɗ
+ɗɗɗɗɗɗɗɗ
+ ɗɗɗɗɗɗ

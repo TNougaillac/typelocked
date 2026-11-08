@@ -1,0 +1,10 @@
+# Marais : une flaque de boue, on n'y passe pas (jamais sur un chemin).
+Brique    = Boue
+Type      = decor
+Ambiances = marais
+Poids     = 4
+[Map]
+ ɓɓɓɓ
+ɓɓɓɓɓɓ
+ɓɓɓɓɓɓ
+ ɓɓɓɓ
