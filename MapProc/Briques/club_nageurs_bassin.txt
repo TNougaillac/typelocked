@@ -1,0 +1,10 @@
+# Club de natation : le QG du Cercle des nageurs (#218), le bâtiment à
+# bassin seul (ville sans place pour son parasol).
+Brique    = Bassin du Cercle des nageurs
+Type      = nageurs
+Ambiances = plage
+Porte     = 2,2
+[Map]
+εεεεε
+εεεεε
+εεεεε
