@@ -170,6 +170,8 @@ module MapProceduralGenerator
     # The Rangers' post (#215): a cabin
     "poste"    => [[8, 3, 9]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
+    # The Showmen's fair (#217): the game hall, a building's
+    "forains"  => [[12, 6, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
     # The Smugglers' warehouse (#214): the port's warehouse
@@ -182,7 +184,7 @@ module MapProceduralGenerator
   # (#182).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
                 "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
-                "poste" => ["verdoyante", "automne", "forêt sombre"] }.freeze
+                "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [] }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
