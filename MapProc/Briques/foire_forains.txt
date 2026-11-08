@@ -1,0 +1,11 @@
+# Foire : le QG des Forains (#217). La salle de jeux, où l'on entre, entre
+# deux stands à store. Posée seulement là où la guilde est tirée ; sans la
+# place, une des foires plus petites.
+Brique = Foire des Forains
+Type   = forains
+Poids  = 3
+Porte  = 9,2
+[Map]
+      δδδδδδδ
+      δδδδδδδ
+sssss δδδδδδδ yyyyy

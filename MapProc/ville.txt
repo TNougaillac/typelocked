@@ -61,6 +61,8 @@ gare     = 0        # gare maritime : posée au bout d'un ponton d'un port
 # QG des Contrebandiers : un entrepôt le long du quai d'un port, posé là où la
 # guilde est tirée
 contrebande = 0
+# Foire : le QG des Forains (#217), posée là où la guilde est tirée
+forains  = 0
 decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
 # Monument : une statue de la Famille près de la place (n'importe où sans
 # place) ; laissée de côté si elle ne tient pas.
