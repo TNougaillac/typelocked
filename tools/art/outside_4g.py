@@ -154,6 +154,38 @@ CAVE_PASSAGES = [787, 790, 789, 795, 798, 797, 803, 806, 805]
 # right end; the old ones give their passages
 LEDGE = [(("N", 4, 1, 1), 810), (("N", 4, 2, 1), 828), (("N", 4, 3, 1), 814)]
 LEDGE_TILES = [810, 828, 814]
+
+# Snow ambiance (#204), after everything else so that the tiles before keep
+# their numbers. Ground: the snow of SirMalo's snowy plateaux (4 variants);
+# deep snow and ice: that snow tinted (no 4G drawing of them), with their
+# terrain tags (DeepSnow from Plugins/MapProceduralGenerator, Ice of
+# Essentials). Trees: the snowy pair of trees (forest, tall pine, round tree),
+# the cypress and shrub on the snow; cliffs: the snowy plateaux, brown for
+# the levels, grey for the rock massifs; the snowy cave mouth.
+SNOW_GROUND = [(7, 1, 22), (7, 2, 22), (7, 1, 21), (7, 2, 21)]   # sheet column, tile x, y
+DEEP_SNOW_TAG = 18
+ICE_TAG = 12
+SNOW_FOREST_ROW = 48
+# Cells of the snowy forest's 6x6 frame that hold the sheet's colour samples
+# (dirt, snow), not the trees: left empty
+SNOW_FOREST_SAMPLES = {(5, 0), (5, 5)}
+SNOW_TREES = {   # symbol => drawing, block x, y (the block of TREES[symbol])
+    "é": (pair_tree(SNOW_FOREST_ROW), 1, 1),
+    "è": (pair_tree(SNOW_FOREST_ROW), 1, 1),
+    "ê": (grid_block(3, 0, 15, 1, 3), 0, 0),
+    "ë": (grid_block(3, 1, 16, 1, 2), 0, 0),
+}
+SNOW_CLIFFS = [(7, 20), (8, 20)]   # sheet column, first row: levels, massifs
+SNOW_CAVE = (9, 40)
+
+
+def tint(tile, colours):
+    """The snow tile recoloured: each colour by its brightness (white,
+    then the pale blue of its wind lines) to the matching one of `colours`."""
+    tile = tile.copy()
+    tile.putdata([colours[0] if c[3] and min(c[:3]) >= 244 else colours[1] if c[3] else c
+                  for c in tile.get_flattened_data()])
+    return tile
 # Buildings (BuildingsRMXP.png): symbol => (sheet column, x, y, width,
 # height of the drawing in tiles, block x, y, width, height in the drawing,
 # door x, y in the block). The block is the building (blocked, its door
@@ -704,13 +736,89 @@ def build(folder):
             part_block = (max(bx, x0) - x0, by, min(bx + bw, x1) - max(bx, x0), bh)
             more.append((part_sym, first, empty, (x1 - x0, h), part_block))
             first += h * 8
+    snow = build_snow(sheets, tiles, copies, first)
+    first = snow["end"]
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend, streets, more)
+    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend, streets, more, snow)
+
+
+def build_snow(sheets, tiles, copies, first):
+    """The tiles of the snow ambiance from `first`, one block of 8 per row.
+    Returns their numbers by role, and "end" (the next free tile)."""
+    snow = {}
+    grounds = [sheet_tile(sheets, ("N",) + src) for src in SNOW_GROUND]
+    ground = grounds[0]
+    # Row 1: the 4 snow tiles, then the very tall grass's foot and the tall
+    # grass on the snow, then a deep snow and an ice tile
+    for i, tile in enumerate(grounds):
+        tiles[first + i] = tile
+        copies[first + i] = -1
+    snow["ground"] = [first + i for i in range(len(grounds))]
+    tiles[first + 4] = on_ground(tiles[6], ground, True)
+    copies[first + 4] = 6
+    tiles[first + 5] = on_ground(tiles[15], ground, True)
+    copies[first + 5] = 15
+    snow["grass"] = (first + 4, first + 5)
+    first += 8
+    # Row 2: deep snow (4 variants), then ice (4 variants)
+    for i, tile in enumerate(grounds):
+        tiles[first + i] = tint(tile, [(224, 232, 248, 255), (184, 204, 236, 255)])
+        copies[first + i] = f"=0/{DEEP_SNOW_TAG}"
+        tiles[first + 4 + i] = tint(tile, [(176, 220, 248, 255), (232, 248, 255, 255)])
+        copies[first + 4 + i] = f"=0/{ICE_TAG}"
+    snow["deep"] = [first + i for i in range(4)]
+    snow["ice"] = [first + 4 + i for i in range(4)]
+    first += 8
+    # Trees on the snow, in slots of 4x4 tiles, two per row of slots
+    snow["trees"] = []
+    for slot, (sym, (drawing, bx, by)) in enumerate(SNOW_TREES.items()):
+        old_first, width, height = TREES[sym][:3]
+        top = first + (slot // 2) * 4 * 8 + (slot % 2) * 4
+        for dy, row in enumerate(drawing):
+            for dx, src in enumerate(row):
+                tile = sheet_tile(sheets, src) if src else Image.new("RGBA", (TILE, TILE))
+                tiles[top + dy * 8 + dx] = on_ground(tile, ground)
+                inside = bx <= dx < bx + width and by <= dy < by + height
+                copies[top + dy * 8 + dx] = old_first + (dy - by) * 8 + (dx - bx) if inside else TALL
+        empty = [dy * len(row) + dx for dy, row in enumerate(drawing) for dx in range(len(row))
+                 if not (bx <= dx < bx + width and by <= dy < by + height)
+                 and not tiles[top + dy * 8 + dx].getbbox()]
+        snow["trees"].append((sym, top, (len(drawing[0]), len(drawing)), (bx, by, width, height), empty))
+    first += ((len(SNOW_TREES) + 1) // 2) * 4 * 8
+    # The snowy forest: blocked, then with a halo's passages
+    solid, halo = first, first + FOREST_SIZE * 8
+    for dy in range(FOREST_SIZE):
+        for dx in range(FOREST_SIZE):
+            tile = Image.new("RGBA", (TILE, TILE)) if (dx, dy) in SNOW_FOREST_SAMPLES \
+                else sheet_tile(sheets, ("N", FOREST[1], dx, SNOW_FOREST_ROW + dy))
+            for top, passages in ((solid, SOLID), (halo, TALL)):
+                tiles[top + dy * 8 + dx] = tile
+                copies[top + dy * 8 + dx] = passages
+    snow["forest"] = (solid, halo)
+    first += 2 * FOREST_SIZE * 8
+    # Snowy cliffs (levels, massifs) and the cave mouth
+    snow["cliffs"] = []
+    for col, row in SNOW_CLIFFS:
+        for dy in range(CLIFF_ROWS):
+            for dx in range(8):
+                tile = sheet_tile(sheets, ("N", col, dx, row + dy))
+                tiles[first + dy * 8 + dx] = tile
+                copies[first + dy * 8 + dx] = cliff_passages(dy, dx, tile)
+        snow["cliffs"].append(first)
+        first += CLIFF_ROWS * 8
+    col, row = SNOW_CAVE
+    for i, src in enumerate(CAVE_PASSAGES):
+        dest = first + (i // 3) * 8 + i % 3
+        tiles[dest] = sheet_tile(sheets, ("N", col, 1 + i % 3, row + i // 3))
+        copies[dest] = src
+    snow["cave"] = first
+    snow["end"] = first + 3 * 8
+    return snow
 
 
 def cliff_line(first):
@@ -734,7 +842,7 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend, streets, more) = build(sys.argv[1])
+    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend, streets, more, snow) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
@@ -778,6 +886,25 @@ def main():
         door = MORE_BUILDINGS.get(sym, (None, None, None))[2]
         print(f"bâtiment : {line}" + (f"   (porte {door[0] - bx},{door[1] - by})" if door else ""))
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
+    print_snow(snow)
+
+
+def print_snow(snow):
+    """The palette lines of the snow ambiance (route.txt, ville.txt)."""
+    tall, foot = snow["grass"]
+    print(f"[neige] Sol = {'|'.join(f'T{t}' for t in [snow['ground'][0]] * 3 + snow['ground'][1:])}")
+    print(f"[neige] \" = T{tall}   : = T{foot} T7   ; = T{foot}")
+    print(f"[neige] neige profonde : {'|'.join(f'T{t}' for t in snow['deep'])} ; glace : {'|'.join(f'T{t}' for t in snow['ice'])}")
+    for sym, top, (w, h), (bx, by, bw, bh), empty in snow["trees"]:
+        line = f"{sym} = T{top + by * 8 + bx} {bw}x{bh}"
+        if (w, h) != (bw, bh):
+            line += f" halo={w}x{h}@{bx},{by}" + ("/" + ",".join(map(str, empty)) if empty else "")
+        print(f"[neige] {line}")
+    print(f"[neige] t = T{snow['forest'][0]} 2x2 forest=T{snow['forest'][1]}")
+    for name, first in zip(("niveaux", "massifs"), snow["cliffs"]):
+        print(f"[neige] falaise ({name}) : {cliff_line(first)}")
+    cave = snow["cave"]
+    print(f"[neige] grotte : " + " ".join(f"{k + 1} = T{cave + (k // 3) * 8 + k % 3}" for k in range(9)))
 
 
 if __name__ == "__main__":
