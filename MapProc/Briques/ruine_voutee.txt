@@ -1,0 +1,9 @@
+# Ruines : une ruine voûtée, fermée.
+Brique    = Ruine voûtée
+Type      = decor
+Ambiances = ruines
+Poids     = 2
+[Map]
+σσσσσ
+σσσσσ
+σσσσσ
