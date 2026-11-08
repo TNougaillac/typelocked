@@ -1,0 +1,15 @@
+# Poste forestier : le QG des Gardes forestiers (#215). Maison en rondins,
+# pile de rondins et panneau d'affichage, en lisière de forêt. Posé seulement
+# là où la guilde est tirée.
+Brique    = Poste des Gardes forestiers
+Type      = poste
+Ambiances = verdoyante, automne, forêt sombre
+Porte     = 5,6
+[Map]
+ń
+ń
+ęę
+ęę ΕΕΕΕΕ
+   ΕΕΕΕΕ
+   ΕΕΕΕΕ
+   ΕΕΕΕΕ
