@@ -360,7 +360,8 @@ module MapProceduralGenerator
     "volcan"          => [[:None, 40], [:Sun, 35], [:Sandstorm, 15], [:Fog, 10]],
     "plage"           => [[:None, 50], [:Sun, 35], [:Rain, 10], [:Storm, 5]],
     "forêt sombre"    => [[:None, 40], [:Fog, 35], [:Rain, 25]],
-    "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]]
+    "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]],
+    "haute montagne"  => [[:None, 35], [:Fog, 35], [:Snow, 20], [:Blizzard, 10]]
   }.freeze
   MOUNTAIN_WEATHER = "montagne"
   # Map metadata flags of an ambiance (Flags of map_metadata), e.g. the tone
@@ -396,6 +397,10 @@ module MapProceduralGenerator
   }.freeze
   # Ground of half the islands (an [Ambiance] of the town file)
   ISLAND_AMBIANCE = "plage"
+  # Ambiance drawn only on the mountain routes of a world (draw_ambiance);
+  # there it keeps its own weather, encounters and trainers, where the other
+  # ambiances take those of the mountain (MOUNTAIN_WEATHER)
+  MOUNTAIN_AMBIANCE = "haute montagne"
   # Width of the sea around an island, on its sides without a port
   ISLAND_SHORE = 4..7
   # Sandbanks and rocks in the sea around an island

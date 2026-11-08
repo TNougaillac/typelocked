@@ -1,7 +1,7 @@
 # Minéral : une flèche de roche grise, des cailloux à son pied.
 Brique    = Flèche rocheuse grise
 Type      = decor
-Ambiances = minérale
+Ambiances = minérale, haute montagne
 [Map]
 iii
 iiix

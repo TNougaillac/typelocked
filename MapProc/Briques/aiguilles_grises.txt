@@ -1,0 +1,8 @@
+# Haute montagne : deux aiguilles de roche grise, des cailloux à leur pied.
+Brique    = Aiguilles grises
+Type      = decor
+Ambiances = haute montagne
+Poids     = 2
+[Map]
+iii   iii
+iiix  iii,
