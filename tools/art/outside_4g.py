@@ -761,6 +761,8 @@ def build(folder):
             first += h * 8
     snow = build_snow(sheets, tiles, copies, first)
     first = snow["end"]
+    snow["edges"] = build_grass_edges(sheets, tiles, copies, first)
+    first += 8
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
@@ -912,6 +914,35 @@ def main():
         print(f"bâtiment : {line}" + (f"   (porte {door[0] - bx},{door[1] - by})" if door else ""))
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
     print_snow(snow)
+    print(f"Bords des hautes herbes : haut T{snow['edges'][0]}, bas T{snow['edges'][1]}, seule T{snow['edges'][2]}")
+
+
+def build_grass_edges(sheets, tiles, copies, first):
+    """The edges of a patch of tall grass, see-through over any ground (one
+    row of 8 from `first`): its top row (the blades' tips, from the sheet's
+    row above the patch), its bottom row (their foot, the ground below it
+    see-through, its shade a darker veil) and a lone row (tips, then foot).
+    Tall grass (terrain tag 2, a bush), like T6. Returns [top, bottom, lone]."""
+    top = patch_grass(sheet_tile(sheets, TILES[7]))
+    foot = sheet_tile(sheets, TILES[15])
+    px = foot.load()
+    for y in range(TILE):
+        for x in range(TILE):
+            c = px[x, y]
+            if not c[3] or c[2] <= c[0] + 20:
+                continue
+            if y < TILE // 2:
+                k = min(1.0, c[1] / 216)
+                px[x, y] = tuple(int(v * k) for v in PATCH_GREEN[:3]) + (255,)
+            else:
+                px[x, y] = (0, 0, 0, 0) if c in GRASS else (0, 0, 0, int(255 * (1 - SHADOWS.get(c, 0.8)) * 1.5))
+    lone = Image.new("RGBA", (TILE, TILE))
+    lone.paste(top.crop((0, 4, TILE, 4 + TILE // 2)), (0, 0))
+    lone.paste(foot.crop((0, 0, TILE, TILE // 2)), (0, TILE // 2))
+    for i, tile in enumerate([top, foot, lone]):
+        tiles[first + i] = tile
+        copies[first + i] = "=64/2"
+    return [first, first + 1, first + 2]
 
 
 def print_snow(snow):

@@ -63,6 +63,10 @@ module MapProceduralGenerator
   # inventory, those of GRASS_KINDS as tall grass
   WALK_KINDS = %w[herbes prairie].freeze
   GRASS_KINDS = %w[herbes].freeze
+  # Tall grass symbols and their rows at the edge of a patch: its top row
+  # (the blades' tips), its bottom row (their foot) and a lone row; used
+  # where [Legend] has them.
+  GRASS_EDGES = { '"' => "ˈˌˑ", "n" => "ʼʽˀ" }.freeze
   # Brick types of the nooks, drawn by the builder: a pocket of ground in the
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
@@ -178,6 +182,7 @@ module MapProceduralGenerator
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       draw_banks(rows) if @place.banks && !@place.edged_water
+      edge_grass(rows)
       return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory, @place.ambiance, level_rows)
     end
 
@@ -251,6 +256,24 @@ module MapProceduralGenerator
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
       return @cells[y][x] || zone || @place.street if @street[y][x]
       return @cells[y][x] || zone || @place.ground
+    end
+
+    # The top and bottom rows of each patch of tall grass (GRASS_EDGES): its
+    # tiles are drawn half a row low in the sheet, the tips of its top row
+    # and the foot of its bottom row would be missing.
+    def edge_grass(rows)
+      edges = GRASS_EDGES.select { |_c, v| v.each_char.all? { |e| @palette.legend[e] } }
+      return if edges.empty?
+      grass = ->(x, y) { y >= 0 && y < @h && GRASS_EDGES.key?(rows[y][x]) }
+      changed = rows.each_with_index.map do |row, y|
+        row.each_char.with_index.map do |c, x|
+          next c if !edges.key?(c)
+          north, south = grass.call(x, y - 1), grass.call(x, y + 1)
+          next c if north && south
+          edges[c][north ? 1 : (south ? 0 : 2)]
+        end.join
+      end
+      rows.replace(changed)
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.

@@ -115,6 +115,7 @@ def walkable_symbols(place, bricks)
   symbols = [place.ground, place.street, place.pier, place.high_grass, *place.levels, *place.stairs&.join&.chars]
   symbols += M::EXCESSES.values.filter_map { |e| e[:carpet] }
   symbols += place.banks.to_s.chars  # the bank below the water (blocked only upwards)
+  symbols += M::GRASS_EDGES.values.join.chars  # the edges of the tall grass
   symbols.push(M::TRANSITION[:ground]) if place.kind == "route"  # a stretch of sand
   bricks.each { |b| symbols.concat(b.rows.join.delete(" ").chars) if M::WALK_KINDS.include?(b.kind) }
   return symbols.compact.uniq
@@ -125,7 +126,8 @@ end
 def check_spots(name, place, bricks, layout)
   spots = layout.spots
   walkable = walkable_symbols(place, bricks)
-  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq + [place.high_grass]
+  grass = bricks.select { |b| M::GRASS_KINDS.include?(b.kind) }.flat_map { |b| b.rows.join.delete(" ").chars }.uniq + [place.high_grass] +
+          M::GRASS_EDGES.values.join.chars
   at = ->(x, y) { layout.rows[y]&.[](x) }
   fail = ->(msg) { raise M::Error, "#{name} : inventaire, #{msg}" }
   fail.call("portes différentes de celles posées") if spots[:doors] != layout.doors.map { |x, y, b| [x, y, b.kind] }
