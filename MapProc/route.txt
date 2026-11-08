@@ -66,6 +66,8 @@ ferme = 0
 # même par les guildes.
 chantier = 0
 carriere = 0
+# Poste forestier : le QG des Gardes forestiers (#215), posé de même.
+poste = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
 decor  = 0
