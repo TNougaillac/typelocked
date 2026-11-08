@@ -23,11 +23,19 @@ module MapProceduralGenerator
     end
 
     # A town in terraces (TERRACE_CHANCE): big enough for a square, with a
-    # « Relief », not plain, a port, an island, a canal or a mask.
+    # « Relief », not plain, a port, an island, a canal or a mask. A plain
+    # route too (ROUTE_TERRACE_CHANCE): not a mountain, no water or cave
+    # across it, no deep water, no shortcut, no mask, no flood.
     def terrace?
-      return false if @plain || @terrace.nil? || @place.kind != "ville" || !@place.levels || @place.mountain
-      return false if @place.port || @place.island || @mask || @plan.nil? || @plan == "canal" || excess[:flat]
-      return Random.new(@seed ^ TERRACE_SALT).rand(100) < TERRACE_CHANCE
+      return false if @plain || @terrace.nil? || !@place.levels || @place.mountain || @mask || excess[:flat]
+      chance = TERRACE_CHANCE
+      if @place.kind == "route"
+        return false if @place.crossing || @place.dive || @place.lock || excess[:flood]
+        chance = ROUTE_TERRACE_CHANCE
+      else
+        return false if @place.kind != "ville" || @place.port || @place.island || @plan.nil? || @plan == "canal"
+      end
+      return Random.new(@seed ^ TERRACE_SALT).rand(100) < chance
     end
 
     #---------------------------------------------------------------------------
@@ -51,7 +59,7 @@ module MapProceduralGenerator
       wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
       # A town's terraces have their own draws, one set per try
       terraces = Random.new((@seed ^ TERRACE_SALT) + (@terrace.to_i * 7919)) if !@place.mountain
-      wanted = terraces.rand(TERRACE_FACES) if terraces
+      wanted = terraces.rand(@place.kind == "route" ? ROUTE_TERRACE[:faces] : TERRACE_FACES) if terraces
       wanted = crossings.length if excess[:colossal]
       wanted = [wanted, crossings.length].min
       # East-west routes may end up with cliffs and no stairs; a route with no
@@ -108,14 +116,15 @@ module MapProceduralGenerator
       return true
     end
 
-    # The count boundaries of a town's terraces, TERRACE_DEPTH rows apart at
-    # least, none right by an exit or the water (ground_rows); [] if none
-    # fits. The bands of the exits and the water stay on the ground.
+    # The count boundaries of a town's (or route's) terraces, TERRACE_DEPTH
+    # (ROUTE_TERRACE) rows apart at least, none right by an exit or the water
+    # (ground_rows); [] if none fits. The bands of the exits and the water stay on the ground.
     def terrace_picks(crossings, ground_rows, count, terraces)
+      depth = (@place.kind == "route") ? ROUTE_TERRACE[:depth] : TERRACE_DEPTH
       20.times do
         picks = []
         crossings.keys.shuffle(random: terraces).each do |r|
-          picks.push(r) if picks.none? { |p| (p - r).abs < TERRACE_DEPTH }
+          picks.push(r) if picks.none? { |p| (p - r).abs < depth }
           break if picks.length == count
         end
         return picks if picks.length == count && ground_rows.none? { |y| picks.any? { |p| (y - p).between?(-1, 0) } }

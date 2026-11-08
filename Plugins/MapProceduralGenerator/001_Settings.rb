@@ -113,6 +113,11 @@ module MapProceduralGenerator
   # with TERRACE_SALT; drawn again (TERRACE_TRIES in all), then built flat,
   # when its bricks don't fit.
   TERRACE_CHANCE = 65
+  # The same for a plain route (see PlaceBuilder#terrace?): plateaus and
+  # canyons along the way, the streets climbing them by stairs; faces and
+  # depth: as TERRACE_FACES and TERRACE_DEPTH, a route being narrower
+  ROUTE_TERRACE_CHANCE = 60
+  ROUTE_TERRACE = { faces: 1..3, depth: 5 }.freeze
   TERRACE_TRIES = 4
   TERRACE_PEAKS = 0.5..1.0
   TERRACE_FACES = 2..4
