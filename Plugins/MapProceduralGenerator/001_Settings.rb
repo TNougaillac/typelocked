@@ -357,6 +357,7 @@ module MapProceduralGenerator
     "forêt tropicale" => [[:None, 30], [:Rain, 35], [:HeavyRain, 20], [:Storm, 15]],
     "neige"           => [[:None, 30], [:Snow, 45], [:Blizzard, 20], [:Fog, 5]],
     "marais"          => [[:None, 35], [:Rain, 40], [:HeavyRain, 10], [:Fog, 15]],
+    "volcan"          => [[:None, 40], [:Sun, 35], [:Sandstorm, 15], [:Fog, 10]],
     "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]]
   }.freeze
   MOUNTAIN_WEATHER = "montagne"

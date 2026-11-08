@@ -781,6 +781,8 @@ def build(folder):
     first += 8
     snow["marsh"] = build_marsh(sheets, tiles, copies, first, grass)
     first += 6 * 8
+    snow["volcano"] = build_volcano(sheets, tiles, copies, first, snow["edges"])
+    first = snow["volcano"]["end"]
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
@@ -937,6 +939,7 @@ def main():
     for name, ids in snow["marsh"].items():
         roles = MARSH_GRASS_ROLES if name == "herbe" else STREET_ROLES
         print(f"[marais] {name} = " + " ".join(f"{role}=T{i}" if role else f"T{i}" for (role, *_r), i in zip(roles, ids)))
+    print_volcano(snow["volcano"])
 
 
 # Marsh (#205): SirMalo's patches of the Nature sheet, column 1: mud
@@ -1004,6 +1007,177 @@ def build_grass_edges(sheets, tiles, copies, first):
     tiles[first + 3] = patch_grass(sheet_tile(sheets, TILES[6]))
     copies[first + 3] = 7
     return [first, first + 1, first + 2, first + 3]
+
+
+# Volcano (#206): no 4G drawing of ash or lava, SirMalo's tiles recoloured.
+# Ash ground: the grass greyed (a hint of green left); tall grass dusted with
+# ash; black ground: the dirt path's patch in basalt (walked: the street and
+# the patches of the bricks); lava: the marsh mud's patch glowing (blocked);
+# lava rocks: the desert's rocks in basalt, their cracks glowing. Trees,
+# forest, cliffs (brown rock) and the cave on the ash.
+ASH_GROUND = 0.85    # share of ash in the ground (the rest stays grass)
+ASH_BLADES = 0.55    # share of ash on the blades of tall grass
+LAVA_RAMP = [(96, 16, 8), (176, 40, 8), (232, 96, 16), (255, 176, 48), (255, 232, 120)]
+BLACK_PATH = [106, 98, 114, 105, 107, 97, 99, 113, 115, 118, 116, 102, 100]   # STREET_ROLES order
+
+
+def luma(c):
+    return 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]
+
+
+def greenish(c):
+    return c[1] > c[0] + 15 and c[1] >= c[2]
+
+
+def recolour(tile, fn, keep=()):
+    """The tile with each opaque colour (but those of `keep`) through fn."""
+    tile = tile.copy()
+    tile.putdata([fn(c) if c[3] and c not in keep else c for c in tile.get_flattened_data()])
+    return tile
+
+
+def ash(c, share):
+    """A colour under ash: blended towards a warm grey of its brightness."""
+    lum = luma(c)
+    grey = (lum * 0.80, lum * 0.78, lum * 0.75)
+    return tuple(int(v * (1 - share) + g * share) for v, g in zip(c[:3], grey)) + (c[3],)
+
+
+def basalt(c):
+    lum = luma(c)
+    return (int(lum * 0.30 + 16), int(lum * 0.28 + 16), int(lum * 0.28 + 20), c[3])
+
+
+def lava(c):
+    t = max(0.0, min(0.999, (luma(c) - 60) / 120)) * (len(LAVA_RAMP) - 1)
+    a, b = LAVA_RAMP[int(t)], LAVA_RAMP[int(t) + 1]
+    k = t - int(t)
+    return tuple(int(x + (y - x) * k) for x, y in zip(a, b)) + (c[3],)
+
+
+def glowing_rock(tile):
+    """A rock in basalt, its outline's colour inside it (its cracks, away
+    from the edge) glowing."""
+    px = tile.load()
+    darkest = min((c for c in tile.get_flattened_data() if c[3]), key=luma)
+    out = recolour(tile, basalt)
+    po = out.load()
+    for y in range(2, TILE - 2):
+        for x in range(2, TILE - 2):
+            near = [px[x + dx, y + dy][3] for dx in (-2, 0, 2) for dy in (-2, 0, 2)]
+            if px[x, y] == darkest and all(near):
+                po[x, y] = (232, 88, 16, 255)
+    return out
+
+
+def build_volcano(sheets, tiles, copies, first, edges):
+    """The tiles of the volcano ambiance from `first`. Returns their numbers
+    by role, and "end" (the next free tile)."""
+    v = {}
+    grounds = [recolour(tiles[i], lambda c: ash(c, ASH_GROUND)) for i in (1, 2, 3)]
+    ground = grounds[0]
+    def dusted(tile):
+        return recolour(tile, lambda c: ash(c, ASH_BLADES), keep=GRASS | set(SHADOWS))
+    # Row 1: ash ground (3), tall grass, the very tall grass's foot and top,
+    # the edges of a patch (top, bottom); row 2: lone row, very tall middle,
+    # bush, lava rock, lava pebbles
+    row = grounds + [recolour(patch_grass(tiles[6]), lambda c: ash(c, ASH_BLADES)),
+                     on_ground(dusted(dark_gaps(tiles[15], TILE // 2)), ground, True),
+                     dusted(tiles[7]), dusted(tiles[edges[0]]), dusted(tiles[edges[1]]),
+                     dusted(tiles[edges[2]]), dusted(tiles[edges[3]]),
+                     dusted(on_ground(sheet_tile(sheets, TILES[475]), ground)),
+                     glowing_rock(unground(sheet_tile(sheets, TILES[847]))),
+                     glowing_rock(unground(sheet_tile(sheets, TILES[839])))]
+    passages = [-1, -1, -1, 6, 15, 7, "=64/2", "=64/2", "=64/2", 7, 475, 847, 839]
+    for i, (tile, p) in enumerate(zip(row, passages)):
+        tiles[first + i] = tile
+        copies[first + i] = p
+    v["ground"] = [first, first + 1, first + 2]
+    v["grass"] = [first + i for i in range(3, 10)]   # " ; : ˈ ˌ ˑ ˸
+    v["bush"], v["rock"], v["pebbles"] = first + 10, first + 11, first + 12
+    first += 16
+    # Black ground (the path's patch) and lava (the mud's patch), on the ash
+    def patch(drawing, fn, p, first):
+        tile = ground.copy()
+        tile.alpha_composite(recolour(drawing, lambda c: ash(c, ASH_GROUND) if greenish(c) else fn(c)))
+        tiles[first] = tile
+        copies[first] = p
+    v["black"] = []
+    for i, src in enumerate(BLACK_PATH):
+        patch(sheet_tile(sheets, TILES[src]), basalt, -1, first + i)
+        v["black"].append(first + i)
+    first += 16
+    (ox, oy, cx, cy, hx, hy), _p = MARSH_PATCHES["boue"]
+    v["lava"] = []
+    for i, (_role, dx, dy, part) in enumerate(STREET_ROLES):
+        src = (cx, cy) if part is None else (ox + dx, oy + dy) if part == "o" else (hx + dx, hy + dy)
+        patch(sheet_tile(sheets, ("N", 1) + src), lava, "=15", first + i)
+        v["lava"].append(first + i)
+    first += 16
+    # Trees on the ash (their leaves dusted), in slots of 4x4 tiles, two per row of slots
+    v["trees"] = []
+    for slot, sym in enumerate(VARIED):
+        old_first, width, height, drawing, bx, by = TREES[sym]
+        top = first + (slot // 2) * 4 * 8 + (slot % 2) * 4
+        for dy, line in enumerate(drawing):
+            for dx, src in enumerate(line):
+                tile = sheet_tile(sheets, src) if src else Image.new("RGBA", (TILE, TILE))
+                tiles[top + dy * 8 + dx] = on_ground(dusted(tile), ground)
+                inside = bx <= dx < bx + width and by <= dy < by + height
+                copies[top + dy * 8 + dx] = old_first + (dy - by) * 8 + (dx - bx) if inside else TALL
+        empty = [dy * len(line) + dx for dy, line in enumerate(drawing) for dx in range(len(line))
+                 if not (bx <= dx < bx + width and by <= dy < by + height)
+                 and not tiles[top + dy * 8 + dx].getbbox()]
+        v["trees"].append((sym, top, empty))
+    first += ((len(VARIED) + 1) // 2) * 4 * 8
+    # The forest: blocked, then with a halo's passages
+    _sym, col, frow = FOREST
+    solid, halo = first, first + FOREST_SIZE * 8
+    for dy in range(FOREST_SIZE):
+        for dx in range(FOREST_SIZE):
+            tile = on_ground(dusted(sheet_tile(sheets, ("N", col, dx, frow + dy))), ground)
+            for top, p in ((solid, SOLID), (halo, TALL)):
+                tiles[top + dy * 8 + dx] = tile
+                copies[top + dy * 8 + dx] = p
+    v["forest"] = (solid, halo)
+    first += 2 * FOREST_SIZE * 8
+    # Cliffs on the ash (levels: grass top; massifs: rock top) and the cave
+    v["cliffs"] = []
+    for col, crow in ((5, 20), (5, 0)):
+        for dy in range(CLIFF_ROWS):
+            for dx in range(8):
+                tile = on_ground(sheet_tile(sheets, ("N", col, dx, crow + dy)), ground, cliff=True)
+                tiles[first + dy * 8 + dx] = tile
+                copies[first + dy * 8 + dx] = cliff_passages(dy, dx, tile)
+        v["cliffs"].append(first)
+        first += CLIFF_ROWS * 8
+    col, crow = CAVES[0]
+    for i, src in enumerate(CAVE_PASSAGES):
+        dest = first + (i // 3) * 8 + i % 3
+        tiles[dest] = on_ground(sheet_tile(sheets, ("N", col, 1 + i % 3, crow + i // 3)), ground, cliff=True)
+        copies[dest] = src
+    v["cave"] = first
+    v["end"] = first + 3 * 8
+    return v
+
+
+def print_volcano(v):
+    """The palette lines of the volcano ambiance (route.txt, ville.txt)."""
+    def roles(ids):
+        return " ".join(f"{role}=T{i}" if role else f"T{i}" for (role, *_r), i in zip(STREET_ROLES, ids))
+    tall, foot, top, e_top, e_bottom, e_lone, middle = v["grass"]
+    print(f"[volcan] Sol = {'|'.join(f'T{t}' for t in [v['ground'][0]] * 3 + v['ground'][1:])}")
+    print(f"[volcan] \" = T{tall}  ; = T{foot}  : = {{sol}} T{top}  ˈ ˌ ˑ = T{e_top} T{e_bottom} T{e_lone}  ˸ = T{middle}")
+    print(f"[volcan] à = T{v['bush']}  roche de lave = T{v['rock']}  cailloux = T{v['pebbles']}")
+    print(f"[volcan] sol noir : {roles(v['black'])}")
+    print(f"[volcan] lave : {roles(v['lava'])}")
+    for sym, top, empty in v["trees"]:
+        print(f"[volcan] {object_line(sym, top, empty)}")
+    print(f"[volcan] t = T{v['forest'][0]} 2x2 forest=T{v['forest'][1]}")
+    for name, first in zip(("niveaux", "massifs"), v["cliffs"]):
+        print(f"[volcan] falaise ({name}) : {cliff_line(first)}")
+    cave = v["cave"]
+    print(f"[volcan] grotte : " + " ".join(f"{k + 1} = T{cave + (k // 3) * 8 + k % 3}" for k in range(9)))
 
 
 def print_snow(snow):
