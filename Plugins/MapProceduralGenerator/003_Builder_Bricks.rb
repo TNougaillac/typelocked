@@ -456,30 +456,30 @@ module MapProceduralGenerator
       end
     end
 
-    # The cells a building's drawing covers beyond its brick (the roof, the
-    # eaves: its objects' halos, not their empty cells), from its top left
-    # corner: [dx, dy]. Only for buildings (a door, or « batisse »), so that
-    # no other brick goes under their roof and no roof over another brick.
+    # The cells a brick's drawing covers beyond it (a roof, the eaves, a
+    # tree's crown: its objects' halos, not their empty cells), from its top
+    # left corner: [dx, dy]. So that no other brick goes under that drawing
+    # and no drawing over another brick: each one is drawn whole.
     def brick_halo(brick)
       @brick_halo ||= {}.compare_by_identity
       return @brick_halo[brick] ||= begin
         cells = []
-        if brick.door || brick.kind == BUILDING_NO_DOOR
-          brick.rows.each_with_index do |row, dy|
-            row.each_char.with_index do |c, dx|
-              object = @palette.objects[c]
-              next if !object&.halo
-              # The top left cell of each object of that symbol
-              left = dx - (dx - (row.index(c) || dx)) % object.width
-              top = (0..dy).reverse_each.take_while { |ty| brick.rows[ty][dx] == c }.last
-              next if left != dx || (dy - top) % object.height != 0
-              hw, hh, hx, hy, empty = object.halo
-              hh.times do |j|
-                hw.times do |i|
-                  next if empty.include?((j * hw) + i)
-                  next if i >= hx && i < hx + object.width && j >= hy && j < hy + object.height
-                  cells.push([dx + i - hx, dy + j - hy])
-                end
+        brick.rows.each_with_index do |row, dy|
+          row.each_char.with_index do |c, dx|
+            object = @palette.objects[c]
+            next if !object&.halo
+            # The top left cell of each object of that symbol (objects side
+            # by side in a run of it)
+            start = (0..dx).reverse_each.take_while { |tx| row[tx] == c }.last
+            left = dx - ((dx - start) % object.width)
+            top = (0..dy).reverse_each.take_while { |ty| brick.rows[ty][dx] == c }.last
+            next if left != dx || (dy - top) % object.height != 0
+            hw, hh, hx, hy, empty = object.halo
+            hh.times do |j|
+              hw.times do |i|
+                next if empty.include?((j * hw) + i)
+                next if i >= hx && i < hx + object.width && j >= hy && j < hy + object.height
+                cells.push([dx + i - hx, dy + j - hy])
               end
             end
           end

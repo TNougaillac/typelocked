@@ -4,6 +4,6 @@ Type      = decor
 Ambiances = neige
 Poids     = 2
 [Map]
-éééééé
-éééééé
-éééééé
+ééé ééé
+ééé ééé
+ééé ééé

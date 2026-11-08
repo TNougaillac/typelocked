@@ -1,0 +1,13 @@
+# Plage : une crique, de l'eau entre le sable, un banc de sable et un rocher
+# (2x2, la taille du rocher dans l'eau).
+Brique    = Crique
+Type      = decor
+Ambiances = plage
+Poids     = 3
+[Map]
+  ~~~~~
+ ~~~~~~~
+~~££~~~~~
+~~££~µµ~~
+ ~~~~µµ~
+  ~~~~~

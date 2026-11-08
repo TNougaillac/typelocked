@@ -28,7 +28,7 @@ module ProceduralEncounters
   # « herbe » otherwise.
   AMBIANCE_BIOMES = { "prairie" => "prairie", "sable" => "sable", "terre battue" => "terre",
                       "minérale" => "minéral", "automne" => "automne", "forêt tropicale" => "tropical",
-                      "neige" => "neige", "marais" => "marais", "volcan" => "volcan" }.freeze
+                      "neige" => "neige", "marais" => "marais", "volcan" => "volcan", "plage" => "plage" }.freeze
 
   # Biome => type => weight (0 or absent = never there). A Pokémon takes the
   # best weight among its own types.
@@ -54,6 +54,8 @@ module ProceduralEncounters
     "marais"   => { WATER: 5, GROUND: 5, POISON: 5, GRASS: 2, BUG: 2, DARK: 1, GHOST: 1,
                     NORMAL: 1 },
     "volcan"   => { FIRE: 5, ROCK: 5, GROUND: 5, DRAGON: 1, STEEL: 1, FIGHTING: 1, DARK: 1,
+                    POISON: 1 },
+    "plage"    => { WATER: 5, GROUND: 5, ROCK: 2, FLYING: 2, NORMAL: 1, BUG: 1, FIGHTING: 1,
                     POISON: 1 },
     "montagne" => { ROCK: 3, GROUND: 3, FIGHTING: 3, FLYING: 2, STEEL: 2, DRAGON: 2, ICE: 2,
                     FIRE: 1, NORMAL: 1 },

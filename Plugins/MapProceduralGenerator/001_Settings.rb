@@ -358,6 +358,7 @@ module MapProceduralGenerator
     "neige"           => [[:None, 30], [:Snow, 45], [:Blizzard, 20], [:Fog, 5]],
     "marais"          => [[:None, 35], [:Rain, 40], [:HeavyRain, 10], [:Fog, 15]],
     "volcan"          => [[:None, 40], [:Sun, 35], [:Sandstorm, 15], [:Fog, 10]],
+    "plage"           => [[:None, 50], [:Sun, 35], [:Rain, 10], [:Storm, 5]],
     "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]]
   }.freeze
   MOUNTAIN_WEATHER = "montagne"
@@ -387,7 +388,7 @@ module MapProceduralGenerator
                    "lac" => 0..1, "montagne" => 0..1 }
   }.freeze
   # Ground of half the islands (an [Ambiance] of the town file)
-  ISLAND_AMBIANCE = "sable"
+  ISLAND_AMBIANCE = "plage"
   # Width of the sea around an island, on its sides without a port
   ISLAND_SHORE = 4..7
   # Sandbanks and rocks in the sea around an island
