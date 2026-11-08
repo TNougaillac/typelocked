@@ -457,17 +457,33 @@ module MapProceduralGenerator
     end
 
     # The cells a brick's drawing covers beyond it (a roof, the eaves, a
-    # tree's crown: its objects' halos, not their empty cells), from its top
-    # left corner: [dx, dy]. So that no other brick goes under that drawing
-    # and no drawing over another brick: each one is drawn whole.
+    # tree's crown: its objects' halos, not their empty cells; a forest's
+    # canopy), from its top left corner: [dx, dy]. So that no other brick goes
+    # under that drawing and no drawing over another brick: each one is drawn
+    # whole.
     def brick_halo(brick)
       @brick_halo ||= {}.compare_by_identity
       return @brick_halo[brick] ||= begin
+        cells = brick_drawing(brick).dup
+        brick.rows.each_with_index do |row, dy|
+          row.each_char.with_index do |c, dx|
+            cells.concat(forest_canopy(brick.rows, c, dx, dy)) if @palette.objects[c]&.forest
+          end
+        end
+        cells.uniq - brick_cells(brick)
+      end
+    end
+
+    # The halo cells of a brick's objects, its own cells under them included
+    # (not its forests' canopy, which other leaves of that forest may join).
+    def brick_drawing(brick)
+      @brick_drawing ||= {}.compare_by_identity
+      return @brick_drawing[brick] ||= begin
         cells = []
         brick.rows.each_with_index do |row, dy|
           row.each_char.with_index do |c, dx|
             object = @palette.objects[c]
-            next if !object&.halo
+            next if !object&.halo || object.forest
             # The top left cell of each object of that symbol (objects side
             # by side in a run of it)
             start = (0..dx).reverse_each.take_while { |tx| row[tx] == c }.last
@@ -484,19 +500,34 @@ module MapProceduralGenerator
             end
           end
         end
-        cells.uniq - brick_cells(brick)
+        cells.uniq
       end
+    end
+
+    # The cells a forest's canopy covers around its tree at x, y of rows
+    # (MapGenerator's draw_forest): the 2 rows above its top trees, its leaves
+    # on each side.
+    def forest_canopy(rows, c, x, y)
+      tree = ->(tx, ty) { tx >= 0 && ty >= 0 && rows[ty]&.[](tx) == c }
+      cells = []
+      cells.push([x, y - 1], [x, y - 2]) if !tree.call(x, y - 1)
+      cells.push([x - 1, y]) if !tree.call(x - 1, y)
+      cells.push([x + 1, y]) if !tree.call(x + 1, y)
+      return cells
     end
 
     def mark_halo(brick, x, y, step)
       brick_halo(brick).each { |dx, dy| @halo[y + dy][x + dx] += step if inside?(x + dx, y + dy) }
+      brick_drawing(brick).each { |dx, dy| @drawn[y + dy][x + dx] += step if inside?(x + dx, y + dy) }
     end
 
-    # No roof over another brick or another roof, nor off the map.
+    # No roof over another brick or another roof, nor over an object laid
+    # before the bricks (a wall of rocks), nor off the map.
     def halo_free?(brick, x, y)
       return brick_halo(brick).none? do |dx, dy|
         cx, cy = x + dx, y + dy
-        !inside?(cx, cy) || @halo[cy][cx] > 0 || (@kinds[cy][cx] && !@border[cy][cx])
+        next true if !inside?(cx, cy) || @halo[cy][cx] > 0
+        next !@border[cy][cx] && (@kinds[cy][cx] || @palette.objects[@cells[cy][cx]])
       end
     end
 

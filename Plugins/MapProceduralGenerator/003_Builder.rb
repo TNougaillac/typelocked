@@ -129,6 +129,7 @@ module MapProceduralGenerator
       @border = Array.new(@h) { Array.new(@w, false) }
       @kinds = Array.new(@h) { Array.new(@w) }   # brick type of each cell
       @halo = Array.new(@h) { Array.new(@w, 0) }   # buildings' halos over each cell
+      @drawn = Array.new(@h) { Array.new(@w, 0) }  # the same, but forests' canopies
       @doors = []
       @exits = []
       @dead_ends = []
@@ -391,17 +392,33 @@ module MapProceduralGenerator
     def plant_border
       return if !@place.border
       bw, bh = border_size
+      forest = @palette.objects[@place.border].forest
       [true, false].each do |grid|
         @h.times do |y|
           @w.times do |x|
             next if grid && (x % bw != 0 || y % bh != 0)
             next if !(0...bh).all? { |dy| (0...bw).all? { |dx| free_border?(x + dx, y + dy) } }
+            next if forest && !canopy_clear?(x, y, bw, bh)
             bh.times { |dy| bw.times { |dx| @cells[y + dy][x + dx] = @place.border } }
           end
         end
       end
       return if !@mask || !@place.filler
       @h.times { |y| @w.times { |x| @cells[y][x] = @place.filler if free_border?(x, y) && !covered?(x, y) } }
+    end
+
+    # A border tree at x, y (bw x bh) whose canopy (its leaves beside it, the
+    # 2 rows above) covers no drawing: an object or a brick's halo. Where it
+    # would, the border keeps its ground.
+    def canopy_clear?(x, y, bw, bh)
+      cells = (0...bh).flat_map { |dy| [[x - 1, y + dy], [x + bw, y + dy]] } +
+              (0...bw).flat_map { |dx| [[x + dx, y - 1], [x + dx, y - 2]] }
+      return cells.none? do |cx, cy|
+        next false if !inside?(cx, cy)
+        next true if @drawn[cy][cx] > 0
+        object = @palette.objects[@cells[cy][cx]]
+        next object && @cells[cy][cx] != @place.border
+      end
     end
 
     def free_border?(x, y)

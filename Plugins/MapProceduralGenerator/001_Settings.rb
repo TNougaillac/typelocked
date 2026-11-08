@@ -359,9 +359,16 @@ module MapProceduralGenerator
     "marais"          => [[:None, 35], [:Rain, 40], [:HeavyRain, 10], [:Fog, 15]],
     "volcan"          => [[:None, 40], [:Sun, 35], [:Sandstorm, 15], [:Fog, 10]],
     "plage"           => [[:None, 50], [:Sun, 35], [:Rain, 10], [:Storm, 5]],
+    "forêt sombre"    => [[:None, 40], [:Fog, 35], [:Rain, 25]],
     "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]]
   }.freeze
   MOUNTAIN_WEATHER = "montagne"
+  # Map metadata flags of an ambiance (Flags of map_metadata), e.g. the tone
+  # of a dark forest (TONE_FLAGS)
+  AMBIANCE_FLAGS = { "forêt sombre" => "DarkForest" }.freeze
+  # Flag => tone added over the day and night shading of the map (red,
+  # green, blue, gray), see 015_Tone.rb
+  TONE_FLAGS = { "DarkForest" => [-56, -46, -60, 32] }.freeze
   WEATHER_CHANCE = 50
   WEATHER_SALT = 0x3E7E0
 
