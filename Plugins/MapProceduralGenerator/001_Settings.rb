@@ -115,9 +115,11 @@ module MapProceduralGenerator
   TERRACE_CHANCE = 65
   # The same for a plain route (see PlaceBuilder#terrace?): plateaus and
   # canyons along the way, the streets climbing them by stairs; faces and
-  # depth: as TERRACE_FACES and TERRACE_DEPTH, a route being narrower
+  # depth: as TERRACE_FACES and TERRACE_DEPTH, a route being narrower;
+  # mesas: per square, on a route that can't climb by bands (east-west, L, U),
+  # mesa_width by mesa_height tiles
   ROUTE_TERRACE_CHANCE = 60
-  ROUTE_TERRACE = { faces: 1..3, depth: 5 }.freeze
+  ROUTE_TERRACE = { faces: 1..3, depth: 5, mesas: 0.3..0.7, mesa_width: 6..12, mesa_height: 4..7 }.freeze
   TERRACE_TRIES = 4
   TERRACE_PEAKS = 0.5..1.0
   TERRACE_FACES = 2..4

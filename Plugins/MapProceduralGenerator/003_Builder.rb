@@ -169,7 +169,7 @@ module MapProceduralGenerator
       close_lock if @place.lock
       cross if @place.crossing
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)
-      raise_levels if terrace?
+      raise_terraces if terrace?
       if @place.mountain
         choose_river if @place.river
         raise_levels

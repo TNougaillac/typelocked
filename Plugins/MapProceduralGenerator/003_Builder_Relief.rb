@@ -25,17 +25,68 @@ module MapProceduralGenerator
     # A town in terraces (TERRACE_CHANCE): big enough for a square, with a
     # « Relief », not plain, a port, an island, a canal or a mask. A plain
     # route too (ROUTE_TERRACE_CHANCE): not a mountain, no water or cave
-    # across it, no deep water, no shortcut, no mask, no flood.
+    # across it, no deep water, no shortcut, no flood.
     def terrace?
-      return false if @plain || @terrace.nil? || !@place.levels || @place.mountain || @mask || excess[:flat]
+      return false if @plain || @terrace.nil? || !@place.levels || @place.mountain || excess[:flat]
       chance = TERRACE_CHANCE
       if @place.kind == "route"
         return false if @place.crossing || @place.dive || @place.lock || excess[:flood]
         chance = ROUTE_TERRACE_CHANCE
       else
-        return false if @place.kind != "ville" || @place.port || @place.island || @plan.nil? || @plan == "canal"
+        return false if @place.kind != "ville" || @mask || @place.port || @place.island || @plan.nil? || @plan == "canal"
       end
       return Random.new(@seed ^ TERRACE_SALT).rand(100) < chance
+    end
+
+    # The terraces of a town or a route. A route climbs by bands across it
+    # when it can (straight, the path crossing the cliffs by stairs), else it
+    # gets mesas off the path (raise_mesas): an east-west route, an L or a U.
+    def raise_terraces
+      raise_levels if !@mask
+      raise_mesas if !@level && @place.kind == "route"
+    end
+
+    # Mesas of a route (ROUTE_TERRACE[:mesas] per square, mesa_width by
+    # mesa_height), boxes raised off the path, some on others, their cliffs
+    # all around; left flat if none fits.
+    def raise_mesas
+      rng = Random.new((@seed ^ TERRACE_SALT) + (@terrace.to_i * 7919))
+      level = Array.new(@h) { Array.new(@w, 0) }
+      top = @place.levels.length
+      area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
+      count = (area * rng.rand(ROUTE_TERRACE[:mesas])).round
+      keep = ->(x, y) { !inside?(x, y) || @border[y][x] || @street[y][x] || @water[y][x] || @solid[y][x] || exit_at?(x, y) }
+      (count * 30).times do
+        break if count == 0
+        bw, bh = rng.rand(ROUTE_TERRACE[:mesa_width]), rng.rand(ROUTE_TERRACE[:mesa_height])
+        x0, y0 = rng.rand(@w - bw + 1), rng.rand(@h - bh + 1)
+        here = level[y0][x0]
+        next if here >= top
+        # One tile off the path and the border, on one level only
+        next if (y0 - 1..y0 + bh).any? do |y|
+          (x0 - 1..x0 + bw).any? { |x| keep.call(x, y) || level[y][x] != here }
+        end
+        (y0...y0 + bh).each { |y| (x0...x0 + bw).each { |x| level[y][x] = here + 1 } }
+        count -= 1
+      end
+      return if level.all? { |row| row.all?(&:zero?) } || !thicken(level)
+      faces, stairs_at = draw_faces(level)
+      @mesas = faces && apply_levels(level, faces, stairs_at)
+    end
+
+    # Keeps those levels, their cliffs (faces) and stairs; false if a cliff
+    # would go through what stands already (a square's fountain).
+    def apply_levels(level, faces, stairs_at)
+      return false if @h.times.any? { |y| @w.times.any? { |x| faces[y][x] && @solid[y][x] } }
+      @level, @face, @stairs_at = level, faces, stairs_at
+      @h.times do |y|
+        @w.times do |x|
+          next if !faces[y][x]
+          @cells[y][x] = CLIFF
+          @solid[y][x] = true
+        end
+      end
+      return true
     end
 
     #---------------------------------------------------------------------------
@@ -103,17 +154,7 @@ module MapProceduralGenerator
       return false if !thicken(level)
       faces, stairs_at = draw_faces(level)
       return false if !faces
-      # Never through what stands already (a square's fountain)
-      return false if @h.times.any? { |y| @w.times.any? { |x| faces[y][x] && @solid[y][x] } }
-      @level, @face, @stairs_at = level, faces, stairs_at
-      @h.times do |y|
-        @w.times do |x|
-          next if !faces[y][x]
-          @cells[y][x] = CLIFF
-          @solid[y][x] = true
-        end
-      end
-      return true
+      return apply_levels(level, faces, stairs_at)
     end
 
     # The count boundaries of a town's (or route's) terraces, TERRACE_DEPTH

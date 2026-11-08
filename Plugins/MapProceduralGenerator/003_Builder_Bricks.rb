@@ -53,6 +53,8 @@ module MapProceduralGenerator
         # « pack »: the boosted bricks, the big ones first
         next place_big(kind) if i >= required.length && excess[:pack] && boosted.call(kind) == 0
         next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
+        # The rocks on a route's mesas go where they fit, or not at all
+        next if HIGHLAND.include?(kind) && @mesas
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
