@@ -84,6 +84,7 @@ module WorldEvents
     "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_F PICNICKER],
     "neige"           => %i[HIKER CRUSHGIRL CAMPER PICNICKER],
     "marais"          => %i[FISHERMAN BUGCATCHER CAMPER AROMALADY],
+    "volcan"          => %i[HIKER RUINMANIAC CRUSHGIRL POKEMANIAC],
     "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
     "grotte"          => %i[HIKER POKEMANIAC RUINMANIAC CAMPER]
   }.freeze

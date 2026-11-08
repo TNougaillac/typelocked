@@ -227,6 +227,40 @@ Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 i
 q     = T106               # terre sous la fontaine
 decor = 0..2 par case
 
+# Volcan (#206) : ville au pied du volcan, sol de cendre, rues de sol noir,
+# plaques de sol noir et coulées de lave entre les maisons.
+[Ambiance volcan]
+Poids = 1
+Sol   = T14968|T14968|T14968|T14969|T14970
+" = T14971               # hautes herbes sous la cendre
+: = {sol} T14973        # herbes très hautes sous la cendre (pointes des brins)
+˸ = {sol} T14977        # herbes très hautes sous leur rangée du haut
+; = T14972
+ˈ = {sol} T14974        # bords d'une tache de hautes herbes (haut, bas, seule)
+ˌ = {sol} T14975
+ˑ = {sol} T14976
+c = {sol} T14979        # roche de lave (basalte, fissures rougeoyantes)
+d = {sol} T14980        # cailloux de lave
+j = {sol} T14979
+x = {sol} T14980
+* = {sol} T14980        # pas de fleurs sur la cendre : des cailloux de lave
+à = {sol} T14978        # buisson sous la cendre
+t = T15080 2x2 forest=T15128
+é = T15025 3x3 halo=4x4@1,1/0,3,12
+è = T15028 3x3 halo=4x4@0,1/0,3,15
+ê = T15048 1x3
+ë = T15052 1x2
+Rue   = T14984 N=T14985 S=T14986 W=T14987 E=T14988 NW=T14989 NE=T14990 SW=T14991 SE=T14992 iNW=T14993 iNE=T14994 iSW=T14995 iSE=T14996 with=f   # rues de sol noir
+q     = T14984               # sol noir sous la fontaine
+¬ = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=ŀĿĳĲPʘ L2 @.
+^ = T15233 N=T15225 S=T15241 W=T15232 E=T15235 NW=T15224 NE=T15227 SW=T15240 SE=T15243 iSW=T15249 iSE=T15248 oN=T15217 oNW=T15216 oNE=T15219 oiNW=T15253 oiNE=T15254 with=eɛ L2 @.
+Rive  = T14968 T14968 T14968
+arbre = 0..1 par case
+parc  = 0
+lac   = 0
+decor = 1..2 par case
+
 [Legend]
 à = {sol} T475          # buisson
 q = T274                # pavé sous la fontaine de la place (le centre de « Rue »)
@@ -235,6 +269,7 @@ q = T274                # pavé sous la fontaine de la place (le centre de « Ru
 â = {sol} T523          # buisson jaune
 ï = {sol} T606          # buisson tropical
 c = {sol} T847          # rocher brun (désert)
+ɯ = T14984 T14979       # roche de lave sur le sol noir (volcan, briques réservées)
 d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
@@ -295,6 +330,9 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ɓ = T14920 N=T14921 S=T14922 W=T14923 E=T14924 NW=T14925 NE=T14926 SW=T14927 SE=T14928 iNW=T14929 iNE=T14930 iSW=T14931 iSE=T14932   # boue du marais (on n'y passe pas)
 ɗ = T14936 N=T14937 S=T14938 W=T14939 E=T14940 NW=T14941 NE=T14942 SW=T14943 SE=T14944 iNW=T14945 iNE=T14946 iSW=T14947 iSE=T14948 with=ɦ   # eau peu profonde du marais (on y marche, éclaboussures)
 ɦ = T14952 N=T14953 S=T14954 W=T14955 E=T14956 NW=T14957 NE=T14958 SW=T14959 SE=T14960   # herbe de marais (hautes herbes, ses bords dessinés)
+# Volcan (#206), seulement dans ses briques réservées
+ɱ = T14984 N=T14985 S=T14986 W=T14987 E=T14988 NW=T14989 NE=T14990 SW=T14991 SE=T14992 iNW=T14993 iNE=T14994 iSW=T14995 iSE=T14996 with=ɯ   # sol noir (basalte, on y marche)
+ɫ = T15000 N=T15001 S=T15002 W=T15003 E=T15004 NW=T15005 NE=T15006 SW=T15007 SE=T15008 iNW=T15009 iNE=T15010 iSW=T15011 iSE=T15012   # coulée de lave (on n'y passe pas)
 
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin

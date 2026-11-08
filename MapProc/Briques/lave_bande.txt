@@ -1,0 +1,8 @@
+# Volcan : une coulée de lave.
+Brique    = Coulée de lave
+Type      = decor
+Ambiances = volcan
+Poids     = 2
+[Map]
+ɫɫɫɫɫɫɫɫɫ
+ɫɫɫɫɫɫɫɫɫ

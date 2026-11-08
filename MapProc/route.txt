@@ -289,6 +289,65 @@ montagne = 0
 corniche = 0
 decor = 1..3 par case
 
+# Volcan (#206) : sol couvert de cendre (l'herbe grisée), hautes herbes
+# cendrées, plaques de sol noir (basalte) et coulées de lave où l'on ne passe
+# pas, roches de lave aux fissures rougeoyantes, falaises et montagnes sur la
+# cendre. Pas de lac. Briques réservées (« Ambiances = volcan »).
+[Ambiance volcan]
+Poids = 1
+Sol   = T14968|T14968|T14968|T14969|T14970
+" = T14971               # hautes herbes sous la cendre
+: = {sol} T14973        # herbes très hautes sous la cendre (pointes des brins)
+˸ = {sol} T14977        # herbes très hautes sous leur rangée du haut
+; = T14972
+ˈ = {sol} T14974        # bords d'une tache de hautes herbes (haut, bas, seule)
+ˌ = {sol} T14975
+ˑ = {sol} T14976
+c = {sol} T14979        # roche de lave (basalte, fissures rougeoyantes)
+d = {sol} T14980        # cailloux de lave
+j = {sol} T14979
+x = {sol} T14980
+* = {sol} T14980        # pas de fleurs sur la cendre : des cailloux de lave
+à = {sol} T14978        # buisson sous la cendre
+t = T15080 2x2 forest=T15128
+é = T15025 3x3 halo=4x4@1,1/0,3,12
+è = T15028 3x3 halo=4x4@0,1/0,3,15
+ê = T15048 1x3
+ë = T15052 1x2
+Rue   = T14984 N=T14985 S=T14986 W=T14987 E=T14988 NW=T14989 NE=T14990 SW=T14991 SE=T14992 iNW=T14993 iNE=T14994 iSW=T14995 iSE=T14996   # chemin de sol noir
+n = T14971
+ʼ = {sol} T14974
+ʽ = {sol} T14975
+ˀ = {sol} T14976
+¬ = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=EFGHquvwnʼʽˀzPʘ L2 @z
+^ = T15233 N=T15225 S=T15241 W=T15232 E=T15235 NW=T15224 NE=T15227 SW=T15240 SE=T15243 iSW=T15249 iSE=T15248 oN=T15217 oNW=T15216 oNE=T15219 oiNW=T15253 oiNE=T15254 with=eɛ L2 @.
+ŕ = T15233 N=T15225 S=T15241 W=T15232 E=T15235 NW=T15224 NE=T15227 SW=T15240 SE=T15243 iSW=T15249 iSE=T15248 oN=T15217 oNW=T15216 oNE=T15219 oiNW=T15253 oiNE=T15254 L3 @~
+z = T15233
+ø = T15233 T895
+ö = T15233 T911
+õ = T15233 T14980
+ó = T15233 T14979
+1 = {sol} T15256
+2 = {sol} T15257
+3 = {sol} T15258
+4 = {sol} T15264
+5 = {sol} T15265
+6 = {sol} T15266
+7 = {sol} T15272
+8 = {sol} T15273
+9 = {sol} T15274
+Rive  = T14968 T14968 T14968
+arbre = 0..1 par case
+herbes = 1..2 par case
+parc  = 0
+lac   = 0
+decor = 1..3 par case
+
 [Legend]
 à = {sol} T475          # buisson
 ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)
@@ -296,6 +355,7 @@ decor = 1..3 par case
 â = {sol} T523          # buisson jaune
 ï = {sol} T606          # buisson tropical
 c = {sol} T847          # rocher brun (désert)
+ɯ = T14984 T14979       # roche de lave sur le sol noir (volcan, briques réservées)
 § = T162                # sable d'une étendue de désert au milieu d'une longue route
 ¤ = T162 T847           # rocher brun sur ce sable
 d = {sol} T839          # cailloux bruns
@@ -394,6 +454,9 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 ɓ = T14920 N=T14921 S=T14922 W=T14923 E=T14924 NW=T14925 NE=T14926 SW=T14927 SE=T14928 iNW=T14929 iNE=T14930 iSW=T14931 iSE=T14932   # boue du marais (on n'y passe pas)
 ɗ = T14936 N=T14937 S=T14938 W=T14939 E=T14940 NW=T14941 NE=T14942 SW=T14943 SE=T14944 iNW=T14945 iNE=T14946 iSW=T14947 iSE=T14948 with=ɦ   # eau peu profonde du marais (on y marche, éclaboussures)
 ɦ = T14952 N=T14953 S=T14954 W=T14955 E=T14956 NW=T14957 NE=T14958 SW=T14959 SE=T14960   # herbe de marais (hautes herbes, ses bords dessinés)
+# Volcan (#206), seulement dans ses briques réservées
+ɱ = T14984 N=T14985 S=T14986 W=T14987 E=T14988 NW=T14989 NE=T14990 SW=T14991 SE=T14992 iNW=T14993 iNE=T14994 iSW=T14995 iSE=T14996 with=ɯ   # sol noir (basalte, on y marche)
+ɫ = T15000 N=T15001 S=T15002 W=T15003 E=T15004 NW=T15005 NE=T15006 SW=T15007 SE=T15008 iNW=T15009 iNE=T15010 iSW=T15011 iSE=T15012   # coulée de lave (on n'y passe pas)
 
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin
