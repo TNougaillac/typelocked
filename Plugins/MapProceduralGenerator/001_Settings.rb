@@ -337,6 +337,27 @@ module MapProceduralGenerator
   # The kinds of the places of the chain (the others are off it)
   CHAIN_KINDS = %w[ville route].freeze
 
+  # Weather of the towns and routes of a world (#202), drawn at the seed by
+  # ambiance (nil: the default one; MOUNTAIN_WEATHER for a mountain route):
+  # [weather of Essentials, weight], :None for no weather. The weather drawn
+  # is written in the map's metadata (« Weather = Rain,50 »): it comes back
+  # with WEATHER_CHANCE % chance each time the player enters the map.
+  WEATHER = {
+    nil               => [[:None, 70], [:Rain, 25], [:Storm, 5]],
+    "verdoyante"      => [[:None, 65], [:Rain, 30], [:Storm, 5]],
+    "chemins de terre" => [[:None, 75], [:Rain, 20], [:Fog, 5]],
+    "prairie"         => [[:None, 60], [:Sun, 25], [:Rain, 15]],
+    "sable"           => [[:None, 40], [:Sandstorm, 35], [:Sun, 25]],
+    "minérale"        => [[:None, 60], [:Sandstorm, 20], [:Fog, 20]],
+    "terre battue"    => [[:None, 60], [:Sun, 30], [:Sandstorm, 10]],
+    "automne"         => [[:None, 55], [:Rain, 25], [:Fog, 20]],
+    "forêt tropicale" => [[:None, 30], [:Rain, 35], [:HeavyRain, 20], [:Storm, 15]],
+    "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]]
+  }.freeze
+  MOUNTAIN_WEATHER = "montagne"
+  WEATHER_CHANCE = 50
+  WEATHER_SALT = 0x3E7E0
+
   # Seabeds of a world (under routes with deep water): tileset and palette.
   # « . » = floor, « s » = seaweed, « R » = rock (walls, edges drawn by MapGen).
   SEABED_TILESET = 27

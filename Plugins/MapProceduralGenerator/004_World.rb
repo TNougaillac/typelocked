@@ -1114,6 +1114,15 @@ module MapProceduralGenerator
 
   # MapGen world plan of the generated places. Towns can be flown to, landing
   # in front of their Pokémon Centre.
+  # The weather of a town or route (WEATHER), drawn at the seed: « Rain,50 »,
+  # nil for none.
+  def place_weather(wp, layout, seed)
+    table = WEATHER[wp.mountain ? MOUNTAIN_WEATHER : layout.ambiance] || WEATHER[nil]
+    roll = Random.new(seed ^ WEATHER_SALT ^ wp.symbol.ord).rand(table.sum(&:last))
+    type, = table.find { |_type, weight| (roll -= weight) < 0 }
+    return (type == :None) ? nil : "#{type},#{WEATHER_CHANCE}"
+  end
+
   def world_text(world, built, seed, caves = [], seabeds = [], islands = [], region = world.name, notes = [], fillers = [])
     text = +"# Monde généré par MapProceduralGenerator, graine #{seed}.\n"
     text << "World   = #{region}\n"
@@ -1144,6 +1153,8 @@ module MapProceduralGenerator
       line += "  vol=#{centre[0]},#{centre[1] + 1}" if centre
       line += "  masque=#{wp.mask.join('/')}" if wp.mask
       line += "  trace=#{wp.trace.map { |point| point.join(',') }.join('/')}" if wp.trace
+      weather = place_weather(wp, layout, seed)
+      line += "  meteo=#{weather}" if weather
       text << line << "\n"
     end
     fillers.each { |f| text << "#{f.symbol} = #{f.name}  type=decor\n" }

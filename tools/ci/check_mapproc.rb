@@ -375,6 +375,13 @@ end
 
 # Worlds: a few seeds, each place assembled and the world plan read by MapGen
 %w[006_World].each { |f| require File.join(ROOT, "Plugins", "MapGenerator", f) }
+# Weathers of Essentials (GameData::Weather), for the weather of the places
+WEATHERS = Marshal.load(File.binread(File.join(ROOT, "Data", "Scripts.rxdata"))).flat_map do |_, _, code|
+  Zlib::Inflate.inflate(code).scan(/GameData::Weather\.register\(\{\s*:id\s*=>\s*:(\w+)/).flatten
+end
+M::WEATHER.each_value do |table|
+  table.each { |type, _| CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "WEATHER : météo #{type} inconnue") if !WEATHERS.include?(type.to_s) }
+end
 worlds.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -389,6 +396,13 @@ worlds.each do |path|
       highest = [highest, (layout.levels.to_a.join.chars.uniq & place.levels).length].max if wp.mountain
     end
     plan = MapGenerator.parse_world(result.text, "#{File.basename(path)} (graine #{seed})")
+    # Each weather written exists, and the same seed draws the same ones
+    weathers = plan.places.values.map(&:weather)
+    weathers.compact.each { |w| CI.error(path, nil, "graine #{seed} : météo #{w} inconnue") if !WEATHERS.include?(w[/\A\w+/]) }
+    if seed == WORLD_SEEDS.first
+      again = MapGenerator.parse_world(M.generate_world(world, town, route, bricks, seed, {}, name_table).text, "#{File.basename(path)} (graine #{seed})")
+      CI.error(path, nil, "graine #{seed} : météo différente pour la même graine") if again.places.values.map(&:weather) != weathers
+    end
     titles = plan.places.values.map(&:display_name)
     raise M::Error, "#{File.basename(path)} (graine #{seed}) : noms affichés en double" if titles.uniq.length != titles.length
     result.places.each do |wp, place, text, layout|
