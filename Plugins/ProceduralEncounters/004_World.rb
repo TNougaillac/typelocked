@@ -65,7 +65,7 @@ module ProceduralEncounters
 
   def land_biome(wp, layout)
     return EXCESS_BIOMES[wp.excess] if EXCESS_BIOMES[wp.excess]
-    return "montagne" if wp.mountain
+    return "montagne" if MapProceduralGenerator.mountain_tables?(wp, layout)
     return "ville" if wp.kind == "ville"
     return AMBIANCE_BIOMES[layout.ambiance] || "herbe"
   end

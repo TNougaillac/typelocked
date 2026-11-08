@@ -531,6 +531,26 @@ places.each do |path|
     raise M::Error, "ambiance #{(inland & coastal).join(', ')} tirée loin de la mer" if (inland & coastal).any?
     raise M::Error, "ambiance #{coastal.join(', ')} jamais tirée au bord de la mer" if (by_sea & coastal).empty?
   end
+  # The mountain's ambiance (MOUNTAIN_AMBIANCE) is drawn only on a mountain
+  # route, and is drawn there; it is built on one, its levels and stairs
+  # reached (check_reachable of the builder)
+  if place.ambiances.any? { |a| a.name == M::MOUNTAIN_AMBIANCE }
+    flat = (1..200).map { |s| M.draw_ambiance(place, Random.new(s)) }
+    mountain = place.dup.tap { |p| p.mountain = true }
+    high = (1..200).map { |s| M.draw_ambiance(mountain, Random.new(s)) }
+    raise M::Error, "ambiance #{M::MOUNTAIN_AMBIANCE} tirée hors d'une route de montagne" if flat.include?(M::MOUNTAIN_AMBIANCE)
+    raise M::Error, "ambiance #{M::MOUNTAIN_AMBIANCE} jamais tirée sur une route de montagne" if !high.include?(M::MOUNTAIN_AMBIANCE)
+    (1..3).each do |seed|
+      themed = mountain.dup.tap { |p| p.ambiance = M::MOUNTAIN_AMBIANCE }
+      plan, _text, layout = M.generate_place(themed, bricks, seed)
+      name = "#{File.basename(path)} (montagne, ambiance #{M::MOUNTAIN_AMBIANCE}, graine #{seed})"
+      MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+      check_spill(plan, name)
+      check_spots(name, themed, bricks, layout)
+      check_blocking(name, layout)
+      raise M::Error, "#{name} : aucun niveau de montagne" if (layout.levels.to_a.join.chars.uniq & themed.levels).empty?
+    end
+  end
   # Every plan of a town on a few seeds (a town whose bricks don't fit its
   # plan is built as a « carrefour »)
   if place.kind == "ville"

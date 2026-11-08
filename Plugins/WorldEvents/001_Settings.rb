@@ -87,6 +87,7 @@ module WorldEvents
     "volcan"          => %i[HIKER RUINMANIAC CRUSHGIRL POKEMANIAC],
     "plage"           => %i[TUBER_M TUBER_F SAILOR FISHERMAN PICNICKER],
     "forêt sombre"    => %i[BUGCATCHER PSYCHIC_M POKEMANIAC CAMPER AROMALADY],
+    "haute montagne"  => %i[HIKER CRUSHGIRL BIRDKEEPER CAMPER],
     "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
     "grotte"          => %i[HIKER POKEMANIAC RUINMANIAC CAMPER]
   }.freeze

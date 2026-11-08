@@ -395,6 +395,72 @@ lac   = 0
 corniche = 0
 decor = 0..1 par case
 
+# Haute montagne (#209) : comme le Mont Couronné et le Mont Argenté, roche
+# grise, gravier, escaliers taillés, plus de massifs et de rochers ; tirée
+# seulement sur les routes de montagne d'un monde (MOUNTAIN_AMBIANCE), où elle
+# garde sa météo (brouillard), ses rencontres et ses dresseurs. Briques
+# réservées (« Ambiances = haute montagne »).
+[Ambiance haute montagne]
+Poids = 10
+Sol   = T218
+Rue   = T218
+" = T133                # hautes herbes sur le gravier
+: = {sol} T7             # herbes très hautes sur le gravier
+; = T189
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T5632 2x2 forest=T5680
+é = T5165 3x3 halo=4x4@1,1/0,3,12
+è = T5192 3x3 halo=4x4@0,1/0,3,15
+î = T4160 2x2
+û = T4162 3x1
+à = {sol} T4165
+ê = T5188 1x3
+ë = T5216 1x2
+arbre = 0..1 par case
+parc  = 0
+lac   = 0
+montagne = 1..3 par case
+rocaille = 4..7 par case
+herbes = 0..1 par case
+decor = 1..3 par case
+# La roche grise remplace la brune (niveaux, montagnes, rochers, entrées de grotte)
+¬ = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=EFGHquvwnʼʽˀzPʘ L2 @z
+^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=eɛ L2 @.
+ŕ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 L3 @~
+z = T5985
+E = T5985 T777
+F = T5985 T778
+G = T5985 T769
+H = T5985 T770
+n = T148
+q = T5985 T895
+u = T5985 T911
+v = T5985 T919
+w = T5985 T927
+ø = T5985 T895
+ö = T5985 T911
+õ = T5985 T919
+ó = T5985 T927
+1 = {sol} T6032
+2 = {sol} T6033
+3 = {sol} T6034
+4 = {sol} T6040
+5 = {sol} T6041
+6 = {sol} T6042
+7 = {sol} T6048
+8 = {sol} T6049
+9 = {sol} T6050
+R = T864 3x3
+o = {sol} T895
+< = {sol} T6056
+- = {sol} T6057
+> = {sol} T6058
+
 [Legend]
 à = {sol} T475          # buisson
 ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)

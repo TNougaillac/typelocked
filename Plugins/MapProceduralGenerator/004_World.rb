@@ -1114,10 +1114,16 @@ module MapProceduralGenerator
 
   # MapGen world plan of the generated places. Towns can be flown to, landing
   # in front of their Pokémon Centre.
+  # True if a place takes the weather, encounters and trainers of the
+  # mountain: a mountain route, unless of the mountain's own ambiance.
+  def mountain_tables?(wp, layout)
+    return wp.mountain && layout.ambiance != MOUNTAIN_AMBIANCE
+  end
+
   # The weather of a town or route (WEATHER), drawn at the seed: « Rain,50 »,
   # nil for none.
   def place_weather(wp, layout, seed)
-    table = WEATHER[wp.mountain ? MOUNTAIN_WEATHER : layout.ambiance] || WEATHER[nil]
+    table = WEATHER[mountain_tables?(wp, layout) ? MOUNTAIN_WEATHER : layout.ambiance] || WEATHER[nil]
     roll = Random.new(seed ^ WEATHER_SALT ^ wp.symbol.ord).rand(table.sum(&:last))
     type, = table.find { |_type, weight| (roll -= weight) < 0 }
     return (type == :None) ? nil : "#{type},#{WEATHER_CHANCE}"

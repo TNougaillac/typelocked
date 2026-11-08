@@ -1,7 +1,7 @@
 # Minéral : des rochers blancs parmi les gris.
 Brique    = Rochers blancs
 Type      = decor
-Ambiances = minérale
+Ambiances = minérale, haute montagne
 Poids     = 2
 [Map]
 űx
