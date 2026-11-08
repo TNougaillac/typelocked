@@ -68,6 +68,8 @@ chantier = 0
 carriere = 0
 # Poste forestier : le QG des Gardes forestiers (#215), posé de même.
 poste = 0
+# Campement des Dundees (#220), dans le marais, posé de même.
+dundees = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
 decor  = 0
@@ -638,6 +640,7 @@ V = T6201 5x4 halo=6x6@1,1/5           # maison orange (refuge)
 ċ = T9328 2x3 halo=2x4@0,1/1 # lanterne
 Ε = T10689 5x4 halo=7x8@1,3   # temple en ruine (ruines ; « maison en rondins » des villes)
 Η = T10793 4x3 halo=6x6@1,2/0,1,2,3,5,11,17,24,30   # grange (chaumière à cheminée, ferme des Éleveurs)
+Ρ = T11265 4x3 halo=6x6@1,2/0,1,4,5,6,11,18,24,30   # case en paille (campement des Dundees)
 ŧ = T15280 3x3        # potager (ferme)
 Ŧ = T15291 3x1 halo=3x2@0,1   # barrière en bois (ferme)
 ŋ = T15286 2x1        # auge (ferme)
