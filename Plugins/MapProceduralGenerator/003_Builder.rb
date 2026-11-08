@@ -126,6 +126,7 @@ module MapProceduralGenerator
       @exits = []
       @dead_ends = []
       @nooks = []
+      @hill_tops = []
     end
 
     def build
@@ -190,6 +191,8 @@ module MapProceduralGenerator
     #   nooks: [x, y, obstacle (a key of NOOKS), ox, oy]: the loot cell and
     #   the obstacle's cell (a pocket); for an islet the loot only; for a dark
     #   cave its entrance (the loot is in the cave).
+    #   hill_tops: the cell on top of each hill, away from its stair (a loot
+    #   to climb for).
     def inventory
       starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
       seen = Array.new(@h) { Array.new(@w, false) }
@@ -204,6 +207,7 @@ module MapProceduralGenerator
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
         dead_ends: @dead_ends.select { |x, y| seen[y][x] },
         nooks:     @nooks.map(&:dup),
+        hill_tops: @hill_tops.map(&:dup),
         lock:      @lock&.dup,
         ground:    cells_where(seen) { true }
       }

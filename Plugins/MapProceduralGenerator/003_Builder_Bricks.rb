@@ -281,6 +281,15 @@ module MapProceduralGenerator
       return cells.flat_map { |cx, cy| NEIGHBOURS8.map { |ox, oy| [cx + ox, cy + oy] } }.uniq - cells - below
     end
 
+    # The cell on top of a hill for its loot: off its cliff (all 8 neighbours
+    # are the hill), on its top row, nearest the middle; nil if none.
+    def hill_top(brick)
+      cells = brick_cells(brick)
+      inner = cells.select { |cx, cy| NEIGHBOURS8.all? { |ox, oy| cells.include?([cx + ox, cy + oy]) } }
+      middle = (brick.rows[0].length - 1) / 2.0
+      return inner.min_by { |cx, cy| [cy, (cx - middle).abs, cx] }
+    end
+
     def pick_brick(kind, shrink = 0)
       return lake_brick(shrink) if kind == LAKE
       return hill_brick if kind == HILL
@@ -518,7 +527,11 @@ module MapProceduralGenerator
       end
       mark_halo(brick, x, y, 1)
       # Nothing (no path) against a hill but below its stair
-      hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true } if brick.kind == HILL
+      if brick.kind == HILL
+        hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true }
+        top = hill_top(brick)
+        @hill_tops.push([x + top[0], y + top[1]]) if top
+      end
       reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]
