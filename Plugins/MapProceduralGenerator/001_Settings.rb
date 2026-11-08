@@ -165,12 +165,17 @@ module MapProceduralGenerator
     "refuge"   => HOUSE_INTERIORS,
     # The ruins' temple (#210), the Order of the Pact's: the Battle Palace hall
     "temple"   => [[58, 7, 8]],
+    # The Breeders' farm (#212): the Day Care
+    "ferme"    => [[27, 4, 8]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
     "special"  => [[30, 5, 9], [11, 7, 10]],
     "labo"     => [[4, 6, 13]]
   }.freeze
+  # Headquarters of the guilds (#181): brick type => the ambiances it stands
+  # in. Its quantity is 0 in [Briques]: the guilds' draw sets it (#182).
+  GUILD_HQS = { "ferme" => %w[prairie] }.freeze
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

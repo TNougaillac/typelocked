@@ -1,0 +1,16 @@
+# Ferme : le QG des Éleveurs (#212). Grange où l'on entre (la Pension),
+# potager, barrières et auges. Posée seulement là où la guilde est tirée.
+Brique    = Ferme des Éleveurs
+Type      = ferme
+Ambiances = prairie
+Porte     = 2,8
+[Map]
+ŦŦŦŋŋ.
+ŧŧŧ...
+ŧŧŧ...
+ŧŧŧ...
+......
+......
+.ΗΗΗΗ.
+.ΗΗΗΗ.
+.ΗΗΗΗ.
