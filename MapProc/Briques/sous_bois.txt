@@ -1,0 +1,12 @@
+# Forêt sombre : un massif de grands arbres serrés (sous-bois).
+Brique    = Sous-bois
+Type      = decor
+Ambiances = forêt sombre
+Poids     = 3
+[Map]
+  tttt
+  tttt
+tttttttt
+tttttttt
+tttttt
+tttttt
