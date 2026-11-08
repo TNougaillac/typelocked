@@ -175,7 +175,8 @@ module MapProceduralGenerator
   }.freeze
   # Headquarters of the guilds (#181): brick type => the ambiances it stands
   # in. Its quantity is 0 in [Briques]: the guilds' draw sets it (#182).
-  GUILD_HQS = { "ferme" => %w[prairie] }.freeze
+  GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
+                "carriere" => ["minérale", "haute montagne"] }.freeze
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

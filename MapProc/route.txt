@@ -62,6 +62,10 @@ temple = 0
 # Ferme : le QG des Éleveurs (grange, potager, barrières, auges), posée
 # seulement là où la guilde est tirée (quantité donnée par les guildes, #182).
 ferme = 0
+# Chantier et carrière : les QG des Ouvriers et des Mineurs (#213), posés de
+# même par les guildes.
+chantier = 0
+carriere = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
 decor  = 0
