@@ -67,6 +67,8 @@ forains  = 0
 nageurs  = 0
 # Plage de ponte : le QG des Gardiens des pontes (#219), dans un port à la plage
 pontes   = 0
+# Repaire des Chromés : le QG des motards (#221), posé là où la guilde est tirée
+chromes  = 0
 decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
 # Monument : une statue de la Famille près de la place (n'importe où sans
 # place) ; laissée de côté si elle ne tient pas.
