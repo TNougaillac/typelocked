@@ -73,9 +73,39 @@ def check_stairs(plan, name)
   end
 end
 
+# Raises unless every patch of tall grass has the tips of its blades on its
+# top row only and their foot on its bottom row only (GRASS_EDGES: middle,
+# top, bottom, lone row), and very tall grass its tips on its top row only.
+def check_grass_edges(plan, name)
+  family = M::GRASS_EDGES.flat_map { |c, edges| [c, *edges.chars] }
+  M::GRASS_EDGES.each do |middle, edges|
+    next if !edges.each_char.all? { |e| plan.legend[e] }
+    roles = { middle => [true, true], edges[0] => [false, true], edges[1] => [true, false], edges[2] => [false, false] }
+    plan.rows.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        next if !(role = roles[c])
+        found = [y > 0 && family.include?(plan.rows[y - 1][x]), family.include?(plan.rows[y + 1]&.[](x))]
+        next if found == role
+        raise MapGenerator::Error, "#{name} : hautes herbes « #{c} » colonne #{x + 1}, ligne #{y + 1} : mauvais bord (pointes en haut, pied en bas)"
+      end
+    end
+  end
+  M::VERY_TALL.each do |top, below|
+    next if !plan.legend[below]
+    plan.rows.each_with_index do |row, y|
+      row.each_char.with_index do |c, x|
+        above = y > 0 ? plan.rows[y - 1][x] : nil
+        bad = (c == top && [top, below].include?(above)) || (c == below && ![top, below].include?(above))
+        raise MapGenerator::Error, "#{name} : herbes très hautes colonne #{x + 1}, ligne #{y + 1} : pointes ailleurs qu'en haut de la touffe" if bad
+      end
+    end
+  end
+end
+
 # Raises if a tile of SPILL_BELOW lacks its lower part on the row below.
 def check_spill(plan, name)
   check_stairs(plan, name)
+  check_grass_edges(plan, name)
   tiles = ->(c) { (plan.legend[c] || []).flatten }
   plan.rows.each_with_index do |row, y|
     row.each_char.with_index do |c, x|
