@@ -154,6 +154,20 @@ def walkable_symbols(place, bricks)
   return symbols.compact.uniq
 end
 
+# Symbols that block the way (the marsh's mud, #205): never on a cell walked
+# from the exits, and every exit and door still reached past them.
+BLOCKING = %w[ɓ].freeze
+
+def check_blocking(name, layout)
+  spots = layout.spots
+  ground = spots[:ground].to_h { |cell| [cell, true] }
+  spots[:ground].each do |x, y|
+    raise M::Error, "#{name} : boue #{x + 1},#{y + 1} sur un passage" if BLOCKING.include?(layout.rows[y][x])
+  end
+  needed = spots[:exits].map { |_side, x, y| [x, y] } + spots[:doors].map { |x, y, _kind| [x, y + 1] }
+  needed.each { |cell| raise M::Error, "#{name} : #{cell.map { |v| v + 1 }.join(',')} coupé du reste par la boue" if !ground[cell] }
+end
+
 # Raises if the inventory of a place doesn't match its map: doors on brick
 # cells, the other spots on walkable cells, grass on grass.
 def check_spots(name, place, bricks, layout)
@@ -416,6 +430,7 @@ places.each do |path|
       check_spill(plan, name)
       check_water(plan, name, themed)
       check_spots(name, themed, bricks, layout)
+      check_blocking(name, layout)
     end
   end
   # Every plan of a town on a few seeds (a town whose bricks don't fit its

@@ -1,0 +1,10 @@
+# Marais : herbe de marais (hautes herbes à ses bords dessinés).
+Brique    = Herbe de marais
+Type      = herbes
+Ambiances = marais
+Poids     = 4
+[Map]
+ɦɦɦɦɦ
+ɦɦɦɦɦ
+ɦɦɦɦɦ
+ɦɦɦɦɦ

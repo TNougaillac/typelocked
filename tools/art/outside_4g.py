@@ -779,6 +779,8 @@ def build(folder):
     first = snow["end"]
     snow["edges"] = build_grass_edges(sheets, tiles, copies, first)
     first += 8
+    snow["marsh"] = build_marsh(sheets, tiles, copies, first, grass)
+    first += 6 * 8
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
@@ -932,6 +934,48 @@ def main():
     print_snow(snow)
     print(f"Bords des hautes herbes : haut T{snow['edges'][0]}, bas T{snow['edges'][1]}, seule T{snow['edges'][2]}, "
           f"herbes très hautes sous leur rangée du haut T{snow['edges'][3]}")
+    for name, ids in snow["marsh"].items():
+        roles = MARSH_GRASS_ROLES if name == "herbe" else STREET_ROLES
+        print(f"[marais] {name} = " + " ".join(f"{role}=T{i}" if role else f"T{i}" for (role, *_r), i in zip(roles, ids)))
+
+
+# Marsh (#205): SirMalo's patches of the Nature sheet, column 1: mud
+# (blocked), marsh water (shallow: walked, Puddle terrain tag) as full patch
+# + patch with a hole (like STREETS: full patch x, y, middle x, y, hole x,
+# y); marsh grass (tall grass, its own edges) as a 3x3 block, middle in it.
+PUDDLE_TAG = 16   # Essentials' Puddle (splashes, reflections)
+MARSH_PATCHES = {"boue": ((0, 34, 1, 35, 4, 34), "=15"), "eau": ((0, 43, 1, 44, 4, 43), f"=0/{PUDDLE_TAG}")}
+MARSH_GRASS = (2, 47)   # top left of its 3x3 block
+MARSH_GRASS_ROLES = [("", 1, 1), ("N", 1, 0), ("S", 1, 2), ("W", 0, 1), ("E", 2, 1),
+                     ("NW", 0, 0), ("NE", 2, 0), ("SW", 0, 2), ("SE", 2, 2)]
+
+
+def build_marsh(sheets, tiles, copies, first, grass):
+    """The marsh tiles from `first` (16 per patch, then the marsh grass),
+    over the grass. Returns name => [tile of each role] (STREET_ROLES, or
+    MARSH_GRASS_ROLES for "herbe")."""
+    marsh = {}
+    for name, ((ox, oy, cx, cy, hx, hy), passages) in MARSH_PATCHES.items():
+        marsh[name] = []
+        for i, (_role, dx, dy, part) in enumerate(STREET_ROLES):
+            src = (cx, cy) if part is None else (ox + dx, oy + dy) if part == "o" else (hx + dx, hy + dy)
+            tile = Image.new("RGBA", (TILE, TILE))
+            tile.paste(grass)
+            tile.alpha_composite(sheet_tile(sheets, ("N", 1) + src))
+            tiles[first + i] = tile
+            copies[first + i] = passages
+            marsh[name].append(first + i)
+        first += 16
+    marsh["herbe"] = []
+    gx, gy = MARSH_GRASS
+    for i, (_role, dx, dy) in enumerate(MARSH_GRASS_ROLES):
+        tile = Image.new("RGBA", (TILE, TILE))
+        tile.paste(grass)
+        tile.alpha_composite(sheet_tile(sheets, ("N", 1, gx + dx, gy + dy)))
+        tiles[first + i] = tile
+        copies[first + i] = "=64/2"
+        marsh["herbe"].append(first + i)
+    return marsh
 
 
 def build_grass_edges(sheets, tiles, copies, first):
