@@ -32,8 +32,47 @@ module LaidBricks
 end
 M::PlaceBuilder.prepend(LaidBricks)
 
+# Stairs drawn in a cliff face, 2 tiles wide: left halves, right halves.
+STAIR_LEFT = [769, 777].map { |n| 384 + n }.freeze
+STAIR_RIGHT = [770, 778].map { |n| 384 + n }.freeze
+# Cells of a cliff in a plan: its terrains, and the relief cells (a level's
+# cliff, drawn by MapGen from the levels, or a border tree joined to them)
+RELIEF_CELLS = %w[ɸ ʘ].freeze
+
+# Raises on a stair that isn't whole (each left half followed by a right
+# half, nothing else in the run) or that leaves the cliff (the cells beside
+# the run are a cliff or a rock, not the ground).
+def check_stairs(plan, name)
+  side = lambda do |c|
+    t = (plan.legend[c] || []).flatten
+    return nil if plan.terrains.key?(c)
+    return :left if t.intersect?(STAIR_LEFT)
+    return :right if t.intersect?(STAIR_RIGHT)
+    return nil
+  end
+  plan.rows.each_with_index do |row, y|
+    x = 0
+    while x < row.length
+      if !side.call(row[x])
+        x += 1
+        next
+      end
+      start = x
+      x += 1 while x < row.length && side.call(row[x])
+      halves = (start...x).map { |i| side.call(row[i]) }
+      whole = halves.each_slice(2).all? { |pair| pair == %i[left right] }
+      raise MapGenerator::Error, "#{name} : escalier incomplet ligne #{y + 1}, colonnes #{start + 1}-#{x}" if !whole
+      [start - 1, x].each do |i|
+        next if i < 0 || i >= row.length || plan.terrains.key?(row[i]) || RELIEF_CELLS.include?(row[i])
+        raise MapGenerator::Error, "#{name} : escalier hors de la falaise ligne #{y + 1}, colonne #{i + 1}"
+      end
+    end
+  end
+end
+
 # Raises if a tile of SPILL_BELOW lacks its lower part on the row below.
 def check_spill(plan, name)
+  check_stairs(plan, name)
   tiles = ->(c) { (plan.legend[c] || []).flatten }
   plan.rows.each_with_index do |row, y|
     row.each_char.with_index do |c, x|

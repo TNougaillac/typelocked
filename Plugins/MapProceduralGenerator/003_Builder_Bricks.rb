@@ -250,26 +250,35 @@ module MapProceduralGenerator
       return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
     end
 
-    # A hill: a brick of rock in a rough oval made for this spot, a stair (2
-    # tiles: left, right) in the middle of its south face (its door, so a
-    # path leads to it).
+    # A hill: a brick of rock in a rough oval made for this spot, drawn on a
+    # grid of 2x2 blocks (each bend of its cliff at least 2 tiles long, like
+    # the stair), with a stair (2 tiles: left, right) in the middle of its
+    # south face (its door, so a path leads to it), framed by one block of
+    # cliff on each side.
     def hill_brick
       rock = @place.levels&.first || "^"
       stair = @place.stairs&.first || "eɛ"
-      w, h = @rng.rand(5..9), @rng.rand(4..6)
-      rows = Array.new(h) do |y|
-        Array.new(w) do |x|
-          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
-          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
-          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.2)) ? rock : " "
-        end.join
+      cw, ch = @rng.rand(3..5), @rng.rand(2..3)
+      door = (cw - 1) / 2
+      blocks = Array.new(ch) do |by|
+        Array.new(cw) do |bx|
+          dx = (bx + 0.5 - (cw / 2.0)) / (cw / 2.0)
+          dy = (by + 0.5 - (ch / 2.0)) / (ch / 2.0)
+          (by == ch - 1 && (bx - door).abs <= 1) || (dx * dx) + (dy * dy) <= 1.1 + (@rng.rand * 0.3)
+        end
       end
-      door = (w - 1) / 2
-      2.times do |k|
-        rows[h - 1][door + k] = stair[k]
-        rows[h - 2][door + k] = rock
-      end
-      return Brick.new(HILL, "Colline", HILL, [door, h - 1], 1, false, rows)
+      rows = (0...ch * 2).map { |y| (0...cw * 2).map { |x| blocks[y / 2][x / 2] ? rock : " " }.join }
+      2.times { |k| rows[-1][(door * 2) + k] = stair[k] }
+      return Brick.new(HILL, "Colline", HILL, [door * 2, (ch * 2) - 1], 1, false, rows)
+    end
+
+    # The tiles around a hill (8 neighbours) but those below its stair: no
+    # street may run there (the levels join the streets: its cliff would
+    # open beside the stair), [dx, dy] from its top left corner.
+    def hill_ring(brick)
+      cells = brick_cells(brick)
+      below = [[brick.door[0], brick.door[1] + 1], [brick.door[0] + 1, brick.door[1] + 1]]
+      return cells.flat_map { |cx, cy| NEIGHBOURS8.map { |ox, oy| [cx + ox, cy + oy] } }.uniq - cells - below
     end
 
     def pick_brick(kind, shrink = 0)
@@ -370,6 +379,7 @@ module MapProceduralGenerator
     def fits?(brick, x, y, blocked = blocked_cells(brick))
       brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] || @halo[y + dy][x + dx] > 0 }
       return false if !bank_free?(brick, x, y) || !halo_free?(brick, x, y)
+      return false if brick.kind == HILL && hill_ring(brick).any? { |dx, dy| !inside?(x + dx, y + dy) || @street[y + dy][x + dx] }
       return true if !brick.door
       # The path under the door must be free or already a street
       fx, fy = x + brick.door[0], y + brick.rows.length
@@ -507,6 +517,8 @@ module MapProceduralGenerator
         end
       end
       mark_halo(brick, x, y, 1)
+      # Nothing (no path) against a hill but below its stair
+      hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true } if brick.kind == HILL
       reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]
