@@ -65,6 +65,8 @@ contrebande = 0
 forains  = 0
 # Club de natation : le QG du Cercle des nageurs (#218), dans un port à la plage
 nageurs  = 0
+# Plage de ponte : le QG des Gardiens des pontes (#219), dans un port à la plage
+pontes   = 0
 decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
 # Monument : une statue de la Famille près de la place (n'importe où sans
 # place) ; laissée de côté si elle ne tient pas.
@@ -457,6 +459,7 @@ o = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (petite 
 σ = T13265 5x3 halo=7x8@1,4/0,1,5,6,13,20   # maison voûtée
 τ = T13321 6x3 halo=8x7@1,3   # abri au toit fleuri
 υ = T13361 1x3 halo=3x5@1,1   # cabanon
+Ŧ = T15291 3x1 halo=3x2@0,1   # barrière en bois (plage de ponte)
 φ = T13416 5x3 halo=6x7@0,3/5,11,17   # immeuble de bureaux
 χ = T13464 4x3 halo=5x6@0,2/4,9,14   # petit immeuble beige
 ψ = T13505 4x2 halo=6x6@1,1/12,17,18,21,24,30   # abri en bois

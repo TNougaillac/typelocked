@@ -1,0 +1,13 @@
+# Plage de ponte : le QG des Gardiens des pontes (#219). Un enclos de sable
+# fermé de barrières, où les nids sont protégés, et la cabane de garde où
+# l'on entre. Posé seulement là où la guilde est tirée (une ville portuaire à
+# la plage : les routes de plage sont en mer).
+Brique    = Plage de ponte des Gardiens
+Type      = pontes
+Poids     = 2
+Ambiances = plage
+Porte     = 9,2
+[Map]
+ŦŦŦŦŦŦ  ΘΘΘ
+......  ΘΘΘ
+ŦŦŦŦŦŦ  ΘΘΘ
