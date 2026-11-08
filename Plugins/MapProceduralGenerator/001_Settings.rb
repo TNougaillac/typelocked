@@ -163,6 +163,8 @@ module MapProceduralGenerator
     "boutique" => [[25, 4, 8], [54, 4, 8]],
     "maison"   => HOUSE_INTERIORS,
     "refuge"   => HOUSE_INTERIORS,
+    # The ruins' temple (#210), the Order of the Pact's: the Battle Palace hall
+    "temple"   => [[58, 7, 8]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
@@ -361,7 +363,8 @@ module MapProceduralGenerator
     "plage"           => [[:None, 50], [:Sun, 35], [:Rain, 10], [:Storm, 5]],
     "forêt sombre"    => [[:None, 40], [:Fog, 35], [:Rain, 25]],
     "montagne"        => [[:None, 40], [:Snow, 35], [:Blizzard, 15], [:Fog, 10]],
-    "haute montagne"  => [[:None, 35], [:Fog, 35], [:Snow, 20], [:Blizzard, 10]]
+    "haute montagne"  => [[:None, 35], [:Fog, 35], [:Snow, 20], [:Blizzard, 10]],
+    "ruines"          => [[:None, 50], [:Fog, 25], [:Sandstorm, 15], [:Rain, 10]]
   }.freeze
   MOUNTAIN_WEATHER = "montagne"
   # Map metadata flags of an ambiance (Flags of map_metadata), e.g. the tone

@@ -1,0 +1,11 @@
+# Ruines : le temple où l'on entre (QG de l'Ordre du Pacte), entre deux
+# colonnes.
+Brique    = Temple en ruine
+Type      = temple
+Ambiances = ruines
+Porte     = 5,3
+[Map]
+Ā  ΕΕΕΕΕ  Ā
+Ā  ΕΕΕΕΕ  Ā
+   ΕΕΕΕΕ
+   ΕΕΕΕΕ
