@@ -170,13 +170,19 @@ module MapProceduralGenerator
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
+    # The Smugglers' warehouse (#214): the port's warehouse
+    "contrebande" => [[27, 4, 8]],
     "special"  => [[30, 5, 9], [11, 7, 10]],
     "labo"     => [[4, 6, 13]]
   }.freeze
   # Headquarters of the guilds (#181): brick type => the ambiances it stands
-  # in. Its quantity is 0 in [Briques]: the guilds' draw sets it (#182).
+  # in (none: any). Its quantity is 0 in [Briques]: the guilds' draw sets it
+  # (#182).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
-                "carriere" => ["minérale", "haute montagne"] }.freeze
+                "carriere" => ["minérale", "haute montagne"], "contrebande" => [] }.freeze
+  # Headquarters laid along the quay of a port town, like its warehouses
+  # (never elsewhere)
+  QUAY_HQS = %w[contrebande].freeze
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

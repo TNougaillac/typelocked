@@ -1,0 +1,10 @@
+# Entrepôt du port : le QG des Contrebandiers (#214), version discrète,
+# quand le quai n'a pas la place de l'entrepôt gardé : un entrepôt comme
+# les autres (les Contrebandiers s'y cachent).
+Brique = Entrepôt discret des Contrebandiers
+Type   = contrebande
+Porte  = 2,2
+[Map]
+JJJJJ
+JJJJJ
+JJJJJ

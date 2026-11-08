@@ -316,8 +316,19 @@ module MapProceduralGenerator
         @terminal = @doors.last[0, 2]
         moor_boat if @place.ferry || @place.island
       end
+      # A guild's headquarters on the quay (QUAY_HQS), its widest brick that
+      # fits, in the room of a warehouse; on a quay with no room, in the town
+      # (place_bricks)
+      hqs_on_quay = 0
+      QUAY_HQS.each do |kind|
+        hqs = @bricks.select { |b| b.kind == kind }.sort_by { |b| [-b.rows.map(&:length).max, b.name] }
+        @place.counts[kind]&.max.to_i.times do
+          next hqs_on_quay += 1 if hqs.any? { |b| put_brick(b, along.call(PORT_GAP)) }
+          @inland_hqs.push(kind)
+        end
+      end
       return if @bricks.none? { |b| b.kind == PORT }
-      @rng.rand(1..2).times { place_brick(PORT, along.call(PORT_GAP)) }
+      (@rng.rand(1..2) - hqs_on_quay).times { place_brick(PORT, along.call(PORT_GAP)) }
     end
   end
 end

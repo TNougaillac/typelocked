@@ -134,6 +134,7 @@ module MapProceduralGenerator
       @exits = []
       @dead_ends = []
       @nooks = []
+      @inland_hqs = []
       @hill_tops = []
     end
 
