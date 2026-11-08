@@ -103,9 +103,73 @@ def check_grass_edges(plan, name)
 end
 
 # Raises if a tile of SPILL_BELOW lacks its lower part on the row below.
+# The rocks in the water (autotile A6, HGSS Rocks) are drawn only whole, 2x2:
+# a lone cell draws nothing, wider the autotile draws its unused middle pieces.
+ROCK_AUTOTILE = 48 * 6
+
+def check_water_rocks(plan, name)
+  rocks = plan.legend.select { |_c, layers| layers.flatten.include?(ROCK_AUTOTILE) }.keys
+  return if rocks.empty?
+  rows = plan.rows
+  rock = ->(x, y) { y >= 0 && y < rows.length && x >= 0 && x < rows[y].length && rocks.include?(rows[y][x]) }
+  seen = {}
+  rows.each_with_index do |row, y|
+    row.length.times do |x|
+      next if seen[[x, y]] || !rock.call(x, y)
+      group = [[x, y]]
+      seen[[x, y]] = true
+      group.each do |cx, cy|
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].each do |dx, dy|
+          n = [cx + dx, cy + dy]
+          next if seen[n] || !rock.call(*n)
+          seen[n] = true
+          group.push(n)
+        end
+      end
+      w = group.map(&:first).minmax.then { |lo, hi| hi - lo + 1 }
+      h = group.map(&:last).minmax.then { |lo, hi| hi - lo + 1 }
+      next if w == 2 && h == 2 && group.length == 4
+      raise MapGenerator::Error, "#{name} : rocher dans l'eau de #{w}x#{h} colonne #{x + 1}, ligne #{y + 1} (2x2 seulement)"
+    end
+  end
+end
+
+# The drawing of an object beyond its block (its halo, not its empty cells)
+# never covers another object's block or drawing: each one is drawn whole.
+def check_object_halos(plan, name)
+  owner = {}   # cell => [instance, :block or :halo]
+  rows = plan.rows
+  rows.each_with_index do |row, y|
+    row.each_char.with_index do |c, x|
+      object = plan.objects[c]
+      next if !object&.halo || object.forest
+      start = (0..x).reverse_each.take_while { |tx| row[tx] == c }.last
+      left = x - ((x - start) % object.width)
+      top = (0..y).reverse_each.take_while { |ty| rows[ty][x] == c }.last
+      next if left != x || (y - top) % object.height != 0
+      hw, hh, hx, hy, empty = object.halo
+      hh.times do |j|
+        hw.times do |i|
+          next if empty.include?((j * hw) + i)
+          role = (i >= hx && i < hx + object.width && j >= hy && j < hy + object.height) ? :block : :halo
+          cell = [x + i - hx, y + j - hy]
+          other = owner[cell]
+          if other && other[0] != [x, y] && (role == :halo || other[1] == :halo)
+            raise MapGenerator::Error, "#{name} : le dessin de « #{c} » colonne #{x + 1}, ligne #{y + 1} recouvre celui d'un autre objet " \
+                                       "(colonne #{cell[0] + 1}, ligne #{cell[1] + 1})"
+          end
+          owner[cell] = [[x, y], role] if !other || role == :block
+        end
+      end
+    end
+  end
+end
+
 def check_spill(plan, name)
   check_stairs(plan, name)
   check_grass_edges(plan, name)
+  check_water_rocks(plan, name)
+  check_object_halos(plan, name)
   tiles = ->(c) { (plan.legend[c] || []).flatten }
   plan.rows.each_with_index do |row, y|
     row.each_char.with_index do |c, x|
@@ -433,6 +497,16 @@ places.each do |path|
       check_blocking(name, layout)
     end
   end
+  # A coastal ambiance (« Mer = oui ») is drawn only by the sea, and is drawn
+  # there
+  coastal = place.ambiances.select(&:coastal).map(&:name)
+  if coastal.any?
+    inland = (1..200).map { |s| M.draw_ambiance(place, Random.new(s)) }
+    seaside = place.dup.tap { |p| p.port = "sud" }
+    by_sea = (1..200).map { |s| M.draw_ambiance(seaside, Random.new(s)) }
+    raise M::Error, "ambiance #{(inland & coastal).join(', ')} tirée loin de la mer" if (inland & coastal).any?
+    raise M::Error, "ambiance #{coastal.join(', ')} jamais tirée au bord de la mer" if (by_sea & coastal).empty?
+  end
   # Every plan of a town on a few seeds (a town whose bricks don't fit its
   # plan is built as a « carrefour »)
   if place.kind == "ville"
@@ -456,6 +530,15 @@ places.each do |path|
       plan, = M.generate_place(port, bricks, seed)
       MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
       check_spill(plan, "#{File.basename(path)} (port #{side}, graine #{seed})")
+    end
+    # Its coastal ambiances, at the port
+    coastal.each do |name|
+      themed = port.dup.tap { |p| p.ambiance = name }
+      plan, _text, layout = M.generate_place(themed, bricks, 1)
+      label = "#{File.basename(path)} (port #{side}, ambiance #{name})"
+      MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+      check_spill(plan, label)
+      check_spots(label, themed, bricks, layout)
     end
   end
 rescue M::Error, MapGenerator::Error => e

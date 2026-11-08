@@ -1,7 +1,7 @@
-# Désert : un grand parasol de paille, des poteries.
+# Désert et plage : un grand parasol de paille, des poteries.
 Brique    = Parasol de paille
 Type      = decor
-Ambiances = sable
+Ambiances = sable, plage
 [Map]
 ņņņ
 ņņņ

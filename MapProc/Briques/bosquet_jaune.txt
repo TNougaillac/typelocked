@@ -3,8 +3,6 @@ Brique    = Bosquet jaune
 Type      = decor
 Ambiances = automne
 [Map]
- ù
-üüü ù
-üüüüüü
-üüüüüü
-   üüüâ
+üüü  üüü
+üüü  üüü
+üüü  üüüâ

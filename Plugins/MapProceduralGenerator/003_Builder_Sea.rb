@@ -236,9 +236,9 @@ module MapProceduralGenerator
     # placed.
     def scatter_reefs(banks, reefs, rng, lane = nil)
       placed = []
-      # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
-      # the hand-made maps
-      [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
+      # The rock autotile draws nothing on a lone cell, and its middle pieces
+      # are unused: 2x2 exactly, as on the hand-made maps
+      [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 2], [2, 2]]].each do |sym, count, ws, hs|
         next if !sym
         rng.rand(count).times do
           w, h = rng.rand(ws[0]..ws[1]), rng.rand(hs[0]..hs[1])

@@ -66,6 +66,8 @@
 #                               brick file for it)
 #   [Ambiance verdoyante]      (optional, as many as wanted: each place draws
 #   Poids = 6                   one, by weight, 1 by default)
+#   Mer   = oui                (optional: drawn only by the sea, by a port
+#                               town, an island or a sea route)
 #   Sol   = T1|T2|T3           (tiles of the ground symbol, as in [Legend])
 #   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
 #                               with edges N=..., else as in [Legend]; not
@@ -123,7 +125,9 @@ module MapProceduralGenerator
   # of the 3 bank symbols on that ground (nil = those of the palette);
   # palette: symbol => its definition for this ambiance; counts, per_case:
   # quantities of brick types for this ambiance, as in [Briques]
-  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets)
+  # coastal: « Mer = oui », drawn only by the sea (see coastal?)
+  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets,
+                        :coastal)
   Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
@@ -179,6 +183,7 @@ module MapProceduralGenerator
         case key.downcase
         when "poids" then ambiance.weight = integer(value, fail_at)
         when "sol"   then ambiance.ground = value
+        when "mer"   then ambiance.coastal = (value.downcase == "oui")
         when "rue"
           ambiance.street ||= value
           (ambiance.streets ||= []).push(value)
@@ -186,7 +191,7 @@ module MapProceduralGenerator
           ambiance.banks = value.split
           fail_at.call("3 tuiles attendues (gauche, milieu, droite), ex. « T832 T833 T834 »") unless ambiance.banks.length == 3
         else
-          fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive, un type de [Briques] ou un symbole)") if !place.counts.key?(key)
+          fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive, Mer, un type de [Briques] ou un symbole)") if !place.counts.key?(key)
           ambiance.per_case.push(key) if value.sub!(/\s+par\s+case\z/, "")
           ambiance.counts[key] = range(value, fail_at)
         end
@@ -387,9 +392,15 @@ module MapProceduralGenerator
 
   # Draws an ambiance by weight; nil if the place has none.
   def draw_ambiance(place, rng)
-    return nil if place.ambiances.empty?
-    roll = rng.rand(place.ambiances.sum(&:weight))
-    return place.ambiances.find { |a| (roll -= a.weight) < 0 }.name
+    pool = place.ambiances.select { |a| !a.coastal || coastal?(place) }
+    return nil if pool.empty?
+    roll = rng.rand(pool.sum(&:weight))
+    return pool.find { |a| (roll -= a.weight) < 0 }.name
+  end
+
+  # By the sea: a port town, an island or a sea route.
+  def coastal?(place)
+    return !!(place.port || place.island || place.crossing == "mer")
   end
 
   # Palette with the ambiance's ground and street.
