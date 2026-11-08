@@ -131,6 +131,8 @@ VARIED = ["é", "è", "ê", "ë"]
 GROUNDS = {None: list(TREES), 50: VARIED, 162: VARIED, 106: VARIED, 218: VARIED}
 # Tall grass on those grounds: ground => (tall grass, very tall grass foot),
 # in place (the grass at the foot becomes the ground)
+# The gaps of a patch of tall grass on a ground other than the grass
+PATCH_GREEN = (64, 120, 40, 255)
 GRASS_VARIANTS = {50: (143, 151), 162: (124, 175), 106: (125, 181), 218: (133, 189)}
 GROUND_NAMES = {None: "palette", 50: "prairie", 162: "sable", 106: "terre battue", 218: "minérale"}
 
@@ -543,6 +545,22 @@ def on_ground(tile, ground, opaque=False, cliff=False):
     return tile
 
 
+def patch_grass(tile):
+    """The tall grass in the middle of a patch on another ground: the gaps
+    between its blades the dark green of the blades, not that ground (its
+    light dots repeated tile after tile looked cut)."""
+    tile = tile.copy()
+    px = tile.load()
+    for y in range(TILE):
+        for x in range(TILE):
+            c = px[x, y]
+            # The ground's teal (bluer than red), each shade by its brightness
+            if c[3] and c[2] > c[0] + 20:
+                k = min(1.0, c[1] / 216)
+                px[x, y] = tuple(int(v * k) for v in PATCH_GREEN[:3]) + (255,)
+    return tile
+
+
 def build(folder):
     sheets = {k: Image.open(f"{folder}/{name}").convert("RGBA") for k, name in SHEETS.items()}
     old = Image.open(SOURCE).convert("RGBA")
@@ -563,7 +581,7 @@ def build(folder):
         tiles[dest] = Image.new("RGBA", (TILE, TILE))
     for ground_id, (tall, foot) in GRASS_VARIANTS.items():
         ground = tiles[ground_id] if ground_id in tiles else old.crop(box(ground_id))
-        tiles[tall] = on_ground(tiles[6], ground, True)
+        tiles[tall] = patch_grass(tiles[6])
         tiles[foot] = on_ground(tiles[15], ground, True)
     # Trees: whole drawings below the old tileset, in slots of 4x4 tiles (two
     # per row of slots)
@@ -764,7 +782,7 @@ def build_snow(sheets, tiles, copies, first):
         tiles[first + i] = tile
         copies[first + i] = -1
     snow["ground"] = [first + i for i in range(len(grounds))]
-    tiles[first + 4] = on_ground(tiles[6], ground, True)
+    tiles[first + 4] = patch_grass(tiles[6])
     copies[first + 4] = 6
     tiles[first + 5] = on_ground(tiles[15], ground, True)
     copies[first + 5] = 15
