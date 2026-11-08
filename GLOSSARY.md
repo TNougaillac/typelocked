@@ -69,7 +69,7 @@ La personne que le Pacte a désignée pour cette génération. Les PNJ l'appelle
 _Avoid_ : Élu, Lié
 
 **Type imposé** :
-Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans toutes les parties, et le joueur est le seul dresseur de la région à en avoir un.
+Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans le mode principal du jeu, et le joueur est le seul dresseur de la région à en avoir un.
 _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 
 **Starter** :
