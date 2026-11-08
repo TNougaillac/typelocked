@@ -531,6 +531,23 @@ places.each do |path|
     raise M::Error, "ambiance #{(inland & coastal).join(', ')} tirée loin de la mer" if (inland & coastal).any?
     raise M::Error, "ambiance #{coastal.join(', ')} jamais tirée au bord de la mer" if (by_sea & coastal).empty?
   end
+  # Each guild's headquarters (GUILD_HQS), in each of its ambiances: placed,
+  # whole, its door reached
+  M::GUILD_HQS.each do |kind, hq_ambiances|
+    next if !place.counts.key?(kind)
+    hq_ambiances.each do |ambiance|
+      (1..3).each do |seed|
+        themed = place.dup.tap { |p| p.ambiance = ambiance; p.counts = place.counts.merge(kind => 1..1) }
+        plan, _text, layout = M.generate_place(themed, bricks, seed)
+        name = "#{File.basename(path)} (QG #{kind}, ambiance #{ambiance}, graine #{seed})"
+        MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+        check_spill(plan, name)
+        check_spots(name, themed, bricks, layout)
+        check_blocking(name, layout)
+        raise M::Error, "#{name} : QG non posé" if layout.spots[:doors].none? { |_x, _y, k| k == kind }
+      end
+    end
+  end
   # The mountain's ambiance (MOUNTAIN_AMBIANCE) is drawn only on a mountain
   # route, and is drawn there; it is built on one, its levels and stairs
   # reached (check_reachable of the builder)
