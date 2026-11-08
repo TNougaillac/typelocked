@@ -549,12 +549,18 @@ def patch_grass(tile):
     """The tall grass in the middle of a patch on another ground: the gaps
     between its blades the dark green of the blades, not that ground (its
     light dots repeated tile after tile looked cut)."""
+    return dark_gaps(tile, TILE)
+
+
+def dark_gaps(tile, rows):
+    """The tile with the ground's teal (bluer than red) of its first rows
+    the dark green of the blades, each shade by its brightness (a foot keeps
+    the ground below its blades)."""
     tile = tile.copy()
     px = tile.load()
-    for y in range(TILE):
+    for y in range(rows):
         for x in range(TILE):
             c = px[x, y]
-            # The ground's teal (bluer than red), each shade by its brightness
             if c[3] and c[2] > c[0] + 20:
                 k = min(1.0, c[1] / 216)
                 px[x, y] = tuple(int(v * k) for v in PATCH_GREEN[:3]) + (255,)
@@ -579,10 +585,20 @@ def build(folder):
         tiles[dest] = tile
     for dest in CLEARED:
         tiles[dest] = Image.new("RGBA", (TILE, TILE))
+    # The very tall grass's top: the ground's teal between its blades dark,
+    # like the tall grass of the other grounds (it stands on all of them)
+    # (and the notch left of its tips, in its lower half: the ground would
+    # show through, between two rows of it)
+    tiles[7] = dark_gaps(tiles[7], TILE)
+    notch = tiles[7].load()
+    for y in range(TILE // 2, TILE):
+        for x in range(TILE):
+            if not notch[x, y][3]:
+                notch[x, y] = PATCH_GREEN
     for ground_id, (tall, foot) in GRASS_VARIANTS.items():
         ground = tiles[ground_id] if ground_id in tiles else old.crop(box(ground_id))
         tiles[tall] = patch_grass(tiles[6])
-        tiles[foot] = on_ground(tiles[15], ground, True)
+        tiles[foot] = on_ground(dark_gaps(tiles[15], TILE // 2), ground, True)
     # Trees: whole drawings below the old tileset, in slots of 4x4 tiles (two
     # per row of slots)
     first_new = (old.height // TILE) * 8
@@ -786,7 +802,7 @@ def build_snow(sheets, tiles, copies, first):
     snow["ground"] = [first + i for i in range(len(grounds))]
     tiles[first + 4] = patch_grass(tiles[6])
     copies[first + 4] = 6
-    tiles[first + 5] = on_ground(tiles[15], ground, True)
+    tiles[first + 5] = on_ground(dark_gaps(tiles[15], TILE // 2), ground, True)
     copies[first + 5] = 15
     snow["grass"] = (first + 4, first + 5)
     first += 8
@@ -924,17 +940,12 @@ def build_grass_edges(sheets, tiles, copies, first):
     see-through, its shade a darker veil) and a lone row (tips, then foot).
     Tall grass (terrain tag 2, a bush), like T6. Returns [top, bottom, lone]."""
     top = patch_grass(sheet_tile(sheets, TILES[7]))
-    foot = sheet_tile(sheets, TILES[15])
+    foot = dark_gaps(sheet_tile(sheets, TILES[15]), TILE // 2)
     px = foot.load()
-    for y in range(TILE):
+    for y in range(TILE // 2, TILE):
         for x in range(TILE):
             c = px[x, y]
-            if not c[3] or c[2] <= c[0] + 20:
-                continue
-            if y < TILE // 2:
-                k = min(1.0, c[1] / 216)
-                px[x, y] = tuple(int(v * k) for v in PATCH_GREEN[:3]) + (255,)
-            else:
+            if c[3] and c[2] > c[0] + 20:
                 px[x, y] = (0, 0, 0, 0) if c in GRASS else (0, 0, 0, int(255 * (1 - SHADOWS.get(c, 0.8)) * 1.5))
     lone = Image.new("RGBA", (TILE, TILE))
     lone.paste(top.crop((0, 4, TILE, 4 + TILE // 2)), (0, 0))
