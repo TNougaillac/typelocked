@@ -56,22 +56,65 @@ module MapProceduralGenerator
       area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
       count = (area * rng.rand(ROUTE_TERRACE[:mesas])).round
       keep = ->(x, y) { !inside?(x, y) || @border[y][x] || @street[y][x] || @water[y][x] || @solid[y][x] || exit_at?(x, y) }
+      size = -> { [rng.rand(ROUTE_TERRACE[:mesa_width]), rng.rand(ROUTE_TERRACE[:mesa_height])] }
+      # One tile off the path and the border, over those levels only
+      fits = lambda do |x0, y0, bw, bh, levels|
+        (y0 - 1..y0 + bh).all? { |y| (x0 - 1..x0 + bw).all? { |x| !keep.call(x, y) && levels.include?(level[y][x]) } }
+      end
+      raise_box = ->(x0, y0, bw, bh, lv) { (y0...y0 + bh).each { |y| (x0...x0 + bw).each { |x| level[y][x] = lv } } }
+      chains = []
       (count * 30).times do
         break if count == 0
-        bw, bh = rng.rand(ROUTE_TERRACE[:mesa_width]), rng.rand(ROUTE_TERRACE[:mesa_height])
+        bw, bh = size.call
         x0, y0 = rng.rand(@w - bw + 1), rng.rand(@h - bh + 1)
         here = level[y0][x0]
-        next if here >= top
-        # One tile off the path and the border, on one level only
-        next if (y0 - 1..y0 + bh).any? do |y|
-          (x0 - 1..x0 + bw).any? { |x| keep.call(x, y) || level[y][x] != here }
+        next if here >= top || !fits.call(x0, y0, bw, bh, [here])
+        raise_box.call(x0, y0, bw, bh, here + 1)
+        chain = [[x0, y0, bw, bh, here + 1]]
+        # A chain: more boxes overlapping the one before, the same top, so
+        # that the mesas join into ridges
+        rng.rand(ROUTE_TERRACE[:chain]).times do
+          lx, ly, lw, lh, lv = chain.last
+          nw, nh = size.call
+          nx, ny = lx + rng.rand((2 - nw)..(lw - 2)), ly + rng.rand((2 - nh)..(lh - 2))
+          next if !fits.call(nx, ny, nw, nh, [lv - 1, lv])
+          raise_box.call(nx, ny, nw, nh, lv)
+          chain.push([nx, ny, nw, nh, lv])
         end
-        (y0...y0 + bh).each { |y| (x0...x0 + bw).each { |x| level[y][x] = here + 1 } }
+        chains.push(chain)
         count -= 1
       end
-      return if level.all? { |row| row.all?(&:zero?) } || !thicken(level)
+      return if chains.empty? || !thicken(level)
+      street, solid = @street.map(&:dup), @solid.map(&:dup)
+      chains.each { |chain| chain.shuffle(random: rng).any? { |box| mesa_stair(level, *box) } }
       faces, stairs_at = draw_faces(level)
+      if !faces
+        # Without their stairs, if those don't fit
+        @street, @solid = street, solid
+        faces, stairs_at = draw_faces(level)
+      end
       @mesas = faces && apply_levels(level, faces, stairs_at)
+    end
+
+    # A path up a mesa of the first level: from the street below, straight
+    # up to its south face (a stair there, see draw_faces) and onto its top;
+    # false if no street lies below within MESA_STAIR_REACH rows.
+    def mesa_stair(level, x0, y0, bw, bh, lv)
+      return false if lv != 1
+      sx = x0 + (bw / 2) - 1
+      face = y0 + bh - 1
+      # The face under the stair and the row above it, both of the mesa
+      return false if [face - 1, face].any? { |y| [sx - 1, sx, sx + 1, sx + 2].any? { |x| !inside?(x, y) || level[y][x] != lv } }
+      (face + 1..face + MESA_STAIR_REACH).each do |y|
+        cells = [sx, sx + 1].map { |x| [x, y] }
+        return false if cells.any? { |x, yy| !inside?(x, yy) }
+        if cells.any? { |x, yy| @street[yy][x] }
+          (face - 1).step(y - 2) { |by| paint(sx, by) }
+          return true
+        end
+        return false if cells.any? { |x, yy| @border[yy][x] || @solid[yy][x] || @water[yy][x] || level[yy][x] != 0 }
+      end
+      return false
     end
 
     # Keeps those levels, their cliffs (faces) and stairs; false if a cliff

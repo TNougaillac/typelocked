@@ -44,7 +44,7 @@ prairie = 1
 herbes = 0..2 par case
 arbre  = 1..3 par case
 parc   = 0..1 par case
-montagne = 0..2 par case
+montagne = 0..1 par case
 corniche = 0..1 par case
 # Collines : une butte de roche à l'escalier, dessinée pour sa place.
 colline = 0..1 par case

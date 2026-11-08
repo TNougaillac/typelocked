@@ -239,24 +239,87 @@ module MapProceduralGenerator
         h = @rng.rand(9..[9, @h - (2 * bh) - 4].max.clamp(9, 16)) * (5 - shrink) / 5
         first = 0.5
       end
+      rows = blob_rows(w, h, first, LAKE_SHAPE, @place.water)
+      return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
+    end
+
+    # A blob of that symbol in a box of w by h: overlapping ovals (shape:
+    # their count, the share of the box of each one after the first), the
+    # first one first of the box; its empty rows and columns cut.
+    def blob_rows(w, h, first, shape, symbol)
       ovals = [[w / 2.0, h / 2.0, w * first, h * first]]
-      (@rng.rand(LAKE_SHAPE[:ovals]) - 1).times do
+      (@rng.rand(shape[:ovals]) - 1).times do
         cx, cy, rx, ry = ovals[@rng.rand(ovals.length)]
         angle = @rng.rand * 2 * Math::PI
         ovals.push([cx + (rx * Math.cos(angle)), cy + (ry * Math.sin(angle)),
-                    w * @rng.rand(LAKE_SHAPE[:more]), h * @rng.rand(LAKE_SHAPE[:more])])
+                    w * @rng.rand(shape[:more]), h * @rng.rand(shape[:more])])
       end
       rows = Array.new(h) do |y|
         Array.new(w) do |x|
-          wet = ovals.any? { |cx, cy, rx, ry| (((x + 0.5 - cx) / rx)**2) + (((y + 0.5 - cy) / ry)**2) <= 1.0 + (@rng.rand * 0.25) }
-          wet ? @place.water : " "
+          inside = ovals.any? { |cx, cy, rx, ry| (((x + 0.5 - cx) / rx)**2) + (((y + 0.5 - cy) / ry)**2) <= 1.0 + (@rng.rand * 0.25) }
+          inside ? symbol : " "
         end.join
       end
       rows.reject! { |row| row.strip.empty? }
       left = rows.map { |row| row.index(/\S/) }.min
       right = rows.map { |row| row.rindex(/\S/) }.max
-      rows.map! { |row| row[left..right] }
-      return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
+      return rows.map { |row| row[left..right] }
+    end
+
+    # A patch of grass drawn for its spot (GRASS_SHAPE), of the main symbol
+    # of the brick drawn from the files (tall grass, very tall grass and its
+    # foot, marsh grass), much bigger and rounder than those.
+    def grass_brick(drawn)
+      symbol = drawn.rows.join.delete(" ").chars.tally.max_by(&:last)[0]
+      shape = GRASS_SHAPE[drawn.kind]
+      w, h = @rng.rand(shape[:width]), @rng.rand(shape[:height])
+      rows = blob_rows(w, h, @rng.rand(shape[:first]), shape, symbol)
+      # The foot of very tall grass (the bottom row of its brick) under each
+      # of its columns
+      foot = drawn.rows.last.delete(" ").chars.uniq
+      if foot.length == 1 && foot[0] != symbol
+        rows.push(" " * rows[0].length)
+        (rows.length - 1).downto(1) do |y|
+          rows[0].length.times { |x| rows[y][x] = foot[0] if rows[y][x] == " " && rows[y - 1][x] == symbol }
+        end
+      end
+      return Brick.new(drawn.file, drawn.name, drawn.kind, nil, 1, false, rows, drawn.ambiances)
+    end
+
+    # A ridge drawn for its spot (RIDGE_SHAPE): rock in a chain of ovals on a
+    # grid of 2x2 blocks (each bend of its cliff at least 2 tiles long), with
+    # a stair up its south face when one fits there (its door).
+    def ridge_brick
+      rock = @place.levels&.first || "^"
+      stair = @place.stairs&.first || "eɛ"
+      cw, ch = @rng.rand(RIDGE_SHAPE[:width]), @rng.rand(RIDGE_SHAPE[:height])
+      blocks = Array.new(ch) { Array.new(cw, false) }
+      cx, cy = @rng.rand(0.0..cw.to_f), @rng.rand(0.0..ch.to_f)
+      angle = @rng.rand * 2 * Math::PI
+      @rng.rand(RIDGE_SHAPE[:ovals]).times do
+        rx, ry = @rng.rand(1.2..2.6), @rng.rand(1.0..1.8)
+        ch.times { |by| cw.times { |bx| blocks[by][bx] ||= (((bx + 0.5 - cx) / rx)**2) + (((by + 0.5 - cy) / ry)**2) <= 1.0 } }
+        # The next oval along the ridge, bending a little
+        angle += @rng.rand(-0.8..0.8)
+        cx = (cx + (rx * Math.cos(angle))).clamp(0.0, cw.to_f)
+        cy = (cy + (ry * Math.sin(angle) * 0.6)).clamp(0.0, ch.to_f)
+      end
+      blocks.reject! { |row| row.none? }
+      return nil if blocks.empty?
+      left = blocks.map { |row| row.index(true) }.compact.min
+      right = blocks.map { |row| row.rindex(true) }.compact.max
+      blocks.map! { |row| row[left..right] }
+      rows = (0...blocks.length * 2).map { |y| (0...blocks[0].length * 2).map { |x| blocks[y / 2][x / 2] ? rock : " " }.join }
+      # The stair: a block of the bottom row framed by a block on each side
+      last = blocks.length - 1
+      doors = (1...blocks[0].length - 1).select { |bx| blocks[last][bx - 1] && blocks[last][bx] && blocks[last][bx + 1] }
+      door = nil
+      if !doors.empty?
+        bx = doors.sample(random: @rng)
+        2.times { |k| rows[-1][(bx * 2) + k] = stair[k] }
+        door = [bx * 2, rows.length - 1]
+      end
+      return Brick.new(RIDGE, "Crête", "montagne", door, 1, false, rows)
     end
 
     # A hill: a brick of rock in a rough oval made for this spot, drawn on a
@@ -320,9 +383,13 @@ module MapProceduralGenerator
     def pick_brick(kind, shrink = 0)
       return lake_brick(shrink) if kind == LAKE
       return hill_brick if kind == HILL
+      ridge = (kind == "montagne" && @rng.rand(100) < RIDGE_SHAPE[:chance]) ? ridge_brick : nil
+      return ridge if ridge
       bricks = MODELS.key?(kind) ? models(kind) : @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
-      return bricks.find { |b| (roll -= b.weight) < 0 }
+      drawn = bricks.find { |b| (roll -= b.weight) < 0 }
+      return grass_brick(drawn) if drawn && GRASS_SHAPE.key?(kind) && @rng.rand(100) < GRASS_SHAPE[kind][:chance]
+      return drawn
     end
 
     # The few models of buildings of that type the place draws from (MODELS),
