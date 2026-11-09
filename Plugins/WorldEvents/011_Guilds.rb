@@ -2,13 +2,14 @@
 # WorldEvents - Guilds
 # The guilds of MapProc/Lore/guildes.txt (spec #181): read and checked (an
 # error names the file and the line), then, for each guild whose
-# headquarters MapProceduralGenerator laid in the world (WORLD_HQS), its
-# leader inside and 2 to 4 members outside, their teams drawn from its pool
-# at the level of the Tronçon. Plain Ruby.
+# headquarters MapProceduralGenerator drew in the world (WORLD_GUILDS), its
+# leader inside (by the street when its headquarters has no door) and 2 to 4
+# members outside, their teams drawn from its pool at the level of the
+# Tronçon. Plain Ruby.
 #===============================================================================
 module WorldEvents
   # id: the section's (« ELEVEURS »); position: GUILD_POSITIONS; biomes:
-  # ambiances; hq: brick type; member_types: trainer types; leader: trainer type;
+  # ambiances (none: wherever its headquarters goes); hq: brick type; member_types: trainer types; leader: trainer type;
   # enemies: guild ids; pool: species ids; line: the line of its section.
   Guild = Struct.new(:id, :name, :position, :biomes, :hq, :member_types, :leader, :title, :enemies, :pool, :line)
   GUILD_KEYS = %w[Nom Position Biomes QG Membres Chef Titre Ennemis Pool].freeze
@@ -60,7 +61,7 @@ module WorldEvents
 
   def guild_from(raw, file, known)
     fields = raw[:fields]
-    (GUILD_KEYS - %w[Ennemis]).each do |key|
+    (GUILD_KEYS - %w[Biomes Ennemis]).each do |key|
       raise Error, "#{file}, ligne #{raw[:line]} : [#{raw[:id]}] sans « #{key} »" if !fields[key] || fields[key][0].strip.empty?
     end
     value = ->(key) { fields[key]&.first.to_s.strip }
@@ -71,10 +72,12 @@ module WorldEvents
     hq = value.call("QG")
     allowed = MapProceduralGenerator::GUILD_HQS[hq]
     fail_at.call("QG", "QG « #{hq} » inconnu (#{MapProceduralGenerator::GUILD_HQS.keys.join(', ')})") if !allowed
-    biomes = list.call("Biomes")
-    biomes.each do |biome|
-      fail_at.call("Biomes", "biome « #{biome} » inconnu") if !guild_biomes.include?(biome)
-      fail_at.call("Biomes", "biome « #{biome} » : le QG #{hq} ne se pose que dans #{allowed.join(', ')}") if !allowed.empty? && !allowed.include?(biome)
+    biomes = fields["Biomes"] ? list.call("Biomes") : []
+    biomes.each { |biome| fail_at.call("Biomes", "biome « #{biome} » inconnu") if !guild_biomes.include?(biome) }
+    # MapProc lays the headquarters where GUILD_HQS allows it
+    if biomes.sort != allowed.sort
+      where = allowed.empty? ? "partout (Biomes vide)" : "dans #{allowed.join(', ')}"
+      fail_at.call(fields["Biomes"] ? "Biomes" : "QG", "biomes « #{biomes.join(', ')} » : le QG #{hq} se pose #{where} (GUILD_HQS)")
     end
     types = list.call("Membres").map(&:to_sym)
     leader = value.call("Chef").to_sym
@@ -144,9 +147,17 @@ module WorldEvents
     return guilds.filter_map do |guild|
       route = (atlas[:hqs] || {})[guild.hq]
       zone = route && zones[route]
-      map, spots = atlas[:maps].find { |_name, m| m[:building] == guild.hq && m[:owner] == route } if zone
+      outside = route && atlas[:maps][route]
+      anchor = outside && (outside[:doors].find { |_x, _y, kind| kind == guild.hq } ||
+                           (outside[:hqs] || []).find { |_x, _y, kind| kind == guild.hq })
+      next if !zone || !anchor
+      # Its leader inside (a headquarters with a door), else by the street
+      # nearest it, like its members
+      map, spots = atlas[:maps].find { |_name, m| m[:kind] == "interieur" && m[:building] == guild.hq && m[:owner] == route }
       x, y, facing = spots && GUILD_LEADER_SPOTS[spots[:template]]
-      next if !x
+      cell = x ? [x, y, facing, 1] : hq_cell(outside, anchor, plans[route], rng)
+      next if !cell
+      map = route if !x
       seals = zone.seals
       level = guild_level(zones, zone, caps)
       pool = guild.pool.filter_map { |id| species[id] }
@@ -156,16 +167,26 @@ module WorldEvents
       name = trainer_name(guild.leader, names, rng)
       next if !name
       tag = "guilde_#{guild.id.downcase}"
-      title = atlas[:maps][route][:title]
+      title = outside[:title]
       lose = lines.text("#{tag}_chef_fin", title)
       trainers.push(team_section(guild.leader, name, lose, team, team_sets))
-      add(plans, map, "Trainer", "Chef", x, y, ["Facing", facing], ["Sight", 1], ["Type", guild.leader], ["Name", name],
-          ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_chef_combat", title)], ["EndBattle", lose])
-      members = guild_members(atlas[:maps][route], guild, pool, species, zone, level, route, plans, trainers, names,
+      label = guild.id.capitalize
+      add(plans, map, "Trainer", "Chef#{label}", cell[0], cell[1], ["Facing", cell[2]], ["Sight", cell[3]], ["Type", guild.leader],
+          ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_chef_combat", title)], ["EndBattle", lose])
+      members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
                               [lines, tag, title], rng)
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
-        leader: { type: guild.leader, name: name, team: team, sets: team_sets }, members: members }
+        leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members }
     end
+  end
+
+  # A cell for a trainer by the street nearest the headquarters (anchor: its
+  # door or its middle), else anywhere by a street of the place.
+  def hq_cell(spots, anchor, taken, rng)
+    ax, ay, = anchor
+    cells = facing_cells(spots)
+    near = cells.min_by(GUILD_NEAR_CELLS) { |x, y, _facing| [(x - ax).abs + (y - ay).abs, y, x] }
+    return trainer_cell(spots, near, taken, rng) || trainer_cell(spots, cells, taken, rng)
   end
 
   # Level of a guild's leader: the strongest trainer of the Tronçon of its
@@ -175,15 +196,12 @@ module WorldEvents
     return [top, caps[zone.seals] || caps.last].min
   end
 
-  # The members by the street, nearest the door of the headquarters first.
-  def guild_members(spots, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng)
-    dx, dy, = spots[:doors].find { |_x, _y, kind| kind == guild.hq }
-    cells = facing_cells(spots)
-    near = cells.min_by(GUILD_NEAR_CELLS) { |x, y, _facing| [(x - dx).abs + (y - dy).abs, y, x] }
+  # The members by the street, nearest the headquarters first.
+  def guild_members(spots, anchor, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng)
     sizes = PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min]
     members = []
     rng.rand(GUILD_MEMBERS).times do |j|
-      cell = trainer_cell(spots, near, plans[route], rng) || trainer_cell(spots, cells, plans[route], rng)
+      cell = hq_cell(spots, anchor, plans[route], rng)
       break if !cell
       type = guild.member_types.sample(random: rng)
       name = trainer_name(type, names, rng)
@@ -193,10 +211,11 @@ module WorldEvents
       lose = lines.text("#{tag}_membre_fin", title)
       trainers.push(team_section(type, name, lose, team))
       x, y, facing, sight = cell
-      add(plans, route, "Trainer", "Guilde#{j + 1}", x, y, ["Facing", facing], ["Sight", sight], ["Type", type],
+      label = "Guilde#{guild.id.capitalize}#{j + 1}"
+      add(plans, route, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", title)],
           ["EndBattle", lose])
-      members.push({ type: type, name: name, team: team })
+      members.push({ type: type, name: name, team: team, label: label })
     end
     return members
   end

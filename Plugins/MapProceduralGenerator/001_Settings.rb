@@ -190,18 +190,22 @@ module MapProceduralGenerator
   # Headquarters of the guilds (#181): brick type => the ambiances it stands
   # in (none: any). Its quantity is 0 in [Briques]: the guilds' draw sets it
   # (#182).
+  # The ruins' temple is always there (« temple = 1 » in the ruins); the
+  # poachers' camp and the cemetery have no brick yet (#216, #211).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
                 "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
                 "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [],
                 "nageurs" => %w[plage], "pontes" => %w[plage],
-                "dundees" => %w[marais], "chromes" => [] }.freeze
+                "dundees" => %w[marais], "chromes" => [], "temple" => %w[ruines],
+                "braconniers" => ["forêt sombre"], "cimetiere" => ["cimetière"] }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
-  # Headquarters of the guilds drawn in a world (WorldEvents' guildes.txt,
-  # #182): once the world is built, each is laid on one of its places whose
-  # ambiance it allows, drawn by the seed (none if no place fits).
-  WORLD_HQS = %w[ferme].freeze
+  # Guilds of a world (#183): once the world is built, this many
+  # headquarters are drawn among those whose place exists (an ambiance it
+  # allows, a port for a quay's), each laid on one of those places drawn by
+  # the seed (fewer if fewer fit).
+  WORLD_GUILDS = 3..5
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

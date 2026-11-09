@@ -95,7 +95,8 @@ module WorldEvents
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
   FEMALE_TYPES = %i[LIEUTENANT_PSYCHIC LIEUTENANT_GHOST LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER
-                    POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F TUBER_F].freeze
+                    POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F TUBER_F
+                    SWIMMER_F TEAMROCKET_F CHEF_PONTES CHEF_BRACONNIERS CHEF_FORESTIERS CHEF_ENDEUILLES].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
                Matteo Dario Nico Sonny Ray Jack Bobby Lucien Marcel Gino Carlo Franco Angelo Victor],
@@ -308,9 +309,10 @@ module WorldEvents
   GUILD_LINES = { "chef_combat" => PLACE_TOKENS, "chef_fin" => BATTLE_TOKENS,
                   "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS }.freeze
   # At the headquarters: the leader inside, on this cell of its template ([x,
-  # y, facing]), and 2 to 4 members outside, on the free cells by the street
-  # nearest its door (among this many).
-  GUILD_LEADER_SPOTS = { 27 => [4, 4, "bas"] }.freeze
+  # y, facing]; by the street when it has no door), and 2 to 4 members
+  # outside, on the free cells by the street nearest it (among this many).
+  GUILD_LEADER_SPOTS = { 27 => [4, 4, "bas"], 8 => [5, 4, "bas"], 26 => [9, 6, "bas"], 6 => [7, 4, "bas"],
+                         12 => [6, 7, "bas"], 58 => [7, 4, "bas"] }.freeze
   GUILD_MEMBERS = 2..4
   GUILD_NEAR_CELLS = 16
   # The leader: at the level of the strongest trainer of its Tronçon (never
