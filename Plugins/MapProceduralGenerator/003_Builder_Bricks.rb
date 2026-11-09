@@ -55,6 +55,8 @@ module MapProceduralGenerator
         next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
         # The rocks on a route's mesas go where they fit, or not at all
         next if HIGHLAND.include?(kind) && @mesas
+        # A patch of grass drawn big shrinks until it fits
+        next if GRASS_SHAPE.key?(kind) && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A giant lake shrinks until it fits
         next if kind == LAKE && excess[:giant_lake] && (1..3).any? { |shrink| place_brick(kind, nil, shrink) }
         # A mountain route keeps little ground: what doesn't fit is left out;
@@ -268,11 +270,13 @@ module MapProceduralGenerator
 
     # A patch of grass drawn for its spot (GRASS_SHAPE), of the main symbol
     # of the brick drawn from the files (tall grass, very tall grass and its
-    # foot, marsh grass), much bigger and rounder than those.
-    def grass_brick(drawn)
+    # foot, marsh grass), much bigger and rounder than those; drawn big, a
+    # quarter smaller each time it doesn't fit (shrink).
+    def grass_brick(drawn, shrink = 0)
       symbol = drawn.rows.join.delete(" ").chars.tally.max_by(&:last)[0]
       shape = GRASS_SHAPE[drawn.kind]
-      w, h = @rng.rand(shape[:width]), @rng.rand(shape[:height])
+      w = [@rng.rand(shape[:width]) * (4 - shrink) / 4, 3].max
+      h = [@rng.rand(shape[:height]) * (4 - shrink) / 4, 2].max
       rows = blob_rows(w, h, @rng.rand(shape[:first]), shape, symbol)
       # The foot of very tall grass (the bottom row of its brick) under each
       # of its columns
@@ -286,29 +290,12 @@ module MapProceduralGenerator
       return Brick.new(drawn.file, drawn.name, drawn.kind, nil, 1, false, rows, drawn.ambiances)
     end
 
-    # A ridge drawn for its spot (RIDGE_SHAPE): rock in a chain of ovals on a
-    # grid of 2x2 blocks (each bend of its cliff at least 2 tiles long), with
+    # A ridge drawn for its spot (RIDGE_SHAPE): a massif (bowl_blocks), with
     # a stair up its south face when one fits there (its door).
     def ridge_brick
       rock = @place.levels&.first || "^"
       stair = @place.stairs&.first || "eɛ"
-      cw, ch = @rng.rand(RIDGE_SHAPE[:width]), @rng.rand(RIDGE_SHAPE[:height])
-      blocks = Array.new(ch) { Array.new(cw, false) }
-      cx, cy = @rng.rand(0.0..cw.to_f), @rng.rand(0.0..ch.to_f)
-      angle = @rng.rand * 2 * Math::PI
-      @rng.rand(RIDGE_SHAPE[:ovals]).times do
-        rx, ry = @rng.rand(1.2..2.6), @rng.rand(1.0..1.8)
-        ch.times { |by| cw.times { |bx| blocks[by][bx] ||= (((bx + 0.5 - cx) / rx)**2) + (((by + 0.5 - cy) / ry)**2) <= 1.0 } }
-        # The next oval along the ridge, bending a little
-        angle += @rng.rand(-0.8..0.8)
-        cx = (cx + (rx * Math.cos(angle))).clamp(0.0, cw.to_f)
-        cy = (cy + (ry * Math.sin(angle) * 0.6)).clamp(0.0, ch.to_f)
-      end
-      blocks.reject! { |row| row.none? }
-      return nil if blocks.empty?
-      left = blocks.map { |row| row.index(true) }.compact.min
-      right = blocks.map { |row| row.rindex(true) }.compact.max
-      blocks.map! { |row| row[left..right] }
+      blocks = bowl_blocks(@rng.rand(RIDGE_SHAPE[:width]), @rng.rand(RIDGE_SHAPE[:height]), @rng)
       rows = (0...blocks.length * 2).map { |y| (0...blocks[0].length * 2).map { |x| blocks[y / 2][x / 2] ? rock : " " }.join }
       # The stair: a block of the bottom row framed by a block on each side
       last = blocks.length - 1
@@ -322,23 +309,34 @@ module MapProceduralGenerator
       return Brick.new(RIDGE, "Crête", "montagne", door, 1, false, rows)
     end
 
-    # A hill: a brick of rock in a rough oval made for this spot, drawn on a
-    # grid of 2x2 blocks (each bend of its cliff at least 2 tiles long, like
-    # the stair), with a stair (2 tiles: left, right) in the middle of its
+    # A massif drawn as a map designer would, on a grid of 2x2 blocks (each
+    # bend of its cliff at least 2 tiles long): a straight top (the cliffs
+    # have no inner corner facing north), then rows that only narrow, each
+    # side on its own, more and more often towards the foot, so that it ends
+    # rounded; at least 3 blocks wide at the foot for a framed stair. Rows of
+    # booleans, cw blocks wide, ch high.
+    def bowl_blocks(cw, ch, rng, foot = 3)
+      cw = [cw, foot].max
+      left, right = 0, cw - 1
+      return Array.new(ch) do |by|
+        row = Array.new(cw) { |bx| bx.between?(left, right) }
+        bend = BOWL_BEND.first + ((BOWL_BEND.last - BOWL_BEND.first) * by / [ch - 1, 1].max)
+        left += 1 if rng.rand(100) < bend && right - left + 1 > foot
+        right -= 1 if rng.rand(100) < bend && right - left + 1 > foot
+        row
+      end
+    end
+
+    # A hill: a small massif made for this spot (bowl_blocks), with a stair (2 tiles: left, right) in the middle of its
     # south face (its door, so a path leads to it), framed by one block of
     # cliff on each side.
     def hill_brick
       rock = @place.levels&.first || "^"
       stair = @place.stairs&.first || "eɛ"
-      cw, ch = @rng.rand(3..5), @rng.rand(2..3)
-      door = (cw - 1) / 2
-      blocks = Array.new(ch) do |by|
-        Array.new(cw) do |bx|
-          dx = (bx + 0.5 - (cw / 2.0)) / (cw / 2.0)
-          dy = (by + 0.5 - (ch / 2.0)) / (ch / 2.0)
-          (by == ch - 1 && (bx - door).abs <= 1) || (dx * dx) + (dy * dy) <= 1.1 + (@rng.rand * 0.3)
-        end
-      end
+      blocks = bowl_blocks(@rng.rand(3..5), @rng.rand(2..3), @rng)
+      foot = blocks.last
+      door = (foot.index(true) + foot.rindex(true)) / 2
+      cw, ch = foot.length, blocks.length
       rows = (0...ch * 2).map { |y| (0...cw * 2).map { |x| blocks[y / 2][x / 2] ? rock : " " }.join }
       2.times { |k| rows[-1][(door * 2) + k] = stair[k] }
       return Brick.new(HILL, "Colline", HILL, [door * 2, (ch * 2) - 1], 1, false, rows)
@@ -349,8 +347,14 @@ module MapProceduralGenerator
     # open beside the stair), [dx, dy] from its top left corner.
     def hill_ring(brick)
       cells = brick_cells(brick)
-      below = [[brick.door[0], brick.door[1] + 1], [brick.door[0] + 1, brick.door[1] + 1]]
+      below = brick.door ? [[brick.door[0], brick.door[1] + 1], [brick.door[0] + 1, brick.door[1] + 1]] : []
       return cells.flat_map { |cx, cy| NEIGHBOURS8.map { |ox, oy| [cx + ox, cy + oy] } }.uniq - cells - below
+    end
+
+    # A hill or a ridge drawn for its spot: its cliff joins a path beside it
+    # (no cliff drawn there), so none may run along it (hill_ring).
+    def ringed?(brick)
+      return brick.kind == HILL || brick.file == RIDGE
     end
 
     # What tops a hill: on a route, mostly tall grass (HILL_GRASS_CHANCE, all
@@ -388,7 +392,7 @@ module MapProceduralGenerator
       bricks = MODELS.key?(kind) ? models(kind) : @bricks.select { |b| b.kind == kind }
       roll = @rng.rand(bricks.sum(&:weight))
       drawn = bricks.find { |b| (roll -= b.weight) < 0 }
-      return grass_brick(drawn) if drawn && GRASS_SHAPE.key?(kind) && @rng.rand(100) < GRASS_SHAPE[kind][:chance]
+      return grass_brick(drawn, shrink) if drawn && GRASS_SHAPE.key?(kind) && @rng.rand(100) < GRASS_SHAPE[kind][:chance]
       return drawn
     end
 
@@ -495,7 +499,7 @@ module MapProceduralGenerator
     def fits?(brick, x, y, blocked = blocked_cells(brick))
       brick_cells(brick).each { |dx, dy| return false if blocked[y + dy][x + dx] || @halo[y + dy][x + dx] > 0 }
       return false if !bank_free?(brick, x, y) || !halo_free?(brick, x, y)
-      return false if brick.kind == HILL && hill_ring(brick).any? { |dx, dy| !inside?(x + dx, y + dy) || @street[y + dy][x + dx] }
+      return false if ringed?(brick) && hill_ring(brick).any? { |dx, dy| !inside?(x + dx, y + dy) || @street[y + dy][x + dx] }
       return true if !brick.door
       # The path under the door must be free or already a street
       fx, fy = x + brick.door[0], y + brick.rows.length
@@ -664,11 +668,9 @@ module MapProceduralGenerator
         end
       end
       mark_halo(brick, x, y, 1)
-      # Nothing (no path) against a hill but below its stair
-      if brick.kind == HILL
-        hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true }
-        crown_hill(brick, x, y)
-      end
+      # Nothing (no path) against a hill or a ridge but below its stair
+      hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true } if ringed?(brick)
+      crown_hill(brick, x, y) if brick.kind == HILL
       reserve_banks if brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } }
       return if !brick.door
       dx, dy = x + brick.door[0], y + brick.door[1]

@@ -17,7 +17,8 @@ module MapProceduralGenerator
       return Array.new(@h) do |y|
         Array.new(@w) do |x|
           next HOLE if @stairs_at.key?([x, y]) || (@border[y][x] && [@place.border, @place.filler].include?(@cells[y][x]))
-          level_at(x, y) > 0 ? level_symbol(level_at(x, y)) : MapGenerator::OVERLAY_EMPTY
+          # Under no tree, the border stays on the ground (no cliff of its own)
+          (level_at(x, y) > 0 && !@border[y][x]) ? level_symbol(level_at(x, y)) : MapGenerator::OVERLAY_EMPTY
         end.join
       end
     end
@@ -56,12 +57,20 @@ module MapProceduralGenerator
       area = (@mask ? @mask.join.count("1") * @cell * @cell : @w * @h) / (CASE_SIZE * CASE_SIZE).to_f
       count = (area * rng.rand(ROUTE_TERRACE[:mesas])).round
       keep = ->(x, y) { !inside?(x, y) || @border[y][x] || @street[y][x] || @water[y][x] || @solid[y][x] || exit_at?(x, y) }
-      size = -> { [rng.rand(ROUTE_TERRACE[:mesa_width]), rng.rand(ROUTE_TERRACE[:mesa_height])] }
+      size = -> { [rng.rand(ROUTE_TERRACE[:mesa_width]) / 2 * 2, rng.rand(ROUTE_TERRACE[:mesa_height]) / 2 * 2] }
       # One tile off the path and the border, over those levels only
       fits = lambda do |x0, y0, bw, bh, levels|
         (y0 - 1..y0 + bh).all? { |y| (x0 - 1..x0 + bw).all? { |x| !keep.call(x, y) && levels.include?(level[y][x]) } }
       end
-      raise_box = ->(x0, y0, bw, bh, lv) { (y0...y0 + bh).each { |y| (x0...x0 + bw).each { |x| level[y][x] = lv } } }
+      # A massif (bowl_blocks) in that box; the box of its foot, for its stair
+      raise_box = lambda do |x0, y0, bw, bh, lv|
+        blocks = bowl_blocks(bw / 2, bh / 2, rng, 2)
+        blocks.each_with_index do |row, by|
+          row.each_with_index { |on, bx| [0, 1].product([0, 1]).each { |ox, oy| level[y0 + (by * 2) + oy][x0 + (bx * 2) + ox] = lv } if on }
+        end
+        foot = blocks.last
+        [x0 + (foot.index(true) * 2), y0, (foot.rindex(true) - foot.index(true) + 1) * 2, blocks.length * 2, lv]
+      end
       chains = []
       (count * 30).times do
         break if count == 0
@@ -69,17 +78,17 @@ module MapProceduralGenerator
         x0, y0 = rng.rand(@w - bw + 1), rng.rand(@h - bh + 1)
         here = level[y0][x0]
         next if here >= top || !fits.call(x0, y0, bw, bh, [here])
-        raise_box.call(x0, y0, bw, bh, here + 1)
-        chain = [[x0, y0, bw, bh, here + 1]]
-        # A chain: more boxes overlapping the one before, the same top, so
-        # that the mesas join into ridges
+        chain = [raise_box.call(x0, y0, bw, bh, here + 1)]
+        # A chain: more boxes overlapping the one before, on the same level
+        # and the same top row (the cliffs have no inner corner facing
+        # north: the top of a mesa stays straight, its south face may step),
+        # so that the mesas join into ridges
         rng.rand(ROUTE_TERRACE[:chain]).times do
-          lx, ly, lw, lh, lv = chain.last
+          lx, ly, lw, _lh, lv = chain.last
           nw, nh = size.call
-          nx, ny = lx + rng.rand((2 - nw)..(lw - 2)), ly + rng.rand((2 - nh)..(lh - 2))
+          nx, ny = lx + (rng.rand(((4 - nw) / 2)..((lw - 4) / 2)) * 2), ly
           next if !fits.call(nx, ny, nw, nh, [lv - 1, lv])
-          raise_box.call(nx, ny, nw, nh, lv)
-          chain.push([nx, ny, nw, nh, lv])
+          chain.push(raise_box.call(nx, ny, nw, nh, lv))
         end
         chains.push(chain)
         count -= 1
@@ -96,23 +105,47 @@ module MapProceduralGenerator
       @mesas = faces && apply_levels(level, faces, stairs_at)
     end
 
-    # A path up a mesa of the first level: from the street below, straight
-    # up to its south face (a stair there, see draw_faces) and onto its top;
-    # false if no street lies below within MESA_STAIR_REACH rows.
+    # A path up a mesa of the first level: a stair in the middle of its
+    # south face and a path from its foot to the nearest street, around the
+    # mesa if need be (MESA_STAIR_REACH steps at most, on the ground only);
+    # false if none.
     def mesa_stair(level, x0, y0, bw, bh, lv)
       return false if lv != 1
       sx = x0 + (bw / 2) - 1
       face = y0 + bh - 1
       # The face under the stair and the row above it, both of the mesa
       return false if [face - 1, face].any? { |y| [sx - 1, sx, sx + 1, sx + 2].any? { |x| !inside?(x, y) || level[y][x] != lv } }
-      (face + 1..face + MESA_STAIR_REACH).each do |y|
-        cells = [sx, sx + 1].map { |x| [x, y] }
-        return false if cells.any? { |x, yy| !inside?(x, yy) }
-        if cells.any? { |x, yy| @street[yy][x] }
-          (face - 1).step(y - 2) { |by| paint(sx, by) }
+      cells = ->(x, y) { [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]] }
+      # Off the cliffs (a path beside one would join its level: no cliff
+      # drawn there), but at the foot of the stair
+      free = lambda do |x, y, foot = false|
+        cells.call(x, y).all? do |cx, cy|
+          inside?(cx, cy) && level[cy][cx] == 0 && (@street[cy][cx] || (!@border[cy][cx] && !@solid[cy][cx] && !@water[cy][cx])) &&
+            NEIGHBOURS8.none? { |ox, oy| inside?(cx + ox, cy + oy) && level[cy + oy][cx + ox] > 0 && !(foot && cy + oy == face) }
+        end
+      end
+      start = [sx, face + 1]
+      return false if !free.call(*start, true)
+      came = { start => nil }
+      queue = [[start, 0]]
+      until queue.empty?
+        (x, y), steps = queue.shift
+        if cells.call(x, y).any? { |cx, cy| @street[cy][cx] }
+          paint(sx, face - 1)
+          spot = [x, y]
+          while spot
+            paint(*spot)
+            spot = came[spot]
+          end
           return true
         end
-        return false if cells.any? { |x, yy| @border[yy][x] || @solid[yy][x] || @water[yy][x] || level[yy][x] != 0 }
+        next if steps >= MESA_STAIR_REACH
+        NEIGHBOURS.each do |ox, oy|
+          spot = [x + ox, y + oy]
+          next if came.key?(spot) || !free.call(*spot)
+          came[spot] = [x, y]
+          queue.push([spot, steps + 1])
+        end
       end
       return false
     end
@@ -384,9 +417,9 @@ module MapProceduralGenerator
       end
     end
 
-    # Peaks: rough ovals one level above the ground around them, away from the
+    # Peaks: massifs one level above the ground around them, away from the
     # streets, the water and the exits (MOUNTAIN_PEAKS per CASE_SIZE square);
-    # in a town, boxes (a raised garden, TERRACE_PEAKS).
+    # in a town, a raised garden (TERRACE_PEAKS) further from the cliffs.
     def raise_peaks(level, per_case = MOUNTAIN_PEAKS, rng = @rng, box = false)
       top = @place.levels.length
       count = (@w * @h * rng.rand(per_case) / (CASE_SIZE * CASE_SIZE).to_f).round
@@ -397,8 +430,11 @@ module MapProceduralGenerator
         cx, cy = rng.rand(@w), rng.rand(@h)
         here = level[cy][cx]
         next if here >= top
-        cells = (cy - 4..cy + 4).flat_map do |y|
-          (cx - 6..cx + 6).select { |x| box ? ((x - cx).abs <= rx && (y - cy).abs <= ry) : ((((x - cx) / rx)**2) + (((y - cy) / ry)**2)) <= 1.0 }.map { |x| [x, y] }
+        # A massif (bowl_blocks) about rx by ry around cx, cy
+        blocks = bowl_blocks(rx.round, ry.round + 1, rng, 2)
+        x0, y0 = cx - blocks[0].length, cy - blocks.length
+        cells = (0...blocks.length * 2).flat_map do |y|
+          (0...blocks[0].length * 2).select { |x| blocks[y / 2][x / 2] }.map { |x| [x0 + x, y0 + y] }
         end
         # A box keeps off the cliffs around it by two
         margin = box ? (-2..2) : (-1..1)
@@ -418,6 +454,8 @@ module MapProceduralGenerator
     def thicken(level)
       at = ->(x, y) { inside?(x, y) ? level[y][x] : Float::INFINITY }
       steep = steep_cells(level)
+      rounds = 0
+      filled = {}
       loop do
         thin = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.select do |x, y|
           here = level[y][x]
@@ -425,10 +463,84 @@ module MapProceduralGenerator
             [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |ax, ay| at.call(x + ox + ax, y + oy + ay) >= here }
           end
         end
+        # A cliff has no inner corner facing north: the notch above it fills
+        # up when that makes no cliff two levels high, else the row wider
+        # than the one above it loses its overhang, column after column
+        fills = {}
+        corners = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.filter_map do |x, y|
+          here = level[y][x]
+          next if here == 0 || [[0, -1], [0, 1], [-1, 0], [1, 0]].any? { |ox, oy| at.call(x + ox, y + oy) < here }
+          side = [-1, 1].find { |ox| at.call(x + ox, y - 1) < here }
+          next if !side
+          nx, ny = x + side, y - 1
+          if !@street[ny][nx] && NEIGHBOURS8.all? { |ox, oy| at.call(nx + ox, ny + oy) >= here - 1 }
+            fills[[nx, ny]] = here
+            next
+          end
+          # (never what a fill raised: they would chase each other; nor a
+          # cell beside a higher level: its cliff would be two levels high)
+          ox = x + side
+          next [ox, y] if !filled[[ox, y]] && !below_higher?(level, ox, y)
+        end
+        if !fills.empty?
+          fills.each { |(fx, fy), lv| level[fy][fx] = lv }
+          filled.merge!(fills)
+          rounds += 1
+          next if rounds <= THICKEN_ROUNDS
+        end
+        # Nor does a level run into a lower border or the map's edge below it
+        # (its cliff would stop there, open): it ends one tile before, its
+        # cliff showing (a band that goes on under the trees stays)
+        # (on a mountain, its bands climb from border to border)
+        sinks = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.select do |x, y|
+          !@place.mountain && level[y][x] > 0 && !@border[y][x] && !@street[y][x] && !below_higher?(level, x, y) &&
+            [-1, 0, 1].any? { |ox| !inside?(x + ox, y + 1) || (@border[y + 1][x + ox] && level[y + 1][x + ox] < level[y][x]) }
+        end
+        thin |= corners | sinks
+        thin |= slivers(level) if thin.empty?
         break if thin.empty?
+        rounds += 1
+        return false if rounds > THICKEN_ROUNDS
         thin.each { |x, y| level[y][x] -= 1 }
       end
       return steep_cells(level) <= steep
+    end
+
+    # The cells of a level too small to stand as a mesa (less than
+    # MESA_MIN wide or high: a cliff with no top behind it), off the border.
+    def slivers(level)
+      cells = []
+      (1..level.flatten.max.to_i).each do |lv|
+        seen = Array.new(@h) { Array.new(@w, false) }
+        @h.times do |y|
+          @w.times do |x|
+            next if seen[y][x] || level[y][x] < lv || @border[y][x]
+            part = []
+            queue = [[x, y]]
+            seen[y][x] = true
+            until queue.empty?
+              cx, cy = queue.pop
+              part.push([cx, cy])
+              NEIGHBOURS.each do |ox, oy|
+                nx, ny = cx + ox, cy + oy
+                next if !inside?(nx, ny) || seen[ny][nx] || level[ny][nx] < lv || @border[ny][nx]
+                seen[ny][nx] = true
+                queue.push([nx, ny])
+              end
+            end
+            xs, ys = part.map(&:first), part.map(&:last)
+            next if xs.max - xs.min + 1 >= MESA_MIN[0] && ys.max - ys.min + 1 >= MESA_MIN[1]
+            cells.concat(part)
+          end
+        end
+      end
+      return cells.uniq
+    end
+
+    # True if a cell lies beside a higher one: one level down, its cliff
+    # would be two levels high.
+    def below_higher?(level, x, y)
+      return NEIGHBOURS8.any? { |ox, oy| inside?(x + ox, y + oy) && level[y + oy][x + ox] > level[y][x] }
     end
 
     # Number of rows with two levels side by side (a cliff two levels high).

@@ -119,10 +119,15 @@ module MapProceduralGenerator
   # mesas: per square, on a route that can't climb by bands (east-west, L, U),
   # mesa_width by mesa_height tiles, each one with chain more boxes joined to
   # it (a ridge). A mesa's stair: on its south face, a path from the street
-  # at most MESA_STAIR_REACH rows below.
+  # of MESA_STAIR_REACH steps at most, around the mesa if need be.
   ROUTE_TERRACE_CHANCE = 60
-  ROUTE_TERRACE = { faces: 1..3, depth: 5, mesas: 0.3..0.7, mesa_width: 6..12, mesa_height: 4..7, chain: 0..3 }.freeze
-  MESA_STAIR_REACH = 12
+  ROUTE_TERRACE = { faces: 1..3, depth: 5, mesas: 0.3..0.7, mesa_width: 6..12, mesa_height: 4..9, chain: 0..3 }.freeze
+  # The smallest mesa (width, height in tiles): a smaller piece of a level is
+  # lowered, its cliff would have no top behind it.
+  MESA_MIN = [4, 3].freeze
+  # Rounds of thicken at most (its fills and cuts could chase each other).
+  THICKEN_ROUNDS = 200
+  MESA_STAIR_REACH = 40
   TERRACE_TRIES = 4
   TERRACE_PEAKS = 0.5..1.0
   TERRACE_FACES = 2..4
@@ -134,17 +139,23 @@ module MapProceduralGenerator
   # size; the ovals added after the first are that much smaller (share of
   # the box, per side).
   LAKE_SHAPE = { width: 4..14, height: 4..10, ovals: 1..3, first: 0.35..0.5, more: 0.2..0.4 }.freeze
-  # Patches of grass (« herbes », « prairie » in [Briques]): that often (%)
+  # Patches of grass (« herbes », « prairie », the parks of « parc » in
+  # [Briques]): that often (%)
   # drawn for the spot like the lakes, of the symbol of the brick drawn,
-  # instead of that brick; width and height of their box.
+  # instead of that brick; width and height of their box, a quarter smaller
+  # each time it doesn't fit (as big as the place allows).
   GRASS_SHAPE = {
-    "herbes"  => { chance: 100, width: 8..18, height: 5..10, ovals: 2..4, first: 0.35..0.45, more: 0.25..0.4 },
-    "prairie" => { chance: 100, width: 12..22, height: 7..12, ovals: 2..4, first: 0.35..0.45, more: 0.25..0.4 }
+    "herbes"  => { chance: 100, width: 12..26, height: 7..14, ovals: 3..6, first: 0.3..0.4, more: 0.2..0.35 },
+    "prairie" => { chance: 100, width: 16..30, height: 9..16, ovals: 3..6, first: 0.3..0.4, more: 0.2..0.35 },
+    "parc"    => { chance: 100, width: 6..12, height: 4..8, ovals: 2..3, first: 0.35..0.45, more: 0.25..0.4 }
   }.freeze
   # Ridges (« montagne » in [Briques]): that often (%) drawn for the spot, a
-  # chain of ovals (count) on a grid of 2x2 blocks, width by height blocks,
+  # massif on a grid of 2x2 blocks, width by height blocks,
   # instead of a brick of the files; a stair on its south face when it fits.
-  RIDGE_SHAPE = { chance: 70, width: 5..10, height: 2..4, ovals: 2..4 }.freeze
+  RIDGE_SHAPE = { chance: 70, width: 5..10, height: 2..4 }.freeze
+  # How often a side of a massif narrows by a block, row after row (%, from
+  # its top row to its foot): its foot ends rounded.
+  BOWL_BEND = 30..80
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20

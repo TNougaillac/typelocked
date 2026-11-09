@@ -309,12 +309,29 @@ module MapProceduralGenerator
       return false
     end
 
+    # True if a cell of the brush, on the ground, lies beside the top of a
+    # level (its stairs aside): a path there would join that level, whose
+    # cliff would not be drawn along it.
+    def brush_hugs_cliff?(x, y)
+      return false if !@level
+      STREET_WIDTH.times do |oy|
+        STREET_WIDTH.times do |ox|
+          cx, cy = x + ox, y + oy
+          next if level_at(cx, cy) > 0
+          return true if NEIGHBOURS.any? do |nx, ny|
+            inside?(cx + nx, cy + ny) && level_at(cx + nx, cy + ny) > 0 && !@stairs_at&.key?([cx + nx, cy + ny])
+          end
+        end
+      end
+      return false
+    end
+
     # Brush steps from every street cell outward: distances[y][x] (nil = no
     # path), parents for carve_path.
     def street_distances
       @parents = Array.new(@h) { Array.new(@w) }
       distances = Array.new(@h) { Array.new(@w) }
-      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) } }
+      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) && !brush_hugs_cliff?(x, y) } }
       queue = []
       @h.times do |y|
         @w.times do |x|
