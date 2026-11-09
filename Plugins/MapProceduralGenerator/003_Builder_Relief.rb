@@ -302,7 +302,7 @@ module MapProceduralGenerator
       crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
       slope = (relief.rand(100) < SLOPE_CHANCE) ? [-1, 1].sample(random: relief) : 0
       slope = 0 if rim
-      wave = (slope == 0) ? FACE_WAVE : SLOPE_WAVE
+      wave = (slope == 0) ? (town_terraces? ? TOWN_TERRACE[:face_wave] : FACE_WAVE) : SLOPE_WAVE
       offset = (slope == 0) ? 0 : -slope * relief.rand(0..SLOPE_WAVE)
       run = 0
       return Array.new(@w) do |x|
@@ -388,14 +388,16 @@ module MapProceduralGenerator
         cells = (0...@h).flat_map { |y| (0...@w).select { |x| band[y][x] == i }.map { |x| [x, y] } }
         streets = cells.select { |x, y| @street[y][x] }.map(&:first)
         left, right = streets.empty? ? [@w / 2, @w / 2] : [streets.min - SIDE_GAP, streets.max + SIDE_GAP]
-        cut_left = (@rng.rand(100) < SIDE_TRIM && left > 3) ? @rng.rand(2..left) : 0
-        cut_right = (@rng.rand(100) < SIDE_TRIM && right < @w - 3) ? @rng.rand(right..@w - 2) : @w
+        trim = town_terraces? ? TOWN_TERRACE[:trim] : SIDE_TRIM
+        cut_left = (@rng.rand(100) < trim && left > 3) ? @rng.rand(2..left) : 0
+        cut_right = (@rng.rand(100) < trim && right < @w - 3) ? @rng.rand(right..@w - 2) : @w
         next if cut_right - cut_left < SIDE_GAP * 2
-        # The cut wanders from row to row (SIDE_WAVE), never past the streets
-        shift = side_wave(relief)
+        # The cut wanders from row to row (SIDE_WAVE), never past the streets;
+        # a town's slants inwards going down
+        shift = town_terraces? ? side_taper(relief, cells.map(&:last).min) : side_wave(relief)
         cells.each do |x, y|
           lo = cut_left.zero? ? 0 : (cut_left + shift[y % shift.length]).clamp(1, left)
-          hi = (cut_right == @w) ? @w : (cut_right - shift[(y + 7) % shift.length]).clamp(right, @w - 1)
+          hi = (cut_right == @w) ? @w : (cut_right - shift[(y + (town_terraces? ? 0 : 7)) % shift.length]).clamp(right, @w - 1)
           level[y][x] = levels[i] - 1 if x < lo || x >= hi
         end
       end
@@ -403,6 +405,25 @@ module MapProceduralGenerator
 
     # Column offsets of a cut side, row after row: a step of one every few
     # rows, up to SIDE_WAVE, sloping one way more often than not.
+    # A town terrace's side: from the band's top row, one column more every
+    # TOWN_TERRACE[:taper] rows going down, so that its cliff slants.
+    def side_taper(relief, top)
+      offset = 0
+      next_step = top + relief.rand(TOWN_TERRACE[:taper])
+      return Array.new(@h) do |y|
+        if y > next_step
+          offset += 1
+          next_step = y + relief.rand(TOWN_TERRACE[:taper])
+        end
+        offset
+      end
+    end
+
+    # A town's terraces (not a route's, not a mountain's).
+    def town_terraces?
+      return @place.kind != "route" && !@place.mountain
+    end
+
     def side_wave(relief)
       slope = [-1, 1].sample(random: relief)
       offset = 0
@@ -575,6 +596,16 @@ module MapProceduralGenerator
       return @level[y][x]
     end
 
+    # Whether a level draws its edge on x, y: a cliff, a rim, a corner, as
+    # the map shows them (the border stays on the ground, see level_rows).
+    def level_edge?(x, y)
+      return false if !@level
+      shown = ->(cx, cy) { (!inside?(cx, cy) || @border[cy][cx]) ? 0 : level_at(cx, cy) }
+      here = shown.call(x, y)
+      return true if @face&.[](y)&.[](x) || shown.call(x, y + 1) > here
+      return here > 0 && NEIGHBOURS8.any? { |ox, oy| inside?(x + ox, y + oy) && shown.call(x + ox, y + oy) < here }
+    end
+
     # The « Relief » symbol of a level.
     def level_symbol(level)
       return @place.levels[level - 1]
@@ -585,7 +616,7 @@ module MapProceduralGenerator
     # and the cliffs.
     def grow_highland_grass
       return if !@level || !@place.high_grass
-      free = ->(x, y) { inside?(x, y) && level_at(x, y) > 0 && !@solid[y][x] && !@street[y][x] && !@cells[y][x] && !@border[y][x] }
+      free = ->(x, y) { inside?(x, y) && level_at(x, y) > 0 && !@solid[y][x] && !@street[y][x] && !@cells[y][x] && !@border[y][x] && !canopy?(x, y) }
       raised = (0...@h).flat_map { |y| (0...@w).select { |x| free.call(x, y) }.map { |x| [x, y] } }
       return if raised.empty?
       (raised.length * @rng.rand(MOUNTAIN_GRASS) / (CASE_SIZE * CASE_SIZE)).ceil.times do

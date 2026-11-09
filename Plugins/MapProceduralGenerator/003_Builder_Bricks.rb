@@ -36,8 +36,11 @@ module MapProceduralGenerator
       # The optional bricks of LAST_KINDS after all the others, so that they
       # never take the room of a park or its grass
       last, optional = optional.partition { |k| LAST_KINDS.include?(k) }
-      # A headquarters with no room on the quay first among the optional ones
-      order = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == DECOR) ? 1 : 0] } + @inland_hqs +
+      # A headquarters with no room on the quay among the required buildings,
+      # before the houses take its room
+      required = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == "maison") ? 1 : 0, (k == DECOR) ? 1 : 0] }
+      required.insert(required.count { |k| with_door.call(k) == 0 && k != "maison" }, *@inland_hqs)
+      order = required +
               optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] } +
               last.shuffle(random: @extra_rng)
       # With « dense », the fill bricks may touch each other (not the others)
@@ -68,6 +71,12 @@ module MapProceduralGenerator
           next
         end
         next if i >= required.length || place_smallest(kind)
+        # A required brick under the leaves of the border rather than none
+        # (the border keeps its ground there, see plant_border)
+        @loose_canopy = true
+        placed = place_brick(kind) || place_smallest(kind)
+        @loose_canopy = false
+        next if placed
         error("impossible de placer une brique « #{kind} » ; agrandis « Taille » ou réduis [Briques]")
       end
       flood_ground
@@ -542,7 +551,7 @@ module MapProceduralGenerator
       lowland = LOWLAND.include?(brick.kind)
       return Array.new(@h) do |y|
         Array.new(@w) do |x|
-          next true if near[y][x] || @solid[y][x] || @street[y][x] || @zone&.[](y)&.[](x)
+          next true if near[y][x] || @solid[y][x] || @street[y][x] || @zone&.[](y)&.[](x) || canopy?(x, y)
           raised = level_at(x, y) > 0
           highland ? !raised : (raised && lowland)
         end
@@ -615,11 +624,16 @@ module MapProceduralGenerator
     end
 
     # No roof over another brick or another roof, nor over an object laid
-    # before the bricks (a wall of rocks), nor off the map.
+    # before the bricks (a wall of rocks), nor off the map, nor under the
+    # leaves of the border (canopy?), over a cliff or the planks of a port:
+    # each drawing whole.
     def halo_free?(brick, x, y)
       return brick_halo(brick).none? do |dx, dy|
         cx, cy = x + dx, y + dy
-        next true if !inside?(cx, cy) || @halo[cy][cx] > 0
+        next true if !inside?(cx, cy) || @halo[cy][cx] > 0 || canopy?(cx, cy)
+        # Nor over a level's cliff or the rim above it (drawn on layer 3)
+        next true if level_edge?(cx, cy)
+        next true if @palette.terrains[@cells[cy][cx]]&.layer.to_i == 2
         next !@border[cy][cx] && (@kinds[cy][cx] || @palette.objects[@cells[cy][cx]])
       end
     end

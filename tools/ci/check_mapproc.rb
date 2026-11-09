@@ -462,6 +462,15 @@ end
 # map has its exit (a transfer event) where INTERIORS says; the League's
 # rooms have their doors where LEAGUE_ROOMS says.
 def check_interiors(bricks)
+# Every house belongs to one style of HOUSE_STYLES, every name there to a house
+house_names = bricks.select { |brick| brick.kind == "maison" }.map(&:name)
+house_names.each do |name|
+  styles = M::HOUSE_STYLES.count { |_style, rule| rule[:houses].include?(name) }
+  CI.error(File.join(folder, M::BRICK_FOLDER), nil, "maison « #{name} » dans #{styles} styles de HOUSE_STYLES au lieu d'un") if styles != 1
+end
+(M::HOUSE_STYLES.flat_map { |_style, rule| rule[:houses] } - house_names).each do |name|
+  CI.error("Plugins/MapProceduralGenerator/001_Settings.rb", nil, "HOUSE_STYLES : aucune maison « #{name} »")
+end
   settings = File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb")
   bricks.select(&:door).map(&:kind).uniq.each do |kind|
     next if M::NO_INTERIOR.include?(kind) || M::INTERIORS[kind] || kind == M::LEAGUE

@@ -115,6 +115,9 @@ module MapProceduralGenerator
       @bricks.select! { |b| !b.ambiances || b.ambiances.include?(place.ambiance) }
       # and some left out by the place's excess
       @bricks.reject! { |b| excess[:without]&.include?(b.name) }
+      # and the houses of another style than the place's (HOUSE_STYLES)
+      houses = HOUSE_STYLES[house_style(place, seed)][:houses]
+      @bricks.reject! { |b| b.kind == "maison" && !houses.include?(b.name) } if @bricks.any? { |b| b.kind == "maison" && houses.include?(b.name) }
       @left_out -= @bricks.map(&:kind)
       @palette = palette
       @seed = seed
@@ -320,6 +323,29 @@ module MapProceduralGenerator
       deepen_border(bw, bh)
     end
 
+    # The style of the place's houses, drawn by HOUSE_STYLES' weights (those
+    # of its ambiance where it has some), apart from the other draws.
+    def house_style(place, seed)
+      rng = Random.new(seed ^ HOUSE_STYLE_SALT)
+      weights = HOUSE_STYLES.map { |name, style| [name, style[:ambiances][place.ambiance] || style[:weight]] }
+      roll = rng.rand(weights.sum(&:last))
+      return weights.find { |_name, weight| (roll -= weight) < 0 }.first
+    end
+
+    # True if the leaves of a border forest may reach x, y off the border:
+    # its canopy (2 rows above its trees) and its spills (a column beside
+    # them). Nothing drawn there (a brick, flowers, grass), so that the
+    # forest is drawn whole: no tile cut.
+    def canopy?(x, y)
+      return false if @loose_canopy || !@place.border || !@palette.objects[@place.border]&.forest
+      @canopy ||= Array.new(@h) do |cy|
+        Array.new(@w) do |cx|
+          !@border[cy][cx] && [-1, 0, 1].any? { |ox| (0..2).any? { |oy| inside?(cx + ox, cy + oy) && @border[cy + oy][cx + ox] } }
+        end
+      end
+      return @canopy[y][x]
+    end
+
     # Natural border (BORDER_DEPTH): along each side of the map, the border
     # grows inwards by whole rows of its trees, in stretches of
     # BORDER_STRETCH trees, each one row deeper or shallower than the last,
@@ -374,6 +400,8 @@ module MapProceduralGenerator
           elsif !free_ground?(x, y)
             next
           end
+          # Never under a drawing (a crown, a roof, the leaves of the border)
+          next if canopy?(x, y) || @halo[y][x] > 0
           @cells[y][x] = carpet
         end
       end
@@ -421,15 +449,25 @@ module MapProceduralGenerator
       @h.times { |y| @w.times { |x| @cells[y][x] = @place.filler if free_border?(x, y) && !covered?(x, y) } }
     end
 
-    # A border tree at x, y (bw x bh) whose canopy (its leaves beside it, the
-    # 2 rows above) covers no drawing: an object or a brick's halo. Where it
-    # would, the border keeps its ground.
+    # A border tree at x, y (bw x bh) whose canopy (its leaves beside it and
+    # at its corners, the 2 rows above) covers no drawing: an object, a brick's halo, the planks
+    # of a port or a cliff. Where it would, the border keeps its ground.
     def canopy_clear?(x, y, bw, bh)
-      cells = (0...bh).flat_map { |dy| [[x - 1, y + dy], [x + bw, y + dy]] } +
-              (0...bw).flat_map { |dx| [[x + dx, y - 1], [x + dx, y - 2]] }
-      return cells.none? do |cx, cy|
+      sides = (-2...bh).flat_map { |dy| [[x - 1, y + dy], [x + bw, y + dy]] }
+      above = (0...bw).flat_map { |dx| [[x + dx, y - 1], [x + dx, y - 2]] }
+      return (sides + above).none? do |cx, cy|
         next false if !inside?(cx, cy)
-        next true if @drawn[cy][cx] > 0
+        next true if @drawn[cy][cx] > 0 || @palette.terrains[@cells[cy][cx]]&.layer.to_i == 2
+        # Beside it, its spills may join the canopy of the next tree: two
+        # layers to draw, none taken already (a rock, a flower, a cliff);
+        # above it, one at least (not a rock on two layers)
+        side = sides.include?([cx, cy])
+        upper = (@cells[cy][cx] == @place.border) ? 0 : @palette.legend[@cells[cy][cx]]&.length.to_i - 1
+        next true if side && upper >= 1
+        next true if upper >= 2
+        # Nor over a cliff or a raised level: the border stays on the ground,
+        # the edge of the level beside it takes a layer too
+        next true if level_edge?(cx, cy) || (level_at(cx, cy) > 0 && !@border[cy][cx])
         object = @palette.objects[@cells[cy][cx]]
         next object && @cells[cy][cx] != @place.border
       end

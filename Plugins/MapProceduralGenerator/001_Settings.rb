@@ -133,6 +133,11 @@ module MapProceduralGenerator
   TERRACE_FACES = 2..4
   TERRACE_DEPTH = 7
   TERRACE_SALT = 0x7E44
+  # A town's terraces, drawn as a map designer would: their sides cut that
+  # often (%), slanting in a column every few rows going down (the north rim
+  # stays straight, the tileset has no inner corner there), their south
+  # faces wandering up to face_wave rows between the streets.
+  TOWN_TERRACE = { trim: 90, taper: 1..3, face_wave: 3 }.freeze
   MOUNTAIN_PEAKS = 0.5..1.5
   # Lakes (« lac » in [Briques]): drawn for their spot, one to three
   # overlapping ovals (round, long, bean or L-shaped ponds) in a box of that
@@ -245,6 +250,24 @@ module MapProceduralGenerator
   # brick type => [models in a place of one square (20x20 tiles), more models
   # for each other square]. A village has 2 house models, a big town more.
   MODELS = { "maison" => [2, 0.6], "immeuble" => [1, 0.4], "batisse" => [1, 0.4] }.freeze
+  # Styles of houses: a place builds all its houses (« maison ») in one of
+  # them, so that their roofs and walls go together. weight: how often it is
+  # drawn, more in some ambiances; houses: the names of their bricks.
+  HOUSE_STYLES = {
+    "rustique" => { weight: 1, ambiances: { "chemins de terre" => 3, "automne" => 3, "marais" => 4, "terre battue" => 2, "neige" => 2 },
+                    houses: ["Case en paille", "Chalet rouge", "Chaumière", "Chaumière à cheminée", "Maison aux bardeaux",
+                             "Maison en bois", "Maison ocre", "Maison en rondins"] },
+    "chaud"    => { weight: 2, ambiances: { "sable" => 3, "volcan" => 4, "plage" => 3, "terre battue" => 2 },
+                    houses: ["Maison bordeaux à cheminée", "Maison orange à balustrade", "Maison crème", "Maison orange",
+                             "Maison orange à escalier", "Maison rouge à auvent", "Maison au toit rouge", "Maison verte à cheminée",
+                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge"] },
+    "froid"    => { weight: 2, ambiances: { "neige" => 3, "minérale" => 3, "verdoyante" => 2, "prairie" => 2 },
+                    houses: ["Garage", "Maison à auvent vert", "Maison bleue à cheminée", "Maison et jardin", "Maison mauve",
+                             "Maison au toit de mousse", "Maison au pignon bleu", "Petite maison à toit plat", "Maison turquoise à annexe",
+                             "Haute maison turquoise", "Maison violette", "Grande maison aux tuiles violettes", "Maison au toit vitré",
+                             "Maison au toit vitré bleu", "Petite maison verte"] }
+  }.freeze
+  HOUSE_STYLE_SALT = 5381
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
   LAST_KINDS = %w[batisse special].freeze
