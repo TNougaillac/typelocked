@@ -45,6 +45,10 @@ module MapProceduralGenerator
   # (nothing, joined by the levels)
   CLIFF = "ɸ"
   HOLE = "ʘ"
+  # [Legend] symbols of a mountain river's cascades on [Layer3], over its
+  # water (still waterfall tiles, joined by every level): the crest above the
+  # cliff, the fall on the cliff's row, the foam at its foot
+  WATERFALL = { crest: "ǁ", fall: "ǂ", foot: "ǀ" }.freeze
   # Most bricks an excess « fill » adds after the others (until none fits)
   FILL_LIMIT = 80
   PORT = "port"   # type of the port buildings, only put along the quay

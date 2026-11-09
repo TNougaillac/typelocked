@@ -94,6 +94,10 @@ module MapProceduralGenerator
   # A north rim (the cliff seen from above) steps every RIM_RUN columns at
   # least, by 2 rows.
   RIM_RUN = 6
+  # A mountain river comes down the levels by cascades: it springs on the
+  # highest band it can go down from, SPRING_GAP rows below its north rim
+  # (no river above).
+  SPRING_GAP = 3
   MOUNTAIN_GRASS = 1..3
   # A raised band stops short of a side of the map that often (%), at least
   # SIDE_GAP tiles from its streets; peaks (one level above the ground

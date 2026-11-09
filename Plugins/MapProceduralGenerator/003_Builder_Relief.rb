@@ -17,8 +17,12 @@ module MapProceduralGenerator
       return Array.new(@h) do |y|
         Array.new(@w) do |x|
           next HOLE if @stairs_at.key?([x, y]) || (@border[y][x] && [@place.border, @place.filler].include?(@cells[y][x]))
-          # Under no tree, the border stays on the ground (no cliff of its own)
-          (level_at(x, y) > 0 && !@border[y][x]) ? level_symbol(level_at(x, y)) : MapGenerator::OVERLAY_EMPTY
+          # A cascade, over the river (every level joins it: no cliff drawn
+          # over the fall)
+          next waterfall_at(x, y) if waterfall_at(x, y)
+          # Under no tree, the border stays on the ground (no cliff of its
+          # own), but along a cascading river
+          (level_at(x, y) > 0 && !flat_border?(x, y)) ? level_symbol(level_at(x, y)) : MapGenerator::OVERLAY_EMPTY
         end.join
       end
     end
@@ -192,11 +196,14 @@ module MapProceduralGenerator
       [true, vertical_route?].uniq.product(wanted.downto(1).to_a).find do |stairs, count|
         20.times.any? { try_levels(crossings, ground_rows, count, stairs, terraces) }
       end
+      # (the river as chosen if no try held)
+      reset_river if !@level
     end
 
     # Draws count boundaries picked among crossings; false if they don't fit
     # or if they would cut an exit off.
     def try_levels(crossings, ground_rows, count, stairs, terraces = nil)
+      reset_river
       picks = []
       crossings.keys.shuffle(random: @rng).each do |r|
         picks.push(r) if picks.none? { |p| (p - r).abs < FACE_GAP }
@@ -228,7 +235,16 @@ module MapProceduralGenerator
       # A town's or a route's levels stop at the border (its trees stand on
       # the ground: a level under them would show holes in its edge)
       @h.times { |y| @w.times { |x| level[y][x] = 0 if @border[y][x] } } if !@place.mountain
-      return false if !thicken(level)
+      # A mountain river comes down the levels by cascades where it can,
+      # else it runs on the ground the whole way
+      flat = level.map(&:dup)
+      cascade_river(level)
+      if !thicken(level) || (@cascade && !cascade_kept?(level))
+        return false if !@cascade
+        reset_river
+        level = flat
+        return false if !thicken(level)
+      end
       faces, stairs_at = draw_faces(level)
       return false if !faces
       return apply_levels(level, faces, stairs_at)
@@ -617,10 +633,17 @@ module MapProceduralGenerator
     # the map shows them (the border stays on the ground, see level_rows).
     def level_edge?(x, y)
       return false if !@level
-      shown = ->(cx, cy) { (!inside?(cx, cy) || @border[cy][cx]) ? 0 : level_at(cx, cy) }
+      shown = ->(cx, cy) { (!inside?(cx, cy) || flat_border?(cx, cy)) ? 0 : level_at(cx, cy) }
       here = shown.call(x, y)
       return true if @face&.[](y)&.[](x) || shown.call(x, y + 1) > here
       return here > 0 && NEIGHBOURS8.any? { |ox, oy| inside?(x + ox, y + oy) && shown.call(x + ox, y + oy) < here }
+    end
+
+    # A border cell drawn on the ground whatever its level: all of them but
+    # those beside a cascading river (the ground between it and the trees
+    # at the river's level).
+    def flat_border?(x, y)
+      return @border[y][x] && !@strip&.[](y)&.[](x)
     end
 
     # The « Relief » symbol of a level.
@@ -681,8 +704,88 @@ module MapProceduralGenerator
           outer.each { |x| low[y][x] = true }
           true
         end
-        @river, @low = cells, low if ok
+        @river_full, @low_full, @river_side = cells, low, side if ok
         ok
+      end
+      reset_river
+    end
+
+    # The river as chosen, on the ground the whole way (before each try of
+    # the levels: cascade_river changes it).
+    def reset_river
+      return if !@river_full
+      @river = @river_full.map(&:dup)
+      @low = @low_full
+      @cascade = false
+      @strip = nil
+    end
+
+    # Cascades: the river springs on the highest band from which the levels
+    # only go down to the south (SPRING_GAP rows below its north rim), then
+    # runs down band after band, its water and the ground between it and the
+    # trees at the level of its row: the lowest of the cells around (river,
+    # outer strip and two columns of its inner bank), so that no cliff runs
+    # along it but those of the higher banks. Its rows above the spring stay
+    # dry. Nothing changes when it would spring on the ground.
+    def cascade_river(level)
+      return if !@river
+      rows = (0...@h).select { |y| @river[y].any? }
+      strip = lambda do |y|
+        xs = (0...@w).select { |x| @river_full[y][x] }
+        next (@river_side == :west) ? (0..xs.max + 2) : (xs.min - 2...@w)
+      end
+      height = rows.to_h do |y|
+        near = [y - 1, y, y + 1].select { |yy| @river[yy]&.any? }
+        [y, near.flat_map { |yy| strip.call(yy).map { |x| level[yy][x] } }.min]
+      end
+      top = rows.length - 1
+      top -= 1 while top > 0 && height[rows[top - 1]] >= height[rows[top]]
+      spring = top + SPRING_GAP
+      return if spring + 1 >= rows.length || height[rows[top]] == 0
+      return if (top..spring + 1).any? { |i| height[rows[i]] != height[rows[top]] }
+      rows[0...spring].each { |y| @river[y].fill(false) }
+      @strip = Array.new(@h) { Array.new(@w, false) }
+      rows[spring..].each do |y|
+        xs = (0...@w).select { |x| @river[y][x] }
+        ((@river_side == :west) ? (0..xs.max) : (xs.min...@w)).each { |x| level[y][x], @strip[y][x] = height[y], true }
+      end
+      # (the border around the river shows its level too, the row above the
+      # spring included: no rim or corner drawn on the water)
+      rows[spring..].each do |y|
+        (0...@w).select { |x| @river[y][x] }.each do |x|
+          NEIGHBOURS8.each { |ox, oy| @strip[y + oy][x + ox] = true if inside?(x + ox, y + oy) && @border[y + oy][x + ox] }
+        end
+      end
+      above = rows[spring] - 1
+      @w.times { |x| @strip[above][x] = true if @border[above][x] && strip.call(above).include?(x) }
+      @low = nil
+      @cascade = true
+    end
+
+    # Whether the cascades still read once the levels are thickened: the
+    # river level along each row, never higher than upstream, each fall
+    # with a row of river above it (its crest) and one below (its foot) at
+    # their own level, no cliff along the river but at its falls.
+    def cascade_kept?(level)
+      rows = (0...@h).select { |y| @river[y].any? }
+      cells = rows.map { |y| (0...@w).select { |x| @river[y][x] } }
+      heights = rows.each_index.map do |i|
+        here = cells[i].map { |x| level[rows[i]][x] }.uniq
+        return false if here.length > 1
+        here[0]
+      end
+      drops = (0...rows.length - 1).select { |i| heights[i + 1] != heights[i] }
+      return false if drops.any? do |i|
+        heights[i + 1] > heights[i] || i == 0 || heights[i - 1] != heights[i] ||
+          i + 2 >= rows.length || heights[i + 2] != heights[i + 1]
+      end
+      return rows.each_index.all? do |i|
+        y = rows[i]
+        cells[i].all? do |x|
+          NEIGHBOURS8.all? do |ox, oy|
+            !inside?(x + ox, y + oy) || level[y + oy][x + ox] >= heights[i] || (oy == 1 && drops.include?(i))
+          end
+        end
       end
     end
 
@@ -697,6 +800,18 @@ module MapProceduralGenerator
         end
       end
       reserve_banks
+    end
+
+    # The cascade tile of a river cell ([Layer3]): its fall on the cliff's
+    # row, the crest above, the foam below; nil elsewhere.
+    def waterfall_at(x, y)
+      return nil if !@cascade || !@river[y][x]
+      # (a river cell above a lower row: on the border too, never a face)
+      fall = ->(yy) { yy >= 0 && yy + 1 < @h && @river[yy][x] && [-1, 0, 1].any? { |ox| inside?(x + ox, yy + 1) && level_at(x + ox, yy + 1) < level_at(x, yy) } }
+      return WATERFALL[:fall] if fall.call(y)
+      return WATERFALL[:crest] if fall.call(y + 1)
+      return WATERFALL[:foot] if fall.call(y - 1)
+      return nil
     end
 
     # On an east-west mountain route, a hub row away from the exits, so that the
