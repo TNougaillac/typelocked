@@ -131,6 +131,7 @@ module MapProceduralGenerator
       @halo = Array.new(@h) { Array.new(@w, 0) }   # buildings' halos over each cell
       @drawn = Array.new(@h) { Array.new(@w, 0) }  # the same, but forests' canopies
       @doors = []
+      @hq_cells = []
       @exits = []
       @dead_ends = []
       @nooks = []
@@ -193,7 +194,8 @@ module MapProceduralGenerator
 
     # Where the events of the place can go (MapEvents, items, NPCs), every cell
     # reached on foot from the exits, doors and ferry terminal:
-    #   exits: [side, x, y]; doors: [x, y, type] (door cells);
+    #   exits: [side, x, y]; doors: [x, y, type] (door cells); hqs: [x, y,
+    #   type] (the middle of each guild's headquarters, GUILD_HQS);
     #   street: free cells beside a street; facing: [x, y, direction] of
     #   each, towards its street (haut, bas, gauche, droite); grass: tall
     #   grass cells;
@@ -212,6 +214,7 @@ module MapProceduralGenerator
       return {
         exits:     @exits.map(&:dup),
         doors:     @doors.map { |x, y, brick| [x, y, brick.kind] },
+        hqs:       @hq_cells.map(&:dup),
         street:    street,
         facing:    street.map { |x, y| [x, y, FACING_NAMES[NEIGHBOURS.find { |ox, oy| on_street.call(x + ox, y + oy) }]] },
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },

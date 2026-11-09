@@ -295,3 +295,267 @@ Une ferme, ça se défend. Contre la Famille comme contre les curieux.
 Le troupeau t'a jugé. Il a bon goût.
 Tu ne te bats pas comme eux. C'est déjà quelque chose.
 Reviens quand tu veux. La porte de la ferme est ouverte.
+
+[guilde_nageurs_membre_combat]
+L'eau purifie du Pacte. Toi, tu es encore sale.
+Le Cercle t'observe depuis la plage. Entre dans l'eau, ou entre dans le combat.
+Le Maître dit que la mer lave tout. Même les désignés.
+Tu n'es pas des nôtres. Pas encore.
+
+[guilde_nageurs_membre_fin]
+La marée reviendra. Elle revient toujours.
+Le Maître nageur saura quoi faire de toi.
+Tu n'es pas prêt pour l'eau profonde.
+Le Cercle n'oublie pas ceux qui le battent.
+
+[guilde_nageurs_chef_combat]
+Le Pacte t'a souillé, désigné. | Je t'offre le baptême. Accepte-le, ou noie-toi.
+La Famille tient la terre. Le Cercle tient la mer. | Tu es sur notre rivage.
+Plonge avec moi. Ceux qui remontent ne sont plus jamais liés à rien.
+
+[guilde_nageurs_chef_fin]
+La mer t'a refusé. Pour cette fois.
+Tu nages contre le courant. Il finira par t'emporter.
+Le Cercle attendra. L'eau a tout son temps.
+
+[guilde_dundees_membre_combat]
+Pas un bruit. Tu fais fuir le gibier.
+Les crocs du marais ne pardonnent pas. Nous non plus.
+Tu cherches le campement ? Il faudra passer par moi.
+Ici, on chasse ce qui mord. Voyons si tu mords.
+
+[guilde_dundees_membre_fin]
+Bonne prise. Je retourne à l'affût.
+Le Grand chasseur va vouloir te voir de près.
+Tu as du cran. Ça ne suffit pas dans la vase.
+Je te laisse passer. Le marais, lui, ne te laissera rien.
+
+[guilde_dundees_chef_combat]
+J'ai traqué des crocs plus gros que toi dans cette vase. | Montre-moi si tu tiens debout.
+La Famille ne vient jamais jusqu'ici. Les moustiques la font fuir. | Toi, tu es venu. Erreur.
+Au marais, il y a les chasseurs et les proies. Choisis ton camp.
+
+[guilde_dundees_chef_fin]
+Belle chasse. On en parlera autour du feu.
+Tu as eu le gibier, cette fois.
+Le marais garde le dernier mot. Il le garde toujours.
+
+[guilde_pontes_membre_combat]
+Recule. Les nids sont juste derrière moi.
+Chaque œuf de cette plage est sous notre garde.
+Tu marches trop près du sable chaud. Bats-toi ou fais demi-tour.
+Les tortues mettent cent ans à grandir. Toi, tu as trente secondes.
+
+[guilde_pontes_membre_fin]
+Tu n'as pas écrasé un seul nid. C'est déjà bien.
+La Gardienne est à la cabane. Parle-lui doucement.
+Va. Mais regarde où tu mets les pieds.
+D'accord, tu es fort. Les nids ont besoin de gens forts.
+
+[guilde_pontes_chef_combat]
+Le Cercle veut nos plages, les Dundees nos tortues, la Famille notre silence. | Qu'est-ce que tu veux, toi ?
+Une tortue protège sa ponte, et rien d'autre ne compte. | Montre-moi ce que tu protèges.
+Personne ne touche aux nids. Ni la Famille, ni un désigné.
+
+[guilde_pontes_chef_fin]
+Tu te bats comme une carapace : on ne passe pas.
+Les nids sont plus en sûreté avec toi dans le coin.
+Reviens à la saison des éclosions. Ça vaut le voyage.
+
+[guilde_braconniers_membre_combat]
+Tu n'as rien vu, rien entendu. Sauf moi.
+Les cages sont pleines, mais il reste de la place.
+La Famille paie bien pour les bêtes rares. Et pour le silence.
+Personne ne vient au fond de la forêt sans raison.
+
+[guilde_braconniers_membre_fin]
+Tu as de bonnes bêtes. Dommage que tu les gardes.
+La Cheffe n'aime pas les curieux.
+File avant que je change d'avis.
+On se reverra. Dans le noir.
+
+[guilde_braconniers_chef_combat]
+Un désigné, dans ma forêt. La Famille paierait cher pour ta tête. | Mais je préfère tes Pokémon.
+Les gardes forestiers me cherchent depuis des années. | Toi, tu m'as trouvée. Mauvaise nouvelle.
+Ici, tout a un prix. Le tien, je vais le fixer.
+
+[guilde_braconniers_chef_fin]
+Tu as gagné. Ce soir, personne ne dormira tranquille.
+La forêt est grande. On s'y recroisera.
+Garde tes Pokémon près de toi. Toujours.
+
+[guilde_forestiers_membre_combat]
+Halte. Personne ne s'enfonce dans le bois sans contrôle.
+Les braconniers rôdent. Montre-moi que tu n'en es pas un.
+Le poste surveille la forêt jour et nuit.
+Un désigné ? On t'a vu passer. On voit tout, d'ici.
+
+[guilde_forestiers_membre_fin]
+Tu sais te défendre. La forêt en a besoin.
+La Capitaine est au poste. Elle voudra te parler.
+Pas un braconnier, alors. Bonne route.
+Fais attention aux pièges, plus loin.
+
+[guilde_forestiers_chef_combat]
+La Famille ferme les yeux sur les braconniers. Nous, jamais. | Voyons si tu as la trempe d'un garde.
+Les arbres d'ici étaient là avant le Pacte. | Ils seront là après. Toi, je ne sais pas.
+Mes gardes disent que tu te bats bien. Je veux le voir moi-même.
+
+[guilde_forestiers_chef_fin]
+Bon combat. La forêt a un ami de plus.
+Tu te bats pour quelque chose. Ça se sent.
+Reviens quand tu veux. Le poste est toujours ouvert.
+
+[guilde_ouvriers_membre_combat]
+Casque obligatoire sur le chantier. Et combat obligatoire avec moi.
+On bosse douze heures par jour pour la Famille. Une pause, ça me va.
+Le Contremaître dit de ne laisser passer personne.
+Tu veux voir le chantier ? Il faut le mériter.
+
+[guilde_ouvriers_membre_fin]
+Bon. Je retourne aux rondins.
+T'as de la force. On cherche des bras, tu sais.
+Le Contremaître est au fond. Il n'aime pas qu'on le dérange.
+Les Contrebandiers ne se battraient pas comme ça. Respect.
+
+[guilde_ouvriers_chef_combat]
+La Famille paie nos salaires en retard et en promesses. | Mais ça ne fait pas de moi un tendre.
+Les Contrebandiers volent ce qu'on construit. Tu en es un ? | Prouve le contraire.
+Sur un chantier, on mesure tout. Mesurons-nous.
+
+[guilde_ouvriers_chef_fin]
+Du travail propre. Je n'ai rien à redire.
+Tu as la poigne d'un gars des docks.
+Si un jour la Famille tombe, on rebâtira. Avec des gens comme toi.
+
+[guilde_contrebandiers_membre_combat]
+Tu n'as pas l'air d'un client. Donc tu es un problème.
+Ces caisses ne te regardent pas.
+La Famille prend sa part, on prend le reste. Toi, tu ne prends rien.
+Mauvais quai, mauvaise heure, mauvaise personne.
+
+[guilde_contrebandiers_membre_fin]
+Tu n'as rien vu. On est d'accord ?
+Le Capitaine réglera ça lui-même.
+Garde ta langue dans ta poche et file.
+Tu as gagné. Ne reviens pas à marée basse.
+
+[guilde_contrebandiers_chef_combat]
+Tout ce qui entre à {ville} passe par mes mains. Et par celles de la Famille. | Toi, tu n'étais pas prévu.
+Un désigné sur mes quais. Le Parrain voudra savoir. | À moins que tu ne disparaisses avant.
+Les Ouvriers construisent, moi je vends. Et toi, tu déranges.
+
+[guilde_contrebandiers_chef_fin]
+Bon. Tu as payé le passage. En monnaie forte.
+On ne se fâche pas pour une cargaison. On s'en souvient.
+Le quai est à toi. Pour ce soir.
+
+[guilde_forains_membre_combat]
+Approchez, approchez ! Le prochain numéro, c'est toi !
+Un combat pour le prix d'un billet. Une affaire !
+La foire ne ferme jamais. Les combats non plus.
+Tu veux voir Monsieur Loyal ? Il faudra applaudir d'abord.
+
+[guilde_forains_membre_fin]
+Bravo, bravo ! Le public t'adore.
+Un vrai numéro. Tu devrais signer chez nous.
+Le chapiteau t'attend. Monsieur Loyal aussi.
+J'ai raté mon tour. Ça arrive aux meilleurs.
+
+[guilde_forains_chef_combat]
+Mesdames et messieurs, le désigné en personne ! | Que le spectacle commence !
+On paie la Famille, on sourit, on joue. C'est le métier. | Ce soir, c'est toi qui joues.
+La foire passe à {ville} une fois par an. Profite du spectacle.
+
+[guilde_forains_chef_fin]
+Rideau ! Quelle soirée.
+Le public en redemande. Moi aussi, un jour.
+Tu as volé la vedette. Personne ne fait ça.
+
+[guilde_mineurs_membre_combat]
+Attention aux éboulements. Et à mes Pokémon.
+La roche ne ment pas. Voyons si toi non plus.
+On creuse pour la Famille, mais la montagne est à nous.
+Personne ne descend dans la carrière sans un mineur.
+
+[guilde_mineurs_membre_fin]
+Solide. Comme du granit.
+Le Chef de galerie aime les durs. Va le voir.
+On remonte. La poussière, on l'avale depuis l'enfance.
+Bon coup de pioche, gamin.
+
+[guilde_mineurs_chef_combat]
+Quarante ans sous terre. Il en faut plus pour m'impressionner. | Creuse un peu, voyons ce que tu as.
+La Famille veut les pierres, nous on veut juste remonter le soir. | Ne me retarde pas.
+Dans la galerie, on se tient les coudes. Toi, tu es seul.
+
+[guilde_mineurs_chef_fin]
+Tu as un cœur de roche. C'est un compliment.
+Ça faisait longtemps qu'on ne m'avait pas fait plier.
+Remonte au soleil. Tu le mérites.
+
+[guilde_ordre_membre_combat]
+Le temple garde ce que la Famille a oublié.
+Tu portes le Pacte sur toi. Nous le sentons.
+Silence. L'Ordre écoute Arceus, pas les voyageurs.
+Les désignés montent toujours. Aucun ne comprend pourquoi.
+
+[guilde_ordre_membre_fin]
+Le Grand Prieur t'attend depuis longtemps.
+Tu as la force. Il te manque la vérité.
+Passe. Les pierres te parleront peut-être.
+Le Pacte est plus vieux que la Famille. Souviens-t'en.
+
+[guilde_ordre_chef_combat]
+Nous gardons les termes du Pacte depuis avant la Famille. | Montre-moi si tu mérites de les entendre.
+Arceus ne choisit pas. La Famille choisit pour lui. | Et toi, désigné, que choisis-tu ?
+Le temple n'ouvre pas ses secrets aux faibles.
+
+[guilde_ordre_chef_fin]
+Tu es plus que ce que la Famille croit. Bien plus.
+Le Pacte peut se briser. Nous l'avons toujours su.
+Va. Et quand tu seras devant Arceus, souviens-toi de ce temple.
+
+[guilde_endeuilles_membre_combat]
+Mon frère était désigné, lui aussi. On ne l'a jamais revu.
+Ici, on se souvient de ceux que la Famille a livrés.
+Tu viens fleurir une tombe, ou en creuser une ?
+Parle bas. Les morts écoutent.
+
+[guilde_endeuilles_membre_fin]
+Tu es fort. Plus fort que mon frère.
+La Doyenne voudra te voir. Elle a connu tous les désignés.
+Va. Et reviens vivant, toi.
+Une bougie de plus ce soir. Pour toi.
+
+[guilde_endeuilles_chef_combat]
+J'ai enterré trois désignés sans corps. | Je refuse d'en enterrer un quatrième. Montre-moi que tu tiendras.
+La Famille nous laisse pleurer. C'est tout ce qu'elle nous laisse.
+Chaque tombe ici porte un nom que la Ligue a effacé.
+
+[guilde_endeuilles_chef_fin]
+Tu tiendras peut-être. Peut-être.
+Ils auraient été fiers de toi. Tous.
+Va jusqu'au bout. Pour eux.
+
+[guilde_chromes_membre_combat]
+Tu marches sur notre bitume.
+Les Chromés n'aiment ni la Famille, ni les piétons.
+Joli sac. Il serait mieux sur mon guidon.
+On roule la nuit. Le jour, on règle des comptes.
+
+[guilde_chromes_membre_fin]
+T'as du nerf. Le Chef de bande va adorer.
+Bon. Tu peux passer. Lentement.
+On se reverra au prochain virage.
+Tu roules pas, mais tu cognes.
+
+[guilde_chromes_chef_combat]
+La Famille veut qu'on paie la route. On ne paie rien. | Toi non plus, tu ne passeras pas gratis.
+Un désigné à {ville}. Les gars, sortez les chaînes.
+Ici, c'est le garage des Chromés. On répare, on casse, on cogne.
+
+[guilde_chromes_chef_fin]
+Bien joué. T'as le moteur qu'il faut.
+Tu peux traîner avec nous quand tu veux.
+On ne se couche devant personne. Sauf toi, ce soir.

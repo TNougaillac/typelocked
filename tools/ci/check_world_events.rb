@@ -179,6 +179,7 @@ def check_trainers(result, zones, plans, sections, species, ttypes)
       raise MapEvents::Error, "#{where} : pas d'équipe dans trainers.txt" if !team
       raise MapEvents::Error, "#{where} : BattleID #{entry.value('BattleID')}" if entry.value("BattleID").to_i != W::TRAINER_VERSION
       next if !zone   # A gym's (check_gyms)
+      next if entry.label.start_with?("Chef")   # A guild's leader by the street (check_guilds)
       sizes = W::PARTY_SIZES[[zone.seals, W::PARTY_SIZES.length - 1].min]
       raise MapEvents::Error, "#{where} : #{team.length} Pokémon (#{sizes} avec #{zone.seals} sceaux)" if !sizes.include?(team.length)
       if entry.value("DoubleBattle") && (zone.seals < W::DOUBLE_FROM || team.length < 2)
@@ -403,26 +404,32 @@ def guild_fights(guilds)
   end
 end
 
-# Each guild whose biome is drawn on a place that may hold its headquarters
-# is in the world, its headquarters on such a place; its leader inside on a
-# cell reached from the door, at the level of the strongest trainer of the
-# Tronçon (under the cap), with GUILD_LEADER_PARTY_SIZES Pokémon of its pool;
-# 2 to 4 members on the route, their Pokémon from the pool too.
-def check_guilds(result, atlas, zones, plans, drawn)
-  GUILDS.each do |guild|
-    fits = result.places.select { |_wp, place, _text, layout| place.counts.key?(guild.hq) && guild.biomes.include?(layout.ambiance) }
-    g = drawn.find { |d| d[:id] == guild.id }
-    next if fits.empty? && !g
-    raise MapEvents::Error, "guilde #{guild.id} absente (biome #{guild.biomes.join('/')} sur #{fits.map { |wp, *| wp.name }.join(', ')})" if !g
+# WORLD_GUILDS guilds in the world (fewer only when fewer headquarters have
+# their place), each with its headquarters on a place of its biomes; its
+# leader inside on a cell reached from the door (else by the street), at the
+# level of the strongest trainer of the Tronçon (under the cap), with
+# GUILD_LEADER_PARTY_SIZES Pokémon of its pool; 2 to 4 members by the street,
+# their Pokémon from the pool too.
+def check_guilds(result, atlas, zones, plans, drawn, bricks)
+  available = M::GUILD_HQS.keys.count { |kind| bricks.any? { |b| b.kind == kind } && !M.hq_places(result.places, kind).empty? }
+  hqs = atlas[:hqs]
+  if hqs.length > M::WORLD_GUILDS.max || hqs.length < [M::WORLD_GUILDS.min, available].min
+    raise MapEvents::Error, "#{hqs.length} QG de guildes (#{M::WORLD_GUILDS}, #{available} possibles)"
+  end
+  missing = hqs.keys - drawn.map { |g| GUILDS.find { |guild| guild.id == g[:id] }.hq }
+  raise MapEvents::Error, "QG sans guilde : #{missing.join(', ')}" if !missing.empty?
+  drawn.each do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
     place = result.places.find { |wp, *| wp.name == g[:hq] }
-    raise MapEvents::Error, "guilde #{guild.id} : QG sur #{g[:hq]}, ambiance #{place&.last&.ambiance} hors de ses biomes" if !place || !guild.biomes.include?(place[3].ambiance)
-    raise MapEvents::Error, "guilde #{guild.id} : QG #{guild.hq} absent de #{g[:hq]}" if place[3].doors.none? { |_x, _y, b| b.kind == guild.hq }
-    pool = guild.pool
+    raise MapEvents::Error, "guilde #{guild.id} : QG sur #{g[:hq]}, ambiance #{place&.last&.ambiance} hors de ses biomes" if !place || !(guild.biomes.empty? || guild.biomes.include?(place[3].ambiance))
+    raise MapEvents::Error, "guilde #{guild.id} : QG #{guild.hq} absent de #{g[:hq]}" if place[3].spots[:hqs].none? { |_x, _y, k| k == guild.hq }
+    chef = plans[g[:map]]&.events&.find { |e| e.label == g[:leader][:label] }
+    raise MapEvents::Error, "#{g[:map]} : pas de chef de guilde #{guild.id}" if !chef
     spots = atlas[:maps][g[:map]]
-    chef = plans[g[:map]]&.events&.find { |e| e.label == "Chef" }
-    raise MapEvents::Error, "#{g[:map]} : pas de chef de guilde" if !chef
-    grid = PASSABLE[spots[:template]]
-    raise MapEvents::Error, "#{g[:map]} : chef hors d'atteinte" if !reach(grid, spots[:arrival], [])[[chef.x, chef.y + 1]] || !grid[chef.y][chef.x]
+    if spots[:kind] == "interieur"
+      grid = PASSABLE[spots[:template]]
+      raise MapEvents::Error, "#{g[:map]} : chef hors d'atteinte" if !reach(grid, spots[:arrival], [])[[chef.x, chef.y + 1]] || !grid[chef.y][chef.x]
+    end
     zone = zones[g[:hq]]
     expected = W.guild_level(zones, zone, E::CAPS)
     team = g[:leader][:team]
@@ -430,10 +437,11 @@ def check_guilds(result, atlas, zones, plans, drawn)
     raise MapEvents::Error, "chef #{g[:id]} : niveau #{expected} au-dessus du plafond" if expected > (E::CAPS[zone.seals] || E::CAPS.last)
     size = W::GUILD_LEADER_PARTY_SIZES[[zone.seals, W::GUILD_LEADER_PARTY_SIZES.length - 1].min]
     raise MapEvents::Error, "chef #{g[:id]} : #{team.length} Pokémon au lieu de #{size}" if team.length != size || !(4..6).include?(team.length)
-    members = plans[g[:hq]]&.events&.select { |e| e.kind == :trainer && e.label.start_with?("Guilde") } || []
-    raise MapEvents::Error, "guilde #{g[:id]} : #{members.length} membres" if !W::GUILD_MEMBERS.include?(members.length) || members.length != g[:members].length
+    labels = g[:members].map { |m| m[:label] }
+    members = plans[g[:hq]]&.events&.select { |e| e.kind == :trainer && labels.include?(e.label) } || []
+    raise MapEvents::Error, "guilde #{g[:id]} : #{members.length} membres" if !W::GUILD_MEMBERS.include?(members.length) || members.length != labels.length
     (g[:members].map { |m| m[:team] } + [team]).flatten(1).each do |species, _level|
-      raise MapEvents::Error, "guilde #{g[:id]} : #{species} hors de son pool" if !pool.include?(species)
+      raise MapEvents::Error, "guilde #{g[:id]} : #{species} hors de son pool" if !guild.pool.include?(species)
     end
   end
 end
@@ -455,16 +463,40 @@ rescue W::Error => e
   CI.error(gfile, gline, e.message)
   CI.finish("Événements des mondes")
 end
-# Each guild's headquarters is laid by MapProc (WORLD_HQS), and its leader
+# One guild for each headquarters of MapProc (GUILD_HQS), and its leader
 # has a cell in each template of its interior
 GUILDS.each do |guild|
-  where = W.guilds_path(ROOT)
-  CI.error(where, guild.line, "[#{guild.id}] : QG #{guild.hq} absent de WORLD_HQS (MapProceduralGenerator)") if !M::WORLD_HQS.include?(guild.hq)
   (M::INTERIORS[guild.hq] || []).each do |template, *|
     CI.error(settings, nil, "GUILD_LEADER_SPOTS : gabarit #{template} (QG #{guild.hq}) absent") if !W::GUILD_LEADER_SPOTS[template]
   end
 end
-(M::WORLD_HQS - GUILDS.map(&:hq)).each { |kind| CI.error(settings, nil, "WORLD_HQS : QG #{kind} sans guilde dans guildes.txt") }
+# A pool has every intermediate form between two of its species (Combusken
+# between Torchic and Blaziken), and whole families
+GUILDS.each do |guild|
+  guild.pool.each do |id|
+    chain = []
+    cur = roster[id]&.prevo&.first
+    while cur
+      chain.push(cur)
+      cur = roster[cur]&.prevo&.first
+    end
+    deepest = chain.rindex { |a| guild.pool.include?(a) }
+    gaps = deepest ? chain[0...deepest].reject { |a| guild.pool.include?(a) } : []
+    CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : forme intermédiaire #{gaps.join(', ')} absente du pool (avant #{id})") if !gaps.empty?
+  end
+  # Whole families: a final form missing would leave the family out of the
+  # teams once it is reachable (final_forms)
+  families = guild.pool.filter_map { |id| roster[id]&.family }.uniq
+  missing = roster.values.select { |sp| families.include?(sp.family) && !guild.pool.include?(sp.id) }.map(&:id)
+  CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : famille incomplète, #{missing.join(', ')} absent(s) du pool") if !missing.empty?
+end
+GUILDS.group_by(&:hq).each do |hq, list|
+  CI.error(W.guilds_path(ROOT), list[1].line, "QG #{hq} de plusieurs guildes (#{list.map(&:id).join(', ')})") if list.length > 1
+end
+(M::GUILD_HQS.keys - GUILDS.map(&:hq)).each { |kind| CI.error(settings, nil, "GUILD_HQS : QG #{kind} sans guilde dans guildes.txt") }
+W::GUILD_LEADER_SPOTS.each do |template, (x, y, _facing)|
+  CI.error(settings, nil, "GUILD_LEADER_SPOTS : #{template} #{x},#{y} n'est pas une case libre") if !PASSABLE[template][y]&.[](x)
+end
 # Every line drawn, by section, to check that none comes back too soon
 DRAWN = Hash.new { |hash, section| hash[section] = [] }
 W::Lines.prepend(Module.new do
@@ -637,7 +669,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_map_giver(atlas, plans)
       check_league(atlas, plans, events[:league], events[:leaders])
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
-      check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
+      check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])

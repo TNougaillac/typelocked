@@ -136,7 +136,7 @@ module MapProceduralGenerator
   # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
   # notes: lines for the console (routes off the chain that found no room);
   # fillers: Filler (see 013_Fillers.rb); hqs: { brick type => place name }
-  # of the guilds' headquarters (WORLD_HQS)
+  # of the guilds' headquarters (place_world_hqs)
   WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers, :hqs)
 
   TOWN_SIZE = 2
@@ -342,34 +342,52 @@ module MapProceduralGenerator
                            extra_notes(built) + notes, fillers, hqs)
   end
 
-  # Lays each headquarters of WORLD_HQS on a place of the world whose
-  # ambiance it allows (GUILD_HQS), built again with it: the first place
-  # drawn where it fits. { brick type => place name }.
+  # Draws the guilds' headquarters of the world (WORLD_GUILDS among those of
+  # GUILD_HQS whose place exists) and lays each on one of its places, built
+  # again with it (one already there, like the ruins' temple, is kept).
+  # { brick type => place name }.
   def place_world_hqs(built, bricks, seed)
     rng = Random.new((seed * 1000) + 950)
     hqs = {}
-    WORLD_HQS.each do |kind|
-      next if bricks.none? { |b| b.kind == kind }
-      allowed = GUILD_HQS[kind] || []
-      fits = built.each_index.select do |i|
-        wp, place, _text, layout = built[i]
-        place.counts.key?(kind) && !wp.league && !wp.victory && (allowed.empty? || allowed.include?(layout.ambiance))
-      end
-      fits.shuffle(random: rng).each do |i|
-        wp, place, _text, layout = built[i]
-        themed = place.dup
-        themed.counts = place.counts.merge(kind => 1..1)
-        themed.ambiance = layout.ambiance
-        text, new_layout = generate_world_place(themed, bricks, (seed * 1000) + wp.index)
-        next if new_layout.doors.none? { |_x, _y, brick| brick.kind == kind }
-        built[i] = [wp, themed, text, new_layout]
-        hqs[kind] = wp.name
-        break
-      rescue Error
-        next
-      end
+    wanted = rng.rand(WORLD_GUILDS)
+    kinds = GUILD_HQS.keys.select { |kind| bricks.any? { |b| b.kind == kind } && !hq_places(built, kind).empty? }
+    kinds.shuffle(random: rng).each do |kind|
+      break if hqs.length >= wanted
+      place = place_hq(built, bricks, kind, seed, rng)
+      hqs[kind] = place if place
     end
     return hqs
+  end
+
+  # Indexes in built of the places where that headquarters may stand.
+  def hq_places(built, kind)
+    allowed = GUILD_HQS[kind]
+    return built.each_index.select do |i|
+      wp, place, _text, layout = built[i]
+      next false if !place.counts.key?(kind) || wp.league || wp.victory || wp.island
+      next false if QUAY_HQS.include?(kind) && !place.port
+      allowed.empty? || allowed.include?(layout.ambiance)
+    end
+  end
+
+  # The name of the place where that headquarters is now, nil if it never fits.
+  def place_hq(built, bricks, kind, seed, rng)
+    places = hq_places(built, kind)
+    there = places.find { |i| built[i][3].spots[:hqs].any? { |_x, _y, k| k == kind } }
+    return built[there][0].name if there
+    places.shuffle(random: rng).each do |i|
+      wp, place, _text, layout = built[i]
+      themed = place.dup
+      themed.counts = place.counts.merge(kind => 1..1)
+      themed.ambiance = layout.ambiance
+      text, new_layout = generate_world_place(themed, bricks, (seed * 1000) + wp.index)
+      next if new_layout.spots[:hqs].none? { |_x, _y, k| k == kind }
+      built[i] = [wp, themed, text, new_layout]
+      return wp.name
+    rescue Error
+      next
+    end
+    return nil
   end
 
   # Assembles each place of the world: [WorldPlace, Place, MapGen plan text,
