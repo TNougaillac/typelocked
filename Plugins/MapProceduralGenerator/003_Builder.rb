@@ -539,6 +539,16 @@ module MapProceduralGenerator
     return nil
   end
 
+  # One layout of a place: as drawn, else with other terraces, else flat
+  # (a plain retry).
+  def build_layout(place, bricks, palette, seed)
+    builder = PlaceBuilder.new(place, bricks, palette, seed)
+    return builder.build
+  rescue Error
+    raise if !builder&.plain_retry?
+    return terrace_layout(builder, place, bricks, palette, seed) || PlaceBuilder.new(place, bricks, palette, seed, true).build
+  end
+
   # Returns [MapGen plan, its text, Layout] for that seed. The ambiance is
   # drawn from the seed unless place.ambiance already names one.
   def generate_place(place, bricks, seed)
@@ -553,12 +563,15 @@ module MapProceduralGenerator
     end
     place = with_ambiance_counts(place)
     palette = check_palette(place, bricks)
-    builder = PlaceBuilder.new(place, bricks, palette, seed)
-    begin
-      layout = builder.build
+    # A place never comes out missing what it must have: when it doesn't
+    # fit, it is laid out again with other draws (PLACE_RETRIES), its seed
+    # (and so its map) the same
+    layout = nil
+    (0..PLACE_RETRIES).each do |attempt|
+      layout = build_layout(place, bricks, palette, seed + (attempt * PLACE_RETRY_STEP))
+      break
     rescue Error
-      raise if !builder.plain_retry?
-      layout = terrace_layout(builder, place, bricks, palette, seed) || PlaceBuilder.new(place, bricks, palette, seed, true).build
+      raise if attempt == PLACE_RETRIES
     end
     text = plan_text(place, seed, layout.rows, layout.levels)
     return MapGenerator.parse(text, place.file), text, layout

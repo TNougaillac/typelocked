@@ -133,6 +133,12 @@ module MapProceduralGenerator
   TERRACE_FACES = 2..4
   TERRACE_DEPTH = 7
   TERRACE_SALT = 0x7E44
+  # A place that can't hold what it must (a required brick, a guild's
+  # headquarters) is laid out again, up to PLACE_RETRIES times, each try
+  # with the seed moved by PLACE_RETRY_STEP (its map, ambiance and plan text
+  # keep the place's seed).
+  PLACE_RETRIES = 8
+  PLACE_RETRY_STEP = 104_729
   # A town's terraces, drawn as a map designer would: their sides cut that
   # often (%), slanting in a column every few rows going down (the north rim
   # stays straight, the tileset has no inner corner there), their south

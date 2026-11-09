@@ -52,7 +52,10 @@ module MapProceduralGenerator
         next if HIGHLAND.include?(kind) && !@level
         next if kind == HILL && @place.kind == "ville" && @rng.rand(100) >= HILL_TOWN_CHANCE
         next if @left_out.include?(kind)
-        next place_smallest(kind) if QUAY_HQS.include?(kind)
+        # A headquarters with no room on the quay is laid inland, or the
+        # place is laid out again (generate_place)
+        next if QUAY_HQS.include?(kind) && place_smallest(kind)
+        error("impossible de placer le QG « #{kind} » hors du quai") if QUAY_HQS.include?(kind)
         # « pack »: the boosted bricks, the big ones first
         next place_big(kind) if i >= required.length && excess[:pack] && boosted.call(kind) == 0
         next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
