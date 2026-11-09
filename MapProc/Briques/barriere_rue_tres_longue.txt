@@ -1,0 +1,8 @@
+# Barrière le long d'une rue ou d'un chemin, trois pans (la plus fréquente :
+# une barrière borde le chemin d'un bout à l'autre, comme sur la Route 39).
+Brique = Très longue barrière le long du chemin
+Type   = barriere
+Contre = rue
+Poids  = 3
+[Map]
+ŦŦŦŦŦŦŦŦŦ

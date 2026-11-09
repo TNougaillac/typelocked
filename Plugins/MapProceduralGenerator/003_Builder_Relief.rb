@@ -225,6 +225,9 @@ module MapProceduralGenerator
       trim_sides(level, band, levels, relief)
       raise_peaks(level) if @place.mountain
       raise_peaks(level, TERRACE_PEAKS, terraces, true) if terraces
+      # A town's or a route's levels stop at the border (its trees stand on
+      # the ground: a level under them would show holes in its edge)
+      @h.times { |y| @w.times { |x| level[y][x] = 0 if @border[y][x] } } if !@place.mountain
       return false if !thicken(level)
       faces, stairs_at = draw_faces(level)
       return false if !faces
@@ -285,7 +288,7 @@ module MapProceduralGenerator
       (1...n).each do |i|
         options = [levels.last - 1, levels.last + 1] & feasible[i]
         up = levels.last + 1
-        levels.push((options.include?(up) && @rng.rand < MOUNTAIN_CLIMB) ? up : options.sample(random: @rng))
+        levels.push((options.include?(up) && @rng.rand < (town_terraces? ? TOWN_TERRACE[:climb] : MOUNTAIN_CLIMB)) ? up : options.sample(random: @rng))
       end
       return levels.max > 0 ? levels : nil
     end
@@ -305,7 +308,8 @@ module MapProceduralGenerator
       return Array.new(@w) do |x|
         # A step every few columns at most, so that the edges stay drawable
         run += 1
-        if run >= 3 && @rng.rand(3) == 0
+        # (a north rim in long runs: its steps show the rock of their corners)
+        if run >= (rim ? RIM_RUN : 3) && @rng.rand(3) == 0
           step = [-1, 1].sample(random: @rng)
           step = slope if slope != 0 && relief.rand(100) < SLOPE_BIAS
           offset = (offset + (rim ? step * 2 : step)).clamp(-wave, wave)
@@ -473,12 +477,40 @@ module MapProceduralGenerator
       at = ->(x, y) { inside?(x, y) ? level[y][x] : Float::INFINITY }
       steep = steep_cells(level)
       rounds = 0
+      filled = {}
       loop do
         thin = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.select do |x, y|
           here = level[y][x]
           here > 0 && [[0, 0], [-1, 0], [0, -1], [-1, -1]].none? do |ox, oy|
             [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |ax, ay| at.call(x + ox + ax, y + oy + ay) >= here }
           end
+        end
+        # An inner corner facing north (the rock « V » of the cliffs) only
+        # where it reads: the step above it 2 rows high at least, the parts
+        # on each side 2 columns wide; elsewhere the notch above it fills up
+        # when that makes no cliff two levels high, else the row wider than
+        # the one above it loses its overhang, column after column
+        fills = {}
+        corners = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.filter_map do |x, y|
+          here = level[y][x]
+          next if here == 0 || [[0, -1], [0, 1], [-1, 0], [1, 0]].any? { |ox, oy| at.call(x + ox, y + oy) < here }
+          side = [-1, 1].find { |ox| at.call(x + ox, y - 1) < here }
+          next if !side || clean_corner?(at, x, y, side, here)
+          nx, ny = x + side, y - 1
+          if !@street[ny][nx] && NEIGHBOURS8.all? { |ox, oy| at.call(nx + ox, ny + oy) >= here - 1 }
+            fills[[nx, ny]] = here
+            next
+          end
+          # (never what a fill raised: they would chase each other; nor a
+          # cell beside a higher level: its cliff would be two levels high)
+          ox = x + side
+          next [ox, y] if !filled[[ox, y]] && !below_higher?(level, ox, y)
+        end
+        if !fills.empty?
+          fills.each { |(fx, fy), lv| level[fy][fx] = lv }
+          filled.merge!(fills)
+          rounds += 1
+          next if rounds <= THICKEN_ROUNDS
         end
         # Nor does a level run into a lower border or the map's edge below it
         # (its cliff would stop there, open): it ends one tile before, its
@@ -488,7 +520,13 @@ module MapProceduralGenerator
           !@place.mountain && level[y][x] > 0 && !@border[y][x] && !@street[y][x] && !below_higher?(level, x, y) &&
             [-1, 0, 1].any? { |ox| !inside?(x + ox, y + 1) || (@border[y + 1][x + ox] && level[y + 1][x + ox] < level[y][x]) }
         end
-        thin |= sinks
+        # Nor a bump all cliff, with no top behind it
+        face = ->(x, y) { level[y][x] > 0 && NEIGHBOURS8.any? { |ox, oy| at.call(x + ox, y + oy) < level[y][x] } }
+        bumps = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.select do |x, y|
+          !@street[y][x] && face.call(x, y) &&
+            NEIGHBOURS8.none? { |ox, oy| inside?(x + ox, y + oy) && level[y + oy][x + ox] == level[y][x] && !face.call(x + ox, y + oy) }
+        end
+        thin |= corners | sinks | bumps
         thin |= slivers(level) if thin.empty?
         break if thin.empty?
         rounds += 1
@@ -565,6 +603,14 @@ module MapProceduralGenerator
     def level_at(x, y)
       return 0 if !@level || @low&.[](y)&.[](x)
       return @level[y][x]
+    end
+
+    # An inner corner facing north at x, y (the lower notch on its side,
+    # side -1 or 1) that draws well: the notch 2 rows high, the face above
+    # the corner 2 rows high, the upper part and the lower one 2 columns wide.
+    def clean_corner?(at, x, y, side, here)
+      return [1, 2].all? { |dy| at.call(x + side, y - dy) < here && at.call(x, y - dy) >= here && at.call(x - side, y - dy) >= here } &&
+             at.call(x + side, y) >= here && at.call(x + (2 * side), y) >= here && at.call(x + (2 * side), y - 1) < here
     end
 
     # Whether a level draws its edge on x, y: a cliff, a rim, a corner, as

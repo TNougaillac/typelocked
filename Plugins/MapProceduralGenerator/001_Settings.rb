@@ -91,6 +91,9 @@ module MapProceduralGenerator
   BAND_MIN = 3
   MOUNTAIN_CLIMB = 0.7
   FACE_WAVE = 2
+  # A north rim (the cliff seen from above) steps every RIM_RUN columns at
+  # least, by 2 rows.
+  RIM_RUN = 6
   MOUNTAIN_GRASS = 1..3
   # A raised band stops short of a side of the map that often (%), at least
   # SIDE_GAP tiles from its streets; peaks (one level above the ground
@@ -129,7 +132,7 @@ module MapProceduralGenerator
   THICKEN_ROUNDS = 200
   MESA_STAIR_REACH = 40
   TERRACE_TRIES = 4
-  TERRACE_PEAKS = 0.5..1.0
+  TERRACE_PEAKS = 1.0..2.0
   TERRACE_FACES = 2..4
   TERRACE_DEPTH = 7
   TERRACE_SALT = 0x7E44
@@ -139,10 +142,11 @@ module MapProceduralGenerator
   # keep the place's seed).
   PLACE_RETRIES = 8
   PLACE_RETRY_STEP = 104_729
-  # A town's terraces, drawn as a map designer would: their sides cut that
+  # A town's terraces, drawn as a map designer would: climbing from band to
+  # band that often (climb, up to 4 levels, see « Relief »), their sides cut that
   # often (%), slanting in a column every few rows going down, their faces
   # wandering up to face_wave rows between the streets.
-  TOWN_TERRACE = { trim: 90, taper: 1..3, face_wave: 3 }.freeze
+  TOWN_TERRACE = { trim: 90, taper: 1..3, face_wave: 3, climb: 0.9 }.freeze
   MOUNTAIN_PEAKS = 0.5..1.5
   # Lakes (« lac » in [Briques]): drawn for their spot, one to three
   # overlapping ovals (round, long, bean or L-shaped ponds) in a box of that
@@ -278,7 +282,9 @@ module MapProceduralGenerator
   HOUSE_STYLE_SALT = 5381
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
-  LAST_KINDS = %w[batisse special].freeze
+  LAST_KINDS = %w[batisse special barriere].freeze
+  # Fences (« barriere » in [Briques]): along a street, all along it.
+  FENCE = "barriere"
   EXTRA_SALT = 7951
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze

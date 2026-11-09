@@ -72,6 +72,8 @@ poste = 0
 dundees = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
+# Barrières le long des chemins (posées après le reste, là où il reste de la place).
+barriere = 0..2 par case
 decor  = 0
 
 # Ambiances : chaque route en tire une selon son poids (l'herbe le plus souvent).

@@ -478,6 +478,7 @@ module MapProceduralGenerator
           next if allowed && !allowed.call(brick, x, y)
           next if !fits?(brick, x, y, blocked)
           next if brick.by_street && !touches_street?(brick, x, y)
+          next if brick.kind == FENCE && !lines_street?(brick, x, y)
           if brick.door
             d = distances[y + bh][x + brick.door[0]]
             next if !d || d > MAX_DOOR_DISTANCE
@@ -670,6 +671,15 @@ module MapProceduralGenerator
     def wet_brick?(brick)
       @wet_bricks ||= {}.compare_by_identity
       return @wet_bricks.fetch(brick) { @wet_bricks[brick] = brick.rows.any? { |row| row.each_char.any? { |c| sea_symbols.include?(c) } } }
+    end
+
+    # A fence runs along a street: the street right below it or right above
+    # it, all along.
+    def lines_street?(brick, x, y)
+      width = brick.rows[0].length
+      return [1, -1].any? do |oy|
+        (0...width).all? { |dx| inside?(x + dx, y + oy) && @street[y + oy][x + dx] && !@stairs_at&.key?([x + dx, y + oy]) }
+      end
     end
 
     def touches_street?(brick, x, y)
