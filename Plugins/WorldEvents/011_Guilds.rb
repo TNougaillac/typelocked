@@ -135,13 +135,37 @@ module WorldEvents
   end
 
   #-----------------------------------------------------------------------------
+  # On the routes
+  #-----------------------------------------------------------------------------
+  # { route name => [Guild] }: the guilds of the world (a headquarters in
+  # atlas[:hqs]) whose members walk each route: those of its ambiance, and,
+  # for a guild without biomes (its headquarters in a town), the routes next
+  # to its headquarters' place.
+  def guild_routes(result, atlas, guilds)
+    hqs = atlas[:hqs] || {}
+    present = guilds.select { |guild| hqs[guild.hq] }
+    index = result.places.to_h { |wp, *| [wp.name, wp.index] }
+    routes = {}
+    result.places.sort_by { |wp, *| wp.index }.each do |wp, _place, _text, layout|
+      next if wp.kind != "route" || wp.victory
+      list = present.select do |guild|
+        next guild.biomes.include?(layout.ambiance) if !guild.biomes.empty?
+        (index[hqs[guild.hq]] - wp.index).abs == 1
+      end
+      routes[wp.name] = list if !list.empty?
+    end
+    return routes
+  end
+
+  #-----------------------------------------------------------------------------
   # At the headquarters
   #-----------------------------------------------------------------------------
   # The leader and the members of each guild whose headquarters is in the
   # world: events into plans, teams into trainers. zones: world_zones.
   # Returns [{ id:, name:, position:, hq: place, map: interior, seals:,
   # level:, leader: { type:, name:, team:, sets: }, members: [{ type:,
-  # name:, team: }] }].
+  # name:, team: }], routes: [] (its members on the routes, see
+  # trainer_events) }].
   def guild_events(atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets, rng)
     zones = zones.to_h { |zone| [zone.name, zone] }
     return guilds.filter_map do |guild|
@@ -176,7 +200,8 @@ module WorldEvents
       members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
                               [lines, tag, title], rng)
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
-        leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members }
+        leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members,
+        routes: [] }
     end
   end
 
@@ -200,7 +225,7 @@ module WorldEvents
   def guild_members(spots, anchor, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng)
     sizes = PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min]
     members = []
-    rng.rand(GUILD_MEMBERS).times do |j|
+    rng.rand(GUILD_MEMBERS).times do
       cell = hq_cell(spots, anchor, plans[route], rng)
       break if !cell
       type = guild.member_types.sample(random: rng)
@@ -211,7 +236,7 @@ module WorldEvents
       lose = lines.text("#{tag}_membre_fin", title)
       trainers.push(team_section(type, name, lose, team))
       x, y, facing, sight = cell
-      label = "Guilde#{guild.id.capitalize}#{j + 1}"
+      label = guild_label(plans[route], guild)
       add(plans, route, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", title)],
           ["EndBattle", lose])

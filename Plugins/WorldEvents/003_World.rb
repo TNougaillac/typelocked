@@ -37,12 +37,18 @@ module WorldEvents
       leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 720))
       league = league_events(atlas, species, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 740))
     end
+    guilds ||= load_guilds(".", species, dialogues) if zones && sets
     if zones && encounters
-      trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710))
+      routes = guilds ? guild_routes(result, atlas, guilds) : {}
+      walkers = trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710),
+                               routes, species)
     end
     if zones && sets
-      guilds = guild_events(atlas, guilds || load_guilds(".", species, dialogues), species, zones, caps, plans, trainers,
-                            names, lines, sets, Random.new((seed * 1000) + 800))
+      guilds = guild_events(atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
+                            Random.new((seed * 1000) + 800))
+      (walkers || []).each { |member| guilds.find { |g| g[:id] == member[:id] }&.[](:routes)&.push(member) }
+    else
+      guilds = nil
     end
     if zones && tms
       weather = weather_items(type, Random.new((seed * 1000) + 780))

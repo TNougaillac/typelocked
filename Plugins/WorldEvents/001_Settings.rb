@@ -315,6 +315,9 @@ module WorldEvents
                          12 => [6, 7, "bas"], 58 => [7, 4, "bas"] }.freeze
   GUILD_MEMBERS = 2..4
   GUILD_NEAR_CELLS = 16
+  # On a route of a guild of the world (its biome, or next to its
+  # headquarters' town): this % of the trainers are its members (#184).
+  GUILD_ROUTE_CHANCE = 33
   # The leader: at the level of the strongest trainer of its Tronçon (never
   # above the cap), Pokémon by the seals won on the way (0 to 8), with sets
   # (IVs of the lieutenant of those seals).
