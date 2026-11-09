@@ -470,6 +470,21 @@ GUILDS.each do |guild|
     CI.error(settings, nil, "GUILD_LEADER_SPOTS : gabarit #{template} (QG #{guild.hq}) absent") if !W::GUILD_LEADER_SPOTS[template]
   end
 end
+# A pool has every intermediate form between two of its species (Combusken
+# between Torchic and Blaziken)
+GUILDS.each do |guild|
+  guild.pool.each do |id|
+    chain = []
+    cur = roster[id]&.prevo&.first
+    while cur
+      chain.push(cur)
+      cur = roster[cur]&.prevo&.first
+    end
+    deepest = chain.rindex { |a| guild.pool.include?(a) }
+    gaps = deepest ? chain[0...deepest].reject { |a| guild.pool.include?(a) } : []
+    CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : forme intermédiaire #{gaps.join(', ')} absente du pool (avant #{id})") if !gaps.empty?
+  end
+end
 GUILDS.group_by(&:hq).each do |hq, list|
   CI.error(W.guilds_path(ROOT), list[1].line, "QG #{hq} de plusieurs guildes (#{list.map(&:id).join(', ')})") if list.length > 1
 end
