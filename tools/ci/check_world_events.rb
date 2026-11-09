@@ -446,6 +446,28 @@ def check_guilds(result, atlas, zones, plans, drawn, bricks)
   end
 end
 
+# The members of the guilds on the routes (#184): only on a route of their
+# guild (W.guild_routes), their Pokémon from its pool. Returns [members,
+# trainers of those routes that are no Cousin] for the share over the seeds.
+def check_guild_routes(result, atlas, plans, drawn)
+  routes = W.guild_routes(result, atlas, GUILDS)
+  walkers = drawn.flat_map { |g| g[:routes] }
+  walkers.each do |member|
+    guild = GUILDS.find { |g| g.id == member[:id] }
+    where = "#{member[:map]} : [Trainer #{member[:label]}]"
+    raise MapEvents::Error, "#{where} : route hors de la guilde #{guild.id}" if !routes[member[:map]]&.include?(guild)
+    raise MapEvents::Error, "#{where} : absent du plan" if plans[member[:map]].events.none? { |e| e.label == member[:label] }
+    member[:team].each { |species, _level| raise MapEvents::Error, "#{where} : #{species} hors du pool" if !guild.pool.include?(species) }
+  end
+  at_hq = drawn.flat_map { |g| g[:members].map { |m| [g[:hq], m[:label]] } }
+  among = routes.keys.sum do |route|
+    (plans[route]&.events || []).count do |e|
+      e.kind == :trainer && !e.label.start_with?("Cousin", "Chef") && !at_hq.include?([route, e.label])
+    end
+  end
+  return walkers.length, among
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
 begin
@@ -632,6 +654,8 @@ end
 
 count = 0
 pact_total = 0
+guild_walkers = 0
+guild_among = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -670,6 +694,9 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_league(atlas, plans, events[:league], events[:leaders])
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
+      walkers, among = check_guild_routes(result, atlas, plans, events[:guilds])
+      guild_walkers += walkers
+      guild_among += among
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
@@ -685,5 +712,10 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
   end
 end
 
-puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte"
+# About one trainer in three on the routes of the guilds is a member
+share = guild_among.zero? ? 0 : (guild_walkers * 100.0 / guild_among).round
+if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE + 15)).cover?(share)
+  CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
+end
+puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

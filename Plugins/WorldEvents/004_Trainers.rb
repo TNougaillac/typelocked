@@ -9,10 +9,13 @@ module WorldEvents
   module_function
 
   # Draws the trainers of the world: their events into plans, their teams
-  # (sections of PBS/trainers.txt) into trainers.
-  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, rng)
+  # (sections of PBS/trainers.txt) into trainers. guilds: { route => [Guild] }
+  # (guild_routes), species: the roster, for the members of the guilds on
+  # the routes (#184). Returns those members: [{ id:, map:, label:, team: }].
+  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, rng, guilds = {}, species = nil)
     zones = zones.to_h { |zone| [zone.name, zone] }
     pools = zone_pools(zones, encounters)
+    members = []
     draw = lambda do |map, cells, types, count, cousin_chance|
       zone = zones[map]
       return if !zone || !pools[map]
@@ -20,8 +23,16 @@ module WorldEvents
         cell = trainer_cell(atlas[:maps][map], cells, plans[map], rng)
         break if !cell
         cousin = rng.rand(100) < cousin_chance
+        town = atlas[:maps][map][:title]
+        # About one trainer in three of a route of a guild's is its member
+        guild = guilds[map]&.sample(random: rng) if !cousin && species
+        if guild && rng.rand(100) < GUILD_ROUTE_CHANCE
+          member = route_member(plans, trainers, names, map, cell, guild, zone, species, [lines, town], rng)
+          members.push(member) if member
+          next
+        end
         type = (cousin ? COUSIN_TYPES : types).sample(random: rng)
-        add_trainer(plans, trainers, names, map, cell, type, zone, pools[map], cousin, [lines, atlas[:maps][map][:title]], rng)
+        add_trainer(plans, trainers, names, map, cell, type, zone, pools[map], cousin, [lines, town], rng)
       end
     end
     places = result.places.sort_by { |wp, *| wp.index }
@@ -43,6 +54,35 @@ module WorldEvents
       cells = spots[:floor].map { |x, y| [x, y, FACINGS.sample(random: rng)] }
       draw.call(name, cells, TRAINER_TYPES["grotte"], rng.rand(CAVE_TRAINERS), 0)
     end
+    return members
+  end
+
+  # A member of that guild on a route: a trainer of the route (PARTY_SIZES
+  # Pokémon at the top of the zone's levels) with the guild's look and lines,
+  # its team from the guild's pool. { id:, map:, label:, team: }, nil without
+  # a name left.
+  def route_member(plans, trainers, names, map, cell, guild, zone, species, (lines, town), rng)
+    type = guild.member_types.sample(random: rng)
+    name = trainer_name(type, names, rng)
+    return nil if !name
+    x, y, facing, sight = cell
+    tag = "guilde_#{guild.id.downcase}"
+    size = rng.rand(PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min])
+    top = zone.levels[1]
+    team = pool_party(species, guild.pool.filter_map { |id| species[id] }, size, [top - PARTY_LEVEL_SPREAD, 2].max, top,
+                      zone.seals, rng)
+    lose = lines.text("#{tag}_membre_fin", town)
+    trainers.push(team_section(type, name, lose, team))
+    label = guild_label(plans[map], guild)
+    add(plans, map, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type], ["Name", name],
+        ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", town)], ["EndBattle", lose])
+    return { id: guild.id, map: map, label: label, team: team }
+  end
+
+  # « GuildeEleveurs3 »: the next label of a member of that guild on a map.
+  def guild_label(events, guild)
+    prefix = "Guilde#{guild.id.capitalize}"
+    return "#{prefix}#{events.count { |*, text| text.start_with?("[Trainer #{prefix}") } + 1}"
   end
 
   # The Cousin who gives the Town Map, on the first route where a cell cuts
