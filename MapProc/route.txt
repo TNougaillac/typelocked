@@ -74,6 +74,8 @@ dundees = 0
 # donnée par chaque ambiance.
 # Barrières le long des chemins (posées après le reste, là où il reste de la place).
 barriere = 0..2 par case
+# Enclos : un pré fermé de barrières (ambiances d'herbe)
+enclos   = 0..1
 decor  = 0
 
 # Ambiances : chaque route en tire une selon son poids (l'herbe le plus souvent).
@@ -650,6 +652,8 @@ V = T6201 5x4 halo=6x6@1,1/5           # maison orange (refuge)
 Ρ = T11265 4x3 halo=6x6@1,2/0,1,4,5,6,11,18,24,30   # case en paille (campement des Dundees)
 ŧ = T15280 3x3        # potager (ferme)
 Ŧ = T15291 3x1 halo=3x2@0,1   # barrière en bois (ferme)
+ȹ = T15320 4x4 halo=4x5@0,1   # enclos en bois (tools/art/fences_4g.py)
+ȸ = T15360 6x5 halo=6x6@0,1   # grand enclos en bois
 ŋ = T15286 2x1        # auge (ferme)
 σ = T13265 5x3 halo=7x8@1,4/0,1,5,6,13,20   # ruine voûtée (ruines)
 τ = T13321 6x3 halo=8x7@1,3   # ruine au toit fleuri (ruines)

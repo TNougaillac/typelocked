@@ -140,6 +140,7 @@ module MapProceduralGenerator
   TERRACE_FACES = 2..4
   TERRACE_DEPTH = 7
   TERRACE_SALT = 0x7E44
+  PLOT_SALT = 0x9107
   # A place that can't hold what it must (a required brick, a guild's
   # headquarters) is laid out again, up to PLACE_RETRIES times, each try
   # with the seed moved by PLACE_RETRY_STEP (its map, ambiance and plan text
@@ -150,6 +151,10 @@ module MapProceduralGenerator
   # band that often (climb, up to 4 levels, see « Relief »), their sides cut that
   # often (%), slanting in a column every few rows going down, their faces
   # wandering up to face_wave rows between the streets.
+  # A ledge per building: a town's house stands on a plot one level up that
+  # often (%), where the ground around it is free, its path going down by
+  # stairs.
+  PLOT_CHANCE = 50
   TOWN_TERRACE = { trim: 90, taper: 1..3, face_wave: 3, climb: 0.9 }.freeze
   MOUNTAIN_PEAKS = 0.5..1.5
   # Lakes (« lac » in [Briques]): drawn for their spot, one to three

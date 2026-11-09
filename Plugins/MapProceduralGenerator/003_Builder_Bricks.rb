@@ -468,7 +468,17 @@ module MapProceduralGenerator
       return !brick.nil?
     end
 
+    # A town's house stands on a plot that often (PLOT_CHANCE), where one
+    # has room (plot_room?), else as usual.
     def put_brick(brick, allowed = nil)
+      if brick.door && plots? && @rng.rand(100) < PLOT_CHANCE
+        spot = lay_brick(brick, ->(b, x, y) { (!allowed || allowed.call(b, x, y)) && plot_room?(b, x, y) }, true)
+        return spot if spot
+      end
+      return lay_brick(brick, allowed)
+    end
+
+    def lay_brick(brick, allowed = nil, plot = false)
       bw, bh = brick.rows.map(&:length).max, brick.rows.length
       distances = brick.door ? street_distances : nil
       blocked = blocked_cells(brick)
@@ -502,7 +512,9 @@ module MapProceduralGenerator
       else
         x, y, = near.sample(random: @rng)
       end
+      streets = @street.map(&:dup) if plot
       stamp(brick, x, y)
+      raise_plot(brick, x, y, streets) if plot
       return [x, y]
     end
 

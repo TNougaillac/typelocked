@@ -182,8 +182,12 @@ module MapProceduralGenerator
       crossings = (bh + 3..@h - bh - 3).to_h { |r| [r, boundary_crossings(r)] }.compact
       # A north-south route must climb: every boundary is crossed by a street
       crossings.reject! { |_r, n| n == 0 } if vertical_route?
-      # The exits and the water stay on the ground
-      ground_rows = @exits.flat_map { |_side, _x, y| [y, y + 1] } +
+      # The exits and the water stay on the ground; in a town, the exits to
+      # the north and the south may stand one level up (their street climbs
+      # out of the border by stairs)
+      gentle = town_terraces? ? @exits.select { |side, *| %w[nord sud].include?(side) } : []
+      @gentle_rows = gentle.flat_map { |_side, _x, y| [y, y + 1] }
+      ground_rows = (@exits - gentle).flat_map { |_side, _x, y| [y, y + 1] } +
                     (0...@h).select { |y| @water[y].any? }
       wanted = @rng.rand(vertical_route? ? MOUNTAIN_FACES[:vertical] : MOUNTAIN_FACES[:across])
       # A town's terraces have their own draws, one set per try
@@ -215,7 +219,8 @@ module MapProceduralGenerator
       return false if stairs && picks.all? { |r| crossings[r] == 0 }
       picks.sort!
       ground = ground_rows.map { |y| picks.count { |p| p <= y } }.uniq
-      levels = band_levels(count + 1, ground)
+      gentle = @gentle_rows.map { |y| picks.count { |p| p <= y } }.uniq
+      levels = band_levels(count + 1, ground, gentle)
       return false if !levels
       waves = []
       relief = Random.new(@seed ^ RELIEF_SALT)
@@ -235,6 +240,12 @@ module MapProceduralGenerator
       # A town's or a route's levels stop at the border (its trees stand on
       # the ground: a level under them would show holes in its edge)
       @h.times { |y| @w.times { |x| level[y][x] = 0 if @border[y][x] } } if !@place.mountain
+      # (and in a town, the rows of the border to the north and the south: a
+      # raised exit's street leaves its level by stairs, one row inside it)
+      if town_terraces?
+        _bw, bh = border_size
+        @h.times { |y| level[y].fill(0) if y < bh || y >= @h - bh - 1 }
+      end
       # A mountain river comes down the levels by cascades where it can,
       # else it runs on the ground the whole way
       flat = level.map(&:dup)
@@ -290,9 +301,9 @@ module MapProceduralGenerator
     # Level of each of n bands, one apart from band to band, 0 on the ground
     # bands, at most one per « Relief » symbol; climbing more often than not.
     # nil if none fits.
-    def band_levels(n, ground)
+    def band_levels(n, ground, gentle = [])
       top = @place.levels.length
-      allowed = Array.new(n) { |i| ground.include?(i) ? [0] : (0..top).to_a }
+      allowed = Array.new(n) { |i| ground.include?(i) ? [0] : (gentle.include?(i) ? [0, 1] : (0..top).to_a) }
       # Levels from which the rest of the bands can still be drawn
       feasible = Array.new(n)
       feasible[n - 1] = allowed[n - 1]
@@ -434,6 +445,76 @@ module MapProceduralGenerator
         end
         offset
       end
+    end
+
+    # A ledge per building (a town's houses, PLOT_CHANCE): a plot one level
+    # up under the house and the tile around it, a landing in front of its
+    # door and the row of its cliff below, where its path goes down by
+    # stairs.
+    def plots?
+      return @place.kind == "ville" && !@place.mountain && @place.levels && @place.stairs
+    end
+
+    # The plot of a house at x, y: [x0, y0, x1, y1] (its cliff on its edges,
+    # one tile off the house and its whole drawing, roof and shadow) and the
+    # door's cell.
+    def plot_rect(brick, x, y)
+      dx, dy = x + brick.door[0], y + brick.door[1]
+      cells = brick_cells(brick) + brick_halo(brick)
+      xs, ys = cells.map(&:first), cells.map(&:last)
+      return [x + xs.min - 1, y + ys.min - 1, x + xs.max + 1, [dy + 2, y + ys.max + 1].max], dx, dy
+    end
+
+    # Room for the plot of a house at x, y: the plot and the tiles around it
+    # free ground on one level, under no drawing (no street beside it: it
+    # would join the plot), below its stairs free ground or a street.
+    def plot_room?(brick, x, y)
+      (x0, y0, x1, y1), dx, dy = plot_rect(brick, x, y)
+      return false if !inside?(x0 - 1, y0 - 1) || !inside?(x1 + 1, y1 + 1)
+      base = level_at(dx, dy)
+      return false if base >= @place.levels.length
+      own = brick_cells(brick).to_h { |cx, cy| [[x + cx, y + cy], true] }
+      return (y0 - 1..y1 + 1).all? do |cy|
+        (x0 - 1..x1 + 1).all? do |cx|
+          next true if own[[cx, cy]]
+          next true if cy == y1 + 1 && cx.between?(dx, dx + 1) && @street[cy][cx] && !@stairs_at&.key?([cx, cy])
+          # (nor under the drawing of another brick, or the leaves of a tree)
+          level_at(cx, cy) == base && !@border[cy][cx] && !@solid[cy][cx] && !@street[cy][cx] && !@cells[cy][cx] &&
+            @halo[cy][cx] == 0 && !canopy?(cx, cy)
+        end
+      end
+    end
+
+    # Raises the plot of a house just laid at x, y (plot_room?): its door
+    # path (the streets beyond those before the brick, streets) goes, the
+    # landing and the stairs are drawn, then the path again from below the
+    # stairs to the street; nothing changes if it no longer reaches it.
+    def raise_plot(brick, x, y, streets)
+      (x0, y0, x1, y1), dx, dy = plot_rect(brick, x, y)
+      base = level_at(dx, dy)
+      saved = [@street, @solid, @cells, @level, @face].map { |grid| grid&.map(&:dup) } + [@stairs_at&.dup]
+      @h.times { |cy| @w.times { |cx| @street[cy][cx] = false if !streets[cy][cx] } }
+      @level ||= Array.new(@h) { Array.new(@w, 0) }
+      @face ||= Array.new(@h) { Array.new(@w, false) }
+      @stairs_at ||= {}
+      pair = @place.stairs[([base + 1, 2].min - 1) * 2]
+      (y0..y1).each do |cy|
+        (x0..x1).each do |cx|
+          @level[cy][cx] = base + 1
+          next if ![x0, x1].include?(cx) && ![y0, y1].include?(cy)
+          @face[cy][cx] = @solid[cy][cx] = true
+          @cells[cy][cx] = CLIFF
+          @stairs_at[[cx, cy]] = pair[cx - dx] if cy == y1 && cx.between?(dx, dx + 1)
+        end
+      end
+      (dy + 1..y1).each { |cy| [dx, dx + 1].each { |cx| @street[cy][cx] = true } }
+      if street_distances[y1 + 1][dx]
+        carve_path(dx, y1 + 1)
+        street_distances
+        return
+      end
+      @street, @solid, @cells, @level, @face, @stairs_at = saved
+      street_distances
     end
 
     # A town's terraces (not a route's, not a mountain's).
