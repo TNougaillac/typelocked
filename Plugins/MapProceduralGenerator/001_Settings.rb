@@ -140,9 +140,8 @@ module MapProceduralGenerator
   PLACE_RETRIES = 8
   PLACE_RETRY_STEP = 104_729
   # A town's terraces, drawn as a map designer would: their sides cut that
-  # often (%), slanting in a column every few rows going down (the north rim
-  # stays straight, the tileset has no inner corner there), their south
-  # faces wandering up to face_wave rows between the streets.
+  # often (%), slanting in a column every few rows going down, their faces
+  # wandering up to face_wave rows between the streets.
   TOWN_TERRACE = { trim: 90, taper: 1..3, face_wave: 3 }.freeze
   MOUNTAIN_PEAKS = 0.5..1.5
   # Lakes (« lac » in [Briques]): drawn for their spot, one to three
@@ -167,6 +166,9 @@ module MapProceduralGenerator
   # How often a side of a massif narrows by a block, row after row (%, from
   # its top row to its foot): its foot ends rounded.
   BOWL_BEND = 30..80
+  # The same from its foot to its top (its top steps, the cliffs have a
+  # corner turning in to the north too).
+  BOWL_RISE = 0..45
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20

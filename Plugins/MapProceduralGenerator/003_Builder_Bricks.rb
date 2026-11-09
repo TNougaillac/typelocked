@@ -322,20 +322,33 @@ module MapProceduralGenerator
     end
 
     # A massif drawn as a map designer would, on a grid of 2x2 blocks (each
-    # bend of its cliff at least 2 tiles long): a straight top (the cliffs
-    # have no inner corner facing north), then rows that only narrow, each
-    # side on its own, more and more often towards the foot, so that it ends
-    # rounded; at least 3 blocks wide at the foot for a framed stair. Rows of
-    # booleans, cw blocks wide, ch high.
+    # bend of its cliff at least 2 tiles long): its rows narrow, each side on
+    # its own, more and more often towards the foot (BOWL_BEND), so that it
+    # ends rounded, and towards the top too, less often (BOWL_RISE), so that
+    # its top steps like a mound; at least 3 blocks wide at the foot for a
+    # framed stair. Rows of booleans, cw blocks wide, ch high.
     def bowl_blocks(cw, ch, rng, foot = 3)
       cw = [cw, foot].max
+      down = bowl_sides(cw, ch, rng, BOWL_BEND, foot)
+      up = bowl_sides(cw, ch, rng, BOWL_RISE, 2).reverse
+      return Array.new(ch) do |by|
+        left, right = [down[by][0], up[by][0]].max, [down[by][1], up[by][1]].min
+        left, right = down[by] if right - left + 1 < 2 || by == ch - 1
+        Array.new(cw) { |bx| bx.between?(left, right) }
+      end
+    end
+
+    # The sides [left, right] of each row of a massif, row after row, each
+    # narrowing by a block that often (bend, % from the first row to the
+    # last), never below min blocks.
+    def bowl_sides(cw, ch, rng, bend, min)
       left, right = 0, cw - 1
       return Array.new(ch) do |by|
-        row = Array.new(cw) { |bx| bx.between?(left, right) }
-        bend = BOWL_BEND.first + ((BOWL_BEND.last - BOWL_BEND.first) * by / [ch - 1, 1].max)
-        left += 1 if rng.rand(100) < bend && right - left + 1 > foot
-        right -= 1 if rng.rand(100) < bend && right - left + 1 > foot
-        row
+        sides = [left, right]
+        chance = bend.first + ((bend.last - bend.first) * by / [ch - 1, 1].max)
+        left += 1 if rng.rand(100) < chance && right - left + 1 > min
+        right -= 1 if rng.rand(100) < chance && right - left + 1 > min
+        sides
       end
     end
 

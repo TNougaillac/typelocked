@@ -876,7 +876,7 @@ def cliff_line(first):
     def t(dx, dy):
         return f"T{first + dy * 8 + dx}"
     return (f"inside={t(1, 2)} W={t(0, 2)} E={t(3, 2)} NW={t(0, 1)} NE={t(3, 1)} SW={t(0, 3)} S={t(1, 3)} "
-            f"SE={t(3, 3)} iSE={t(0, 4)} iSW={t(1, 4)} oN={t(1, 0)} oNW={t(0, 0)} oNE={t(3, 0)} "
+            f"SE={t(3, 3)} iSE={t(0, 4)} iSW={t(1, 4)} iNW={t(3, 4)} iNE={t(2, 4)} oN={t(1, 0)} oNW={t(0, 0)} oNE={t(3, 0)} "
             f"oiNW={t(5, 4)} oiNE={t(6, 4)}")
 
 

@@ -79,14 +79,12 @@ module MapProceduralGenerator
         here = level[y0][x0]
         next if here >= top || !fits.call(x0, y0, bw, bh, [here])
         chain = [raise_box.call(x0, y0, bw, bh, here + 1)]
-        # A chain: more boxes overlapping the one before, on the same level
-        # and the same top row (the cliffs have no inner corner facing
-        # north: the top of a mesa stays straight, its south face may step),
-        # so that the mesas join into ridges
+        # A chain: more boxes overlapping the one before, on the same level,
+        # a block higher or lower, so that the mesas join into ridges
         rng.rand(ROUTE_TERRACE[:chain]).times do
           lx, ly, lw, _lh, lv = chain.last
           nw, nh = size.call
-          nx, ny = lx + (rng.rand(((4 - nw) / 2)..((lw - 4) / 2)) * 2), ly
+          nx, ny = lx + (rng.rand(((4 - nw) / 2)..((lw - 4) / 2)) * 2), ly + (rng.rand(-1..1) * 2)
           next if !fits.call(nx, ny, nw, nh, [lv - 1, lv])
           chain.push(raise_box.call(nx, ny, nw, nh, lv))
         end
@@ -215,8 +213,8 @@ module MapProceduralGenerator
       waves = []
       relief = Random.new(@seed ^ RELIEF_SALT)
       picks.each_with_index do |r, i|
-        # The north rim of a level (the higher band to the south) stays nearly
-        # flat: its steps would only show the rock of its corners
+        # The north rim of a level (the higher band to the south) steps by 2
+        # rows: a step of 1 would show a lone tooth of rock
         rim = levels[i + 1] > levels[i]
         waves.push(face_wave(r, i > 0 ? picks[i - 1] : nil, waves.last, relief, rim))
       end
@@ -301,7 +299,6 @@ module MapProceduralGenerator
       keep = ->(x, y) { inside?(x, y) && (@street[y][x] || @water[y][x] || exit_at?(x, y)) }
       crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
       slope = (relief.rand(100) < SLOPE_CHANCE) ? [-1, 1].sample(random: relief) : 0
-      slope = 0 if rim
       wave = (slope == 0) ? (town_terraces? ? TOWN_TERRACE[:face_wave] : FACE_WAVE) : SLOPE_WAVE
       offset = (slope == 0) ? 0 : -slope * relief.rand(0..SLOPE_WAVE)
       run = 0
@@ -311,7 +308,7 @@ module MapProceduralGenerator
         if run >= 3 && @rng.rand(3) == 0
           step = [-1, 1].sample(random: @rng)
           step = slope if slope != 0 && relief.rand(100) < SLOPE_BIAS
-          offset = (offset + step).clamp(-wave, wave)
+          offset = (offset + (rim ? step * 2 : step)).clamp(-wave, wave)
           run = 0
         end
         offset = 0 if crossing.any? { |c| (c - x).abs <= STREET_WIDTH + 1 }
@@ -476,38 +473,12 @@ module MapProceduralGenerator
       at = ->(x, y) { inside?(x, y) ? level[y][x] : Float::INFINITY }
       steep = steep_cells(level)
       rounds = 0
-      filled = {}
       loop do
         thin = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.select do |x, y|
           here = level[y][x]
           here > 0 && [[0, 0], [-1, 0], [0, -1], [-1, -1]].none? do |ox, oy|
             [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |ax, ay| at.call(x + ox + ax, y + oy + ay) >= here }
           end
-        end
-        # A cliff has no inner corner facing north: the notch above it fills
-        # up when that makes no cliff two levels high, else the row wider
-        # than the one above it loses its overhang, column after column
-        fills = {}
-        corners = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.filter_map do |x, y|
-          here = level[y][x]
-          next if here == 0 || [[0, -1], [0, 1], [-1, 0], [1, 0]].any? { |ox, oy| at.call(x + ox, y + oy) < here }
-          side = [-1, 1].find { |ox| at.call(x + ox, y - 1) < here }
-          next if !side
-          nx, ny = x + side, y - 1
-          if !@street[ny][nx] && NEIGHBOURS8.all? { |ox, oy| at.call(nx + ox, ny + oy) >= here - 1 }
-            fills[[nx, ny]] = here
-            next
-          end
-          # (never what a fill raised: they would chase each other; nor a
-          # cell beside a higher level: its cliff would be two levels high)
-          ox = x + side
-          next [ox, y] if !filled[[ox, y]] && !below_higher?(level, ox, y)
-        end
-        if !fills.empty?
-          fills.each { |(fx, fy), lv| level[fy][fx] = lv }
-          filled.merge!(fills)
-          rounds += 1
-          next if rounds <= THICKEN_ROUNDS
         end
         # Nor does a level run into a lower border or the map's edge below it
         # (its cliff would stop there, open): it ends one tile before, its
@@ -517,7 +488,7 @@ module MapProceduralGenerator
           !@place.mountain && level[y][x] > 0 && !@border[y][x] && !@street[y][x] && !below_higher?(level, x, y) &&
             [-1, 0, 1].any? { |ox| !inside?(x + ox, y + 1) || (@border[y + 1][x + ox] && level[y + 1][x + ox] < level[y][x]) }
         end
-        thin |= corners | sinks
+        thin |= sinks
         thin |= slivers(level) if thin.empty?
         break if thin.empty?
         rounds += 1
