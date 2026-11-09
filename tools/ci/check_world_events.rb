@@ -471,7 +471,7 @@ GUILDS.each do |guild|
   end
 end
 # A pool has every intermediate form between two of its species (Combusken
-# between Torchic and Blaziken)
+# between Torchic and Blaziken), and whole families
 GUILDS.each do |guild|
   guild.pool.each do |id|
     chain = []
@@ -484,6 +484,11 @@ GUILDS.each do |guild|
     gaps = deepest ? chain[0...deepest].reject { |a| guild.pool.include?(a) } : []
     CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : forme intermédiaire #{gaps.join(', ')} absente du pool (avant #{id})") if !gaps.empty?
   end
+  # Whole families: a final form missing would leave the family out of the
+  # teams once it is reachable (final_forms)
+  families = guild.pool.filter_map { |id| roster[id]&.family }.uniq
+  missing = roster.values.select { |sp| families.include?(sp.family) && !guild.pool.include?(sp.id) }.map(&:id)
+  CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : famille incomplète, #{missing.join(', ')} absent(s) du pool") if !missing.empty?
 end
 GUILDS.group_by(&:hq).each do |hq, list|
   CI.error(W.guilds_path(ROOT), list[1].line, "QG #{hq} de plusieurs guildes (#{list.map(&:id).join(', ')})") if list.length > 1
