@@ -225,6 +225,9 @@ BUILDINGS = {
 # together: only the drawing itself is kept (what touches its door's wall),
 # the bits of its neighbours in its frame become see-through.
 LATE_BUILDINGS = ["Q", "X", "Y", "Z", "A", "B"]
+# The sheet draws the right edge of the Marts' roof (3 px) one tile too far
+# to the right: symbol => (column of the drawing it belongs to, its rows)
+ROOF_EDGES = {"M": (4, range(3)), "N": (4, range(3))}
 SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
 # More buildings (#199, third part), after everything else: symbol =>
 # (parts, block x, y, width, height, door x, y in the drawing or None for a
@@ -689,6 +692,8 @@ def build(folder):
                     tile = sheet_tile(sheets, ("B", col, x + tx, y + ty))
                     if keep is not None:
                         tile = only_drawing(tile, keep, col, x + tx, y + ty)
+                    if sym in ROOF_EDGES and tx == ROOF_EDGES[sym][0] and ty in ROOF_EDGES[sym][1]:
+                        tile = Image.alpha_composite(tile, sheet_tile(sheets, ("B", col, x + tx + 1, y + ty)))
                     inside = bx <= tx < bx + bw and by <= ty < by + bh
                     tiles[dest] = tile
                     copies[dest] = building_passages(tile, inside, (tx, ty) == (bx + dx, by + dy))

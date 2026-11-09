@@ -138,7 +138,11 @@ module MapGenerator
                elsif !inside.call(-1, 1) then "iSW"
                elsif !inside.call(1, 1) then "iSE"
                end
-        data[x, y, z || terrain.layer] = terrain.roles[role] || terrain.center
+        layer = z || terrain.layer
+        data[x, y, layer] = terrain.roles[role] || terrain.center
+        # An inner corner is drawn over the inside tile (the layer below),
+        # which shows through its see-through half
+        data[x, y, layer - 1] = terrain.center if role&.start_with?("i") && terrain.roles[role] && terrain.center > 0 && layer > 0
         draw_outer_rim(terrain, inside, w, e, x, y - 1, data, z || terrain.layer) if n && y > 0
       end
     end
