@@ -570,3 +570,10 @@ Gender = Male
 BaseMoney = 100
 BattleBGM = Battle Champion
 VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_ELEVEURS]
+Name = Doyen des Éleveurs
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader

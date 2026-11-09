@@ -198,6 +198,10 @@ module MapProceduralGenerator
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
+  # Headquarters of the guilds drawn in a world (WorldEvents' guildes.txt,
+  # #182): once the world is built, each is laid on one of its places whose
+  # ambiance it allows, drawn by the seed (none if no place fits).
+  WORLD_HQS = %w[ferme].freeze
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

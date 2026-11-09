@@ -3,7 +3,8 @@
 # WorldEvents) and checks them: plans read by MapEvents, events on cells the
 # player can reach and never in the way (exits, doors), the professor and the
 # gate of the first town, the services of the Centres and shops, the
-# trainers (teams, levels, sight), the same events for the same seed.
+# trainers (teams, levels, sight), the guilds at their headquarters, the
+# same events for the same seed.
 #===============================================================================
 require_relative "lib/ci"
 
@@ -13,7 +14,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -370,7 +371,7 @@ def check_sets(fights, seals, items)
     next if !fight[:sets]
     where = "#{fight[:name]} (#{fight[:role] || "lieutenant #{fight[:gym]}"})"
     raise MapEvents::Error, "#{where} : #{fight[:sets].length} sets pour #{fight[:team].length} Pokémon" if fight[:sets].length != fight[:team].length
-    has = fight[:gym] ? fight[:gym] - 1 : seals
+    has = fight[:seals] || (fight[:gym] ? fight[:gym] - 1 : seals)
     fight[:team].zip(fight[:sets]).each do |(id, level), set|
       ls = DEX[:species][id]
       raise MapEvents::Error, "#{where} : #{id} sans set" if !set || !ls
@@ -395,6 +396,48 @@ def check_sets(fights, seals, items)
   end
 end
 
+# The leaders of the guilds as fights for check_sets.
+def guild_fights(guilds)
+  return guilds.map do |g|
+    { name: g[:leader][:name], role: "chef #{g[:id]}", type: nil, team: g[:leader][:team], sets: g[:leader][:sets], seals: g[:seals] }
+  end
+end
+
+# Each guild whose biome is drawn on a place that may hold its headquarters
+# is in the world, its headquarters on such a place; its leader inside on a
+# cell reached from the door, at the level of the strongest trainer of the
+# Tronçon (under the cap), with GUILD_LEADER_PARTY_SIZES Pokémon of its pool;
+# 2 to 4 members on the route, their Pokémon from the pool too.
+def check_guilds(result, atlas, zones, plans, drawn)
+  GUILDS.each do |guild|
+    fits = result.places.select { |_wp, place, _text, layout| place.counts.key?(guild.hq) && guild.biomes.include?(layout.ambiance) }
+    g = drawn.find { |d| d[:id] == guild.id }
+    next if fits.empty? && !g
+    raise MapEvents::Error, "guilde #{guild.id} absente (biome #{guild.biomes.join('/')} sur #{fits.map { |wp, *| wp.name }.join(', ')})" if !g
+    place = result.places.find { |wp, *| wp.name == g[:hq] }
+    raise MapEvents::Error, "guilde #{guild.id} : QG sur #{g[:hq]}, ambiance #{place&.last&.ambiance} hors de ses biomes" if !place || !guild.biomes.include?(place[3].ambiance)
+    raise MapEvents::Error, "guilde #{guild.id} : QG #{guild.hq} absent de #{g[:hq]}" if place[3].doors.none? { |_x, _y, b| b.kind == guild.hq }
+    pool = guild.pool
+    spots = atlas[:maps][g[:map]]
+    chef = plans[g[:map]]&.events&.find { |e| e.label == "Chef" }
+    raise MapEvents::Error, "#{g[:map]} : pas de chef de guilde" if !chef
+    grid = PASSABLE[spots[:template]]
+    raise MapEvents::Error, "#{g[:map]} : chef hors d'atteinte" if !reach(grid, spots[:arrival], [])[[chef.x, chef.y + 1]] || !grid[chef.y][chef.x]
+    zone = zones[g[:hq]]
+    expected = W.guild_level(zones, zone, E::CAPS)
+    team = g[:leader][:team]
+    raise MapEvents::Error, "chef #{g[:id]} : niveau #{team.map(&:last).max} au lieu de #{expected}" if team.map(&:last).max != expected
+    raise MapEvents::Error, "chef #{g[:id]} : niveau #{expected} au-dessus du plafond" if expected > (E::CAPS[zone.seals] || E::CAPS.last)
+    size = W::GUILD_LEADER_PARTY_SIZES[[zone.seals, W::GUILD_LEADER_PARTY_SIZES.length - 1].min]
+    raise MapEvents::Error, "chef #{g[:id]} : #{team.length} Pokémon au lieu de #{size}" if team.length != size || !(4..6).include?(team.length)
+    members = plans[g[:hq]]&.events&.select { |e| e.kind == :trainer && e.label.start_with?("Guilde") } || []
+    raise MapEvents::Error, "guilde #{g[:id]} : #{members.length} membres" if !W::GUILD_MEMBERS.include?(members.length) || members.length != g[:members].length
+    (g[:members].map { |m| m[:team] } + [team]).flatten(1).each do |species, _level|
+      raise MapEvents::Error, "guilde #{g[:id]} : #{species} hors de son pool" if !pool.include?(species)
+    end
+  end
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
 begin
@@ -404,6 +447,24 @@ rescue W::Error => e
   CI.error(dfile, dline, e.message)
   CI.finish("Événements des mondes")
 end
+roster = E.load_species(ROOT)
+begin
+  GUILDS = W.load_guilds(ROOT, roster, DIALOGUES)
+rescue W::Error => e
+  gfile, gline = e.message[/\A(.+?), ligne (\d+)/, 1] ? [$1, $2.to_i] : [W.guilds_path(ROOT), nil]
+  CI.error(gfile, gline, e.message)
+  CI.finish("Événements des mondes")
+end
+# Each guild's headquarters is laid by MapProc (WORLD_HQS), and its leader
+# has a cell in each template of its interior
+GUILDS.each do |guild|
+  where = W.guilds_path(ROOT)
+  CI.error(where, guild.line, "[#{guild.id}] : QG #{guild.hq} absent de WORLD_HQS (MapProceduralGenerator)") if !M::WORLD_HQS.include?(guild.hq)
+  (M::INTERIORS[guild.hq] || []).each do |template, *|
+    CI.error(settings, nil, "GUILD_LEADER_SPOTS : gabarit #{template} (QG #{guild.hq}) absent") if !W::GUILD_LEADER_SPOTS[template]
+  end
+end
+(M::WORLD_HQS - GUILDS.map(&:hq)).each { |kind| CI.error(settings, nil, "WORLD_HQS : QG #{kind} sans guilde dans guildes.txt") }
 # Every line drawn, by section, to check that none comes back too soon
 DRAWN = Hash.new { |hash, section| hash[section] = [] }
 W::Lines.prepend(Module.new do
@@ -427,7 +488,8 @@ species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\
 types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
 ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
 genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES.values + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
+guild_types = GUILDS.flat_map { |g| g.member_types + [g.leader] }
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES.values + W::ELDER_TYPES + [W::PARRAIN_TYPE] + guild_types).uniq.each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
   female = W::FEMALE_TYPES.include?(type)
   CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
@@ -437,14 +499,13 @@ genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/
 end
 # The Family's sprites exist only once: never an ordinary trainer, a cousin or an NPC's graphic.
 family = CI.read_text(File.join(ROOT, "tools", "art", "family_sprites.rb")).scan(/^\s+\w+:\s+:(\w+)/).flatten
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES).each do |type|
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + guild_types).each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : #{type} est un sprite de la Famille") if family.include?(type.to_s)
 end
 W.constants.grep(/GRAPHICS?\z/).flat_map { |c| Array(W.const_get(c)) }.each do |graphic|
   source = graphic.to_s[/\Atrainer_(\w+)\z/, 1]
   CI.error(settings, nil, "#{graphic} : sprite de la Famille") if source && family.include?(source)
 end
-roster = E.load_species(ROOT)
 # [[item, move, type, power, status?]] of every TM, from the PBS files
 moves = CI.read_text(File.join(ROOT, "PBS", "moves.txt")).split(/^\[/).drop(1).to_h do |sec|
   [sec[/\A(\w+)/, 1].to_sym, [sec[/^Type\s*=\s*(\w+)/, 1]&.to_sym, sec[/^Power\s*=\s*(\d+)/, 1].to_i, sec[/^Category\s*=\s*Status/] ? true : false]]
@@ -550,7 +611,8 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     atlas = M.world_atlas(result)
     zones = E.world_zones(result, E::CAPS)
     _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
-    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES, dex: DEX }
+    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES, dex: DEX,
+             guilds: GUILDS }
     DRAWN.clear
     events = W.world_events(result, seed, **args)
     drawn = DRAWN.transform_values(&:dup)
@@ -574,7 +636,8 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
       check_map_giver(atlas, plans)
       check_league(atlas, plans, events[:league], events[:leaders])
-      check_sets(events[:leaders] + events[:league], atlas[:gyms].length, items)
+      check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
+      check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
