@@ -675,6 +675,17 @@ Depuis leur défaite, on respire. Merci encore.
 Les routes sont plus calmes sans eux.
 La guilde ne t'oubliera pas.
 
+# Le chef allié qui attend le joueur près du QG ennemi (règlement de comptes).
+[guilde_reglement]
+Te voilà. Leur chef est là-dedans, avec son bras droit. | On y va ensemble. C'est le moment de solder les comptes.
+J'attendais ce jour depuis des années. Tu couvres ma gauche, je couvre ta droite.
+Leur chef ne sortira pas seul. Nous non plus. | Prêt ?
+
+[guilde_reglement_fin]
+C'est fini. Ils ne relèveront pas la tête de sitôt. | Merci, {joueur}.
+Les comptes sont soldés. La guilde n'oubliera pas ce que tu as fait.
+On a gagné, {joueur}. Ensemble.
+
 # Un chef de guilde alliée qui ouvre un raccourci ({ville} : le raccourci).
 [guilde_raccourci]
 Mes gens vont dégager le passage de {ville}. Tu gagneras du chemin.

@@ -41,6 +41,7 @@ module MapEvents
     end
     page.list.push(RPG::EventCommand.new(123, 0, ["A", 0])) if entry.value("Once")   # Self switch A ON
     Compiler.push_end(page.list)
+    set_condition(page.condition, entry.value("Show")) if entry.value("Show")
     if entry.value("When")
       set_condition(page.condition, entry.value("When"))
       event.pages.unshift(texts_page(blank, entry, "Wait"))

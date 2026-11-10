@@ -300,7 +300,7 @@ module WorldEvents
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
     "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
     "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
-    "guilde_bonus_apres" => PLACE_TOKENS,
+    "guilde_bonus_apres" => PLACE_TOKENS, "guilde_reglement" => PLACE_TOKENS, "guilde_reglement_fin" => %w[joueur],
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
 
@@ -349,6 +349,14 @@ module WorldEvents
   # of GUILD_BONUS_ITEMS by its headquarters.
   GUILD_RAGE_SIGHT  = 6
   GUILD_BONUS_ITEMS = %i[LEFTOVERS LIFEORB CHOICESCARF CHOICEBAND CHOICESPECS FOCUSSASH EXPSHARE LUCKYEGG].freeze
+  # The settling of scores (#190): for each guild with a rallying enemy (its
+  # « rivals »), once the ally rallied, its leader waits by the enemy's
+  # headquarters for a double battle, side by side with the player against
+  # the enemy's leader and its right hand (GUILD_SECOND_SIZES Pokémon of
+  # its pool, GUILD_SECOND_GAP levels under its leader). Won, it turns the
+  # enemy's switch on, like beating its leader.
+  GUILD_SECOND_SIZES = 2..3
+  GUILD_SECOND_GAP   = 2
   GUILD_BLOCKING     = %w[affiliée rivale].freeze
   GUILD_BLOCK_CHANCE = 50
   GUILD_BLOCK_SEALS  = 1

@@ -104,6 +104,20 @@ module WorldEvents
     pbMessage(_INTL("{1} reçoit {2} $ !", $player.name, amount.to_s_formatted))
   end
 
+  # The settling of scores (#190): the player and the ally's leader against
+  # the enemy's leader and its right hand; won, the enemy's switch is on,
+  # as if its leader were beaten (its members leave, the ally's bonus).
+  def showdown(partner_type, partner_name, leader_type, leader_name, second_type, second_name, switch)
+    pbRegisterPartner(partner_type, partner_name, TRAINER_VERSION)
+    setBattleRule("double")
+    won = TrainerBattle.start(leader_type, leader_name, TRAINER_VERSION, second_type, second_name, TRAINER_VERSION)
+    pbDeregisterPartner
+    return if !won
+    $game_switches[switch] = true
+    $game_map.need_refresh = true
+    say("guilde_reglement_fin")
+  end
+
   # Arceus (interpreter: the event's, for OverworldBoss): beaten or caught,
   # the Pact is broken and the door of its room opens.
   def arceus(interpreter, level, switch)

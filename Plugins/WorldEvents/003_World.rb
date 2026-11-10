@@ -53,6 +53,8 @@ module WorldEvents
       guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
                             Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade, rivals || {})
       rival_bonuses(atlas, definitions, guilds, plans, lines, Random.new((seed * 1000) + 830))
+      showdowns(atlas, definitions, guilds, rivals || {}, species, zones, plans, trainers, names, lines,
+                Random.new((seed * 1000) + 840))
       (walkers || []).each { |member| guilds.find { |g| g[:id] == member[:id] }&.[](:routes)&.push(member) }
     else
       guilds = nil
