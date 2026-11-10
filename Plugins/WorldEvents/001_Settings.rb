@@ -299,6 +299,8 @@ module WorldEvents
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
     "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
+    "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
+    "guilde_bonus_apres" => PLACE_TOKENS,
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
 
@@ -340,6 +342,13 @@ module WorldEvents
   # reached with at least GUILD_BLOCK_SEALS seals, has members standing
   # across the route's exit onward (the inner row of the exit, like the
   # gate of the first town) until its leader is beaten. Lines: [guilde_barrage].
+  # Rivalries (#189): once the player has rallied a guild (its switch on),
+  # the members of its enemies see GUILD_RAGE_SIGHT cells ahead (never an
+  # exit nor a door) and say [guilde_vengeance]; once an enemy's leader is
+  # beaten, its members leave the routes and a member of the ally gives one
+  # of GUILD_BONUS_ITEMS by its headquarters.
+  GUILD_RAGE_SIGHT  = 6
+  GUILD_BONUS_ITEMS = %i[LEFTOVERS LIFEORB CHOICESCARF CHOICEBAND CHOICESPECS FOCUSSASH EXPSHARE LUCKYEGG].freeze
   GUILD_BLOCKING     = %w[affiliée rivale].freeze
   GUILD_BLOCK_CHANCE = 50
   GUILD_BLOCK_SEALS  = 1

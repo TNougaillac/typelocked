@@ -42,13 +42,17 @@ module WorldEvents
     if zones && encounters
       routes = guilds ? guild_routes(result, atlas, guilds) : {}
       freed = guilds ? guild_liberations(result, atlas, guilds).values : []
+      rivals = guilds ? guild_rivals(atlas, guilds) : {}
       walkers = trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710),
-                               routes, species, freed.flat_map { |zone| zone[:maps].map { |map| [map, zone[:switch]] } }.to_h)
+                               routes, species, freed.flat_map { |zone| zone[:maps].map { |map| [map, zone[:switch]] } }.to_h,
+                               rivals)
     end
     if zones && sets
       blockade = guild_blockade(result, atlas, guilds, zones, Random.new((seed * 1000) + 820))
+      definitions = guilds
       guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
-                            Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade)
+                            Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade, rivals || {})
+      rival_bonuses(atlas, definitions, guilds, plans, lines, Random.new((seed * 1000) + 830))
       (walkers || []).each { |member| guilds.find { |g| g[:id] == member[:id] }&.[](:routes)&.push(member) }
     else
       guilds = nil

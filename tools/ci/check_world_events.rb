@@ -149,6 +149,9 @@ def check_cells(plan, spots, gates)
     dx, dy = W::STEPS[entry.value("Facing")]
     sight = (1..entry.value("Sight").to_i).map { |i| [entry.x + (dx * i), entry.y + (dy * i)] }
     raise MapEvents::Error, "#{where} : sa vue atteint une sortie ou une porte" if sight.any? { |c| blocked.include?(c) }
+    next if !entry.value("Rage")
+    rage = (1..entry.value("Rage").split(",")[1].to_i).map { |i| [entry.x + (dx * i), entry.y + (dy * i)] }
+    raise MapEvents::Error, "#{where} : sa vue de vengeance atteint une sortie ou une porte" if rage.any? { |c| blocked.include?(c) }
   end
 end
 
@@ -544,7 +547,8 @@ def check_liberations(result, atlas, plans, drawn)
   end
   plans.each do |name, plan|
     plan.events.each do |e|
-      next if e.kind != :trainer
+      # The members of the guilds leave the routes for their rivals (check_rivalries)
+      next if e.kind != :trainer || e.label.start_with?("Guilde")
       cousin = e.label.start_with?("Cousin") && e.value("Gift") != W::MAP_ITEM.to_s
       expected = cousin ? vanish[name] : nil
       next if e.value("VanishIfSwitch")&.to_i == expected
@@ -555,6 +559,62 @@ def check_liberations(result, atlas, plans, drawn)
     raise MapEvents::Error, "#{name} : #{stray.label} a une page « zone libérée » hors d'une ville libérée" if stray
   end
   return seen.length
+end
+
+# Rivalries (#189): enemies drawn together lie near each other (no place
+# where the later one could stand is nearer the other); the members of a
+# guild with a rallying enemy (W.guild_rivals) see farther and say a line of
+# [guilde_vengeance] under the ally's switch, those of the routes leave under
+# their own; no other member does; by an ally's headquarters, a member
+# gives an item of GUILD_BONUS_ITEMS under each present enemy's switch.
+# Returns the enemy pairs of the world.
+def check_rivalries(result, atlas, plans, drawn, items)
+  hqs = atlas[:hqs]
+  index = result.places.to_h { |wp, *| [wp.name, wp.index] }
+  pairs = 0
+  hqs.each do |kind, place|
+    (M::HQ_ENEMIES[kind] || []).each do |enemy|
+      next if !hqs[enemy] || kind > enemy
+      pairs += 1
+      gap = (index[place] - index[hqs[enemy]]).abs
+      nearest = [[kind, hqs[enemy]], [enemy, place]].map do |k, other|
+        M.hq_places(result.places, k).map { |i| (result.places[i][0].index - index[other]).abs }.min
+      end.min
+      raise MapEvents::Error, "QG ennemis #{kind} et #{enemy} à #{gap} lieux l'un de l'autre (#{nearest} possible)" if gap > nearest + 1
+    end
+  end
+  rivals = W.guild_rivals(atlas, GUILDS)
+  vengeance = DIALOGUES["guilde_vengeance"].map { |line| line.split(/\s*\|\s*/).first[/\A[^{]+/] }
+  members = drawn.flat_map { |g| (g[:members].map { |m| [g, g[:hq], m, false] }) + g[:routes].map { |m| [g, m[:map], m, true] } }
+  members.each do |g, map, member, route|
+    entry = plans[map].events.find { |e| e.label == member[:label] }
+    where = "#{map} : #{member[:label]} (#{g[:id]})"
+    rival = rivals[g[:id]]
+    if !rival
+      raise MapEvents::Error, "#{where} : vengeance sans ennemi rallié" if entry.value("Rage") || entry.value("VanishIfSwitch")
+      next
+    end
+    switch, sight = entry.value("Rage").to_s.split(",").map(&:to_i)
+    raise MapEvents::Error, "#{where} : vengeance sous l'interrupteur #{switch.inspect} au lieu de #{rival[:rage]}" if switch != rival[:rage]
+    raise MapEvents::Error, "#{where} : vue de vengeance #{sight} (#{entry.value('Sight')} à #{W::GUILD_RAGE_SIGHT})" if sight < entry.value("Sight").to_i || sight > [W::GUILD_RAGE_SIGHT, entry.value("Sight").to_i].max
+    raise MapEvents::Error, "#{where} : réplique de vengeance absente" if vengeance.none? { |start| entry.value("RageBattle").to_s.start_with?(start) }
+    expected = route ? rival[:vanish] : nil
+    raise MapEvents::Error, "#{where} : quitte la route sous #{entry.value('VanishIfSwitch').inspect} au lieu de #{expected.inspect}" if entry.value("VanishIfSwitch")&.to_i != expected
+  end
+  drawn.each do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    enemies = guild.position == W::GUILD_ALLY ? drawn.select { |e| guild.enemies.include?(e[:id]) } : []
+    raise MapEvents::Error, "guilde #{g[:id]} : #{g[:bonuses].length} bonus pour #{enemies.length} ennemis" if g[:bonuses].map { |b| b[:enemy] }.sort != enemies.map { |e| e[:id] }.sort
+    g[:bonuses].each do |bonus|
+      npc = plans[bonus[:map]].events.find { |e| e.label == bonus[:label] }
+      enemy = drawn.find { |e| e[:id] == bonus[:enemy] }
+      where = "guilde #{g[:id]} : bonus contre #{bonus[:enemy]}"
+      raise MapEvents::Error, "#{where} : absent du QG" if !npc || bonus[:map] != g[:hq]
+      raise MapEvents::Error, "#{where} : sous #{npc.value('When')} au lieu de S#{enemy[:switch]}" if npc.value("When") != "S#{enemy[:switch]}"
+      raise MapEvents::Error, "#{where} : objet #{npc.value('Gift')}" if !W::GUILD_BONUS_ITEMS.include?(npc.value("Gift")&.to_sym) || !items.include?(npc.value("Gift"))
+    end
+  end
+  return pairs
 end
 
 # Blocking headquarters (#188): at most one per world, of an affiliated or
@@ -661,6 +721,34 @@ GUILDS.group_by(&:hq).each do |hq, list|
   CI.error(W.guilds_path(ROOT), list[1].line, "QG #{hq} de plusieurs guildes (#{list.map(&:id).join(', ')})") if list.length > 1
 end
 (M::GUILD_HQS.keys - GUILDS.map(&:hq)).each { |kind| CI.error(settings, nil, "GUILD_HQS : QG #{kind} sans guilde dans guildes.txt") }
+# HQ_ENEMIES (MapProc) says the « Ennemis » of guildes.txt by headquarters
+GUILDS.each do |guild|
+  expected = guild.enemies.map { |id| GUILDS.find { |g| g.id == id }.hq }.sort
+  next if (M::HQ_ENEMIES[guild.hq] || []).sort == expected
+  CI.error(settings, nil, "HQ_ENEMIES[#{guild.hq}] : #{(M::HQ_ENEMIES[guild.hq] || []).sort.join(', ')} au lieu de #{expected.join(', ')} (Ennemis de #{guild.id})")
+end
+# Enemies are drawn together more often than by chance (#189): over many
+# draws with every headquarters possible, how often an enemy of a drawn one
+# is there too, against the same draw without HQ_ENEMY_CHANCE
+together = [M::HQ_ENEMY_CHANCE, 0].map do |chance|
+  hits = 0
+  total = 0
+  2000.times do |n|
+    picks = M.draw_hq_kinds(M::GUILD_HQS.keys, Random.new(n), chance).map(&:first)
+    raise "draw_hq_kinds : #{picks.length} QG" if picks.length > M::WORLD_GUILDS.max || picks.uniq != picks
+    picks.each do |kind|
+      (M::HQ_ENEMIES[kind] || []).each do |enemy|
+        total += 1
+        hits += 1 if picks.include?(enemy)
+      end
+    end
+  end
+  hits * 100.0 / total
+end
+if together[0] < together[1] + 15
+  CI.error(settings, nil, "HQ_ENEMY_CHANCE : ennemis tirés ensemble #{together[0].round} % du temps, #{together[1].round} % au hasard")
+end
+puts "Ennemis tirés ensemble : #{together[0].round} % (#{together[1].round} % au hasard)"
 W::GUILD_LEADER_SPOTS.each do |template, (x, y, _facing)|
   CI.error(settings, nil, "GUILD_LEADER_SPOTS : #{template} #{x},#{y} n'est pas une case libre") if !PASSABLE[template][y]&.[](x)
 end
@@ -805,6 +893,7 @@ rewards = Hash.new(0)
 freed = 0
 blockades = 0
 blockable = 0
+enemy_pairs = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -846,6 +935,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       freed += check_liberations(result, atlas, plans, events[:guilds])
+      enemy_pairs += check_rivalries(result, atlas, plans, events[:guilds], items)
       blocked, possible = check_blockades(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
       blockades += blocked
       blockable += possible
@@ -883,6 +973,7 @@ if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE +
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
 end
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
+puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}"
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

@@ -175,7 +175,7 @@ module WorldEvents
   # (guild_liberations: { town:, maps: }), nil if nothing; blocks: the
   # blockade (guild_blockade) of the guild that bars its route, else nil.
   def guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets, rng, type = nil,
-                   rewards = Random.new(0), blockade = nil)
+                   rewards = Random.new(0), blockade = nil, rivals = {})
     zones = zones.to_h { |zone| [zone.name, zone] }
     taken = []
     freed = guild_liberations(result, atlas, guilds)
@@ -214,7 +214,7 @@ module WorldEvents
           *lines.boxes("#{tag}_chef_victoire", title).map { |box| ["Win", box] }, *reward_lines(reward, lines),
           ["Switch", switch])
       members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
-                              [lines, tag, title], rng)
+                              [lines, tag, title], rng, rivals)
       blocks = (blockade && blockade[:id] == guild.id) ? blockade : nil
       bar_route(plans, blocks, guild, switch, lines, title) if blocks
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
@@ -226,6 +226,65 @@ module WorldEvents
   # The game switch of a guild: its rank in guildes.txt after GUILD_SWITCH.
   def guild_switch(guilds, guild)
     return GUILD_SWITCH + guilds.index(guild) + 1
+  end
+
+  #-----------------------------------------------------------------------------
+  # Rivalries (#189)
+  #-----------------------------------------------------------------------------
+  # { guild id => { ally:, rage:, vanish: } } for each guild of the world
+  # with an enemy of the world that rallies (GUILD_ALLY, the first one of
+  # its « Ennemis »): its members turn on the player once the ally's switch
+  # (rage) is on, and leave the routes once its own (vanish) is.
+  def guild_rivals(atlas, guilds)
+    present = guilds.select { |guild| (atlas[:hqs] || {})[guild.hq] }
+    return present.each_with_object({}) do |guild, rivals|
+      ally = guild.enemies.filter_map { |id| present.find { |g| g.id == id && g.position == GUILD_ALLY } }.first
+      next if !ally
+      rivals[guild.id] = { ally: ally.id, rage: guild_switch(guilds, ally), vanish: guild_switch(guilds, guild) }
+    end
+  end
+
+  # The lines of a member of a guild of rivals on that cell ([x, y, facing,
+  # sight]): its sight once the ally rallied (GUILD_RAGE_SIGHT ahead, until
+  # an exit or a door), its lines of revenge; on a route, it leaves once its
+  # leader is beaten.
+  def rage_lines(rivals, guild, spots, cell, lines, town, route = false)
+    rival = rivals[guild.id]
+    return [] if !rival
+    x, y, facing, sight = cell
+    dx, dy = STEPS[facing]
+    blocked = blocked_cells(spots)
+    far = (1..GUILD_RAGE_SIGHT).take_while { |i| !blocked.include?([x + (dx * i), y + (dy * i)]) }.length
+    return [["Rage", "#{rival[:rage]},#{[far, sight].max}"], ["RageBattle", lines.text("guilde_vengeance", town)],
+            *(route ? [["VanishIfSwitch", rival[:vanish]]] : [])]
+  end
+
+  # Once an enemy's leader is beaten, a member of the ally (rallied or not)
+  # gives one of GUILD_BONUS_ITEMS by its headquarters. drawn: guild_events,
+  # each guild's bonuses go to its :bonuses ([{ enemy:, item:, label:,
+  # map: }]).
+  def rival_bonuses(atlas, guilds, drawn, plans, lines, rng)
+    drawn.each { |g| g[:bonuses] = [] }
+    drawn.each do |g|
+      guild = guilds.find { |x| x.id == g[:id] }
+      next if guild.position != GUILD_ALLY
+      outside = atlas[:maps][g[:hq]]
+      anchor = outside[:doors].find { |_x, _y, kind| kind == guild.hq } ||
+               (outside[:hqs] || []).find { |_x, _y, kind| kind == guild.hq }
+      drawn.each do |enemy|
+        next if !guild.enemies.include?(enemy[:id])
+        cell = hq_cell(outside, anchor, plans[g[:hq]], rng)
+        next if !cell
+        item = GUILD_BONUS_ITEMS.sample(random: rng)
+        label = "Bonus#{guild.id.capitalize}#{g[:bonuses].length + 1}"
+        add(plans, g[:hq], "Npc", label, cell[0], cell[1], ["Graphic", "trainer_#{guild.member_types.first}"],
+            ["Facing", cell[2]], ["When", "S#{enemy[:switch]}"],
+            *lines.boxes("guilde_bonus_attente", outside[:title]).map { |box| ["Wait", box] },
+            *lines.boxes("guilde_bonus", outside[:title]).map { |box| ["Text", box] }, ["Gift", item],
+            *lines.boxes("guilde_bonus_apres", outside[:title]).map { |box| ["Once", box] })
+        g[:bonuses].push({ enemy: enemy[:id], item: item, label: label, map: g[:hq] })
+      end
+    end
   end
 
   #-----------------------------------------------------------------------------
@@ -403,7 +462,8 @@ module WorldEvents
   end
 
   # The members by the street, nearest the headquarters first.
-  def guild_members(spots, anchor, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng)
+  def guild_members(spots, anchor, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng,
+                    rivals = {})
     sizes = PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min]
     members = []
     rng.rand(GUILD_MEMBERS).times do
@@ -420,7 +480,7 @@ module WorldEvents
       label = guild_label(plans[route], guild)
       add(plans, route, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", title)],
-          ["EndBattle", lose])
+          ["EndBattle", lose], *rage_lines(rivals, guild, spots, cell, lines, title))
       members.push({ type: type, name: name, team: team, label: label })
     end
     return members
