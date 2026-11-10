@@ -243,7 +243,7 @@ module WorldEvents
       item = (guild_field_items(result, atlas, hq) - taken).first
       return { kind: "terrain", item: item } if item
     end
-    line = NOOK_TABLE[NOOK_TABLE.keys.select { |from| from <= seals }.max].reject { |id, _weight| id == :TM }
+    line = NOOK_TABLE[NOOK_TABLE.keys.select { |from| from <= seals }.max].reject { |loot, _weight| loot == :TM }
     pick = rng.rand(line.values.sum)
     return { kind: "objet", item: line.find { |_item, weight| (pick -= weight) < 0 }[0], money: GUILD_MONEY * (seals + 1) }
   end
