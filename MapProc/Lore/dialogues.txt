@@ -296,6 +296,11 @@ Le troupeau t'a jugé. Il a bon goût.
 Tu ne te bats pas comme eux. C'est déjà quelque chose.
 Reviens quand tu veux. La porte de la ferme est ouverte.
 
+[guilde_eleveurs_chef_victoire]
+Les Éleveurs marchent avec toi, désormais. | Un désigné qui respecte les bêtes, la Famille n'en fabrique pas souvent.
+Tu as gagné la ferme entière. | Quand tu iras voir le Parrain, souviens-toi que nous étions là.
+Le troupeau te suit, et nous avec. | Prends ce que la ferme t'offre, tu en auras besoin.
+
 [guilde_nageurs_membre_combat]
 L'eau purifie du Pacte. Toi, tu es encore sale.
 Le Cercle t'observe depuis la plage. Entre dans l'eau, ou entre dans le combat.
@@ -317,6 +322,11 @@ Plonge avec moi. Ceux qui remontent ne sont plus jamais liés à rien.
 La mer t'a refusé. Pour cette fois.
 Tu nages contre le courant. Il finira par t'emporter.
 Le Cercle attendra. L'eau a tout son temps.
+
+[guilde_nageurs_chef_victoire]
+Le Cercle paie ses défaites. | Prends ça et laisse-nous à la mer.
+Tu nages mieux que tu n'en as l'air. | Voilà ton dû. Ne compte pas sur notre amitié.
+Personne ne doit rien au Cercle, et le Cercle ne doit rien à personne. | Tiens.
 
 [guilde_dundees_membre_combat]
 Pas un bruit. Tu fais fuir le gibier.
@@ -340,6 +350,11 @@ Belle chasse. On en parlera autour du feu.
 Tu as eu le gibier, cette fois.
 Le marais garde le dernier mot. Il le garde toujours.
 
+[guilde_dundees_chef_victoire]
+Belle chasse. Chez nous, le vainqueur emporte un trophée. | Prends, et file avant que je change d'avis.
+Les Dundees ne discutent pas une prise. | Voilà ta part.
+Tu as abattu plus gros que toi. | Emporte ça. La prochaine fois, c'est moi qui tirerai le premier.
+
 [guilde_pontes_membre_combat]
 Recule. Les nids sont juste derrière moi.
 Chaque œuf de cette plage est sous notre garde.
@@ -361,6 +376,11 @@ Personne ne touche aux nids. Ni la Famille, ni un désigné.
 Tu te bats comme une carapace : on ne passe pas.
 Les nids sont plus en sûreté avec toi dans le coin.
 Reviens à la saison des éclosions. Ça vaut le voyage.
+
+[guilde_pontes_chef_victoire]
+Les Gardiens des pontes veillent sur toi, maintenant. | Ce que nous protégeons, tu le protèges aussi.
+Tu te bats sans casser un seul œuf. | Les nids te sont ouverts, et notre aide avec.
+La Famille prend les pontes. Toi, tu les as respectées. | Accepte ce que les Gardiens te confient.
 
 [guilde_braconniers_membre_combat]
 Tu n'as rien vu, rien entendu. Sauf moi.
@@ -384,6 +404,11 @@ Tu as gagné. Ce soir, personne ne dormira tranquille.
 La forêt est grande. On s'y recroisera.
 Garde tes Pokémon près de toi. Toujours.
 
+[guilde_braconniers_chef_victoire]
+La Famille saura que tu es passé par ici. | Dégage.
+Tu gagnes, soit. Les Cousins règleront ça avec toi.
+Je ne te dois rien. Ce que je prends part chez le Parrain.
+
 [guilde_forestiers_membre_combat]
 Halte. Personne ne s'enfonce dans le bois sans contrôle.
 Les braconniers rôdent. Montre-moi que tu n'en es pas un.
@@ -405,6 +430,11 @@ Mes gardes disent que tu te bats bien. Je veux le voir moi-même.
 Bon combat. La forêt a un ami de plus.
 Tu te bats pour quelque chose. Ça se sent.
 Reviens quand tu veux. Le poste est toujours ouvert.
+
+[guilde_forestiers_chef_victoire]
+Les gardes forestiers ouvrent la marche pour toi. | La forêt n'oublie pas ceux qui la traversent proprement.
+Tu as la parole d'une capitaine. | Mes gardes te prêteront main-forte jusqu'au bout.
+Voilà longtemps qu'on attend quelqu'un pour tenir tête à la Famille. | Prends ce que la garde peut t'offrir.
 
 [guilde_ouvriers_membre_combat]
 Casque obligatoire sur le chantier. Et combat obligatoire avec moi.
@@ -428,6 +458,11 @@ Du travail propre. Je n'ai rien à redire.
 Tu as la poigne d'un gars des docks.
 Si un jour la Famille tombe, on rebâtira. Avec des gens comme toi.
 
+[guilde_ouvriers_chef_victoire]
+Les Ouvriers sont avec toi. | Quand on se met au travail, rien ne reste debout bien longtemps.
+Parole de contremaître, le chantier te suit. | Voilà de quoi avancer plus vite.
+On bâtit pour la Famille depuis trop longtemps. | Pour toi, on fera ça de bon cœur.
+
 [guilde_contrebandiers_membre_combat]
 Tu n'as pas l'air d'un client. Donc tu es un problème.
 Ces caisses ne te regardent pas.
@@ -449,6 +484,11 @@ Les Ouvriers construisent, moi je vends. Et toi, tu déranges.
 Bon. Tu as payé le passage. En monnaie forte.
 On ne se fâche pas pour une cargaison. On s'en souvient.
 Le quai est à toi. Pour ce soir.
+
+[guilde_contrebandiers_chef_victoire]
+Rien vu, rien entendu. | La Famille a ses comptes, et tu viens d'y entrer.
+Tu passes, cette fois. Le Parrain a la mémoire longue.
+Je ne paie que les Cousins. Va-t'en.
 
 [guilde_forains_membre_combat]
 Approchez, approchez ! Le prochain numéro, c'est toi !
@@ -472,6 +512,11 @@ Rideau ! Quelle soirée.
 Le public en redemande. Moi aussi, un jour.
 Tu as volé la vedette. Personne ne fait ça.
 
+[guilde_forains_chef_victoire]
+Mesdames et messieurs, le vainqueur ! | Voilà ton lot. La fête continue sans toi.
+Chez les Forains, on gagne quelque chose à chaque partie. | Tiens, c'est mérité.
+Beau numéro. | Prends ta recette et reviens quand tu veux payer ta place.
+
 [guilde_mineurs_membre_combat]
 Attention aux éboulements. Et à mes Pokémon.
 La roche ne ment pas. Voyons si toi non plus.
@@ -493,6 +538,11 @@ Dans la galerie, on se tient les coudes. Toi, tu es seul.
 Tu as un cœur de roche. C'est un compliment.
 Ça faisait longtemps qu'on ne m'avait pas fait plier.
 Remonte au soleil. Tu le mérites.
+
+[guilde_mineurs_chef_victoire]
+Tu creuses dur. La galerie paie ceux qui tiennent le coup. | Prends ça.
+On ne prend parti pour personne, là-dessous. | Mais un filon est un filon. Voilà ta part.
+La mine te doit une journée de paie. | Tiens, et referme la porte en sortant.
 
 [guilde_ordre_membre_combat]
 Le temple garde ce que la Famille a oublié.
@@ -516,6 +566,11 @@ Tu es plus que ce que la Famille croit. Bien plus.
 Le Pacte peut se briser. Nous l'avons toujours su.
 Va. Et quand tu seras devant Arceus, souviens-toi de ce temple.
 
+[guilde_ordre_chef_victoire]
+Le Pacte t'a désigné, et il ne se trompe pas. | Reçois cette offrande. Elle ne t'achète pas notre pardon.
+L'Ordre s'incline devant ce qu'Arceus permet. | Prends, et prie pour ce que tu t'apprêtes à faire.
+Ta victoire était écrite. | Ceci aussi. Va.
+
 [guilde_endeuilles_membre_combat]
 Mon frère était désigné, lui aussi. On ne l'a jamais revu.
 Ici, on se souvient de ceux que la Famille a livrés.
@@ -538,6 +593,11 @@ Tu tiendras peut-être. Peut-être.
 Ils auraient été fiers de toi. Tous.
 Va jusqu'au bout. Pour eux.
 
+[guilde_endeuilles_chef_victoire]
+Les Endeuillés marchent derrière toi. | Nous avons assez pleuré, il est temps que quelqu'un réponde.
+Tu portes déjà nos morts avec toi. | Accepte notre aide. C'est tout ce qu'il nous reste à donner.
+Ceux que la Famille nous a pris te regardent. | Les Endeuillés sont avec toi.
+
 [guilde_chromes_membre_combat]
 Tu marches sur notre bitume.
 Les Chromés n'aiment ni la Famille, ni les piétons.
@@ -559,3 +619,14 @@ Ici, c'est le garage des Chromés. On répare, on casse, on cogne.
 Bien joué. T'as le moteur qu'il faut.
 Tu peux traîner avec nous quand tu veux.
 On ne se couche devant personne. Sauf toi, ce soir.
+
+[guilde_chromes_chef_victoire]
+T'as gagné, on paie. C'est la règle de la bande. | Prends et roule.
+Personne ne nous double. Sauf toi, faut croire. | Voilà ta mise.
+La bande te doit une tournée. | Tiens. Maintenant dégage de notre garage.
+
+# Un chef de guilde alliée qui ouvre un raccourci ({ville} : le raccourci).
+[guilde_raccourci]
+Mes gens vont dégager le passage de {ville}. Tu gagneras du chemin.
+Le passage de {ville} est fermé depuis trop longtemps. On te l'ouvre.
+Passe par {ville}. D'ici ton arrivée, la voie sera libre.

@@ -92,6 +92,18 @@ module WorldEvents
     pbMoveRoute($game_player, [PBMoveRoute::BACKWARD], true)
   end
 
+  # A rallied guild gives a Pokémon of the imposed type (#186): a gift, so
+  # the Nuzlocke asks its nickname (pbNickname) and it can die like any other.
+  def guild_pokemon(species, level)
+    pbAddPokemon(species, level)
+  end
+
+  # A beaten guild pays the player.
+  def guild_money(amount)
+    $player.money += amount
+    pbMessage(_INTL("{1} reçoit {2} $ !", $player.name, amount.to_s_formatted))
+  end
+
   # Arceus (interpreter: the event's, for OverworldBoss): beaten or caught,
   # the Pact is broken and the door of its room opens.
   def arceus(interpreter, level, switch)

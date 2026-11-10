@@ -446,6 +446,64 @@ def check_guilds(result, atlas, zones, plans, drawn, bricks)
   end
 end
 
+# What each guild gives once its leader is beaten (#186), with that imposed
+# type: an ally, a Pokémon of its pool of that type at the leader's level,
+# else the nearest shortcut still closed (its obstacle's events on its
+# map), else a field item given ahead; a neutral or rival one, an item
+# that exists and money; the others nothing. Each has its own switch.
+# Returns the kinds given.
+def check_rewards(result, atlas, plans, drawn, type, items)
+  switches = drawn.map { |g| g[:switch] }
+  raise MapEvents::Error, "interrupteurs de guilde en double ou hors plage (#{switches.join(', ')})" if switches.uniq != switches || switches.any? { |n| !n.between?(W::GUILD_SWITCH + 1, W::GUILD_SWITCH + GUILDS.length) }
+  taken = []
+  return drawn.map do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    where = "guilde #{guild.id} (#{guild.position}, type #{type || 'aucun'})"
+    reward = g[:reward]
+    chef = plans[g[:map]].events.find { |e| e.label == g[:leader][:label] }
+    raise MapEvents::Error, "#{where} : interrupteur #{chef.value('Switch')} au lieu de #{g[:switch]}" if chef.value("Switch").to_i != g[:switch]
+    raise MapEvents::Error, "#{where} : chef sans réplique de victoire" if !chef.value("Win")
+    scripts = chef.fields.filter_map { |key, value| value if key == "Reward" }
+    if !W::GUILD_REWARDED.include?(guild.position)
+      raise MapEvents::Error, "#{where} : récompense #{reward.inspect}" if reward || chef.value("Gift") || !scripts.empty?
+      next nil
+    end
+    raise MapEvents::Error, "#{where} : sans récompense" if !reward
+    typed = guild.pool.select { |id| type && ROSTER[id].monotype_types.include?(type) }
+    shortcuts = W.guild_shortcuts(result, g[:hq]).reject { |wp, _layout| taken.include?(wp.name) }
+    fields = W.guild_field_items(result, atlas, g[:hq]) - taken
+    expected = "objet"
+    if guild.position == W::GUILD_ALLY
+      expected = "terrain" if !fields.empty?
+      expected = "raccourci" if !shortcuts.empty?
+      expected = "pokemon" if !typed.empty?
+    end
+    raise MapEvents::Error, "#{where} : récompense #{reward[:kind]} au lieu de #{expected}" if reward[:kind] != expected
+    case expected
+    when "pokemon"
+      raise MapEvents::Error, "#{where} : #{reward[:species]} hors du pool ou du type" if !typed.include?(reward[:species])
+      raise MapEvents::Error, "#{where} : Pokémon donné au niveau #{reward[:level]} (chef #{g[:level]})" if reward[:level] != g[:level]
+      raise MapEvents::Error, "#{where} : don absent du chef" if scripts != ["WorldEvents.guild_pokemon(:#{reward[:species]}, #{reward[:level]})"]
+    when "raccourci"
+      wp, layout = shortcuts.first
+      raise MapEvents::Error, "#{where} : raccourci #{reward[:route]} au lieu du plus proche (#{wp.name})" if reward[:route] != wp.name
+      raise MapEvents::Error, "#{where} : obstacle #{wp.lock} sans événement à ouvrir" if !W::GUILD_OPENABLE.include?(wp.lock) || reward[:obstacle] != wp.lock
+      cells = layout.spots[:lock].drop(1).each_slice(2).to_a
+      raise MapEvents::Error, "#{where} : cases #{reward[:cells].inspect} hors de l'obstacle (#{cells.inspect})" if reward[:cells] != cells || cells.length != ((wp.lock == M::GRAPPLE) ? 2 : 1)
+      raise MapEvents::Error, "#{where} : le chef n'annonce pas le raccourci" if chef.fields.count { |key, _v| key == "Win" } < 2
+      taken.push(wp.name)
+    when "terrain"
+      raise MapEvents::Error, "#{where} : objet de terrain #{reward[:item]} inconnu ou déjà obtenu" if !fields.include?(reward[:item]) || !items.include?(reward[:item].to_s)
+      raise MapEvents::Error, "#{where} : don absent du chef" if chef.value("Gift") != reward[:item].to_s
+      taken.push(reward[:item])
+    when "objet"
+      raise MapEvents::Error, "#{where} : objet #{reward[:item]} absent" if !items.include?(reward[:item].to_s) || chef.value("Gift") != reward[:item].to_s
+      raise MapEvents::Error, "#{where} : argent #{reward[:money]}" if reward[:money].to_i <= 0 || scripts != ["WorldEvents.guild_money(#{reward[:money]})"]
+    end
+    expected
+  end
+end
+
 # The members of the guilds on the routes (#184): only on a route of their
 # guild (W.guild_routes), their Pokémon from its pool. Returns [members,
 # trainers of those routes that are no Cousin] for the share over the seeds.
@@ -624,12 +682,12 @@ end
 # For each weather, a world of a type that plays with it: when drawn, its
 # items not given by a lieutenant are placed once each, the first ones in
 # nooks (up to half of them).
-def check_weather(result, seed, args, events)
+def check_weather(seed, events, worlds)
   # The nooks holding a Heart Scale keep it (see W.weather_nooks)
   nooks = events[:items].count { |item| item[:source] == "recoin" && item[:item] != W::HEART_SCALE }
   W::WEATHER_ITEMS.each do |types, list|
     type = types.first
-    typed = W.world_events(result, seed, **args, type: type)
+    typed = worlds[type]
     given = typed[:leaders].filter_map { |leader| leader[:tm]&.first }
     expected = W.weather_items(type, Random.new((seed * 1000) + 780)) - given
     placed = typed[:items].select { |item| list.include?(item[:item]) }
@@ -656,6 +714,7 @@ count = 0
 pact_total = 0
 guild_walkers = 0
 guild_among = 0
+rewards = Hash.new(0)
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -700,7 +759,17 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
-      check_weather(result, seed, args, events)
+      # The same world under several imposed types (those of the weathers)
+      worlds = W::WEATHER_ITEMS.keys.to_h { |types| [types.first, W.world_events(result, seed, **args, type: types.first)] }
+      check_weather(seed, events, worlds)
+      worlds.merge(nil => events).each do |type, typed|
+        typed_plans = typed[:plans].to_h { |name, text| [name, MapEvents.parse(text, "#{where}, #{name}")] }
+        check_rewards(result, atlas, typed_plans, typed[:guilds], type, items).compact.each { |kind| rewards[kind] += 1 }
+      end
+      type = worlds.keys.first
+      if W.world_events(result, seed, **args, type: type)[:guilds].map { |g| g[:reward] } != worlds[type][:guilds].map { |g| g[:reward] }
+        raise MapEvents::Error, "type #{type} : la même graine et le même type donnent d'autres récompenses de guilde"
+      end
       check_pact(seed, events)
       pact_total += events[:items].count { |item| item[:item] == W::PACT_INCENSE }
     rescue MapEvents::Error => e
@@ -717,5 +786,6 @@ share = guild_among.zero? ? 0 : (guild_walkers * 100.0 / guild_among).round
 if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE + 15)).cover?(share)
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
 end
+puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')}"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

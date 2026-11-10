@@ -12,8 +12,9 @@
 #   Ennemis  = les guildes ennemies (réciproques), vide si aucune
 #   Pool     = les espèces de ses équipes (roster du jeu, sans légendaire)
 # Les répliques de chaque guilde sont dans dialogues.txt, sections
-# [guilde_<id>_chef_combat], [guilde_<id>_chef_fin], [guilde_<id>_membre_combat]
-# et [guilde_<id>_membre_fin] (id en minuscules).
+# [guilde_<id>_chef_combat], [guilde_<id>_chef_fin], [guilde_<id>_chef_victoire]
+# (après sa défaite, avant sa récompense), [guilde_<id>_membre_combat] et
+# [guilde_<id>_membre_fin] (id en minuscules).
 
 #-------------------------------------------------------------------------------
 [ELEVEURS]
