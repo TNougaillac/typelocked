@@ -502,8 +502,8 @@ o = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (petite 
 Ш = T14144 4x3 halo=5x5@0,1/4,9   # maison verte au toit plat
 Щ = T14192 4x3 halo=5x6@0,2/4,9,14   # maison vert et jaune
 Э = T14248 5x3 halo=6x7@0,3/5,11,17   # immeuble jaune
-s = T14512 5x1 halo=5x4@0,2   # stand au store bleu (SirMalo)
-y = T14544 5x1 halo=5x4@0,2   # stand au store rose (SirMalo)
+s = T15616 5x1 halo=6x4@0,2/5,11   # stand au store bleu (SirMalo)
+y = T15648 5x1 halo=6x4@0,2/5,11   # stand au store rose (SirMalo)
 t = T5248 2x2 forest=T5296         # arbre
 f = T1125 3x3 @q     # fontaine ronde, au milieu de la place, sur ses pavés (les rues la longent : with=f)
 v = T9928 2x4        # statue de la Famille (monument d'une ville, statue HGSS de SirMalo)

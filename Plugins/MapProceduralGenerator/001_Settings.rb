@@ -176,9 +176,6 @@ module MapProceduralGenerator
   # How often a side of a massif narrows by a block, row after row (%, from
   # its top row to its foot): its foot ends rounded.
   BOWL_BEND = 30..80
-  # The same from its foot to its top (its top steps, the cliffs have a
-  # corner turning in to the north too).
-  BOWL_RISE = 0..45
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20

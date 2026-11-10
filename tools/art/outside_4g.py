@@ -231,10 +231,14 @@ LATE_BUILDINGS = ["Q", "X", "Y", "Z", "A", "B"]
 # EDGE_ROWS px are something else.
 EDGE_WIDTH = 8
 EDGE_ROWS = 10
-# Drawings that go beyond their frame in the sheet (a few pixels of roof):
-# symbol => (columns more on the left, rows more above). The built tileset
-# gets them from tools/art/building_edges_4g.py.
-TALLER = {"C": (1, 1), "M": (0, 1), "N": (0, 1), "U": (0, 1)}
+# Drawings that go beyond their frame in the sheet (a few pixels of roof, the
+# end of a shadow): symbol => (columns more on the left, rows more above,
+# columns more on the right, of which only the shadow is taken). The built
+# tileset gets them from tools/art/building_edges_4g.py.
+TALLER = {"C": (1, 1, 0), "M": (0, 1, 0), "N": (0, 1, 0), "U": (0, 1, 0), "s": (0, 0, 1), "y": (0, 0, 1)}
+# Drawn against another piece of the sheet (the awning that lengthens a
+# stand): only their shadow is checked beyond their frame (cut_drawings).
+JOINED = {"s", "y"}
 SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
 # More buildings (#199, third part), after everything else: symbol =>
 # (parts, block x, y, width, height, door x, y in the drawing or None for a
@@ -447,10 +451,10 @@ def joined_pixels(sheet, col, start):
     return {(a - left, b) for a, b in seen}
 
 
-def roof_edges(sheet, col, x, y, w, h):
+def roof_edge_pixels(sheet, col, x, y, w, h):
     """The side edges of the roof of a Buildings drawing (its frame in 16 px
-    tiles), which the sheet draws one tile away from it: {(tile x, y in the
-    column): 16 px image of the edge where it belongs}."""
+    tiles), which the sheet draws one tile away from it: [(x, y in the
+    column, x where it belongs)]."""
     px = sheet.load()
     left = 16 + 144 * col
     solid = lambda a, b: 0 <= a < 128 and px[left + a, b] not in (MAGENTA, (255, 245, 104, 255), SHADOW)
@@ -465,14 +469,75 @@ def roof_edges(sheet, col, x, y, w, h):
             k = next((i for i in range(EDGE_WIDTH + 1) if not solid(bx - 1 - i, b)), EDGE_WIDTH + 1)
             if 0 < k <= EDGE_WIDTH and solid(bx + 16, b) and not any(solid(bx + 15 - i, b) for i in range(k)):
                 found.setdefault((bx, -1), []).extend((bx - 1 - i, b, bx + 15 - i) for i in range(k))
-    out = {}
-    for pixels in found.values():
-        if len({b for _a, b, _to in pixels}) < EDGE_ROWS:
+    out = []
+    for (bx, side), pixels in found.items():
+        rows = {b for _a, b, _to in pixels}
+        if len(rows) < EDGE_ROWS:
             continue
-        for a, b, to in pixels:
-            tile = out.setdefault((to // 16, b // 16), Image.new("RGBA", (16, 16)))
-            tile.putpixel((to % 16, b % 16), px[left + a, b])
+        out += pixels
+        # The edge goes on above and below, over the building where it is
+        # wider (its roof covers the top of the wall)
+        for step, b in ((-1, min(rows) - 1), (1, max(rows) + 1)):
+            while b not in rows and y * 16 <= b < (y + h) * 16:
+                run = [bx + i if side == 1 else bx - 1 - i for i in range(EDGE_WIDTH + 1)]
+                k = next((i for i, a in enumerate(run) if not solid(a, b)), EDGE_WIDTH + 1)
+                if not 0 < k <= EDGE_WIDTH:
+                    break
+                out += [(a, b, a - 16 * side) for a in run[:k]]
+                b += step
     return out
+
+
+def roof_edges(sheet, col, x, y, w, h):
+    """Those edges where they belong: {(tile x, y in the column): 16 px
+    image}."""
+    px = sheet.load()
+    left = 16 + 144 * col
+    out = {}
+    for a, b, to in roof_edge_pixels(sheet, col, x, y, w, h):
+        tile = out.setdefault((to // 16, b // 16), Image.new("RGBA", (16, 16)))
+        tile.putpixel((to % 16, b % 16), px[left + a, b])
+    return out
+
+
+def building_frames():
+    """Each building drawn from one frame of the sheet: (symbol, column, x,
+    y, w, h of its frame in tiles, a pixel of it in the column)."""
+    frames = [(sym, col, x, y, w, h, ((x + bx) * 16 + bw * 8, (y + by) * 16 + bh * 8))
+              for sym, (col, x, y, w, h, bx, by, bw, bh, *_door) in BUILDINGS.items()]
+    for sym, (parts, _block, _door) in MORE_BUILDINGS.items():
+        col, x, y, w, h, _ox, _oy, sx, sy = parts[0]
+        frames.append((sym, col, x, y, w, h, (sx, sy))) if len(parts) == 1 and sx >= 0 else None
+    return frames
+
+
+def cut_drawings(sheet):
+    """The buildings that their frame cuts (no tile is ever cut): [(symbol,
+    pixels beyond its frame on the left, above, on the right, below)]. A
+    drawing is every pixel joined to it, shadow included; its frame is the
+    one of its table and TALLER; the roof edges drawn apart (roof_edges)
+    are not beyond it."""
+    px = sheet.load()
+    clear = {MAGENTA, (255, 245, 104, 255)}
+    cut = []
+    for sym, col, x, y, w, h, start in building_frames():
+        left = 16 + 144 * col
+        more_left, more_top, more_right = TALLER.get(sym, (0, 0, 0))
+        x0, y0, x1, y1 = (x - more_left) * 16, (y - more_top) * 16, (x + w + more_right) * 16, (y + h) * 16
+        apart = {(a, b) for a, b, _to in roof_edge_pixels(sheet, col, x, y, w, h)}
+        seen = {start}
+        stack = [start]
+        while stack:
+            a, b = stack.pop()
+            for q in ((a + 1, b), (a - 1, b), (a, b + 1), (a, b - 1)):
+                if q not in seen and q not in apart and 0 <= q[0] < 128 and 0 <= q[1] < sheet.height and px[left + q[0], q[1]] not in clear:
+                    seen.add(q)
+                    stack.append(q)
+        seen = {q for q in seen if px[left + q[0], q[1]] == SHADOW} if sym in JOINED else seen
+        beyond = (sum(a < x0 for a, _b in seen), sum(b < y0 for _a, b in seen), sum(a >= x1 for a, _b in seen), sum(b >= y1 for _a, b in seen))
+        if any(beyond):
+            cut.append((sym, *beyond))
+    return cut
 
 
 def drawing_image(sheet, parts):
@@ -935,6 +1000,10 @@ def object_line(sym, first, empty):
 
 
 def main():
+    # No tile is ever cut: a building that its frame cuts stops the build
+    sheet = Image.open(f"{sys.argv[1]}/{SHEETS['B']}").convert("RGBA")
+    if (cut := cut_drawings(sheet)):
+        sys.exit("\n".join(f"{sym} : dessin coupé par son cadre ({l} px à gauche, {t} au-dessus, {r} à droite, {b} dessous)" for sym, l, t, r, b in cut))
     out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend, streets, more, snow) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),

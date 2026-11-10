@@ -324,16 +324,13 @@ module MapProceduralGenerator
     # A massif drawn as a map designer would, on a grid of 2x2 blocks (each
     # bend of its cliff at least 2 tiles long): its rows narrow, each side on
     # its own, more and more often towards the foot (BOWL_BEND), so that it
-    # ends rounded, and towards the top too, less often (BOWL_RISE), so that
-    # its top steps like a mound; at least 3 blocks wide at the foot for a
-    # framed stair. Rows of booleans, cw blocks wide, ch high.
+    # ends rounded; never towards the top (a row wider than the one above it
+    # would make an inner corner facing north, which no tile draws); at
+    # least 3 blocks wide at the foot for a framed stair. Rows of booleans,
+    # cw blocks wide, ch high.
     def bowl_blocks(cw, ch, rng, foot = 3)
       cw = [cw, foot].max
-      down = bowl_sides(cw, ch, rng, BOWL_BEND, foot)
-      up = bowl_sides(cw, ch, rng, BOWL_RISE, 2).reverse
-      return Array.new(ch) do |by|
-        left, right = [down[by][0], up[by][0]].max, [down[by][1], up[by][1]].min
-        left, right = down[by] if right - left + 1 < 2 || by == ch - 1
+      return bowl_sides(cw, ch, rng, BOWL_BEND, foot).map do |left, right|
         Array.new(cw) { |bx| bx.between?(left, right) }
       end
     end

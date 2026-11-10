@@ -200,8 +200,37 @@ def hq_drawn?(rows, hq_bricks)
   end
 end
 
+# A cliff terrain (it draws a rim, oN) has its « V » pieces just right of its
+# SW corner on SirMalo's sheet (SW+10, SW+11). They are no north inner corner:
+# drawn, they leave a notch in a level's rim or corner tiles in a filled
+# mound. Levels never make a north inner corner (thicken, bare_border) and a
+# mound with a top (centre tile) takes it there: no generated map holds one.
+def check_cliff_corners(plan, name)
+  cliffs = plan.terrains.select { |_symbol, terrain| terrain.roles["oN"] && terrain.roles["SW"] }
+  cliffs.each do |symbol, terrain|
+    next if terrain.center == 0 || !(terrain.roles.keys & %w[iNW iNE]).any?
+    raise MapGenerator::Error, "#{name} : le massif « #{symbol} » a un dessus mais déclare iNW/iNE : ses marches prennent son remplissage"
+  end
+  pieces = cliffs.values.flat_map { |terrain| [terrain.roles["SW"] + 10, terrain.roles["SW"] + 11] }.uniq
+  return if pieces.empty?
+  # The terrain tiles as the builder picks them, on a bare grid (the CI's
+  # Table only loads)
+  data = Hash.new(0)
+  def data.[](x, y, z) = fetch([x, y, z], 0)
+  def data.[]=(x, y, z, id)
+    store([x, y, z], id)
+  end
+  MapGenerator.apply_terrains(plan, plan.rows, data, nil)
+  plan.overlays.each { |z, rows| MapGenerator.apply_terrains(plan, rows, data, z) }
+  data.each do |(x, y, _z), id|
+    next if !pieces.include?(id)
+    raise MapGenerator::Error, "#{name} : coin rentrant nord (pointe de falaise T#{id - 384}) colonne #{x + 1}, ligne #{y + 1} : un niveau garde un bord droit, une butte se remplit"
+  end
+end
+
 def check_spill(plan, name)
   check_stairs(plan, name)
+  check_cliff_corners(plan, name)
   check_grass_edges(plan, name)
   check_water_rocks(plan, name)
   check_object_halos(plan, name)

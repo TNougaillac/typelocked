@@ -3,13 +3,15 @@
   tile away from the building (roof_edges in tools/art/outside_4g.py), are
   put back against it, in the tiles already built;
 - the drawings that go beyond their frame in the sheet (TALLER: the top of
-  the roofs of the Pokémon Centre, the Marts and the teal house) are copied
-  whole at the end of the tileset, with the row or column they lacked.
+  the roofs of the Pokémon Centre, the Marts and the teal house, the end of
+  the shadow of the stands) are copied whole at the end of the tileset, with
+  the row or column they lacked.
+It stops if a building is still cut by its frame (cut_drawings).
 The [Objects] lines of MapProc/ville.txt and MapProc/route.txt follow (tile,
 halo, empty cells).
 
-Run once from the repository root, on the tileset built by
-tools/art/outside_4g.py and the scripts run after it:
+Run from the repository root, on the tileset built by tools/art/outside_4g.py
+and the scripts run after it (run again, it only does what is left to do):
     python3 tools/art/building_edges_4g.py <folder of SirMalo's sheets>
 """
 import json
@@ -21,7 +23,7 @@ from PIL import Image
 sys.dont_write_bytecode = True
 sys.path.insert(0, "tools/art")
 from outside_4g import (BUILDINGS, MAGENTA, MORE_BUILDINGS, SHADOW, SHEETS, TALL, TALLER, TARGET, TILE,  # noqa: E402
-                        WIDE_SYMBOLS, box, roof_edges)
+                        WIDE_SYMBOLS, box, building_frames, cut_drawings, roof_edges)
 
 TILESET_ID = 24
 PLANS = ["MapProc/ville.txt", "MapProc/route.txt"]
@@ -67,6 +69,8 @@ def drawing_of(sheet, col, x, y, w, h):
 
 def main():
     sheet = Image.open(f"{sys.argv[1]}/{SHEETS['B']}").convert("RGBA")
+    if (cut := cut_drawings(sheet)):
+        sys.exit("\n".join(f"{sym} : dessin coupé par son cadre ({l} px à gauche, {t} au-dessus, {r} à droite, {b} dessous)" for sym, l, t, r, b in cut))
     tileset = Image.open(TARGET).convert("RGBA")
     texts = {plan: open(plan, encoding="utf-8").read() for plan in PLANS}
     plans = {plan: objects(text) for plan, text in texts.items()}
@@ -80,10 +84,16 @@ def main():
     for sym, (parts, block, _door) in MORE_BUILDINGS.items():
         buildings.append(([sym] + WIDE_SYMBOLS.get(sym, []), max(p[5] + p[3] for p in parts), max(p[6] + p[4] for p in parts), block, [p[:7] for p in parts]))
     known = {}
+    done = set()   # already copied whole (TALLER)
     for syms, w, h, (bx, by, bw, bh), _frames in buildings:
         for k, sym in enumerate(syms[:(w - 1) // 8 + 1]):
             x0, x1 = k * 8, min(w, k * 8 + 8)
             size = [min(bx + bw, x1) - max(bx, x0), bh, x1 - x0, h, max(bx, x0) - x0, by]
+            more_left, more_top, more_right = TALLER.get(sym, (0, 0, 0))
+            whole = [size[0], size[1], size[2] + more_left + more_right, size[3] + more_top, size[4] + more_left, size[5] + more_top]
+            if sym in TALLER and any(obj[2:8] == whole for found in plans.values() for obj in found.get(sym, [])):
+                size = whole
+                done.add(sym)
             lines = {tuple(obj[1:8]) for found in plans.values() for obj in found.get(sym, []) if obj[2:8] == size}
             if len(lines) == 1:
                 known[sym] = next(obj for found in plans.values() for obj in found.get(sym, []) if obj[2:8] == size)
@@ -96,6 +106,7 @@ def main():
             if not (x <= tx < x + w) or dx // 8 >= len(syms) or syms[dx // 8] not in known:
                 continue
             sym, dx = syms[dx // 8], dx % 8
+            dx, dy = (dx + TALLER[sym][0], dy + TALLER[sym][1]) if sym in done else (dx, dy)
             _i, tile, bw, bh, dw, dh, bx, by, empty, _rest = obj = changed.setdefault(sym, list(known[sym]))
             dest = tile - by * 8 - bx + dy * 8 + dx
             tileset.alpha_composite(edge.resize((TILE, TILE), Image.NEAREST), box(dest)[:2])
@@ -107,17 +118,21 @@ def main():
     first = tileset.height // TILE * 8
     rows = 0
     tiles = {}
-    for sym, (more_x, more_y) in TALLER.items():
-        col, x, y, w, h = BUILDINGS[sym][:5]
+    frames = {sym: frame for sym, *frame, _start in building_frames()}
+    for sym, (more_x, more_y, more_right) in TALLER.items():
+        if sym in done or sym not in known:
+            continue
+        col, x, y, w, h = frames[sym]
         _i, tile, bw, bh, dw, dh, bx, by, _empty, _rest = obj = changed.setdefault(sym, list(known[sym]))
-        keep = drawing_of(sheet, col, x - more_x, y, w + more_x, h)
+        keep = drawing_of(sheet, col, x - more_x, y, w + more_x + more_right, h)
         old = tile - by * 8 - bx
         new = first + rows * 8
+        width = dw + more_x + more_right
         empty = []
         for ty in range(dh + more_y):
-            for tx in range(dw + more_x):
+            for tx in range(width):
                 dest = new + ty * 8 + tx
-                if tx >= more_x and ty >= more_y:
+                if more_x <= tx < more_x + dw and ty >= more_y:
                     source = old + (ty - more_y) * 8 + tx - more_x
                     tiles[dest] = tileset.crop(box(source))
                     copies[str(dest)] = copies.get(str(source), source)
@@ -126,14 +141,16 @@ def main():
                     part = Image.new("RGBA", (16, 16))
                     for a in range(16):
                         for b in range(16):
-                            if (left + a, top + b) in keep:
-                                part.putpixel((a, b), sheet.getpixel((left + a, top + b)))
+                            pixel = sheet.getpixel((left + a, top + b))
+                            # (on the right, only the shadow: the rest is another piece)
+                            if (left + a, top + b) in keep and (tx < more_x + dw or pixel == SHADOW):
+                                part.putpixel((a, b), pixel)
                     tiles[dest] = part.resize((TILE, TILE), Image.NEAREST)
                     copies[str(dest)] = TALL if solid(tiles[dest]) else "=0"
                 inside = bx + more_x <= tx < bx + more_x + bw and by + more_y <= ty < by + more_y + bh
                 if not inside and not tiles[dest].getbbox():
-                    empty.append(ty * (dw + more_x) + tx)
-        obj[1:9] = [new + (by + more_y) * 8 + bx + more_x, bw, bh, dw + more_x, dh + more_y, bx + more_x, by + more_y, empty]
+                    empty.append(ty * width + tx)
+        obj[1:9] = [new + (by + more_y) * 8 + bx + more_x, bw, bh, width, dh + more_y, bx + more_x, by + more_y, empty]
         rows += dh + more_y
     out = Image.new("RGBA", (tileset.width, tileset.height + rows * TILE), (0, 0, 0, 0))
     out.paste(tileset, (0, 0))
