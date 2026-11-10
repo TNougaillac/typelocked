@@ -12,7 +12,10 @@ module WorldEvents
   # (sections of PBS/trainers.txt) into trainers. guilds: { route => [Guild] }
   # (guild_routes), species: the roster, for the members of the guilds on
   # the routes (#184). Returns those members: [{ id:, map:, label:, team: }].
-  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, rng, guilds = {}, species = nil)
+  # freed: { map => game switch } (guild_liberations): the Cousins of these
+  # maps are gone once the switch is on (#187).
+  def trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, rng, guilds = {}, species = nil,
+                     freed = {})
     zones = zones.to_h { |zone| [zone.name, zone] }
     pools = zone_pools(zones, encounters)
     members = []
@@ -32,7 +35,8 @@ module WorldEvents
           next
         end
         type = (cousin ? COUSIN_TYPES : types).sample(random: rng)
-        add_trainer(plans, trainers, names, map, cell, type, zone, pools[map], cousin, [lines, town], rng)
+        vanish = (cousin && freed[map]) ? [["VanishIfSwitch", freed[map]]] : []
+        add_trainer(plans, trainers, names, map, cell, type, zone, pools[map], cousin, [lines, town], rng, vanish)
       end
     end
     places = result.places.sort_by { |wp, *| wp.index }

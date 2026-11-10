@@ -42,6 +42,22 @@ Les lieutenants portent tous la même chevalière. Toi aussi, bientôt.
 Avant, {ville} avait un maire. Maintenant, elle a un lieutenant.
 Le Pacte a choisi {joueur}... Je me demande ce qu'il a vu en toi.
 
+# Habitants d'une ville libérée de la Famille (le chef d'une guilde affiliée
+# battu) : ils osent parler du Pacte et des désignés disparus.
+[habitant_libre]
+Les Cousins sont partis de {ville}. Alors je te le dis : mon frère était un désigné. On ne l'a jamais revu.
+Tu sais ce que devient un désigné qui perd à la Ligue ? Personne ne le sait. C'est bien ça qui fait peur.
+Le Pacte, on nous a appris à le remercier. | Mais qui l'a signé pour nous ? Personne ne nous a rien demandé.
+Avant, je baissais la voix pour dire le mot Parrain. Écoute : Parrain ! | Ça fait du bien.
+Ma fille a été désignée il y a dix ans. La Famille nous a versé une rente pour qu'on se taise. | Je ne me tais plus.
+On dit que les Anciens sont des désignés qui ont gagné. Et ceux qui ont perdu, alors ?
+Depuis que la guilde a plié, plus personne ne passe prendre l'enveloppe à {ville}. | On respire, {joueur}.
+Le Pacte lie un enfant à un seul type pour la vie. | Ce n'est pas un don d'Arceus. C'est une laisse.
+Chaque année un désigné part pour la Ligue, et la Famille reste au pouvoir. Tu ne trouves pas ça curieux ?
+J'ai gardé les lettres du dernier désigné de {ville}. La dernière dit : « Le Parrain ment. » | Fais-en bon usage.
+Va jusqu'au bout, {joueur}. Pour ceux de {region} qui ne sont pas revenus.
+Je ne sais pas ce que la Famille doit à Arceus. Mais ce sont nos enfants qui paient.
+
 #-------------------------------------------------------------------------------
 # Policiers : dans les rues ; la plupart payés par la Famille, quelques-uns
 # qui enquêtent en douce
@@ -405,9 +421,9 @@ La forêt est grande. On s'y recroisera.
 Garde tes Pokémon près de toi. Toujours.
 
 [guilde_braconniers_chef_victoire]
-La Famille saura que tu es passé par ici. | Dégage.
-Tu gagnes, soit. Les Cousins règleront ça avec toi.
-Je ne te dois rien. Ce que je prends part chez le Parrain.
+Tu gagnes. Prends ça, c'était la part des Cousins. | Sans nous, la Famille ne tient plus rien par ici.
+Voilà ce que je devais au Parrain. Garde-le. | Mes braconniers lèvent le camp, et les Cousins suivront.
+La Famille nous payait pour tenir ce coin. | Elle vient de perdre sa mise. Tiens, la tienne.
 
 [guilde_forestiers_membre_combat]
 Halte. Personne ne s'enfonce dans le bois sans contrôle.
@@ -486,9 +502,9 @@ On ne se fâche pas pour une cargaison. On s'en souvient.
 Le quai est à toi. Pour ce soir.
 
 [guilde_contrebandiers_chef_victoire]
-Rien vu, rien entendu. | La Famille a ses comptes, et tu viens d'y entrer.
-Tu passes, cette fois. Le Parrain a la mémoire longue.
-Je ne paie que les Cousins. Va-t'en.
+La cargaison était pour le Parrain. Elle est à toi. | Sans nos bateaux, les Cousins n'ont plus rien à faire ici.
+Tu as coulé mes affaires. Prends ta part et tais-toi. | La Famille ne remettra pas les pieds dans le coin de sitôt.
+Je ne paie que les plus forts. Aujourd'hui, c'est toi. | Les Cousins partiront avec la marée.
 
 [guilde_forains_membre_combat]
 Approchez, approchez ! Le prochain numéro, c'est toi !

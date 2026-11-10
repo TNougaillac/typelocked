@@ -6,7 +6,9 @@
 # leader inside (by the street when its headquarters has no door) and 2 to 4
 # members outside, their teams drawn from its pool at the level of the
 # Tronçon. Its leader beaten, the guild turns its switch on and rewards the
-# player by its position (guild_reward, #186). Plain Ruby.
+# player by its position (guild_reward, #186); an affiliated guild beaten
+# frees the nearest town from the Family (guild_liberations, #187). Plain
+# Ruby.
 #===============================================================================
 module WorldEvents
   # id: the section's (« ELEVEURS »); position: GUILD_POSITIONS; biomes:
@@ -168,12 +170,14 @@ module WorldEvents
   # name:, team: }], routes: [] (its members on the routes, see
   # trainer_events) }].
   # switch: turned on once its leader is beaten; reward: guild_reward (type:
-  # the imposed type, rewards: its own draw).
+  # the imposed type, rewards: its own draw); freed: what it frees
+  # (guild_liberations: { town:, maps: }), nil if nothing.
   def guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets, rng, type = nil,
                    rewards = Random.new(0))
     zones = zones.to_h { |zone| [zone.name, zone] }
     taken = []
-    return guilds.each_with_index.filter_map do |guild, i|
+    freed = guild_liberations(result, atlas, guilds)
+    return guilds.filter_map do |guild|
       route = (atlas[:hqs] || {})[guild.hq]
       zone = route && zones[route]
       outside = route && atlas[:maps][route]
@@ -200,7 +204,7 @@ module WorldEvents
       lose = lines.text("#{tag}_chef_fin", title)
       trainers.push(team_section(guild.leader, name, lose, team, team_sets))
       label = guild.id.capitalize
-      switch = GUILD_SWITCH + i + 1
+      switch = guild_switch(guilds, guild)
       reward = guild_reward(guild, route, result, atlas, species, type, level, seals, taken, rewards)
       taken.push(reward[:route] || reward[:item]) if reward
       add(plans, map, "Trainer", "Chef#{label}", cell[0], cell[1], ["Facing", cell[2]], ["Sight", cell[3]], ["Type", guild.leader],
@@ -211,8 +215,44 @@ module WorldEvents
                               [lines, tag, title], rng)
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
         leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members,
-        routes: [], switch: switch, reward: reward }
+        routes: [], switch: switch, reward: reward, freed: freed[guild.id]&.slice(:town, :maps) }
     end
+  end
+
+  # The game switch of a guild: its rank in guildes.txt after GUILD_SWITCH.
+  def guild_switch(guilds, guild)
+    return GUILD_SWITCH + guilds.index(guild) + 1
+  end
+
+  #-----------------------------------------------------------------------------
+  # Freed zones (#187)
+  #-----------------------------------------------------------------------------
+  # { guild id => { town:, maps:, switch: } } for each affiliated guild of
+  # the world (GUILD_FREEING): the town nearest its headquarters along the
+  # chain (its own if it is in one, never the first town), whose inhabitants
+  # speak freely once the guild's switch is on, and the maps the Cousins
+  # leave then: that town and the routes that touch it. A town or a route is
+  # freed by one guild only (the first of guildes.txt).
+  def guild_liberations(result, atlas, guilds)
+    places = result.places.map(&:first)
+    towns = places.select { |wp| wp.kind == "ville" && wp.name != atlas[:start] && !wp.league && !wp.victory }
+    used = []
+    freed = {}
+    guilds.each do |guild|
+      hq = places.find { |wp| wp.name == (atlas[:hqs] || {})[guild.hq] }
+      next if !hq || guild.position != GUILD_FREEING
+      at = chain_index(hq)
+      town = towns.reject { |wp| used.include?(wp.name) }.min_by { |wp| [(wp.index - at).abs, wp.index] }
+      next if !town
+      routes = places.select do |wp|
+        next false if wp.kind != "route" || used.include?(wp.name)
+        wp.extra ? wp.ends.include?(town) : (wp.index - town.index).abs == 1
+      end
+      maps = [town.name, *routes.map(&:name)]
+      used.concat(maps)
+      freed[guild.id] = { town: town.name, maps: maps, switch: guild_switch(guilds, guild) }
+    end
+    return freed
   end
 
   #-----------------------------------------------------------------------------
@@ -223,12 +263,11 @@ module WorldEvents
   # level ({ kind: "pokemon", species:, level: }); else the nearest shortcut
   # still closed is opened ({ kind: "raccourci", route:, title:, obstacle:, cells:
   # of its obstacle's events }); else a field item ahead of its town ({
-  # kind: "terrain", item: }). A neutral or rival one (and an ally with
-  # none of those): an item and money ({ kind: "objet", item:, money: }).
-  # Else nil. hq: its headquarters' place; taken: the shortcuts and field
-  # items other guilds give.
+  # kind: "terrain", item: }). The others (and an ally with none of
+  # those): an item and money ({ kind: "objet", item:, money: }). hq: its
+  # headquarters' place; taken: the shortcuts and field items other guilds
+  # give.
   def guild_reward(guild, hq, result, atlas, species, type, level, seals, taken, rng)
-    return nil if !GUILD_REWARDED.include?(guild.position)
     if guild.position == GUILD_ALLY
       typed = guild.pool.filter_map { |id| species[id] }.select { |sp| type && sp.monotype_types.include?(type) }
       if !typed.empty?

@@ -449,8 +449,8 @@ end
 # What each guild gives once its leader is beaten (#186), with that imposed
 # type: an ally, a Pokémon of its pool of that type at the leader's level,
 # else the nearest shortcut still closed (its obstacle's events on its
-# map), else a field item given ahead; a neutral or rival one, an item
-# that exists and money; the others nothing. Each has its own switch.
+# map), else a field item given ahead; the others, an item that exists and
+# money. Each has its own switch.
 # Returns the kinds given.
 def check_rewards(result, atlas, plans, drawn, type, items)
   switches = drawn.map { |g| g[:switch] }
@@ -464,10 +464,6 @@ def check_rewards(result, atlas, plans, drawn, type, items)
     raise MapEvents::Error, "#{where} : interrupteur #{chef.value('Switch')} au lieu de #{g[:switch]}" if chef.value("Switch").to_i != g[:switch]
     raise MapEvents::Error, "#{where} : chef sans réplique de victoire" if !chef.value("Win")
     scripts = chef.fields.filter_map { |key, value| value if key == "Reward" }
-    if !W::GUILD_REWARDED.include?(guild.position)
-      raise MapEvents::Error, "#{where} : récompense #{reward.inspect}" if reward || chef.value("Gift") || !scripts.empty?
-      next nil
-    end
     raise MapEvents::Error, "#{where} : sans récompense" if !reward
     typed = guild.pool.select { |id| type && ROSTER[id].monotype_types.include?(type) }
     shortcuts = W.guild_shortcuts(result, g[:hq]).reject { |wp, _layout| taken.include?(wp.name) }
@@ -502,6 +498,63 @@ def check_rewards(result, atlas, plans, drawn, type, items)
     end
     expected
   end
+end
+
+# The zone an affiliated guild frees (#187): the town nearest its
+# headquarters (never the first town), whose inhabitants, in the streets
+# and the houses, have a page under the guild's switch with a line of
+# [habitant_libre] (never a policeman); the Cousins of that town and of
+# the routes that touch it vanish under that switch, no other does, and
+# the Cousin of the Town Map stays. Returns the number of freed zones.
+def check_liberations(result, atlas, plans, drawn)
+  towns = result.places.map(&:first).select { |wp| wp.kind == "ville" && wp.name != atlas[:start] && !wp.league && !wp.victory }
+  index = result.places.to_h { |wp, *| [wp.name, W.chain_index(wp)] }
+  free_lines = DIALOGUES["habitant_libre"].map { |line| line.split(/\s*\|\s*/).first[/\A[^{]+/] }
+  vanish = {}
+  seen = []
+  drawn.each do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    where = "guilde #{guild.id} (#{guild.position})"
+    if guild.position != W::GUILD_FREEING
+      raise MapEvents::Error, "#{where} : zone libérée #{g[:freed].inspect}" if g[:freed]
+      next
+    end
+    left = towns.reject { |wp| seen.include?(wp.name) }
+    raise MapEvents::Error, "#{where} : aucune ville libérée" if !g[:freed] && !left.empty?
+    next if !g[:freed]
+    town = left.find { |wp| wp.name == g[:freed][:town] }
+    raise MapEvents::Error, "#{where} : ville libérée #{g[:freed][:town]} inconnue ou déjà libérée" if !town
+    nearest = left.map { |wp| (wp.index - index[g[:hq]]).abs }.min
+    raise MapEvents::Error, "#{where} : #{town.name} n'est pas la ville la plus proche du QG" if (town.index - index[g[:hq]]).abs != nearest
+    seen.push(town.name)
+    g[:freed][:maps].each { |map| vanish[map] = g[:switch] }
+    homes = [town.name] + atlas[:maps].select { |_name, map| map[:kind] == "interieur" && map[:owner] == town.name }.keys
+    habitants = homes.flat_map { |name| plans[name]&.events&.select { |e| e.label.start_with?("Habitant") } || [] }
+    raise MapEvents::Error, "#{where} : #{town.name} sans habitant" if habitants.empty?
+    habitants.each do |e|
+      if e.value("Graphic") == W::POLICE_GRAPHIC
+        raise MapEvents::Error, "#{where} : policier de #{town.name} avec une page « zone libérée »" if e.value("When")
+        next
+      end
+      text = e.value("Text").to_s
+      if e.value("When") != "S#{g[:switch]}" || !e.value("Wait") || free_lines.none? { |start| text.start_with?(start) }
+        raise MapEvents::Error, "#{where} : habitant #{e.label} de #{town.name} sans page « zone libérée »"
+      end
+    end
+  end
+  plans.each do |name, plan|
+    plan.events.each do |e|
+      next if e.kind != :trainer
+      cousin = e.label.start_with?("Cousin") && e.value("Gift") != W::MAP_ITEM.to_s
+      expected = cousin ? vanish[name] : nil
+      next if e.value("VanishIfSwitch")&.to_i == expected
+      raise MapEvents::Error, "#{name} : #{e.label} disparaît sous l'interrupteur #{e.value('VanishIfSwitch').inspect} au lieu de #{expected.inspect}"
+    end
+    next if seen.any? { |town| name == town || atlas[:maps][name][:owner] == town }
+    stray = plan.events.find { |e| e.label.start_with?("Habitant") && e.value("When") }
+    raise MapEvents::Error, "#{name} : #{stray.label} a une page « zone libérée » hors d'une ville libérée" if stray
+  end
+  return seen.length
 end
 
 # The members of the guilds on the routes (#184): only on a route of their
@@ -715,6 +768,7 @@ pact_total = 0
 guild_walkers = 0
 guild_among = 0
 rewards = Hash.new(0)
+freed = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -753,6 +807,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_league(atlas, plans, events[:league], events[:leaders])
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
+      freed += check_liberations(result, atlas, plans, events[:guilds])
       walkers, among = check_guild_routes(result, atlas, plans, events[:guilds])
       guild_walkers += walkers
       guild_among += among
@@ -786,6 +841,6 @@ share = guild_among.zero? ? 0 : (guild_walkers * 100.0 / guild_among).round
 if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE + 15)).cover?(share)
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
 end
-puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')}"
+puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

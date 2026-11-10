@@ -284,7 +284,7 @@ module WorldEvents
   PLACE_TOKENS  = %w[joueur ville region].freeze
   BATTLE_TOKENS = %w[ville region].freeze
   DIALOGUE_SECTIONS = {
-    "habitant" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
+    "habitant" => PLACE_TOKENS, "habitant_libre" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
     "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS, "cousin_carte" => PLACE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
     "professeur_apres" => %w[joueur type], "professeur_pokedex" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
@@ -326,11 +326,14 @@ module WorldEvents
   # Its leader beaten (#186), a guild turns on its game switch: GUILD_SWITCH
   # + its rank in guildes.txt (71 and up); the next tickets read it. An
   # ally rallies (a Pokémon of the imposed type, else a shortcut opened,
-  # else a field item); the GUILD_REWARDED others give an item of the nooks
-  # and GUILD_MONEY for each seal won on the way (plus one).
+  # else a field item); the others give an item of the nooks and
+  # GUILD_MONEY for each seal won on the way (plus one). An affiliated one
+  # (GUILD_FREEING) also frees the nearest town (#187): its inhabitants say
+  # the lines of [habitant_libre], the Cousins of the town and of the routes
+  # that touch it are gone.
   GUILD_SWITCH   = 70
   GUILD_ALLY     = "alliée"
-  GUILD_REWARDED = %w[alliée neutre rivale].freeze
+  GUILD_FREEING  = "affiliée"
   GUILD_MONEY    = 1000
   # Obstacles of a shortcut a guild can open (those with an event).
   GUILD_OPENABLE = %w[arbre rocher bloc grappin].freeze
