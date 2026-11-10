@@ -617,6 +617,48 @@ def check_rivalries(result, atlas, plans, drawn, items)
   return pairs
 end
 
+# The settling of scores (#190): each guild with a rallying enemy in the
+# world has its showdown by its headquarters, shown once the ally rallied
+# and gone once the guild's switch is on: the ally's leader as partner, the
+# guild's leader and its right hand as foes (its pool, under the cap, a
+# section of trainers.txt); the guild's leader counts as beaten once it is
+# won. Returns the showdowns of the world.
+def check_showdowns(atlas, plans, drawn, sections)
+  rivals = W.guild_rivals(atlas, GUILDS)
+  count = 0
+  drawn.each do |g|
+    rival = rivals[g[:id]]
+    ally = rival && drawn.find { |a| a[:id] == rival[:ally] }
+    show = g[:showdown]
+    raise MapEvents::Error, "guilde #{g[:id]} : règlement de comptes sans allié rallié" if show && !ally
+    next if !ally
+    where = "règlement de comptes #{g[:id]} contre #{ally[:id]}"
+    raise MapEvents::Error, "#{where} : absent" if !show
+    count += 1
+    npc = plans[show[:map]].events.find { |e| e.label == show[:label] }
+    raise MapEvents::Error, "#{where} : pas près du QG" if !npc || show[:map] != g[:hq]
+    raise MapEvents::Error, "#{where} : là sous #{npc.value('Show')} au lieu de S#{rival[:rage]}" if npc.value("Show") != "S#{rival[:rage]}"
+    raise MapEvents::Error, "#{where} : reste sous #{npc.value('Hide')} au lieu de S#{g[:switch]}" if npc.value("Hide") != "S#{g[:switch]}"
+    raise MapEvents::Error, "#{where} : partenaire #{show[:partner].inspect}" if show[:partner] != [ally[:leader][:type], ally[:leader][:name]]
+    leader, second = show[:foes]
+    raise MapEvents::Error, "#{where} : chef #{leader[1]} au lieu de #{g[:leader][:name]}" if leader[0, 2] != [g[:leader][:type], g[:leader][:name]]
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    raise MapEvents::Error, "#{where} : bras droit #{second[0]} hors des membres" if !guild.member_types.include?(second[0])
+    raise MapEvents::Error, "#{where} : bras droit à #{second[2].length} Pokémon" if !W::GUILD_SECOND_SIZES.include?(second[2].length)
+    cap = E::CAPS[g[:seals]] || E::CAPS.last
+    second[2].each do |species, level|
+      raise MapEvents::Error, "#{where} : #{species} hors du pool" if !guild.pool.include?(species)
+      raise MapEvents::Error, "#{where} : #{species} niveau #{level} au-dessus du plafond #{cap}" if level > cap
+    end
+    raise MapEvents::Error, "#{where} : bras droit absent de trainers.txt" if sections.none? { |sec| sec.start_with?("[#{second[0]},#{second[1]},#{W::TRAINER_VERSION}]") }
+    args = [show[:partner], *show[:foes].map { |t, n, _team| [t, n] }].flatten.map { |v| v.is_a?(Symbol) ? ":#{v}" : v.inspect }
+    raise MapEvents::Error, "#{where} : script #{npc.value('Script')}" if npc.value("Script") != "WorldEvents.showdown(#{args.join(', ')}, #{g[:switch]})"
+    chef = plans[g[:map]].events.find { |e| e.label == g[:leader][:label] }
+    raise MapEvents::Error, "#{where} : le chef n'est pas battu avec le règlement" if chef.value("EndIfSwitch").to_i != g[:switch]
+  end
+  return count
+end
+
 # Blocking headquarters (#188): at most one per world, of an affiliated or
 # rival guild, on a route of the chain reached with GUILD_BLOCK_SEALS seals
 # or more; its members stand on the inner row of the exit onward, hidden
@@ -894,6 +936,7 @@ freed = 0
 blockades = 0
 blockable = 0
 enemy_pairs = 0
+settled = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -929,12 +972,16 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_start(atlas, plans)
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
-      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
+      # The right hands of the showdowns fight only there (check_showdowns)
+      seconds = events[:guilds].filter_map { |g| g[:showdown] && "[#{g[:showdown][:foes][1][0]},#{g[:showdown][:foes][1][1]}," }
+      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers].reject { |sec| sec.start_with?(*seconds) },
+                     species, ttypes)
       check_map_giver(atlas, plans)
       check_league(atlas, plans, events[:league], events[:leaders])
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       freed += check_liberations(result, atlas, plans, events[:guilds])
+      settled += check_showdowns(atlas, plans, events[:guilds], events[:trainers])
       enemy_pairs += check_rivalries(result, atlas, plans, events[:guilds], items)
       blocked, possible = check_blockades(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
       blockades += blocked
@@ -973,7 +1020,7 @@ if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE +
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
 end
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
-puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}"
+puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

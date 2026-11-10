@@ -287,6 +287,46 @@ module WorldEvents
     end
   end
 
+  # The settling of scores (#190): for each guild of the world with a
+  # rallying enemy of the world (rivals), its right hand (a member, its team
+  # into trainers) and, by its headquarters, the ally's leader, there once
+  # the ally rallied and gone once the guild's switch is on, who starts the
+  # double battle. Each guild's goes to its :showdown ({ ally:, partner:,
+  # foes: [[type, name, team]], label:, map: }).
+  def showdowns(atlas, guilds, drawn, rivals, species, zones, plans, trainers, names, lines, rng)
+    zones = zones.to_h { |zone| [zone.name, zone] }
+    drawn.each do |g|
+      rival = rivals[g[:id]]
+      ally = rival && drawn.find { |a| a[:id] == rival[:ally] }
+      next if !ally
+      guild = guilds.find { |x| x.id == g[:id] }
+      outside = atlas[:maps][g[:hq]]
+      anchor = outside[:doors].find { |_x, _y, kind| kind == guild.hq } ||
+               (outside[:hqs] || []).find { |_x, _y, kind| kind == guild.hq }
+      cell = hq_cell(outside, anchor, plans[g[:hq]], rng)
+      type = guild.member_types.sample(random: rng)
+      name = cell && trainer_name(type, names, rng)
+      next if !name
+      seals = zones[g[:hq]].seals
+      top = [g[:level] - GUILD_SECOND_GAP, 2].max
+      team = pool_party(species, guild.pool.filter_map { |id| species[id] }, rng.rand(GUILD_SECOND_SIZES),
+                        top - PARTY_LEVEL_SPREAD, top, seals, rng)
+      trainers.push(team_section(type, name, lines.text("guilde_#{guild.id.downcase}_membre_fin", outside[:title]), team))
+      partner = [ally[:leader][:type], ally[:leader][:name]]
+      foes = [[g[:leader][:type], g[:leader][:name], g[:leader][:team]], [type, name, team]]
+      args = [*partner, *foes.flat_map { |t, n, _team| [t, n] }].map { |v| v.is_a?(Symbol) ? ":#{v}" : v.inspect }
+      label = "Reglement#{guild.id.capitalize}"
+      add(plans, g[:hq], "Npc", label, cell[0], cell[1], ["Graphic", "trainer_#{ally[:leader][:type]}"], ["Facing", cell[2]],
+          ["Show", "S#{rival[:rage]}"], ["Hide", "S#{g[:switch]}"],
+          *lines.boxes("guilde_reglement", outside[:title]).map { |box| ["Text", box] },
+          ["Script", "WorldEvents.showdown(#{args.join(', ')}, #{g[:switch]})"])
+      g[:showdown] = { ally: ally[:id], partner: partner, foes: foes, label: label, map: g[:hq] }
+      # Its leader counts as beaten once the showdown is won
+      leader = plans[g[:map]].find { |*, text| text.start_with?("[Trainer #{g[:leader][:label]}]") }
+      leader[2] += "EndIfSwitch = #{g[:switch]}\n"
+    end
+  end
+
   #-----------------------------------------------------------------------------
   # Blocking headquarters (#188)
   #-----------------------------------------------------------------------------

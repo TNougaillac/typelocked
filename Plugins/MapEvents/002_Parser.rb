@@ -18,6 +18,7 @@
 #                               1-6; Through = oui walks through the others)
 #   Trigger = contact          (NPC: action (default) or contact, run when the
 #                               player steps on it or bumps into it)
+#   Show = S71                 (NPC: there only once S71 or V7>=1 holds)
 #   Hide = V7>=1               (NPC: gone once the condition holds: A to D =
 #                               its self switch, S25 = game switch 25 on,
 #                               V7>=1 = game variable 7 at least 1)
@@ -87,7 +88,7 @@ module MapEvents
   TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
-    npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide] + MOVE_KEYS,
+    npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide Show] + MOVE_KEYS,
     trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]
@@ -177,7 +178,7 @@ module MapEvents
       fail_at.call("déclenchement « #{value} » inconnu (#{TRIGGERS.keys.join(', ')})")
     elsif key == "Hide" && value !~ HIDE_PATTERN
       fail_at.call("condition « #{value} » inconnue (A à D, S25, V7>=1)")
-    elsif key == "When" && value !~ WHEN_PATTERN
+    elsif %w[Show When].include?(key) && value !~ WHEN_PATTERN
       fail_at.call("condition « #{value} » inconnue (S25, V7>=1)")
     elsif NUMBER_KEYS.include?(key) && value !~ /\A\d+\z/
       fail_at.call("nombre attendu pour « #{key} », trouvé « #{value} »")
@@ -234,6 +235,7 @@ module MapEvents
       if entry.kind == :npc
         raise Error, "#{where} : « Text », « Script » ou « Gift » manquant" if !%w[Text Script Gift].any? { |k| entry.value(k) }
         raise Error, "#{where} : « Wait » demande « When »" if entry.value("Wait") && !entry.value("When")
+        raise Error, "#{where} : « Show » et « When » ensemble" if entry.value("Show") && entry.value("When")
         raise Error, "#{where} : « Gift » demande « Once » (sinon il redonne)" if entry.value("Gift") && !entry.value("Once")
         raise Error, "#{where} : « Once » utilise déjà l'interrupteur local A de « Hide »" if entry.value("Once") && entry.value("Hide") == "A"
       end
