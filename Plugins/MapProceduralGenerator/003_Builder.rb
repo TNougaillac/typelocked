@@ -191,6 +191,7 @@ module MapProceduralGenerator
       grow_highland_grass
       trim_thin_water
       clear_banks
+      bare_border
       plant_border
       check_reachable
       cover_ground
@@ -471,7 +472,7 @@ module MapProceduralGenerator
         next true if upper >= 2
         # Nor over a cliff or a raised level: the border stays on the ground,
         # the edge of the level beside it takes a layer too
-        next true if level_edge?(cx, cy) || (level_at(cx, cy) > 0 && !@border[cy][cx])
+        next true if level_edge?(cx, cy) || (level_at(cx, cy) > 0 && !flat_border?(cx, cy))
         object = @palette.objects[@cells[cy][cx]]
         next object && @cells[cy][cx] != @place.border
       end

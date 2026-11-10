@@ -91,9 +91,6 @@ module MapProceduralGenerator
   BAND_MIN = 3
   MOUNTAIN_CLIMB = 0.7
   FACE_WAVE = 2
-  # A north rim (the cliff seen from above) steps every RIM_RUN columns at
-  # least, by 2 rows.
-  RIM_RUN = 6
   # A mountain river comes down the levels by cascades: it springs on the
   # highest band it can go down from, SPRING_GAP rows below its north rim
   # (no river above).

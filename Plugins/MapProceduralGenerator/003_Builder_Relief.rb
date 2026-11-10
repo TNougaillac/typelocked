@@ -202,6 +202,7 @@ module MapProceduralGenerator
       end
       # (the river as chosen if no try held)
       reset_river if !@level
+      bare_border
     end
 
     # Draws count boundaries picked among crossings; false if they don't fit
@@ -330,16 +331,17 @@ module MapProceduralGenerator
       crossing = (0...@w).select { |x| keep.call(x, r - 1) && keep.call(x, r) }
       slope = (relief.rand(100) < SLOPE_CHANCE) ? [-1, 1].sample(random: relief) : 0
       wave = (slope == 0) ? (town_terraces? ? TOWN_TERRACE[:face_wave] : FACE_WAVE) : SLOPE_WAVE
-      offset = (slope == 0) ? 0 : -slope * relief.rand(0..SLOPE_WAVE)
+      offset = (slope == 0 || rim) ? 0 : -slope * relief.rand(0..SLOPE_WAVE)
       run = 0
       return Array.new(@w) do |x|
         # A step every few columns at most, so that the edges stay drawable
         run += 1
         # (a north rim in long runs: its steps show the rock of their corners)
-        if run >= (rim ? RIM_RUN : 3) && @rng.rand(3) == 0
+        # (a north rim stays straight: no tile draws its inner corners)
+        if !rim && run >= 3 && @rng.rand(3) == 0
           step = [-1, 1].sample(random: @rng)
           step = slope if slope != 0 && relief.rand(100) < SLOPE_BIAS
-          offset = (offset + (rim ? step * 2 : step)).clamp(-wave, wave)
+          offset = (offset + step).clamp(-wave, wave)
           run = 0
         end
         offset = 0 if crossing.any? { |c| (c - x).abs <= STREET_WIDTH + 1 }
@@ -582,17 +584,16 @@ module MapProceduralGenerator
             [[0, 0], [1, 0], [0, 1], [1, 1]].all? { |ax, ay| at.call(x + ox + ax, y + oy + ay) >= here }
           end
         end
-        # An inner corner facing north (the rock « V » of the cliffs) only
-        # where it reads: the step above it 2 rows high at least, the parts
-        # on each side 2 columns wide; elsewhere the notch above it fills up
-        # when that makes no cliff two levels high, else the row wider than
-        # the one above it loses its overhang, column after column
+        # No inner corner facing north (no tile draws one: the sheet's rock
+        # « V » is not a corner): the notch above it fills up when that
+        # makes no cliff two levels high, else the row wider than the one
+        # above it loses its overhang, column after column
         fills = {}
         corners = (0...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.filter_map do |x, y|
           here = level[y][x]
           next if here == 0 || [[0, -1], [0, 1], [-1, 0], [1, 0]].any? { |ox, oy| at.call(x + ox, y + oy) < here }
           side = [-1, 1].find { |ox| at.call(x + ox, y - 1) < here }
-          next if !side || clean_corner?(at, x, y, side, here)
+          next if !side
           nx, ny = x + side, y - 1
           if !@street[ny][nx] && NEIGHBOURS8.all? { |ox, oy| at.call(nx + ox, ny + oy) >= here - 1 }
             fills[[nx, ny]] = here
@@ -630,7 +631,14 @@ module MapProceduralGenerator
         return false if rounds > THICKEN_ROUNDS
         thin.each { |x, y| level[y][x] -= 1 }
       end
-      return steep_cells(level) <= steep
+      # (an inner corner facing north that could be neither filled nor cut)
+      corner = (0...@h).any? do |y|
+        (0...@w).any? do |x|
+          here = level[y][x]
+          here > 0 && NEIGHBOURS.all? { |ox, oy| at.call(x + ox, y + oy) >= here } && [-1, 1].any? { |ox| at.call(x + ox, y - 1) < here }
+        end
+      end
+      return !corner && steep_cells(level) <= steep
     end
 
     # The cells of a level too small to stand as a mesa (less than
@@ -702,14 +710,6 @@ module MapProceduralGenerator
       return @level[y][x]
     end
 
-    # An inner corner facing north at x, y (the lower notch on its side,
-    # side -1 or 1) that draws well: the notch 2 rows high, the face above
-    # the corner 2 rows high, the upper part and the lower one 2 columns wide.
-    def clean_corner?(at, x, y, side, here)
-      return [1, 2].all? { |dy| at.call(x + side, y - dy) < here && at.call(x, y - dy) >= here && at.call(x - side, y - dy) >= here } &&
-             at.call(x + side, y) >= here && at.call(x + (2 * side), y) >= here && at.call(x + (2 * side), y - 1) < here
-    end
-
     # Whether a level draws its edge on x, y: a cliff, a rim, a corner, as
     # the map shows them (the border stays on the ground, see level_rows).
     def level_edge?(x, y)
@@ -724,7 +724,31 @@ module MapProceduralGenerator
     # those beside a cascading river (the ground between it and the trees
     # at the river's level).
     def flat_border?(x, y)
-      return @border[y][x] && !@strip&.[](y)&.[](x)
+      return @border[y][x] && !@strip&.[](y)&.[](x) && !@bared&.[](y)&.[](x)
+    end
+
+    # Where a deeper border on the ground would leave a level an inner
+    # corner facing north (the level wider below it, and no tile draws that
+    # corner), the border cells above the corner are drawn at their level
+    # too, up to the top of the level or of that depth of border.
+    def bare_border
+      @bared = nil
+      return if !@level
+      @bared = Array.new(@h) { Array.new(@w, false) }
+      shown = ->(x, y) { !inside?(x, y) ? Float::INFINITY : (flat_border?(x, y) ? 0 : level_at(x, y)) }
+      loop do
+        cells = (1...@h).flat_map { |y| (0...@w).map { |x| [x, y] } }.flat_map do |x, y|
+          here = shown.call(x, y)
+          next [] if here == 0 || shown.call(x, y - 1) < here
+          [-1, 1].filter_map do |side|
+            nx = x + side
+            next if shown.call(nx, y) < here || shown.call(nx, y - 1) >= here
+            [nx, y - 1] if @border[y - 1][nx] && level_at(nx, y - 1) >= here
+          end
+        end
+        break if cells.empty?
+        cells.each { |x, y| @bared[y][x] = true }
+      end
     end
 
     # The « Relief » symbol of a level.

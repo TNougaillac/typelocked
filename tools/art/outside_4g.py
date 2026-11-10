@@ -225,9 +225,16 @@ BUILDINGS = {
 # together: only the drawing itself is kept (what touches its door's wall),
 # the bits of its neighbours in its frame become see-through.
 LATE_BUILDINGS = ["Q", "X", "Y", "Z", "A", "B"]
-# The sheet draws the right edge of the Marts' roof (3 px) one tile too far
-# to the right: symbol => (column of the drawing it belongs to, its rows)
-ROOF_EDGES = {"M": (4, range(3)), "N": (4, range(3))}
+# The sheet draws the side edges of a roof (its overhang, up to EDGE_WIDTH px)
+# apart, one tile away from the building, over a tile that only holds
+# shadow: they are put back against it (roof_edges). Shorter runs than
+# EDGE_ROWS px are something else.
+EDGE_WIDTH = 8
+EDGE_ROWS = 10
+# Drawings that go beyond their frame in the sheet (a few pixels of roof):
+# symbol => (columns more on the left, rows more above). The built tileset
+# gets them from tools/art/building_edges_4g.py.
+TALLER = {"C": (1, 1), "M": (0, 1), "N": (0, 1), "U": (0, 1)}
 SHADOW = (2, 3, 31, 76)   # the Buildings sheet's shadow
 # More buildings (#199, third part), after everything else: symbol =>
 # (parts, block x, y, width, height, door x, y in the drawing or None for a
@@ -440,6 +447,34 @@ def joined_pixels(sheet, col, start):
     return {(a - left, b) for a, b in seen}
 
 
+def roof_edges(sheet, col, x, y, w, h):
+    """The side edges of the roof of a Buildings drawing (its frame in 16 px
+    tiles), which the sheet draws one tile away from it: {(tile x, y in the
+    column): 16 px image of the edge where it belongs}."""
+    px = sheet.load()
+    left = 16 + 144 * col
+    solid = lambda a, b: 0 <= a < 128 and px[left + a, b] not in (MAGENTA, (255, 245, 104, 255), SHADOW)
+    found = {}   # (boundary, side) => [(x, y, x where it belongs)]
+    for b in range(y * 16, (y + h) * 16):
+        for bx in range(x * 16 - 16, (x + w) * 16 + 17, 16):
+            # After the building: the edge starts the next tile
+            k = next((i for i in range(EDGE_WIDTH + 1) if not solid(bx + i, b)), EDGE_WIDTH + 1)
+            if 0 < k <= EDGE_WIDTH and solid(bx - 17, b) and not any(solid(bx - 16 + i, b) for i in range(k)):
+                found.setdefault((bx, 1), []).extend((bx + i, b, bx + i - 16) for i in range(k))
+            # Before it: the edge ends the tile before
+            k = next((i for i in range(EDGE_WIDTH + 1) if not solid(bx - 1 - i, b)), EDGE_WIDTH + 1)
+            if 0 < k <= EDGE_WIDTH and solid(bx + 16, b) and not any(solid(bx + 15 - i, b) for i in range(k)):
+                found.setdefault((bx, -1), []).extend((bx - 1 - i, b, bx + 15 - i) for i in range(k))
+    out = {}
+    for pixels in found.values():
+        if len({b for _a, b, _to in pixels}) < EDGE_ROWS:
+            continue
+        for a, b, to in pixels:
+            tile = out.setdefault((to // 16, b // 16), Image.new("RGBA", (16, 16)))
+            tile.putpixel((to % 16, b % 16), px[left + a, b])
+    return out
+
+
 def drawing_image(sheet, parts):
     """A MORE_BUILDINGS drawing, its parts put together (16 px tiles)."""
     width = max(p[5] + p[3] for p in parts)
@@ -456,6 +491,9 @@ def drawing_image(sheet, parts):
         for a, b in pixels:
             if x * 16 <= a < (x + w) * 16 and y * 16 <= b < (y + h) * 16:
                 dst[a - x * 16 + ox * 16, b - y * 16 + oy * 16] = src[left + a, b]
+        for (tx, ty), edge in roof_edges(sheet, col, x, y, w, h).items():
+            if x <= tx < x + w:
+                out.alpha_composite(edge, ((tx - x + ox) * 16, (ty - y + oy) * 16))
     return out
 
 
@@ -685,6 +723,7 @@ def build(folder):
         for sym in symbols:
             col, x, y, w, h, bx, by, bw, bh, dx, dy = BUILDINGS[sym]
             keep = drawing_pixels(sheets["B"], col, x + bx + dx, y + by + dy) if sym in LATE_BUILDINGS else None
+            edges = roof_edges(sheets["B"], col, x, y, w, h)
             empty = []
             for ty in range(h):
                 for tx in range(w):
@@ -692,8 +731,8 @@ def build(folder):
                     tile = sheet_tile(sheets, ("B", col, x + tx, y + ty))
                     if keep is not None:
                         tile = only_drawing(tile, keep, col, x + tx, y + ty)
-                    if sym in ROOF_EDGES and tx == ROOF_EDGES[sym][0] and ty in ROOF_EDGES[sym][1]:
-                        tile = Image.alpha_composite(tile, sheet_tile(sheets, ("B", col, x + tx + 1, y + ty)))
+                    if (x + tx, y + ty) in edges:
+                        tile = Image.alpha_composite(tile, edges[(x + tx, y + ty)].resize((TILE, TILE), Image.NEAREST))
                     inside = bx <= tx < bx + bw and by <= ty < by + bh
                     tiles[dest] = tile
                     copies[dest] = building_passages(tile, inside, (tx, ty) == (bx + dx, by + dy))
