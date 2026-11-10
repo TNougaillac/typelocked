@@ -298,7 +298,7 @@ module WorldEvents
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
-    "guilde_raccourci" => PLACE_TOKENS,
+    "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
 
@@ -335,6 +335,14 @@ module WorldEvents
   GUILD_ALLY     = "alliée"
   GUILD_FREEING  = "affiliée"
   GUILD_MONEY    = 1000
+  # A blocking headquarters (#188): in GUILD_BLOCK_CHANCE % of the worlds,
+  # one guild of these positions, its headquarters on a route of the chain
+  # reached with at least GUILD_BLOCK_SEALS seals, has members standing
+  # across the route's exit onward (the inner row of the exit, like the
+  # gate of the first town) until its leader is beaten. Lines: [guilde_barrage].
+  GUILD_BLOCKING     = %w[affiliée rivale].freeze
+  GUILD_BLOCK_CHANCE = 50
+  GUILD_BLOCK_SEALS  = 1
   # Obstacles of a shortcut a guild can open (those with an event).
   GUILD_OPENABLE = %w[arbre rocher bloc grappin].freeze
 end

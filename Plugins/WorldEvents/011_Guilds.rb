@@ -7,8 +7,9 @@
 # members outside, their teams drawn from its pool at the level of the
 # Tronçon. Its leader beaten, the guild turns its switch on and rewards the
 # player by its position (guild_reward, #186); an affiliated guild beaten
-# frees the nearest town from the Family (guild_liberations, #187). Plain
-# Ruby.
+# frees the nearest town from the Family (guild_liberations, #187); in some
+# worlds, a guild's members bar the route of its headquarters until its
+# leader is beaten (guild_blockade, #188). Plain Ruby.
 #===============================================================================
 module WorldEvents
   # id: the section's (« ELEVEURS »); position: GUILD_POSITIONS; biomes:
@@ -171,9 +172,10 @@ module WorldEvents
   # trainer_events) }].
   # switch: turned on once its leader is beaten; reward: guild_reward (type:
   # the imposed type, rewards: its own draw); freed: what it frees
-  # (guild_liberations: { town:, maps: }), nil if nothing.
+  # (guild_liberations: { town:, maps: }), nil if nothing; blocks: the
+  # blockade (guild_blockade) of the guild that bars its route, else nil.
   def guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets, rng, type = nil,
-                   rewards = Random.new(0))
+                   rewards = Random.new(0), blockade = nil)
     zones = zones.to_h { |zone| [zone.name, zone] }
     taken = []
     freed = guild_liberations(result, atlas, guilds)
@@ -213,15 +215,76 @@ module WorldEvents
           ["Switch", switch])
       members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
                               [lines, tag, title], rng)
+      blocks = (blockade && blockade[:id] == guild.id) ? blockade : nil
+      bar_route(plans, blocks, guild, switch, lines, title) if blocks
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
         leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members,
-        routes: [], switch: switch, reward: reward, freed: freed[guild.id]&.slice(:town, :maps) }
+        routes: [], switch: switch, reward: reward, freed: freed[guild.id]&.slice(:town, :maps), blocks: blocks }
     end
   end
 
   # The game switch of a guild: its rank in guildes.txt after GUILD_SWITCH.
   def guild_switch(guilds, guild)
     return GUILD_SWITCH + guilds.index(guild) + 1
+  end
+
+  #-----------------------------------------------------------------------------
+  # Blocking headquarters (#188)
+  #-----------------------------------------------------------------------------
+  # The guild whose members bar its route, in GUILD_BLOCK_CHANCE % of the
+  # worlds that have one that can (blockade_candidates): { id:, route:,
+  # cells: [[x, y]], facing: }, else nil. zones: world_zones.
+  def guild_blockade(result, atlas, guilds, zones, rng)
+    candidates = blockade_candidates(result, atlas, guilds, zones)
+    return nil if candidates.empty? || rng.rand(100) >= GUILD_BLOCK_CHANCE
+    return candidates.sample(random: rng)
+  end
+
+  # Every blockade the world allows: a guild of GUILD_BLOCKING whose
+  # headquarters is on a route of the chain (no crossing, cave, loop or
+  # shortcut by it nor around it) reached with GUILD_BLOCK_SEALS seals or
+  # more, and whose members, across the inner row of its exit onward, cut
+  # the way to it while its headquarters is still reached from the way in.
+  def blockade_candidates(result, atlas, guilds, zones)
+    seals = zones.to_h { |zone| [zone.name, zone.seals] }
+    extras = result.places.map(&:first).select(&:extra)
+    return guilds.filter_map do |guild|
+      name = (atlas[:hqs] || {})[guild.hq]
+      wp, = result.places.find { |w, *| w.name == name }
+      next if !wp || !GUILD_BLOCKING.include?(guild.position) || wp.kind != "route" || (seals[name] || 0) < GUILD_BLOCK_SEALS
+      next if wp.extra || wp.crossing || wp.cave || wp.victory || wp.league || wp.exits.length != 2
+      next if extras.any? { |e| e.ends[0].index < wp.index && e.ends[1].index > wp.index }
+      spots = atlas[:maps][name]
+      cells = gate_cells([spots[:exits][1]])
+      next if !blockade_holds?(spots, cells, guild.hq)
+      { id: guild.id, route: name, cells: cells, facing: INWARD[spots[:exits][1][0]] }
+    end
+  end
+
+  # True if these cells (on the ground) cut the way from the exit in to the
+  # exit onward, and the headquarters (its door, else its middle) is still
+  # reached from the way in, and the exit onward once they are gone.
+  def blockade_holds?(spots, cells, kind)
+    ground = (spots[:ground] || []).to_h { |cell| [cell, true] }
+    from, onward = spots[:exits].first(2).map { |_side, x, y| [x, y] }
+    return false if !cells.all? { |cell| ground[cell] } || !ground[from] || !ground[onward]
+    return false if walk_cells(ground, from, cells)[onward] || !walk_cells(ground, from, [])[onward]
+    reached = walk_cells(ground, from, cells)
+    hx, hy, = spots[:doors].find { |_x, _y, k| k == kind } || (spots[:hqs] || []).find { |_x, _y, k| k == kind }
+    return false if !hx
+    return reached.keys.any? { |x, y| (x - hx).abs + (y - hy).abs <= 2 }
+  end
+
+  INWARD = { "nord" => "bas", "sud" => "haut", "ouest" => "droite", "est" => "gauche" }.freeze
+
+  # The members across the route: one on each cell, gone once the guild's
+  # switch is on.
+  def bar_route(plans, blocks, guild, switch, lines, title)
+    blocks[:cells].each_with_index do |(x, y), i|
+      add(plans, blocks[:route], "Npc", "Barrage#{guild.id.capitalize}#{i + 1}", x, y,
+          ["Graphic", "trainer_#{guild.member_types[i % guild.member_types.length]}"], ["Facing", blocks[:facing]],
+          ["Hide", "S#{switch}"], *lines.boxes("guilde_barrage", title).map { |box| ["Text", box] })
+    end
   end
 
   #-----------------------------------------------------------------------------

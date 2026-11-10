@@ -641,6 +641,16 @@ T'as gagné, on paie. C'est la règle de la bande. | Prends et roule.
 Personne ne nous double. Sauf toi, faut croire. | Voilà ta mise.
 La bande te doit une tournée. | Tiens. Maintenant dégage de notre garage.
 
+# Membres d'une guilde qui barrent la route de leur QG ({ville} : la route)
+# tant que leur chef n'est pas battu.
+[guilde_barrage]
+La route est à nous. Personne ne passe sans l'accord du chef. | Va le voir, s'il te reçoit.
+Demi-tour. Le chef n'a pas donné sa permission.
+On garde le passage pour le chef. Bats-le, et on s'écartera.
+Tu veux passer ? Ce n'est pas à moi qu'il faut le demander. | Le chef est au QG.
+Ordre du chef : personne ne quitte {ville} par ici. Pas même un désigné.
+Ici, c'est le chef qui ouvre la route. Pas la Famille, pas le Pacte. Le chef.
+
 # Un chef de guilde alliée qui ouvre un raccourci ({ville} : le raccourci).
 [guilde_raccourci]
 Mes gens vont dégager le passage de {ville}. Tu gagneras du chemin.

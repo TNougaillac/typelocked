@@ -46,8 +46,9 @@ module WorldEvents
                                routes, species, freed.flat_map { |zone| zone[:maps].map { |map| [map, zone[:switch]] } }.to_h)
     end
     if zones && sets
+      blockade = guild_blockade(result, atlas, guilds, zones, Random.new((seed * 1000) + 820))
       guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
-                            Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810))
+                            Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade)
       (walkers || []).each { |member| guilds.find { |g| g[:id] == member[:id] }&.[](:routes)&.push(member) }
     else
       guilds = nil

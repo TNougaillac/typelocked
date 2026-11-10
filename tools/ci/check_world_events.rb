@@ -141,7 +141,7 @@ def check_cells(plan, spots, gates)
   plan.events.each do |entry|
     cell = [entry.x, entry.y]
     where = "[#{entry.kind.capitalize} #{entry.label}] en #{entry.x},#{entry.y}"
-    next if gates.include?(cell) && entry.label.start_with?("Garde")
+    next if gates.include?(cell) && entry.label.start_with?("Garde", "Barrage")
     raise MapEvents::Error, "#{where} : sur une sortie, une porte ou devant" if blocked.include?(cell)
     raise MapEvents::Error, "#{where} : case hors de l'inventaire (inaccessible ?)" if !free.include?(cell)
     next if entry.kind != :trainer
@@ -557,6 +557,40 @@ def check_liberations(result, atlas, plans, drawn)
   return seen.length
 end
 
+# Blocking headquarters (#188): at most one per world, of an affiliated or
+# rival guild, on a route of the chain reached with GUILD_BLOCK_SEALS seals
+# or more; its members stand on the inner row of the exit onward, hidden
+# under the guild's switch, and cut the way while its headquarters stays
+# reached (checked for every candidate, drawn or not); its leader stays
+# under the cap of its Tronçon. Returns [blockades drawn, candidates].
+def check_blockades(result, atlas, zones, plans, drawn)
+  candidates = W.blockade_candidates(result, atlas, GUILDS, zones.values)
+  blocking = drawn.select { |g| g[:blocks] }
+  raise MapEvents::Error, "#{blocking.length} QG bloquants" if blocking.length > 1
+  candidates.each do |c|
+    guild = GUILDS.find { |g| g.id == c[:id] }
+    wp, = result.places.find { |w, *| w.name == c[:route] }
+    where = "QG bloquant possible #{guild.id} sur #{c[:route]}"
+    raise MapEvents::Error, "#{where} : position #{guild.position}" if !W::GUILD_BLOCKING.include?(guild.position)
+    raise MapEvents::Error, "#{where} : pas une route de la chaîne" if wp.kind != "route" || wp.extra
+    raise MapEvents::Error, "#{where} : #{zones[c[:route]].seals} sceau(x)" if zones[c[:route]].seals < W::GUILD_BLOCK_SEALS
+    raise MapEvents::Error, "#{where} : le barrage ne ferme pas la route" if !W.blockade_holds?(atlas[:maps][c[:route]], c[:cells], guild.hq)
+  end
+  blocking.each do |g|
+    blocks = g[:blocks]
+    where = "QG bloquant #{g[:id]} sur #{blocks[:route]}"
+    raise MapEvents::Error, "#{where} : pas parmi les QG possibles" if !candidates.include?(blocks)
+    barrier = plans[blocks[:route]].events.select { |e| e.label.start_with?("Barrage") }
+    raise MapEvents::Error, "#{where} : #{barrier.length} membres pour #{blocks[:cells].length} cases" if barrier.map { |e| [e.x, e.y] }.sort != blocks[:cells].sort
+    barrier.each { |e| raise MapEvents::Error, "#{where} : #{e.label} reste après le chef" if e.value("Hide") != "S#{g[:switch]}" }
+    cap = E::CAPS[g[:seals]] || E::CAPS.last
+    raise MapEvents::Error, "#{where} : chef au niveau #{g[:leader][:team].map(&:last).max}, plafond #{cap}" if g[:leader][:team].map(&:last).max > cap
+  end
+  stray = plans.select { |name, plan| plan.events.any? { |e| e.label.start_with?("Barrage") } && blocking.none? { |g| g[:blocks][:route] == name } }
+  raise MapEvents::Error, "barrage sans QG bloquant sur #{stray.keys.join(', ')}" if !stray.empty?
+  return [blocking.length, candidates.empty? ? 0 : 1]
+end
+
 # The members of the guilds on the routes (#184): only on a route of their
 # guild (W.guild_routes), their Pokémon from its pool. Returns [members,
 # trainers of those routes that are no Cousin] for the share over the seeds.
@@ -769,6 +803,8 @@ guild_walkers = 0
 guild_among = 0
 rewards = Hash.new(0)
 freed = 0
+blockades = 0
+blockable = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -793,7 +829,9 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       plans[name] = MapEvents.parse(text, "#{where}, #{name}")
       spots = atlas[:maps][name]
       raise MapEvents::Error, "#{name} : carte absente de l'inventaire" if !spots
+      # The gates of the first town, the members of a blocking headquarters
       gates = (name == atlas[:start]) ? W.gate_cells(spots[:exits]) : []
+      gates += events[:guilds].filter_map { |g| g[:blocks] && g[:blocks][:route] == name && g[:blocks][:cells] }.flatten(1)
       check_cells(plans[name], spots, gates)
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
@@ -808,6 +846,9 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       freed += check_liberations(result, atlas, plans, events[:guilds])
+      blocked, possible = check_blockades(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
+      blockades += blocked
+      blockable += possible
       walkers, among = check_guild_routes(result, atlas, plans, events[:guilds])
       guild_walkers += walkers
       guild_among += among
@@ -842,5 +883,6 @@ if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE +
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
 end
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
+puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")
