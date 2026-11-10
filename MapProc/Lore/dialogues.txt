@@ -651,6 +651,30 @@ Tu veux passer ? Ce n'est pas à moi qu'il faut le demander. | Le chef est au QG
 Ordre du chef : personne ne quitte {ville} par ici. Pas même un désigné.
 Ici, c'est le chef qui ouvre la route. Pas la Famille, pas le Pacte. Le chef.
 
+# Membres d'une guilde ennemie de l'alliée du joueur, une fois l'alliée ralliée.
+[guilde_vengeance]
+C'est toi, le traître qui court avec nos ennemis ? | Tu vas le regretter.
+On sait de quel côté tu es, maintenant. Pas de quartier.
+Nos ennemis t'ont acheté ? On va voir ce que tu vaux sans eux.
+Je t'ai vu venir de loin. Personne ne pactise avec eux impunément.
+Tu as choisi ton camp. Moi aussi.
+
+# Membre de la guilde alliée qui attend la chute de ses ennemis.
+[guilde_bonus_attente]
+Tant que nos ennemis ont un chef, on ne dort que d'un œil.
+Leur chef nous nargue depuis des années. Si quelqu'un pouvait le faire tomber...
+Bats leur chef, et la guilde saura te remercier.
+
+[guilde_bonus]
+Leur chef est tombé ! On n'osait plus l'espérer. | Prends ça, de la part de toute la guilde.
+Tu nous as débarrassés d'eux. | La guilde gardait ça pour un jour pareil.
+On a entendu la nouvelle. Leur chef est à terre ! | Tiens, c'est mérité.
+
+[guilde_bonus_apres]
+Depuis leur défaite, on respire. Merci encore.
+Les routes sont plus calmes sans eux.
+La guilde ne t'oubliera pas.
+
 # Un chef de guilde alliée qui ouvre un raccourci ({ville} : le raccourci).
 [guilde_raccourci]
 Mes gens vont dégager le passage de {ville}. Tu gagneras du chemin.

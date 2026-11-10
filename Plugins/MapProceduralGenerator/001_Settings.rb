@@ -206,6 +206,15 @@ module MapProceduralGenerator
   # allows, a port for a quay's), each laid on one of those places drawn by
   # the seed (fewer if fewer fit).
   WORLD_GUILDS = 3..5
+  # Enemy guilds (#189), by the brick type of their headquarters (the
+  # « Ennemis » of MapProc/Lore/guildes.txt, checked by the CI): once one is
+  # drawn, each enemy whose place exists joins it in HQ_ENEMY_CHANCE % of
+  # the worlds (while there is room among WORLD_GUILDS), on the place
+  # nearest it along the chain.
+  HQ_ENEMIES = { "poste" => %w[braconniers], "braconniers" => %w[poste pontes], "chantier" => %w[contrebande],
+                 "contrebande" => %w[chantier], "pontes" => %w[nageurs dundees braconniers],
+                 "nageurs" => %w[pontes], "dundees" => %w[pontes] }.freeze
+  HQ_ENEMY_CHANCE = 70
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

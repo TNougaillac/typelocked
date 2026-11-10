@@ -344,19 +344,40 @@ module MapProceduralGenerator
 
   # Draws the guilds' headquarters of the world (WORLD_GUILDS among those of
   # GUILD_HQS whose place exists) and lays each on one of its places, built
-  # again with it (one already there, like the ruins' temple, is kept).
+  # again with it (one already there, like the ruins' temple, is kept); an
+  # enemy that joins (draw_hq_kinds) goes on the place nearest its enemy.
   # { brick type => place name }.
   def place_world_hqs(built, bricks, seed)
     rng = Random.new((seed * 1000) + 950)
     hqs = {}
-    wanted = rng.rand(WORLD_GUILDS)
     kinds = GUILD_HQS.keys.select { |kind| bricks.any? { |b| b.kind == kind } && !hq_places(built, kind).empty? }
-    kinds.shuffle(random: rng).each do |kind|
-      break if hqs.length >= wanted
-      place = place_hq(built, bricks, kind, seed, rng)
+    draw_hq_kinds(kinds, rng).each do |kind, enemy|
+      near = enemy && hqs[enemy] && built.find { |wp, *| wp.name == hqs[enemy] }[0].index
+      place = place_hq(built, bricks, kind, seed, rng, near)
       hqs[kind] = place if place
     end
     return hqs
+  end
+
+  # The headquarters to lay, in order: [kind, nil] for one drawn, [kind,
+  # enemy] for one that joins its enemy (HQ_ENEMIES, HQ_ENEMY_CHANCE %) or
+  # is drawn after it, laid next to it.
+  # Among kinds (those whose place exists), WORLD_GUILDS at most. Plain:
+  # the CI draws it many times.
+  def draw_hq_kinds(kinds, rng, chance = HQ_ENEMY_CHANCE)
+    wanted = rng.rand(WORLD_GUILDS)
+    picks = []
+    kinds.shuffle(random: rng).each do |kind|
+      break if picks.length >= wanted
+      next if picks.any? { |k, _enemy| k == kind }
+      # Drawn after one of its enemies: next to it too
+      picks.push([kind, picks.map(&:first).find { |k| (HQ_ENEMIES[kind] || []).include?(k) }])
+      (HQ_ENEMIES[kind] || []).each do |enemy|
+        next if !kinds.include?(enemy) || picks.any? { |k, _e| k == enemy }
+        picks.push([enemy, kind]) if rng.rand(100) < chance && picks.length < WORLD_GUILDS.max
+      end
+    end
+    return picks
   end
 
   # Indexes in built of the places where that headquarters may stand.
@@ -370,12 +391,14 @@ module MapProceduralGenerator
     end
   end
 
-  # The name of the place where that headquarters is now, nil if it never fits.
-  def place_hq(built, bricks, kind, seed, rng)
+  # The name of the place where that headquarters is now, nil if it never
+  # fits. near: the index of a place to lay it nearest to (its enemy's).
+  def place_hq(built, bricks, kind, seed, rng, near = nil)
     places = hq_places(built, kind)
     there = places.find { |i| built[i][3].spots[:hqs].any? { |_x, _y, k| k == kind } }
     return built[there][0].name if there
-    places.shuffle(random: rng).each do |i|
+    order = near ? places.sort_by { |i| [(built[i][0].index - near).abs, built[i][0].index] } : places.shuffle(random: rng)
+    order.each do |i|
       wp, place, _text, layout = built[i]
       themed = place.dup
       themed.counts = place.counts.merge(kind => 1..1)

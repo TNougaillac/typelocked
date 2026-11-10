@@ -14,8 +14,9 @@ module WorldEvents
   # the routes (#184). Returns those members: [{ id:, map:, label:, team: }].
   # freed: { map => game switch } (guild_liberations): the Cousins of these
   # maps are gone once the switch is on (#187).
+  # rivals: guild_rivals, for the members of an ally's enemies (#189).
   def trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, rng, guilds = {}, species = nil,
-                     freed = {})
+                     freed = {}, rivals = {})
     zones = zones.to_h { |zone| [zone.name, zone] }
     pools = zone_pools(zones, encounters)
     members = []
@@ -30,7 +31,8 @@ module WorldEvents
         # About one trainer in three of a route of a guild's is its member
         guild = guilds[map]&.sample(random: rng) if !cousin && species
         if guild && rng.rand(100) < GUILD_ROUTE_CHANCE
-          member = route_member(plans, trainers, names, map, cell, guild, zone, species, [lines, town], rng)
+          rage = rage_lines(rivals, guild, atlas[:maps][map], cell, lines, town, true)
+          member = route_member(plans, trainers, names, map, cell, guild, zone, species, [lines, town], rng, rage)
           members.push(member) if member
           next
         end
@@ -65,7 +67,7 @@ module WorldEvents
   # Pokémon at the top of the zone's levels) with the guild's look and lines,
   # its team from the guild's pool. { id:, map:, label:, team: }, nil without
   # a name left.
-  def route_member(plans, trainers, names, map, cell, guild, zone, species, (lines, town), rng)
+  def route_member(plans, trainers, names, map, cell, guild, zone, species, (lines, town), rng, extra = [])
     type = guild.member_types.sample(random: rng)
     name = trainer_name(type, names, rng)
     return nil if !name
@@ -79,7 +81,7 @@ module WorldEvents
     trainers.push(team_section(type, name, lose, team))
     label = guild_label(plans[map], guild)
     add(plans, map, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type], ["Name", name],
-        ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", town)], ["EndBattle", lose])
+        ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", town)], ["EndBattle", lose], *extra)
     return { id: guild.id, map: map, label: label, team: team }
   end
 
