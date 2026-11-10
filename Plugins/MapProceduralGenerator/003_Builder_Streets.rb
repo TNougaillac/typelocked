@@ -193,9 +193,18 @@ module MapProceduralGenerator
       rng = Random.new(@seed ^ PLAN_SALT)
       roll = rng.rand(TOWN_PLANS.values.sum { |plan| plan[:weight] })
       @plan = TOWN_PLANS.find { |_name, plan| (roll -= plan[:weight]) < 0 }[0]
+      # An excess draws among its own plans, the next one if a canal can't be
+      # laid
+      plans = excess[:plans]
+      @plan = plans[rng.rand(plans.length)] if plans
       @plan = @place.plan if @place.plan
       @plan = "carrefour" if @plain
-      @plan = "carrefour" if @plan == "canal" && (!@place.water || !@place.pier || !@place.lips)
+      @plan = (plans && plans.find { |p| p != "canal" }) || "carrefour" if @plan == "canal" && !canal?
+    end
+
+    # Whether the place can have a canal (water, its wooden bridges and their lips)
+    def canal?
+      return @place.water && @place.pier && @place.lips
     end
 
     # A grid of straight streets (GRID: tiles between two streets), each
@@ -218,7 +227,7 @@ module MapProceduralGenerator
     # become wooden bridges (« Ponton », with their « Rebord » lips).
     def lay_canal(hub)
       rng = Random.new(@seed ^ PLAN_SALT ^ 2)
-      width = rng.rand(CANAL[:width])
+      width = rng.rand(excess[:river] || CANAL[:width])
       left, right = @plaza ? [@plaza[0], @plaza[2]] : [hub[0], hub[0] + STREET_WIDTH]
       ends = @exits.select { |side, *| %w[nord sud].include?(side) }.map { |_side, x, _y| x }
       spots = ((@w * 0.15).to_i..(@w * 0.85).to_i - width).select do |x0|
@@ -228,8 +237,11 @@ module MapProceduralGenerator
       return if spots.empty?
       x0 = spots.sample(random: rng)
       @h.times do |y|
+        # With a grid, only the streets right across become bridges (not a
+        # grid's street from north to south, cut by the canal)
+        across = !excess[:grid] || (x0...x0 + width).all? { |x| @street[y][x] }
         (x0...x0 + width).each do |x|
-          if @street[y][x]
+          if @street[y][x] && across
             @cells[y][x] = @place.pier
           else
             @cells[y][x] = @place.water
@@ -297,12 +309,29 @@ module MapProceduralGenerator
       return false
     end
 
+    # True if a cell of the brush, on the ground, lies beside the top of a
+    # level (its stairs aside): a path there would join that level, whose
+    # cliff would not be drawn along it.
+    def brush_hugs_cliff?(x, y)
+      return false if !@level
+      STREET_WIDTH.times do |oy|
+        STREET_WIDTH.times do |ox|
+          cx, cy = x + ox, y + oy
+          next if level_at(cx, cy) > 0
+          return true if NEIGHBOURS.any? do |nx, ny|
+            inside?(cx + nx, cy + ny) && level_at(cx + nx, cy + ny) > 0 && !@stairs_at&.key?([cx + nx, cy + ny])
+          end
+        end
+      end
+      return false
+    end
+
     # Brush steps from every street cell outward: distances[y][x] (nil = no
     # path), parents for carve_path.
     def street_distances
       @parents = Array.new(@h) { Array.new(@w) }
       distances = Array.new(@h) { Array.new(@w) }
-      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) } }
+      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) && !brush_hugs_cliff?(x, y) } }
       queue = []
       @h.times do |y|
         @w.times do |x|

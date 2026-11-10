@@ -101,8 +101,8 @@ module ProceduralEncounters
   DOMINANT_REPEAT = 0.25
 
   # A type counts as catchable in a tronçon (same number of seals) when it is
-  # in that tronçon or in the COVER_WINDOW - 1 before it (the player can go
-  # back). A Pokémon added for coverage gets at least COVER_PERCENT %.
+  # in that tronçon or in the COVER_WINDOW - 1 tronçons before it (the player
+  # can go back; a number of seals with no place is skipped). A Pokémon added for coverage gets at least COVER_PERCENT %.
   COVER_WINDOW = 2
   COVER_PERCENT = 5
 
