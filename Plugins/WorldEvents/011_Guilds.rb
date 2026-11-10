@@ -5,7 +5,8 @@
 # headquarters MapProceduralGenerator drew in the world (WORLD_GUILDS), its
 # leader inside (by the street when its headquarters has no door) and 2 to 4
 # members outside, their teams drawn from its pool at the level of the
-# Tronçon. Plain Ruby.
+# Tronçon. Its leader beaten, the guild turns its switch on and rewards the
+# player by its position (guild_reward, #186). Plain Ruby.
 #===============================================================================
 module WorldEvents
   # id: the section's (« ELEVEURS »); position: GUILD_POSITIONS; biomes:
@@ -166,9 +167,13 @@ module WorldEvents
   # level:, leader: { type:, name:, team:, sets: }, members: [{ type:,
   # name:, team: }], routes: [] (its members on the routes, see
   # trainer_events) }].
-  def guild_events(atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets, rng)
+  # switch: turned on once its leader is beaten; reward: guild_reward (type:
+  # the imposed type, rewards: its own draw).
+  def guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets, rng, type = nil,
+                   rewards = Random.new(0))
     zones = zones.to_h { |zone| [zone.name, zone] }
-    return guilds.filter_map do |guild|
+    taken = []
+    return guilds.each_with_index.filter_map do |guild, i|
       route = (atlas[:hqs] || {})[guild.hq]
       zone = route && zones[route]
       outside = route && atlas[:maps][route]
@@ -195,13 +200,87 @@ module WorldEvents
       lose = lines.text("#{tag}_chef_fin", title)
       trainers.push(team_section(guild.leader, name, lose, team, team_sets))
       label = guild.id.capitalize
+      switch = GUILD_SWITCH + i + 1
+      reward = guild_reward(guild, route, result, atlas, species, type, level, seals, taken, rewards)
+      taken.push(reward[:route] || reward[:item]) if reward
       add(plans, map, "Trainer", "Chef#{label}", cell[0], cell[1], ["Facing", cell[2]], ["Sight", cell[3]], ["Type", guild.leader],
-          ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_chef_combat", title)], ["EndBattle", lose])
+          ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_chef_combat", title)], ["EndBattle", lose],
+          *lines.boxes("#{tag}_chef_victoire", title).map { |box| ["Win", box] }, *reward_lines(reward, lines),
+          ["Switch", switch])
       members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
                               [lines, tag, title], rng)
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
         leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members,
-        routes: [] }
+        routes: [], switch: switch, reward: reward }
+    end
+  end
+
+  #-----------------------------------------------------------------------------
+  # Rewards (#186)
+  #-----------------------------------------------------------------------------
+  # What a guild gives once its leader is beaten, by its position. An ally
+  # rallies: a Pokémon of its pool of the imposed type, at the leader's
+  # level ({ kind: "pokemon", species:, level: }); else the nearest shortcut
+  # still closed is opened ({ kind: "raccourci", route:, title:, obstacle:, cells:
+  # of its obstacle's events }); else a field item ahead of its town ({
+  # kind: "terrain", item: }). A neutral or rival one (and an ally with
+  # none of those): an item and money ({ kind: "objet", item:, money: }).
+  # Else nil. hq: its headquarters' place; taken: the shortcuts and field
+  # items other guilds give.
+  def guild_reward(guild, hq, result, atlas, species, type, level, seals, taken, rng)
+    return nil if !GUILD_REWARDED.include?(guild.position)
+    if guild.position == GUILD_ALLY
+      typed = guild.pool.filter_map { |id| species[id] }.select { |sp| type && sp.monotype_types.include?(type) }
+      if !typed.empty?
+        id, given = pool_party(species, typed, 1, level, level, seals, rng)[0]
+        return { kind: "pokemon", species: id, level: given }
+      end
+      shortcut = guild_shortcuts(result, hq).find { |wp, _layout| !taken.include?(wp.name) }
+      if shortcut
+        obstacle, *cells = shortcut[1].spots[:lock]
+        return { kind: "raccourci", route: shortcut[0].name, title: shortcut[0].title, obstacle: obstacle, cells: cells.each_slice(2).to_a }
+      end
+      item = (guild_field_items(result, atlas, hq) - taken).first
+      return { kind: "terrain", item: item } if item
+    end
+    line = NOOK_TABLE[NOOK_TABLE.keys.select { |from| from <= seals }.max].reject { |loot, _weight| loot == :TM }
+    pick = rng.rand(line.values.sum)
+    return { kind: "objet", item: line.find { |_item, weight| (pick -= weight) < 0 }[0], money: GUILD_MONEY * (seals + 1) }
+  end
+
+  # Index along the chain of a place (a route off the chain: its end nearer
+  # the start).
+  def chain_index(wp)
+    return wp.extra ? wp.ends[0].index : wp.index
+  end
+
+  # [[shortcut, its layout]] a guild at hq can open, the nearest first: an
+  # obstacle with an event (GUILD_OPENABLE, not the water) that the player
+  # can't pass yet when reaching the headquarters.
+  def guild_shortcuts(result, hq)
+    at = chain_index(result.places.find { |wp, *| wp.name == hq }[0])
+    closed = result.places.select do |wp, _place, _text, layout|
+      wp.extra == "raccourci" && GUILD_OPENABLE.include?(wp.lock) && layout.spots[:lock] && wp.tier > at
+    end
+    return closed.sort_by { |wp, *| [wp.ends.map { |e| (e.index - at).abs }.min, wp.index] }.map { |wp, *rest| [wp, rest.last] }
+  end
+
+  # The field items given in a town after the headquarters, in the order of
+  # the chain.
+  def guild_field_items(result, atlas, hq)
+    index = result.places.to_h { |wp, *| [wp.name, wp.index] }
+    at = chain_index(result.places.find { |wp, *| wp.name == hq }[0])
+    return atlas[:items].select { |_item, town| index[town] && index[town] > at }.sort_by { |_item, town| index[town] }.map(&:first)
+  end
+
+  # The lines of the leader's plan for its reward.
+  def reward_lines(reward, lines)
+    case reward && reward[:kind]
+    when "pokemon"   then [["Reward", "WorldEvents.guild_pokemon(:#{reward[:species]}, #{reward[:level]})"]]
+    when "raccourci" then [["Win", lines.text("guilde_raccourci", reward[:title])]]
+    when "terrain"   then [["Gift", reward[:item]]]
+    when "objet"     then [["Gift", reward[:item]], ["Reward", "WorldEvents.guild_money(#{reward[:money]})"]]
+    else []
     end
   end
 

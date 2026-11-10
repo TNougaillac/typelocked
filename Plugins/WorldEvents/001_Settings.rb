@@ -298,6 +298,7 @@ module WorldEvents
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
+    "guilde_raccourci" => PLACE_TOKENS,
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
 
@@ -306,7 +307,7 @@ module WorldEvents
   # guilde_<id>_<role> (id in lowercase), roles and their tokens:
   GUILDS_FILE = "Lore/guildes.txt"
   GUILD_POSITIONS = %w[alliée neutre affiliée rivale].freeze
-  GUILD_LINES = { "chef_combat" => PLACE_TOKENS, "chef_fin" => BATTLE_TOKENS,
+  GUILD_LINES = { "chef_combat" => PLACE_TOKENS, "chef_fin" => BATTLE_TOKENS, "chef_victoire" => PLACE_TOKENS,
                   "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS }.freeze
   # At the headquarters: the leader inside, on this cell of its template ([x,
   # y, facing]; by the street when it has no door), and 2 to 4 members
@@ -322,4 +323,15 @@ module WorldEvents
   # above the cap), Pokémon by the seals won on the way (0 to 8), with sets
   # (IVs of the lieutenant of those seals).
   GUILD_LEADER_PARTY_SIZES = [4, 4, 4, 5, 5, 5, 6, 6, 6].freeze
+  # Its leader beaten (#186), a guild turns on its game switch: GUILD_SWITCH
+  # + its rank in guildes.txt (71 and up); the next tickets read it. An
+  # ally rallies (a Pokémon of the imposed type, else a shortcut opened,
+  # else a field item); the GUILD_REWARDED others give an item of the nooks
+  # and GUILD_MONEY for each seal won on the way (plus one).
+  GUILD_SWITCH   = 70
+  GUILD_ALLY     = "alliée"
+  GUILD_REWARDED = %w[alliée neutre rivale].freeze
+  GUILD_MONEY    = 1000
+  # Obstacles of a shortcut a guild can open (those with an event).
+  GUILD_OPENABLE = %w[arbre rocher bloc grappin].freeze
 end

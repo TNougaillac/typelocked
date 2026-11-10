@@ -5,6 +5,7 @@
 # onto the mouth of the nook. The Grappling Hook's wall gets an event on each
 # face, made here (pbMapProcGrapple). The islets, the water and the dark
 # caves need no event. The loot itself is left to MapEvents (inventory).
+# open_nook_events lets a game switch open an obstacle (a rallied guild, #186).
 #===============================================================================
 module MapProceduralGenerator
   NOOK_EVENT_PREFIX = "MapProc "
@@ -39,6 +40,27 @@ module MapProceduralGenerator
     save_data(map, path)
   end
 
+  # The obstacles on these cells ([[x, y]]) of that map give way once that
+  # game switch is on: a last page, empty and walked through; the Grappling
+  # Hook's wall is then crossed without the hook.
+  def open_nook_events(map_id, cells, switch)
+    path = sprintf("Data/Map%03d.rxdata", map_id)
+    map = load_data(path)
+    map.events.each_value do |event|
+      next if !event.name.start_with?(NOOK_EVENT_PREFIX) || !cells.include?([event.x, event.y])
+      if event.name == NOOK_EVENT_PREFIX + GRAPPLE_EVENT
+        event.pages[0].list[0].parameters[0].sub!(/\)\z/, ", #{switch})")
+        next
+      end
+      page = RPG::Event::Page.new
+      page.through = true
+      page.condition.switch1_valid = true
+      page.condition.switch1_id = switch
+      event.pages.push(page)
+    end
+    save_data(map, path)
+  end
+
   # An invisible event on a tile of the wall, run by the action button.
   def add_grapple_event(map, x, y, distance)
     event = RPG::Event.new(x, y)
@@ -52,9 +74,11 @@ module MapProceduralGenerator
 end
 
 # Crosses the rock wall the player faces, with the Grappling Hook: a jump of
-# that many tiles. Returns true if the player went over.
-def pbMapProcGrapple(distance)
-  if !$DEBUG && !$bag.has?(MapProceduralGenerator::LOCKS[MapProceduralGenerator::GRAPPLE])
+# that many tiles. Returns true if the player went over. switch: a game
+# switch that, once on, lends a hook (a guild's rope, see open_nook_events).
+def pbMapProcGrapple(distance, switch = nil)
+  lent = switch && $game_switches[switch]
+  if !$DEBUG && !lent && !$bag.has?(MapProceduralGenerator::LOCKS[MapProceduralGenerator::GRAPPLE])
     pbMessage(_INTL("Une paroi rocheuse. Avec un grappin, on pourrait la franchir."))
     return false
   end

@@ -18,7 +18,8 @@ module WorldEvents
   # Without them, none. dialogues: parse_dialogues of dialogues.txt (read
   # from the game's folder when nil); dex: load_dex (the same), for the
   # sets of the lieutenants and of the League. type: the imposed type, for
-  # its weather items (nil: none). guilds: load_guilds (the same).
+  # its weather items (nil: none) and what its allied guilds give. guilds:
+  # load_guilds (the same).
   def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil, dex: nil,
                    type: nil, guilds: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
@@ -44,8 +45,8 @@ module WorldEvents
                                routes, species)
     end
     if zones && sets
-      guilds = guild_events(atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
-                            Random.new((seed * 1000) + 800))
+      guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
+                            Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810))
       (walkers || []).each { |member| guilds.find { |g| g[:id] == member[:id] }&.[](:routes)&.push(member) }
     else
       guilds = nil

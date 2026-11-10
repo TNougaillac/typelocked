@@ -124,12 +124,13 @@ module MapEvents
     return trainer
   end
 
-  # Gym leader rewards, run on a win before the event's self switch A is set.
+  # Rewards of a gym leader or a guild's, run on a win before the event's self switch A is set.
   def add_rewards(trainer, entry)
     rewards = []
     entry.fields.each { |key, value| rewards.push(message(value, 1)) if key == "Win" }
     badge = entry.value("Badge")
     Compiler.push_script(rewards, "$player.badges[#{badge.to_i - 1}] = true", 1) if badge
+    entry.fields.each { |key, value| Compiler.push_script(rewards, value, 1) if key == "Reward" }
     gift = entry.value("Gift")
     Compiler.push_script(rewards, "pbReceiveItem(:#{gift})", 1) if gift
     if (switch = entry.value("Switch"))
