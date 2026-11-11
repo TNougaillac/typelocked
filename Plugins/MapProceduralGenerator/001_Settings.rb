@@ -315,8 +315,23 @@ module MapProceduralGenerator
     "bloc"    => :HARNESS,
     "ilot"    => SURF_ITEM,
     "sombre"  => :LANTERN,
-    "grappin" => :GRAPPLINGHOOK
+    "grappin" => :GRAPPLINGHOOK,
+    "glace"   => :SKATES
   }.freeze
+  # Ice (#270): in the snow, ICE_NOOK_CHANCE % of the nooks of ICE_NOOK_FROM
+  # become a pocket reached by a corridor of slippery ice, crossed with the
+  # Skates (an invisible event on each tile of the corridor, pbMapProcSkate).
+  # The Skates are never given in a gym town's chain of field items: each
+  # world with a snowy place has a town where a hidden inhabitant gives them
+  # (EXTRA_FIELD_ITEMS, placed by WorldEvents), drawn apart (seed x 1000 +
+  # 960) so the rest of the world stays the same.
+  ICE = "glace"
+  ICE_AMBIANCE = "neige"
+  ICE_NOOK_CHANCE = 50
+  ICE_NOOK_FROM = %w[arbre rocher bloc].freeze
+  ICE_EVENT = "Skate"
+  ICE_SYMBOL = "ǫ"
+  EXTRA_FIELD_ITEMS = { SKATES: ICE_AMBIANCE }.freeze
   # Share in % of the nooks closed by a field item obtained later in the chain
   # (« Revisiter » in a world): the player sees them and comes back.
   REVISIT = 50

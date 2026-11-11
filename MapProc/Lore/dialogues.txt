@@ -709,3 +709,14 @@ Une plaque de bois, noircie par le temps : | « Aux désignés d'avant. Ils ont 
 Une Poké Ball usée, coincée entre deux pierres. | Elle tremble. Il y a encore quelqu'un dedans.
 Une vieille Poké Ball au fond du recoin. | Quelqu'un l'a laissée là il y a longtemps... et elle n'est pas vide.
 Une Poké Ball abandonnée. Son Pokémon attend depuis des années qu'on revienne le chercher.
+
+# Un habitant caché au bout de {ville} qui donne un objet de terrain gagné
+# hors des arènes (les Patins, #270).
+[terrain_cache]
+Tu m'as trouvé ? Peu de gens viennent jusqu'ici. | Tiens, prends ça. La Famille ne sait pas que je l'ai gardé.
+Chut... Les Cousins ne passent jamais dans ce coin. | J'ai quelque chose qui te servira plus qu'à moi.
+Ça fait des années que personne ne m'a parlé. | Garde ça. Là où tu vas, il en faudra.
+
+[terrain_cache_apres]
+Ne dis à personne que tu m'as vu.
+Fais-en bon usage. Et loin des Cousins.

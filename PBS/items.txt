@@ -6609,6 +6609,14 @@ FieldUse = Direct
 Flags = KeyItem
 Description = Une lanterne qui éclaire les grottes sombres.
 #-------------------------------
+[SKATES]
+Name = Patins
+NamePlural = Patins
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Une paire de patins à glace, pour traverser la glace glissante sans tomber.
+#-------------------------------
 [PACTINCENSE]
 Name = Encens du Pacte
 NamePlural = Encens du Pacte

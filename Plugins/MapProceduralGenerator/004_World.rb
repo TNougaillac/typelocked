@@ -303,6 +303,7 @@ module MapProceduralGenerator
       raise if attempt == WORLD_TRIES - 1
     end
     hqs = place_world_hqs(built, bricks, seed)
+    give_extra_items(built, Random.new((seed * 1000) + 960))
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }
     caves = built.flat_map do |wp, _place, _text, layout|
@@ -344,6 +345,17 @@ module MapProceduralGenerator
     fillers = world_fillers(world, built, seed, map_ids)
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes, fillers), built, caves, seabeds, islands, interiors,
                            extra_notes(built) + notes, fillers, hqs)
+  end
+
+  # Each field item obtained outside the gyms (EXTRA_FIELD_ITEMS) whose
+  # ambiance the world has: a town of the chain where a hidden inhabitant
+  # gives it (drawn apart, the rest of the world stays the same).
+  def give_extra_items(built, rng)
+    towns = built.select { |wp, *| wp.kind == "ville" && !wp.league && !wp.victory }.map(&:first)
+    EXTRA_FIELD_ITEMS.each do |item, ambiance|
+      next if built.none? { |*, layout| layout.ambiance == ambiance } || towns.empty?
+      (towns.sample(random: rng).items ||= []).push(item)
+    end
   end
 
   # Draws the guilds' headquarters of the world (WORLD_GUILDS among those of
