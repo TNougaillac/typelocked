@@ -575,13 +575,14 @@ places.each do |path|
   end
   # A crossing (#270, #272): in a place of its ambiance and kind, its nook
   # (forced here: the draw is luck) has a corridor of its symbol, its loot
-  # reached only across it
+  # reached only across it. A nook often lacks room in a dense town: the
+  # seeds go on until one has it (up to 40)
   M::CROSSINGS.each do |kind, crossing|
     next if !crossing[:kinds].include?(place.kind)
     ambiance = place.ambiances.map(&:name).find { |a| !crossing[:ambiances] || crossing[:ambiances].include?(a) }
     next if !ambiance
     symbol = (crossing[:corridor] == :street) ? place.street : crossing[:corridor]
-    found = (1..12).count do |seed|
+    found = (1..40).lazy.select do |seed|
       themed = place.dup.tap { |p| p.ambiance = ambiance; p.nook = kind }
       plan, _text, layout = begin
         M.generate_place(themed, bricks, seed)
@@ -597,8 +598,8 @@ places.each do |path|
       corridor = [[ox, oy], [fx, fy]].map { |x, y| layout.rows[y][x] }
       raise M::Error, "#{name} : couloir du recoin sans « #{symbol} » (#{corridor.join})" if corridor.uniq != [symbol]
       true
-    end
-    raise M::Error, "#{File.basename(path)} : aucun recoin #{kind} sur 12 graines en ambiance #{ambiance}" if found.zero?
+    end.first(1).size
+    raise M::Error, "#{File.basename(path)} : aucun recoin #{kind} sur 40 graines en ambiance #{ambiance}" if found.zero?
   end
   # A coastal ambiance (« Mer = oui ») is drawn only by the sea, and is drawn
   # there
