@@ -58,6 +58,20 @@ _Avoid_ : segment, étape
 Le sommet de la Famille, au bout du parcours des arènes.
 _Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
 
+## Les guildes
+
+**Guilde** :
+Un groupe de personnes autour d'un même thème (les nageurs, les mineurs, les éleveurs…), avec un lieu attitré, des membres sur les routes et des Pokémon à son image. Chaque partie en rencontre quelques-unes, selon la région.
+_Avoid_ : faction, clan, gang
+
+**Position** :
+L'attitude d'une guilde face à la Famille, la même dans toutes les parties : alliée (elle peut rejoindre le joueur), neutre (elle paie et se tait), affiliée (elle travaille pour la Famille) ou rivale (mauvaise, mais ennemie de la Famille).
+_Avoid_ : camp, alignement
+
+**Chef de guilde** :
+Le dresseur le plus fort d'une guilde, qui tient son lieu attitré. Battre le chef d'une guilde alliée la fait rejoindre le joueur.
+_Avoid_ : boss, leader
+
 ## Le verrou
 
 **Pacte** :
