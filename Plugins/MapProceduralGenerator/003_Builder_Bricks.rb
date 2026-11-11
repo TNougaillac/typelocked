@@ -717,6 +717,7 @@ module MapProceduralGenerator
         end
       end
       mark_halo(brick, x, y, 1)
+      @hq_cells.push([x + (brick.rows.map(&:length).max / 2), y + (brick.rows.length / 2), brick.kind]) if GUILD_HQS.key?(brick.kind)
       # Nothing (no path) against a hill or a ridge but below its stair
       hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true } if ringed?(brick)
       crown_hill(brick, x, y) if brick.kind == HILL

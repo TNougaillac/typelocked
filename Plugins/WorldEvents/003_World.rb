@@ -9,7 +9,8 @@ module WorldEvents
 
   # { plans: { map name => MapEvents plan text }, trainers: [sections of
   # PBS/trainers.txt], leaders: [the lieutenants, see gym_events], league:
-  # [its fights, see league_events], items: [the items, see item_events] }.
+  # [its fights, see league_events], items: [the items, see item_events],
+  # guilds: [the guilds at their headquarters, see guild_events] }.
   # zones and encounters: ProceduralEncounters' world_zones and
   # world_encounters (its second value) of that world, for the trainers;
   # species (the roster), tms ([[item, move, type, power, status?]]) and
@@ -17,12 +18,14 @@ module WorldEvents
   # Without them, none. dialogues: parse_dialogues of dialogues.txt (read
   # from the game's folder when nil); dex: load_dex (the same), for the
   # sets of the lieutenants and of the League. type: the imposed type, for
-  # its weather items (nil: none).
+  # its weather items (nil: none) and what its allied guilds give. guilds:
+  # load_guilds (the same).
   def world_events(result, seed, zones: nil, encounters: nil, species: nil, tms: nil, caps: nil, dialogues: nil, dex: nil,
-                   type: nil)
+                   type: nil, guilds: nil)
     atlas = MapProceduralGenerator.world_atlas(result)
     rng = Random.new((seed * 1000) + 700)
-    lines = Lines.new(dialogues || load_dialogues, region_name(result), Random.new((seed * 1000) + 750))
+    dialogues ||= load_dialogues
+    lines = Lines.new(dialogues, region_name(result), Random.new((seed * 1000) + 750))
     plans = Hash.new { |hash, name| hash[name] = [] }
     start_events(atlas, plans, rng)
     service_events(atlas, seals_at(result), plans)
@@ -35,17 +38,36 @@ module WorldEvents
       leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 720))
       league = league_events(atlas, species, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 740))
     end
+    guilds ||= load_guilds(".", species, dialogues) if zones && sets
     if zones && encounters
-      trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710))
+      routes = guilds ? guild_routes(result, atlas, guilds) : {}
+      freed = guilds ? guild_liberations(result, atlas, guilds).values : []
+      rivals = guilds ? guild_rivals(atlas, guilds) : {}
+      walkers = trainer_events(result, atlas, zones, encounters, plans, trainers, names, lines, Random.new((seed * 1000) + 710),
+                               routes, species, freed.flat_map { |zone| zone[:maps].map { |map| [map, zone[:switch]] } }.to_h,
+                               rivals)
+    end
+    if zones && sets
+      blockade = guild_blockade(result, atlas, guilds, zones, Random.new((seed * 1000) + 820))
+      definitions = guilds
+      guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
+                            Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade, rivals || {})
+      rival_bonuses(atlas, definitions, guilds, plans, lines, Random.new((seed * 1000) + 830))
+      showdowns(atlas, definitions, guilds, rivals || {}, species, zones, plans, trainers, names, lines,
+                Random.new((seed * 1000) + 840))
+      (walkers || []).each { |member| guilds.find { |g| g[:id] == member[:id] }&.[](:routes)&.push(member) }
+    else
+      guilds = nil
     end
     if zones && tms
       weather = weather_items(type, Random.new((seed * 1000) + 780))
       pact = Random.new((seed * 1000) + 790).rand(PACT_INCENSES)
       items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730), pact)
     end
-    habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760))
+    habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760),
+                    (freed || []).to_h { |zone| [zone[:town], zone[:switch]] })
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
-             league: league, items: items || [] }
+             league: league, items: items || [], guilds: guilds || [] }
   end
 
   def plan_text(name, events)
@@ -135,7 +157,9 @@ module WorldEvents
   #-----------------------------------------------------------------------------
   # Inhabitants: by the streets of the towns, in the houses
   #-----------------------------------------------------------------------------
-  def habitant_events(result, atlas, plans, lines, rng)
+  # freed: { town => game switch } (guild_liberations): once the switch is
+  # on, the inhabitants of that town say the lines of [habitant_libre].
+  def habitant_events(result, atlas, plans, lines, rng, freed = {})
     towns = result.places.filter_map { |wp, *| wp.name if wp.kind == "ville" && wp.name != atlas[:start] } +
             (result.islands || []).map { |wp, *| wp.name }
     towns.each do |town|
@@ -144,23 +168,30 @@ module WorldEvents
         cell = item_cell(spots, npc_cells(spots, rng), plans[town])
         break if !cell
         police = rng.rand(100) < POLICE_CHANCE
-        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng, police: police)
+        habitant(plans, town, "Habitant#{i + 1}", cell, spots[:title], lines, rng, police: police, freed: freed[town])
       end
     end
     atlas[:maps].each do |name, map|
       cells = HOUSE_SPOTS[map[:template]]
       next if map[:kind] != "interieur" || !HOUSE_BUILDINGS.include?(map[:building]) || !cells
       cells.shuffle(random: rng).first(rng.rand(HOUSE_HABITANTS)).each_with_index do |cell, i|
-        habitant(plans, name, "Habitant#{i + 1}", cell, map[:title], lines, rng)
+        habitant(plans, name, "Habitant#{i + 1}", cell, map[:title], lines, rng, freed: freed[map[:owner]])
       end
     end
   end
 
-  # police: a policeman, with the lines of [policier].
-  def habitant(plans, map, label, cell, town, lines, rng, police: false)
+  # police: a policeman, with the lines of [policier]. freed: the game
+  # switch of the guild that frees the town; once on, the inhabitant (never
+  # a policeman) says a line of [habitant_libre] instead.
+  def habitant(plans, map, label, cell, town, lines, rng, police: false, freed: nil)
     x, y, facing = cell
     graphic = police ? POLICE_GRAPHIC : GIFT_GRAPHICS.sample(random: rng)
-    add(plans, map, "Npc", label, x, y, ["Graphic", graphic], ["Facing", facing],
-        *lines.boxes(police ? "policier" : "habitant", town).map { |box| ["Text", box] })
+    boxes = lines.boxes(police ? "policier" : "habitant", town)
+    said = boxes.map { |box| ["Text", box] }
+    if freed && !police
+      said = [["When", "S#{freed}"], *boxes.map { |box| ["Wait", box] },
+              *lines.boxes("habitant_libre", town).map { |box| ["Text", box] }]
+    end
+    add(plans, map, "Npc", label, x, y, ["Graphic", graphic], ["Facing", facing], *said)
   end
 end

@@ -135,8 +135,9 @@ module MapProceduralGenerator
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
   # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
   # notes: lines for the console (routes off the chain that found no room);
-  # fillers: Filler (see 013_Fillers.rb)
-  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers)
+  # fillers: Filler (see 013_Fillers.rb); hqs: { brick type => place name }
+  # of the guilds' headquarters (place_world_hqs)
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers, :hqs)
 
   TOWN_SIZE = 2
   # Times the world is laid out again when a place can't be assembled
@@ -297,6 +298,7 @@ module MapProceduralGenerator
     rescue Error
       raise if attempt == WORLD_TRIES - 1
     end
+    hqs = place_world_hqs(built, bricks, seed)
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }
     caves = built.flat_map do |wp, _place, _text, layout|
@@ -337,7 +339,78 @@ module MapProceduralGenerator
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     fillers = world_fillers(world, built, seed, map_ids)
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes, fillers), built, caves, seabeds, islands, interiors,
-                           extra_notes(built) + notes, fillers)
+                           extra_notes(built) + notes, fillers, hqs)
+  end
+
+  # Draws the guilds' headquarters of the world (WORLD_GUILDS among those of
+  # GUILD_HQS whose place exists) and lays each on one of its places, built
+  # again with it (one already there, like the ruins' temple, is kept); an
+  # enemy that joins (draw_hq_kinds) goes on the place nearest its enemy.
+  # { brick type => place name }.
+  def place_world_hqs(built, bricks, seed)
+    rng = Random.new((seed * 1000) + 950)
+    hqs = {}
+    kinds = GUILD_HQS.keys.select { |kind| bricks.any? { |b| b.kind == kind } && !hq_places(built, kind).empty? }
+    draw_hq_kinds(kinds, rng).each do |kind, enemy|
+      near = enemy && hqs[enemy] && built.find { |wp, *| wp.name == hqs[enemy] }[0].index
+      place = place_hq(built, bricks, kind, seed, rng, near)
+      hqs[kind] = place if place
+    end
+    return hqs
+  end
+
+  # The headquarters to lay, in order: [kind, nil] for one drawn, [kind,
+  # enemy] for one that joins its enemy (HQ_ENEMIES, HQ_ENEMY_CHANCE %) or
+  # is drawn after it, laid next to it.
+  # Among kinds (those whose place exists), WORLD_GUILDS at most. Plain:
+  # the CI draws it many times.
+  def draw_hq_kinds(kinds, rng, chance = HQ_ENEMY_CHANCE)
+    wanted = rng.rand(WORLD_GUILDS)
+    picks = []
+    kinds.shuffle(random: rng).each do |kind|
+      break if picks.length >= wanted
+      next if picks.any? { |k, _enemy| k == kind }
+      # Drawn after one of its enemies: next to it too
+      picks.push([kind, picks.map(&:first).find { |k| (HQ_ENEMIES[kind] || []).include?(k) }])
+      (HQ_ENEMIES[kind] || []).each do |enemy|
+        next if !kinds.include?(enemy) || picks.any? { |k, _e| k == enemy }
+        picks.push([enemy, kind]) if rng.rand(100) < chance && picks.length < WORLD_GUILDS.max
+      end
+    end
+    return picks
+  end
+
+  # Indexes in built of the places where that headquarters may stand.
+  def hq_places(built, kind)
+    allowed = GUILD_HQS[kind]
+    return built.each_index.select do |i|
+      wp, place, _text, layout = built[i]
+      next false if !place.counts.key?(kind) || wp.league || wp.victory || wp.island
+      next false if QUAY_HQS.include?(kind) && !place.port
+      allowed.empty? || allowed.include?(layout.ambiance)
+    end
+  end
+
+  # The name of the place where that headquarters is now, nil if it never
+  # fits. near: the index of a place to lay it nearest to (its enemy's).
+  def place_hq(built, bricks, kind, seed, rng, near = nil)
+    places = hq_places(built, kind)
+    there = places.find { |i| built[i][3].spots[:hqs].any? { |_x, _y, k| k == kind } }
+    return built[there][0].name if there
+    order = near ? places.sort_by { |i| [(built[i][0].index - near).abs, built[i][0].index] } : places.shuffle(random: rng)
+    order.each do |i|
+      wp, place, _text, layout = built[i]
+      themed = place.dup
+      themed.counts = place.counts.merge(kind => 1..1)
+      themed.ambiance = layout.ambiance
+      text, new_layout = generate_world_place(themed, bricks, (seed * 1000) + wp.index)
+      next if new_layout.spots[:hqs].none? { |_x, _y, k| k == kind }
+      built[i] = [wp, themed, text, new_layout]
+      return wp.name
+    rescue Error
+      next
+    end
+    return nil
   end
 
   # Assembles each place of the world: [WorldPlace, Place, MapGen plan text,

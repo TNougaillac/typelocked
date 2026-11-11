@@ -95,7 +95,8 @@ module WorldEvents
   COUSIN_TYPES = %i[COUSIN_M COUSIN_F].freeze
   # Women's types (the others are men's), for their names.
   FEMALE_TYPES = %i[LIEUTENANT_PSYCHIC LIEUTENANT_GHOST LIEUTENANT_FAIRY ANCIEN_1 LASS PICNICKER
-                    POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F TUBER_F].freeze
+                    POKEMONBREEDER POKEMONRANGER_F AROMALADY PAINTER CRUSHGIRL LADY COUSIN_F TUBER_F
+                    SWIMMER_F TEAMROCKET_F CHEF_PONTES CHEF_BRACONNIERS CHEF_FORESTIERS CHEF_ENDEUILLES].freeze
   TRAINER_NAMES = {
     male:   %w[Paolo Vito Enzo Salvatore Luca Marco Tony Frank Eddie Jimmy Rocco Sal Louis Pierre Julien Hugo
                Matteo Dario Nico Sonny Ray Jack Bobby Lucien Marcel Gino Carlo Franco Angelo Victor],
@@ -283,7 +284,7 @@ module WorldEvents
   PLACE_TOKENS  = %w[joueur ville region].freeze
   BATTLE_TOKENS = %w[ville region].freeze
   DIALOGUE_SECTIONS = {
-    "habitant" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
+    "habitant" => PLACE_TOKENS, "habitant_libre" => PLACE_TOKENS, "policier" => PLACE_TOKENS, "dresseur_combat" => PLACE_TOKENS, "dresseur_fin" => BATTLE_TOKENS,
     "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS, "cousin_carte" => PLACE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
     "professeur_apres" => %w[joueur type], "professeur_pokedex" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
@@ -297,6 +298,68 @@ module WorldEvents
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
+    "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
+    "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
+    "guilde_bonus_apres" => PLACE_TOKENS, "guilde_reglement" => PLACE_TOKENS, "guilde_reglement_fin" => %w[joueur],
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
+
+  # Guilds (#181): read from MapProc/Lore/guildes.txt (in the folder of
+  # MapProceduralGenerator). Each has its lines in dialogues.txt, sections
+  # guilde_<id>_<role> (id in lowercase), roles and their tokens:
+  GUILDS_FILE = "Lore/guildes.txt"
+  GUILD_POSITIONS = %w[alliée neutre affiliée rivale].freeze
+  GUILD_LINES = { "chef_combat" => PLACE_TOKENS, "chef_fin" => BATTLE_TOKENS, "chef_victoire" => PLACE_TOKENS,
+                  "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS }.freeze
+  # At the headquarters: the leader inside, on this cell of its template ([x,
+  # y, facing]; by the street when it has no door), and 2 to 4 members
+  # outside, on the free cells by the street nearest it (among this many).
+  GUILD_LEADER_SPOTS = { 27 => [4, 4, "bas"], 8 => [5, 4, "bas"], 26 => [9, 6, "bas"], 6 => [7, 4, "bas"],
+                         12 => [6, 7, "bas"], 58 => [7, 4, "bas"] }.freeze
+  GUILD_MEMBERS = 2..4
+  GUILD_NEAR_CELLS = 16
+  # On a route of a guild of the world (its biome, or next to its
+  # headquarters' town): this % of the trainers are its members (#184).
+  GUILD_ROUTE_CHANCE = 33
+  # The leader: at the level of the strongest trainer of its Tronçon (never
+  # above the cap), Pokémon by the seals won on the way (0 to 8), with sets
+  # (IVs of the lieutenant of those seals).
+  GUILD_LEADER_PARTY_SIZES = [4, 4, 4, 5, 5, 5, 6, 6, 6].freeze
+  # Its leader beaten (#186), a guild turns on its game switch: GUILD_SWITCH
+  # + its rank in guildes.txt (71 and up); the next tickets read it. An
+  # ally rallies (a Pokémon of the imposed type, else a shortcut opened,
+  # else a field item); the others give an item of the nooks and
+  # GUILD_MONEY for each seal won on the way (plus one). An affiliated one
+  # (GUILD_FREEING) also frees the nearest town (#187): its inhabitants say
+  # the lines of [habitant_libre], the Cousins of the town and of the routes
+  # that touch it are gone.
+  GUILD_SWITCH   = 70
+  GUILD_ALLY     = "alliée"
+  GUILD_FREEING  = "affiliée"
+  GUILD_MONEY    = 1000
+  # A blocking headquarters (#188): in GUILD_BLOCK_CHANCE % of the worlds,
+  # one guild of these positions, its headquarters on a route of the chain
+  # reached with at least GUILD_BLOCK_SEALS seals, has members standing
+  # across the route's exit onward (the inner row of the exit, like the
+  # gate of the first town) until its leader is beaten. Lines: [guilde_barrage].
+  # Rivalries (#189): once the player has rallied a guild (its switch on),
+  # the members of its enemies see GUILD_RAGE_SIGHT cells ahead (never an
+  # exit nor a door) and say [guilde_vengeance]; once an enemy's leader is
+  # beaten, its members leave the routes and a member of the ally gives one
+  # of GUILD_BONUS_ITEMS by its headquarters.
+  GUILD_RAGE_SIGHT  = 6
+  GUILD_BONUS_ITEMS = %i[LEFTOVERS LIFEORB CHOICESCARF CHOICEBAND CHOICESPECS FOCUSSASH EXPSHARE LUCKYEGG].freeze
+  # The settling of scores (#190): for each guild with a rallying enemy (its
+  # « rivals »), once the ally rallied, its leader waits by the enemy's
+  # headquarters for a double battle, side by side with the player against
+  # the enemy's leader and its right hand (GUILD_SECOND_SIZES Pokémon of
+  # its pool, GUILD_SECOND_GAP levels under its leader). Won, it turns the
+  # enemy's switch on, like beating its leader.
+  GUILD_SECOND_SIZES = 2..3
+  GUILD_SECOND_GAP   = 2
+  GUILD_BLOCKING     = %w[affiliée rivale].freeze
+  GUILD_BLOCK_CHANCE = 50
+  GUILD_BLOCK_SEALS  = 1
+  # Obstacles of a shortcut a guild can open (those with an event).
+  GUILD_OPENABLE = %w[arbre rocher bloc grappin].freeze
 end

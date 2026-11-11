@@ -242,14 +242,31 @@ module MapProceduralGenerator
   # Headquarters of the guilds (#181): brick type => the ambiances it stands
   # in (none: any). Its quantity is 0 in [Briques]: the guilds' draw sets it
   # (#182).
+  # The ruins' temple is always there (« temple = 1 » in the ruins); the
+  # poachers' camp and the cemetery have no brick yet (#216, #211).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
                 "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
                 "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [],
                 "nageurs" => %w[plage], "pontes" => %w[plage],
-                "dundees" => %w[marais], "chromes" => [] }.freeze
+                "dundees" => %w[marais], "chromes" => [], "temple" => %w[ruines],
+                "braconniers" => ["forêt sombre"], "cimetiere" => ["cimetière"] }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
+  # Guilds of a world (#183): once the world is built, this many
+  # headquarters are drawn among those whose place exists (an ambiance it
+  # allows, a port for a quay's), each laid on one of those places drawn by
+  # the seed (fewer if fewer fit).
+  WORLD_GUILDS = 3..5
+  # Enemy guilds (#189), by the brick type of their headquarters (the
+  # « Ennemis » of MapProc/Lore/guildes.txt, checked by the CI): once one is
+  # drawn, each enemy whose place exists joins it in HQ_ENEMY_CHANCE % of
+  # the worlds (while there is room among WORLD_GUILDS), on the place
+  # nearest it along the chain.
+  HQ_ENEMIES = { "poste" => %w[braconniers], "braconniers" => %w[poste pontes], "chantier" => %w[contrebande],
+                 "contrebande" => %w[chantier], "pontes" => %w[nageurs dundees braconniers],
+                 "nageurs" => %w[pontes], "dundees" => %w[pontes] }.freeze
+  HQ_ENEMY_CHANCE = 70
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.

@@ -30,11 +30,24 @@ module WorldEvents
       notes.each { |note| Console.echoln_li(note) }
       MapProceduralGenerator.busy_update
     end
+    open_shortcuts(events[:guilds])
     separator = "\n#-------------------------------\n"
     File.write(export.sub(/\.txt\z/, "_evenements.txt"), events[:plans].values.join(separator))
     File.write(export.sub(/\.txt\z/, "_dresseurs.txt"), events[:trainers].join(separator))
     Console.echoln_li(_INTL("Événements placés sur {1} cartes, {2} dresseurs, {3} objets.", events[:plans].length,
                                  events[:trainers].length, events[:items].length))
+  end
+
+  # The obstacle of the shortcut a rallied guild opens gives way once the
+  # guild's switch is on.
+  def open_shortcuts(guilds)
+    infos = load_data("Data/MapInfos.rxdata")
+    guilds.each do |guild|
+      reward = guild[:reward]
+      next if !reward || reward[:kind] != "raccourci"
+      map_id = infos.select { |_id, info| info.name == reward[:route] }.keys.min
+      MapProceduralGenerator.open_nook_events(map_id, reward[:cells], guild[:switch]) if map_id
+    end
   end
 
   # Every TM of the game: [[item, move, type, power, status?]]

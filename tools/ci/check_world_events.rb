@@ -3,7 +3,8 @@
 # WorldEvents) and checks them: plans read by MapEvents, events on cells the
 # player can reach and never in the way (exits, doors), the professor and the
 # gate of the first town, the services of the Centres and shops, the
-# trainers (teams, levels, sight), the same events for the same seed.
+# trainers (teams, levels, sight), the guilds at their headquarters, the
+# same events for the same seed.
 #===============================================================================
 require_relative "lib/ci"
 
@@ -13,7 +14,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -140,7 +141,7 @@ def check_cells(plan, spots, gates)
   plan.events.each do |entry|
     cell = [entry.x, entry.y]
     where = "[#{entry.kind.capitalize} #{entry.label}] en #{entry.x},#{entry.y}"
-    next if gates.include?(cell) && entry.label.start_with?("Garde")
+    next if gates.include?(cell) && entry.label.start_with?("Garde", "Barrage")
     raise MapEvents::Error, "#{where} : sur une sortie, une porte ou devant" if blocked.include?(cell)
     raise MapEvents::Error, "#{where} : case hors de l'inventaire (inaccessible ?)" if !free.include?(cell)
     next if entry.kind != :trainer
@@ -148,6 +149,9 @@ def check_cells(plan, spots, gates)
     dx, dy = W::STEPS[entry.value("Facing")]
     sight = (1..entry.value("Sight").to_i).map { |i| [entry.x + (dx * i), entry.y + (dy * i)] }
     raise MapEvents::Error, "#{where} : sa vue atteint une sortie ou une porte" if sight.any? { |c| blocked.include?(c) }
+    next if !entry.value("Rage")
+    rage = (1..entry.value("Rage").split(",")[1].to_i).map { |i| [entry.x + (dx * i), entry.y + (dy * i)] }
+    raise MapEvents::Error, "#{where} : sa vue de vengeance atteint une sortie ou une porte" if rage.any? { |c| blocked.include?(c) }
   end
 end
 
@@ -178,6 +182,7 @@ def check_trainers(result, zones, plans, sections, species, ttypes)
       raise MapEvents::Error, "#{where} : pas d'équipe dans trainers.txt" if !team
       raise MapEvents::Error, "#{where} : BattleID #{entry.value('BattleID')}" if entry.value("BattleID").to_i != W::TRAINER_VERSION
       next if !zone   # A gym's (check_gyms)
+      next if entry.label.start_with?("Chef")   # A guild's leader by the street (check_guilds)
       sizes = W::PARTY_SIZES[[zone.seals, W::PARTY_SIZES.length - 1].min]
       raise MapEvents::Error, "#{where} : #{team.length} Pokémon (#{sizes} avec #{zone.seals} sceaux)" if !sizes.include?(team.length)
       if entry.value("DoubleBattle") && (zone.seals < W::DOUBLE_FROM || team.length < 2)
@@ -370,7 +375,7 @@ def check_sets(fights, seals, items)
     next if !fight[:sets]
     where = "#{fight[:name]} (#{fight[:role] || "lieutenant #{fight[:gym]}"})"
     raise MapEvents::Error, "#{where} : #{fight[:sets].length} sets pour #{fight[:team].length} Pokémon" if fight[:sets].length != fight[:team].length
-    has = fight[:gym] ? fight[:gym] - 1 : seals
+    has = fight[:seals] || (fight[:gym] ? fight[:gym] - 1 : seals)
     fight[:team].zip(fight[:sets]).each do |(id, level), set|
       ls = DEX[:species][id]
       raise MapEvents::Error, "#{where} : #{id} sans set" if !set || !ls
@@ -395,6 +400,321 @@ def check_sets(fights, seals, items)
   end
 end
 
+# The leaders of the guilds as fights for check_sets.
+def guild_fights(guilds)
+  return guilds.map do |g|
+    { name: g[:leader][:name], role: "chef #{g[:id]}", type: nil, team: g[:leader][:team], sets: g[:leader][:sets], seals: g[:seals] }
+  end
+end
+
+# WORLD_GUILDS guilds in the world (fewer only when fewer headquarters have
+# their place), each with its headquarters on a place of its biomes; its
+# leader inside on a cell reached from the door (else by the street), at the
+# level of the strongest trainer of the Tronçon (under the cap), with
+# GUILD_LEADER_PARTY_SIZES Pokémon of its pool; 2 to 4 members by the street,
+# their Pokémon from the pool too.
+def check_guilds(result, atlas, zones, plans, drawn, bricks)
+  available = M::GUILD_HQS.keys.count { |kind| bricks.any? { |b| b.kind == kind } && !M.hq_places(result.places, kind).empty? }
+  hqs = atlas[:hqs]
+  if hqs.length > M::WORLD_GUILDS.max || hqs.length < [M::WORLD_GUILDS.min, available].min
+    raise MapEvents::Error, "#{hqs.length} QG de guildes (#{M::WORLD_GUILDS}, #{available} possibles)"
+  end
+  missing = hqs.keys - drawn.map { |g| GUILDS.find { |guild| guild.id == g[:id] }.hq }
+  raise MapEvents::Error, "QG sans guilde : #{missing.join(', ')}" if !missing.empty?
+  drawn.each do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    place = result.places.find { |wp, *| wp.name == g[:hq] }
+    raise MapEvents::Error, "guilde #{guild.id} : QG sur #{g[:hq]}, ambiance #{place&.last&.ambiance} hors de ses biomes" if !place || !(guild.biomes.empty? || guild.biomes.include?(place[3].ambiance))
+    raise MapEvents::Error, "guilde #{guild.id} : QG #{guild.hq} absent de #{g[:hq]}" if place[3].spots[:hqs].none? { |_x, _y, k| k == guild.hq }
+    chef = plans[g[:map]]&.events&.find { |e| e.label == g[:leader][:label] }
+    raise MapEvents::Error, "#{g[:map]} : pas de chef de guilde #{guild.id}" if !chef
+    spots = atlas[:maps][g[:map]]
+    if spots[:kind] == "interieur"
+      grid = PASSABLE[spots[:template]]
+      raise MapEvents::Error, "#{g[:map]} : chef hors d'atteinte" if !reach(grid, spots[:arrival], [])[[chef.x, chef.y + 1]] || !grid[chef.y][chef.x]
+    end
+    zone = zones[g[:hq]]
+    expected = W.guild_level(zones, zone, E::CAPS)
+    team = g[:leader][:team]
+    raise MapEvents::Error, "chef #{g[:id]} : niveau #{team.map(&:last).max} au lieu de #{expected}" if team.map(&:last).max != expected
+    raise MapEvents::Error, "chef #{g[:id]} : niveau #{expected} au-dessus du plafond" if expected > (E::CAPS[zone.seals] || E::CAPS.last)
+    size = W::GUILD_LEADER_PARTY_SIZES[[zone.seals, W::GUILD_LEADER_PARTY_SIZES.length - 1].min]
+    raise MapEvents::Error, "chef #{g[:id]} : #{team.length} Pokémon au lieu de #{size}" if team.length != size || !(4..6).include?(team.length)
+    labels = g[:members].map { |m| m[:label] }
+    members = plans[g[:hq]]&.events&.select { |e| e.kind == :trainer && labels.include?(e.label) } || []
+    raise MapEvents::Error, "guilde #{g[:id]} : #{members.length} membres" if !W::GUILD_MEMBERS.include?(members.length) || members.length != labels.length
+    (g[:members].map { |m| m[:team] } + [team]).flatten(1).each do |species, _level|
+      raise MapEvents::Error, "guilde #{g[:id]} : #{species} hors de son pool" if !guild.pool.include?(species)
+    end
+  end
+end
+
+# What each guild gives once its leader is beaten (#186), with that imposed
+# type: an ally, a Pokémon of its pool of that type at the leader's level,
+# else the nearest shortcut still closed (its obstacle's events on its
+# map), else a field item given ahead; the others, an item that exists and
+# money. Each has its own switch.
+# Returns the kinds given.
+def check_rewards(result, atlas, plans, drawn, type, items)
+  switches = drawn.map { |g| g[:switch] }
+  raise MapEvents::Error, "interrupteurs de guilde en double ou hors plage (#{switches.join(', ')})" if switches.uniq != switches || switches.any? { |n| !n.between?(W::GUILD_SWITCH + 1, W::GUILD_SWITCH + GUILDS.length) }
+  taken = []
+  return drawn.map do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    where = "guilde #{guild.id} (#{guild.position}, type #{type || 'aucun'})"
+    reward = g[:reward]
+    chef = plans[g[:map]].events.find { |e| e.label == g[:leader][:label] }
+    raise MapEvents::Error, "#{where} : interrupteur #{chef.value('Switch')} au lieu de #{g[:switch]}" if chef.value("Switch").to_i != g[:switch]
+    raise MapEvents::Error, "#{where} : chef sans réplique de victoire" if !chef.value("Win")
+    scripts = chef.fields.filter_map { |key, value| value if key == "Reward" }
+    raise MapEvents::Error, "#{where} : sans récompense" if !reward
+    typed = guild.pool.select { |id| type && ROSTER[id].monotype_types.include?(type) }
+    shortcuts = W.guild_shortcuts(result, g[:hq]).reject { |wp, _layout| taken.include?(wp.name) }
+    fields = W.guild_field_items(result, atlas, g[:hq]) - taken
+    expected = "objet"
+    if guild.position == W::GUILD_ALLY
+      expected = "terrain" if !fields.empty?
+      expected = "raccourci" if !shortcuts.empty?
+      expected = "pokemon" if !typed.empty?
+    end
+    raise MapEvents::Error, "#{where} : récompense #{reward[:kind]} au lieu de #{expected}" if reward[:kind] != expected
+    case expected
+    when "pokemon"
+      raise MapEvents::Error, "#{where} : #{reward[:species]} hors du pool ou du type" if !typed.include?(reward[:species])
+      raise MapEvents::Error, "#{where} : Pokémon donné au niveau #{reward[:level]} (chef #{g[:level]})" if reward[:level] != g[:level]
+      raise MapEvents::Error, "#{where} : don absent du chef" if scripts != ["WorldEvents.guild_pokemon(:#{reward[:species]}, #{reward[:level]})"]
+    when "raccourci"
+      wp, layout = shortcuts.first
+      raise MapEvents::Error, "#{where} : raccourci #{reward[:route]} au lieu du plus proche (#{wp.name})" if reward[:route] != wp.name
+      raise MapEvents::Error, "#{where} : obstacle #{wp.lock} sans événement à ouvrir" if !W::GUILD_OPENABLE.include?(wp.lock) || reward[:obstacle] != wp.lock
+      cells = layout.spots[:lock].drop(1).each_slice(2).to_a
+      raise MapEvents::Error, "#{where} : cases #{reward[:cells].inspect} hors de l'obstacle (#{cells.inspect})" if reward[:cells] != cells || cells.length != ((wp.lock == M::GRAPPLE) ? 2 : 1)
+      raise MapEvents::Error, "#{where} : le chef n'annonce pas le raccourci" if chef.fields.count { |key, _v| key == "Win" } < 2
+      taken.push(wp.name)
+    when "terrain"
+      raise MapEvents::Error, "#{where} : objet de terrain #{reward[:item]} inconnu ou déjà obtenu" if !fields.include?(reward[:item]) || !items.include?(reward[:item].to_s)
+      raise MapEvents::Error, "#{where} : don absent du chef" if chef.value("Gift") != reward[:item].to_s
+      taken.push(reward[:item])
+    when "objet"
+      raise MapEvents::Error, "#{where} : objet #{reward[:item]} absent" if !items.include?(reward[:item].to_s) || chef.value("Gift") != reward[:item].to_s
+      raise MapEvents::Error, "#{where} : argent #{reward[:money]}" if reward[:money].to_i <= 0 || scripts != ["WorldEvents.guild_money(#{reward[:money]})"]
+    end
+    expected
+  end
+end
+
+# The zone an affiliated guild frees (#187): the town nearest its
+# headquarters (never the first town), whose inhabitants, in the streets
+# and the houses, have a page under the guild's switch with a line of
+# [habitant_libre] (never a policeman); the Cousins of that town and of
+# the routes that touch it vanish under that switch, no other does, and
+# the Cousin of the Town Map stays. Returns the number of freed zones.
+def check_liberations(result, atlas, plans, drawn)
+  towns = result.places.map(&:first).select { |wp| wp.kind == "ville" && wp.name != atlas[:start] && !wp.league && !wp.victory }
+  index = result.places.to_h { |wp, *| [wp.name, W.chain_index(wp)] }
+  free_lines = DIALOGUES["habitant_libre"].map { |line| line.split(/\s*\|\s*/).first[/\A[^{]+/] }
+  vanish = {}
+  seen = []
+  drawn.each do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    where = "guilde #{guild.id} (#{guild.position})"
+    if guild.position != W::GUILD_FREEING
+      raise MapEvents::Error, "#{where} : zone libérée #{g[:freed].inspect}" if g[:freed]
+      next
+    end
+    left = towns.reject { |wp| seen.include?(wp.name) }
+    raise MapEvents::Error, "#{where} : aucune ville libérée" if !g[:freed] && !left.empty?
+    next if !g[:freed]
+    town = left.find { |wp| wp.name == g[:freed][:town] }
+    raise MapEvents::Error, "#{where} : ville libérée #{g[:freed][:town]} inconnue ou déjà libérée" if !town
+    nearest = left.map { |wp| (wp.index - index[g[:hq]]).abs }.min
+    raise MapEvents::Error, "#{where} : #{town.name} n'est pas la ville la plus proche du QG" if (town.index - index[g[:hq]]).abs != nearest
+    seen.push(town.name)
+    g[:freed][:maps].each { |map| vanish[map] = g[:switch] }
+    homes = [town.name] + atlas[:maps].select { |_name, map| map[:kind] == "interieur" && map[:owner] == town.name }.keys
+    habitants = homes.flat_map { |name| plans[name]&.events&.select { |e| e.label.start_with?("Habitant") } || [] }
+    raise MapEvents::Error, "#{where} : #{town.name} sans habitant" if habitants.empty?
+    habitants.each do |e|
+      if e.value("Graphic") == W::POLICE_GRAPHIC
+        raise MapEvents::Error, "#{where} : policier de #{town.name} avec une page « zone libérée »" if e.value("When")
+        next
+      end
+      text = e.value("Text").to_s
+      if e.value("When") != "S#{g[:switch]}" || !e.value("Wait") || free_lines.none? { |start| text.start_with?(start) }
+        raise MapEvents::Error, "#{where} : habitant #{e.label} de #{town.name} sans page « zone libérée »"
+      end
+    end
+  end
+  plans.each do |name, plan|
+    plan.events.each do |e|
+      # The members of the guilds leave the routes for their rivals (check_rivalries)
+      next if e.kind != :trainer || e.label.start_with?("Guilde")
+      cousin = e.label.start_with?("Cousin") && e.value("Gift") != W::MAP_ITEM.to_s
+      expected = cousin ? vanish[name] : nil
+      next if e.value("VanishIfSwitch")&.to_i == expected
+      raise MapEvents::Error, "#{name} : #{e.label} disparaît sous l'interrupteur #{e.value('VanishIfSwitch').inspect} au lieu de #{expected.inspect}"
+    end
+    next if seen.any? { |town| name == town || atlas[:maps][name][:owner] == town }
+    stray = plan.events.find { |e| e.label.start_with?("Habitant") && e.value("When") }
+    raise MapEvents::Error, "#{name} : #{stray.label} a une page « zone libérée » hors d'une ville libérée" if stray
+  end
+  return seen.length
+end
+
+# Rivalries (#189): enemies drawn together lie near each other (no place
+# where the later one could stand is nearer the other); the members of a
+# guild with a rallying enemy (W.guild_rivals) see farther and say a line of
+# [guilde_vengeance] under the ally's switch, those of the routes leave under
+# their own; no other member does; by an ally's headquarters, a member
+# gives an item of GUILD_BONUS_ITEMS under each present enemy's switch.
+# Returns the enemy pairs of the world.
+def check_rivalries(result, atlas, plans, drawn, items)
+  hqs = atlas[:hqs]
+  index = result.places.to_h { |wp, *| [wp.name, wp.index] }
+  pairs = 0
+  hqs.each do |kind, place|
+    (M::HQ_ENEMIES[kind] || []).each do |enemy|
+      next if !hqs[enemy] || kind > enemy
+      pairs += 1
+      gap = (index[place] - index[hqs[enemy]]).abs
+      nearest = [[kind, hqs[enemy]], [enemy, place]].map do |k, other|
+        M.hq_places(result.places, k).map { |i| (result.places[i][0].index - index[other]).abs }.min
+      end.min
+      raise MapEvents::Error, "QG ennemis #{kind} et #{enemy} à #{gap} lieux l'un de l'autre (#{nearest} possible)" if gap > nearest + 1
+    end
+  end
+  rivals = W.guild_rivals(atlas, GUILDS)
+  vengeance = DIALOGUES["guilde_vengeance"].map { |line| line.split(/\s*\|\s*/).first[/\A[^{]+/] }
+  members = drawn.flat_map { |g| (g[:members].map { |m| [g, g[:hq], m, false] }) + g[:routes].map { |m| [g, m[:map], m, true] } }
+  members.each do |g, map, member, route|
+    entry = plans[map].events.find { |e| e.label == member[:label] }
+    where = "#{map} : #{member[:label]} (#{g[:id]})"
+    rival = rivals[g[:id]]
+    if !rival
+      raise MapEvents::Error, "#{where} : vengeance sans ennemi rallié" if entry.value("Rage") || entry.value("VanishIfSwitch")
+      next
+    end
+    switch, sight = entry.value("Rage").to_s.split(",").map(&:to_i)
+    raise MapEvents::Error, "#{where} : vengeance sous l'interrupteur #{switch.inspect} au lieu de #{rival[:rage]}" if switch != rival[:rage]
+    raise MapEvents::Error, "#{where} : vue de vengeance #{sight} (#{entry.value('Sight')} à #{W::GUILD_RAGE_SIGHT})" if sight < entry.value("Sight").to_i || sight > [W::GUILD_RAGE_SIGHT, entry.value("Sight").to_i].max
+    raise MapEvents::Error, "#{where} : réplique de vengeance absente" if vengeance.none? { |start| entry.value("RageBattle").to_s.start_with?(start) }
+    expected = route ? rival[:vanish] : nil
+    raise MapEvents::Error, "#{where} : quitte la route sous #{entry.value('VanishIfSwitch').inspect} au lieu de #{expected.inspect}" if entry.value("VanishIfSwitch")&.to_i != expected
+  end
+  drawn.each do |g|
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    enemies = guild.position == W::GUILD_ALLY ? drawn.select { |e| guild.enemies.include?(e[:id]) } : []
+    raise MapEvents::Error, "guilde #{g[:id]} : #{g[:bonuses].length} bonus pour #{enemies.length} ennemis" if g[:bonuses].map { |b| b[:enemy] }.sort != enemies.map { |e| e[:id] }.sort
+    g[:bonuses].each do |bonus|
+      npc = plans[bonus[:map]].events.find { |e| e.label == bonus[:label] }
+      enemy = drawn.find { |e| e[:id] == bonus[:enemy] }
+      where = "guilde #{g[:id]} : bonus contre #{bonus[:enemy]}"
+      raise MapEvents::Error, "#{where} : absent du QG" if !npc || bonus[:map] != g[:hq]
+      raise MapEvents::Error, "#{where} : sous #{npc.value('When')} au lieu de S#{enemy[:switch]}" if npc.value("When") != "S#{enemy[:switch]}"
+      raise MapEvents::Error, "#{where} : objet #{npc.value('Gift')}" if !W::GUILD_BONUS_ITEMS.include?(npc.value("Gift")&.to_sym) || !items.include?(npc.value("Gift"))
+    end
+  end
+  return pairs
+end
+
+# The settling of scores (#190): each guild with a rallying enemy in the
+# world has its showdown by its headquarters, shown once the ally rallied
+# and gone once the guild's switch is on: the ally's leader as partner, the
+# guild's leader and its right hand as foes (its pool, under the cap, a
+# section of trainers.txt); the guild's leader counts as beaten once it is
+# won. Returns the showdowns of the world.
+def check_showdowns(atlas, plans, drawn, sections)
+  rivals = W.guild_rivals(atlas, GUILDS)
+  count = 0
+  drawn.each do |g|
+    rival = rivals[g[:id]]
+    ally = rival && drawn.find { |a| a[:id] == rival[:ally] }
+    show = g[:showdown]
+    raise MapEvents::Error, "guilde #{g[:id]} : règlement de comptes sans allié rallié" if show && !ally
+    next if !ally
+    where = "règlement de comptes #{g[:id]} contre #{ally[:id]}"
+    raise MapEvents::Error, "#{where} : absent" if !show
+    count += 1
+    npc = plans[show[:map]].events.find { |e| e.label == show[:label] }
+    raise MapEvents::Error, "#{where} : pas près du QG" if !npc || show[:map] != g[:hq]
+    raise MapEvents::Error, "#{where} : là sous #{npc.value('Show')} au lieu de S#{rival[:rage]}" if npc.value("Show") != "S#{rival[:rage]}"
+    raise MapEvents::Error, "#{where} : reste sous #{npc.value('Hide')} au lieu de S#{g[:switch]}" if npc.value("Hide") != "S#{g[:switch]}"
+    raise MapEvents::Error, "#{where} : partenaire #{show[:partner].inspect}" if show[:partner] != [ally[:leader][:type], ally[:leader][:name]]
+    leader, second = show[:foes]
+    raise MapEvents::Error, "#{where} : chef #{leader[1]} au lieu de #{g[:leader][:name]}" if leader[0, 2] != [g[:leader][:type], g[:leader][:name]]
+    guild = GUILDS.find { |x| x.id == g[:id] }
+    raise MapEvents::Error, "#{where} : bras droit #{second[0]} hors des membres" if !guild.member_types.include?(second[0])
+    raise MapEvents::Error, "#{where} : bras droit à #{second[2].length} Pokémon" if !W::GUILD_SECOND_SIZES.include?(second[2].length)
+    cap = E::CAPS[g[:seals]] || E::CAPS.last
+    second[2].each do |species, level|
+      raise MapEvents::Error, "#{where} : #{species} hors du pool" if !guild.pool.include?(species)
+      raise MapEvents::Error, "#{where} : #{species} niveau #{level} au-dessus du plafond #{cap}" if level > cap
+    end
+    raise MapEvents::Error, "#{where} : bras droit absent de trainers.txt" if sections.none? { |sec| sec.start_with?("[#{second[0]},#{second[1]},#{W::TRAINER_VERSION}]") }
+    args = [show[:partner], *show[:foes].map { |t, n, _team| [t, n] }].flatten.map { |v| v.is_a?(Symbol) ? ":#{v}" : v.inspect }
+    raise MapEvents::Error, "#{where} : script #{npc.value('Script')}" if npc.value("Script") != "WorldEvents.showdown(#{args.join(', ')}, #{g[:switch]})"
+    chef = plans[g[:map]].events.find { |e| e.label == g[:leader][:label] }
+    raise MapEvents::Error, "#{where} : le chef n'est pas battu avec le règlement" if chef.value("EndIfSwitch").to_i != g[:switch]
+  end
+  return count
+end
+
+# Blocking headquarters (#188): at most one per world, of an affiliated or
+# rival guild, on a route of the chain reached with GUILD_BLOCK_SEALS seals
+# or more; its members stand on the inner row of the exit onward, hidden
+# under the guild's switch, and cut the way while its headquarters stays
+# reached (checked for every candidate, drawn or not); its leader stays
+# under the cap of its Tronçon. Returns [blockades drawn, candidates].
+def check_blockades(result, atlas, zones, plans, drawn)
+  candidates = W.blockade_candidates(result, atlas, GUILDS, zones.values)
+  blocking = drawn.select { |g| g[:blocks] }
+  raise MapEvents::Error, "#{blocking.length} QG bloquants" if blocking.length > 1
+  candidates.each do |c|
+    guild = GUILDS.find { |g| g.id == c[:id] }
+    wp, = result.places.find { |w, *| w.name == c[:route] }
+    where = "QG bloquant possible #{guild.id} sur #{c[:route]}"
+    raise MapEvents::Error, "#{where} : position #{guild.position}" if !W::GUILD_BLOCKING.include?(guild.position)
+    raise MapEvents::Error, "#{where} : pas une route de la chaîne" if wp.kind != "route" || wp.extra
+    raise MapEvents::Error, "#{where} : #{zones[c[:route]].seals} sceau(x)" if zones[c[:route]].seals < W::GUILD_BLOCK_SEALS
+    raise MapEvents::Error, "#{where} : le barrage ne ferme pas la route" if !W.blockade_holds?(atlas[:maps][c[:route]], c[:cells], guild.hq)
+  end
+  blocking.each do |g|
+    blocks = g[:blocks]
+    where = "QG bloquant #{g[:id]} sur #{blocks[:route]}"
+    raise MapEvents::Error, "#{where} : pas parmi les QG possibles" if !candidates.include?(blocks)
+    barrier = plans[blocks[:route]].events.select { |e| e.label.start_with?("Barrage") }
+    raise MapEvents::Error, "#{where} : #{barrier.length} membres pour #{blocks[:cells].length} cases" if barrier.map { |e| [e.x, e.y] }.sort != blocks[:cells].sort
+    barrier.each { |e| raise MapEvents::Error, "#{where} : #{e.label} reste après le chef" if e.value("Hide") != "S#{g[:switch]}" }
+    cap = E::CAPS[g[:seals]] || E::CAPS.last
+    raise MapEvents::Error, "#{where} : chef au niveau #{g[:leader][:team].map(&:last).max}, plafond #{cap}" if g[:leader][:team].map(&:last).max > cap
+  end
+  stray = plans.select { |name, plan| plan.events.any? { |e| e.label.start_with?("Barrage") } && blocking.none? { |g| g[:blocks][:route] == name } }
+  raise MapEvents::Error, "barrage sans QG bloquant sur #{stray.keys.join(', ')}" if !stray.empty?
+  return [blocking.length, candidates.empty? ? 0 : 1]
+end
+
+# The members of the guilds on the routes (#184): only on a route of their
+# guild (W.guild_routes), their Pokémon from its pool. Returns [members,
+# trainers of those routes that are no Cousin] for the share over the seeds.
+def check_guild_routes(result, atlas, plans, drawn)
+  routes = W.guild_routes(result, atlas, GUILDS)
+  walkers = drawn.flat_map { |g| g[:routes] }
+  walkers.each do |member|
+    guild = GUILDS.find { |g| g.id == member[:id] }
+    where = "#{member[:map]} : [Trainer #{member[:label]}]"
+    raise MapEvents::Error, "#{where} : route hors de la guilde #{guild.id}" if !routes[member[:map]]&.include?(guild)
+    raise MapEvents::Error, "#{where} : absent du plan" if plans[member[:map]].events.none? { |e| e.label == member[:label] }
+    member[:team].each { |species, _level| raise MapEvents::Error, "#{where} : #{species} hors du pool" if !guild.pool.include?(species) }
+  end
+  at_hq = drawn.flat_map { |g| g[:members].map { |m| [g[:hq], m[:label]] } }
+  among = routes.keys.sum do |route|
+    (plans[route]&.events || []).count do |e|
+      e.kind == :trainer && !e.label.start_with?("Cousin", "Chef") && !at_hq.include?([route, e.label])
+    end
+  end
+  return walkers.length, among
+end
+
 # The settings name events and items that exist.
 settings = File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb")
 begin
@@ -403,6 +723,76 @@ rescue W::Error => e
   dfile, dline = e.message[/\A(.+?), ligne (\d+)/, 1] ? [$1, $2.to_i] : [W.dialogues_path(ROOT), nil]
   CI.error(dfile, dline, e.message)
   CI.finish("Événements des mondes")
+end
+roster = E.load_species(ROOT)
+begin
+  GUILDS = W.load_guilds(ROOT, roster, DIALOGUES)
+rescue W::Error => e
+  gfile, gline = e.message[/\A(.+?), ligne (\d+)/, 1] ? [$1, $2.to_i] : [W.guilds_path(ROOT), nil]
+  CI.error(gfile, gline, e.message)
+  CI.finish("Événements des mondes")
+end
+# One guild for each headquarters of MapProc (GUILD_HQS), and its leader
+# has a cell in each template of its interior
+GUILDS.each do |guild|
+  (M::INTERIORS[guild.hq] || []).each do |template, *|
+    CI.error(settings, nil, "GUILD_LEADER_SPOTS : gabarit #{template} (QG #{guild.hq}) absent") if !W::GUILD_LEADER_SPOTS[template]
+  end
+end
+# A pool has every intermediate form between two of its species (Combusken
+# between Torchic and Blaziken), and whole families
+GUILDS.each do |guild|
+  guild.pool.each do |id|
+    chain = []
+    cur = roster[id]&.prevo&.first
+    while cur
+      chain.push(cur)
+      cur = roster[cur]&.prevo&.first
+    end
+    deepest = chain.rindex { |a| guild.pool.include?(a) }
+    gaps = deepest ? chain[0...deepest].reject { |a| guild.pool.include?(a) } : []
+    CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : forme intermédiaire #{gaps.join(', ')} absente du pool (avant #{id})") if !gaps.empty?
+  end
+  # Whole families: a final form missing would leave the family out of the
+  # teams once it is reachable (final_forms)
+  families = guild.pool.filter_map { |id| roster[id]&.family }.uniq
+  missing = roster.values.select { |sp| families.include?(sp.family) && !guild.pool.include?(sp.id) }.map(&:id)
+  CI.error(W.guilds_path(ROOT), guild.line, "[#{guild.id}] : famille incomplète, #{missing.join(', ')} absent(s) du pool") if !missing.empty?
+end
+GUILDS.group_by(&:hq).each do |hq, list|
+  CI.error(W.guilds_path(ROOT), list[1].line, "QG #{hq} de plusieurs guildes (#{list.map(&:id).join(', ')})") if list.length > 1
+end
+(M::GUILD_HQS.keys - GUILDS.map(&:hq)).each { |kind| CI.error(settings, nil, "GUILD_HQS : QG #{kind} sans guilde dans guildes.txt") }
+# HQ_ENEMIES (MapProc) says the « Ennemis » of guildes.txt by headquarters
+GUILDS.each do |guild|
+  expected = guild.enemies.map { |id| GUILDS.find { |g| g.id == id }.hq }.sort
+  next if (M::HQ_ENEMIES[guild.hq] || []).sort == expected
+  CI.error(settings, nil, "HQ_ENEMIES[#{guild.hq}] : #{(M::HQ_ENEMIES[guild.hq] || []).sort.join(', ')} au lieu de #{expected.join(', ')} (Ennemis de #{guild.id})")
+end
+# Enemies are drawn together more often than by chance (#189): over many
+# draws with every headquarters possible, how often an enemy of a drawn one
+# is there too, against the same draw without HQ_ENEMY_CHANCE
+together = [M::HQ_ENEMY_CHANCE, 0].map do |chance|
+  hits = 0
+  total = 0
+  2000.times do |n|
+    picks = M.draw_hq_kinds(M::GUILD_HQS.keys, Random.new(n), chance).map(&:first)
+    raise "draw_hq_kinds : #{picks.length} QG" if picks.length > M::WORLD_GUILDS.max || picks.uniq != picks
+    picks.each do |kind|
+      (M::HQ_ENEMIES[kind] || []).each do |enemy|
+        total += 1
+        hits += 1 if picks.include?(enemy)
+      end
+    end
+  end
+  hits * 100.0 / total
+end
+if together[0] < together[1] + 15
+  CI.error(settings, nil, "HQ_ENEMY_CHANCE : ennemis tirés ensemble #{together[0].round} % du temps, #{together[1].round} % au hasard")
+end
+puts "Ennemis tirés ensemble : #{together[0].round} % (#{together[1].round} % au hasard)"
+W::GUILD_LEADER_SPOTS.each do |template, (x, y, _facing)|
+  CI.error(settings, nil, "GUILD_LEADER_SPOTS : #{template} #{x},#{y} n'est pas une case libre") if !PASSABLE[template][y]&.[](x)
 end
 # Every line drawn, by section, to check that none comes back too soon
 DRAWN = Hash.new { |hash, section| hash[section] = [] }
@@ -427,7 +817,8 @@ species = CI.read_text(File.join(ROOT, "PBS", "pokemon.txt")).scan(/^\[\s*(\w+)\
 types_text = CI.read_text(File.join(ROOT, "PBS", "trainer_types.txt"))
 ttypes = types_text.scan(/^\[\s*(\w+)\s*\]/).flatten
 genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/^Gender\s*=\s*(\w+)/, 1]] }
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES.values + W::ELDER_TYPES + [W::PARRAIN_TYPE]).uniq.each do |type|
+guild_types = GUILDS.flat_map { |g| g.member_types + [g.leader] }
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + W::LEADER_TYPES.values + W::ELDER_TYPES + [W::PARRAIN_TYPE] + guild_types).uniq.each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : type #{type} absent de trainer_types.txt") && next if !ttypes.include?(type.to_s)
   female = W::FEMALE_TYPES.include?(type)
   CI.error(settings, nil, "FEMALE_TYPES : #{type} est #{genders[type.to_s]}") if female != (genders[type.to_s] == "Female")
@@ -437,14 +828,13 @@ genders = types_text.split(/^\[/).drop(1).to_h { |sec| [sec[/\A(\w+)/, 1], sec[/
 end
 # The Family's sprites exist only once: never an ordinary trainer, a cousin or an NPC's graphic.
 family = CI.read_text(File.join(ROOT, "tools", "art", "family_sprites.rb")).scan(/^\s+\w+:\s+:(\w+)/).flatten
-(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES).each do |type|
+(W::TRAINER_TYPES.values.flatten + W::COUSIN_TYPES + guild_types).each do |type|
   CI.error(settings, nil, "TRAINER_TYPES : #{type} est un sprite de la Famille") if family.include?(type.to_s)
 end
 W.constants.grep(/GRAPHICS?\z/).flat_map { |c| Array(W.const_get(c)) }.each do |graphic|
   source = graphic.to_s[/\Atrainer_(\w+)\z/, 1]
   CI.error(settings, nil, "#{graphic} : sprite de la Famille") if source && family.include?(source)
 end
-roster = E.load_species(ROOT)
 # [[item, move, type, power, status?]] of every TM, from the PBS files
 moves = CI.read_text(File.join(ROOT, "PBS", "moves.txt")).split(/^\[/).drop(1).to_h do |sec|
   [sec[/\A(\w+)/, 1].to_sym, [sec[/^Type\s*=\s*(\w+)/, 1]&.to_sym, sec[/^Power\s*=\s*(\d+)/, 1].to_i, sec[/^Category\s*=\s*Status/] ? true : false]]
@@ -509,12 +899,12 @@ end
 # For each weather, a world of a type that plays with it: when drawn, its
 # items not given by a lieutenant are placed once each, the first ones in
 # nooks (up to half of them).
-def check_weather(result, seed, args, events)
+def check_weather(seed, events, worlds)
   # The nooks holding a Heart Scale keep it (see W.weather_nooks)
   nooks = events[:items].count { |item| item[:source] == "recoin" && item[:item] != W::HEART_SCALE }
   W::WEATHER_ITEMS.each do |types, list|
     type = types.first
-    typed = W.world_events(result, seed, **args, type: type)
+    typed = worlds[type]
     given = typed[:leaders].filter_map { |leader| leader[:tm]&.first }
     expected = W.weather_items(type, Random.new((seed * 1000) + 780)) - given
     placed = typed[:items].select { |item| list.include?(item[:item]) }
@@ -539,6 +929,14 @@ end
 
 count = 0
 pact_total = 0
+guild_walkers = 0
+guild_among = 0
+rewards = Hash.new(0)
+freed = 0
+blockades = 0
+blockable = 0
+enemy_pairs = 0
+settled = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -550,7 +948,8 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     atlas = M.world_atlas(result)
     zones = E.world_zones(result, E::CAPS)
     _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
-    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES, dex: DEX }
+    args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES, dex: DEX,
+             guilds: GUILDS }
     DRAWN.clear
     events = W.world_events(result, seed, **args)
     drawn = DRAWN.transform_values(&:dup)
@@ -562,7 +961,9 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       plans[name] = MapEvents.parse(text, "#{where}, #{name}")
       spots = atlas[:maps][name]
       raise MapEvents::Error, "#{name} : carte absente de l'inventaire" if !spots
+      # The gates of the first town, the members of a blocking headquarters
       gates = (name == atlas[:start]) ? W.gate_cells(spots[:exits]) : []
+      gates += events[:guilds].filter_map { |g| g[:blocks] && g[:blocks][:route] == name && g[:blocks][:cells] }.flatten(1)
       check_cells(plans[name], spots, gates)
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
@@ -571,14 +972,37 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_start(atlas, plans)
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
-      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers], species, ttypes)
+      # The right hands of the showdowns fight only there (check_showdowns)
+      seconds = events[:guilds].filter_map { |g| g[:showdown] && "[#{g[:showdown][:foes][1][0]},#{g[:showdown][:foes][1][1]}," }
+      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers].reject { |sec| sec.start_with?(*seconds) },
+                     species, ttypes)
       check_map_giver(atlas, plans)
       check_league(atlas, plans, events[:league], events[:leaders])
-      check_sets(events[:leaders] + events[:league], atlas[:gyms].length, items)
+      check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
+      check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
+      freed += check_liberations(result, atlas, plans, events[:guilds])
+      settled += check_showdowns(atlas, plans, events[:guilds], events[:trainers])
+      enemy_pairs += check_rivalries(result, atlas, plans, events[:guilds], items)
+      blocked, possible = check_blockades(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
+      blockades += blocked
+      blockable += possible
+      walkers, among = check_guild_routes(result, atlas, plans, events[:guilds])
+      guild_walkers += walkers
+      guild_among += among
       check_lines(drawn)
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
-      check_weather(result, seed, args, events)
+      # The same world under several imposed types (those of the weathers)
+      worlds = W::WEATHER_ITEMS.keys.to_h { |types| [types.first, W.world_events(result, seed, **args, type: types.first)] }
+      check_weather(seed, events, worlds)
+      worlds.merge(nil => events).each do |type, typed|
+        typed_plans = typed[:plans].to_h { |name, text| [name, MapEvents.parse(text, "#{where}, #{name}")] }
+        check_rewards(result, atlas, typed_plans, typed[:guilds], type, items).compact.each { |kind| rewards[kind] += 1 }
+      end
+      type = worlds.keys.first
+      if W.world_events(result, seed, **args, type: type)[:guilds].map { |g| g[:reward] } != worlds[type][:guilds].map { |g| g[:reward] }
+        raise MapEvents::Error, "type #{type} : la même graine et le même type donnent d'autres récompenses de guilde"
+      end
       check_pact(seed, events)
       pact_total += events[:items].count { |item| item[:item] == W::PACT_INCENSE }
     rescue MapEvents::Error => e
@@ -590,5 +1014,13 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
   end
 end
 
-puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte"
+# About one trainer in three on the routes of the guilds is a member
+share = guild_among.zero? ? 0 : (guild_walkers * 100.0 / guild_among).round
+if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE + 15)).cover?(share)
+  CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
+end
+puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
+puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
+puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
+puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")
