@@ -1,0 +1,223 @@
+{
+ "chunks": {
+  "A1": {
+   "tiles": 53,
+   "used": 4
+  },
+  "A10": {
+   "tiles": 47,
+   "used": 0
+  },
+  "A2": {
+   "tiles": 58,
+   "used": 27
+  },
+  "A3": {
+   "tiles": 52,
+   "used": 0
+  },
+  "A4": {
+   "tiles": 43,
+   "used": 0
+  },
+  "A5": {
+   "tiles": 52,
+   "used": 0
+  },
+  "A6": {
+   "tiles": 48,
+   "used": 0
+  },
+  "A7": {
+   "tiles": 43,
+   "used": 0
+  },
+  "A8": {
+   "tiles": 49,
+   "used": 0
+  },
+  "A9": {
+   "tiles": 45,
+   "used": 0
+  },
+  "B1": {
+   "tiles": 56,
+   "used": 16
+  },
+  "B2": {
+   "tiles": 57,
+   "used": 6
+  },
+  "B3": {
+   "tiles": 55,
+   "used": 0
+  },
+  "B4": {
+   "tiles": 51,
+   "used": 21
+  },
+  "B5": {
+   "tiles": 60,
+   "used": 4
+  },
+  "B6": {
+   "tiles": 48,
+   "used": 0
+  },
+  "B7": {
+   "tiles": 59,
+   "used": 6
+  },
+  "B8": {
+   "tiles": 24,
+   "used": 2
+  },
+  "C1": {
+   "tiles": 47,
+   "used": 3
+  },
+  "C2": {
+   "tiles": 36,
+   "used": 0
+  },
+  "C3": {
+   "tiles": 38,
+   "used": 0
+  },
+  "C4": {
+   "tiles": 20,
+   "used": 4
+  },
+  "C5": {
+   "tiles": 42,
+   "used": 3
+  },
+  "C6": {
+   "tiles": 46,
+   "used": 0
+  },
+  "C7": {
+   "tiles": 48,
+   "used": 0
+  },
+  "C8": {
+   "tiles": 32,
+   "used": 0
+  },
+  "C9": {
+   "tiles": 4,
+   "used": 0
+  },
+  "D1": {
+   "tiles": 51,
+   "used": 6
+  },
+  "D2": {
+   "tiles": 42,
+   "used": 24
+  },
+  "D3": {
+   "tiles": 43,
+   "used": 0
+  },
+  "D4": {
+   "tiles": 36,
+   "used": 3
+  },
+  "D5": {
+   "tiles": 25,
+   "used": 2
+  },
+  "E1": {
+   "tiles": 30,
+   "used": 24
+  },
+  "E2": {
+   "tiles": 25,
+   "used": 10
+  },
+  "E3": {
+   "tiles": 36,
+   "used": 13
+  },
+  "E4": {
+   "tiles": 50,
+   "used": 15
+  },
+  "E5": {
+   "tiles": 30,
+   "used": 22
+  },
+  "E6": {
+   "tiles": 32,
+   "used": 24
+  },
+  "E7": {
+   "tiles": 10,
+   "used": 4
+  },
+  "F1": {
+   "tiles": 18,
+   "used": 1
+  },
+  "F2": {
+   "tiles": 23,
+   "used": 10
+  },
+  "F3": {
+   "tiles": 32,
+   "used": 13
+  },
+  "F4": {
+   "tiles": 30,
+   "used": 24
+  },
+  "F5": {
+   "tiles": 2,
+   "used": 2
+  },
+  "G1": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G10": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G2": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G3": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G4": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G5": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G6": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G7": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G8": {
+   "tiles": 8,
+   "used": 0
+  },
+  "G9": {
+   "tiles": 8,
+   "used": 0
+  }
+ },
+ "sheet": "SirMalo Urban",
+ "tiles": 2294,
+ "used": 293
+}

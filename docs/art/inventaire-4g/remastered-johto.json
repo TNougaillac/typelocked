@@ -1,0 +1,159 @@
+{
+ "chunks": {
+  "A1": {
+   "tiles": 64,
+   "used": 14
+  },
+  "A10": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A11": {
+   "tiles": 64,
+   "used": 35
+  },
+  "A12": {
+   "tiles": 56,
+   "used": 30
+  },
+  "A13": {
+   "tiles": 60,
+   "used": 25
+  },
+  "A14": {
+   "tiles": 64,
+   "used": 50
+  },
+  "A15": {
+   "tiles": 63,
+   "used": 25
+  },
+  "A16": {
+   "tiles": 64,
+   "used": 21
+  },
+  "A17": {
+   "tiles": 64,
+   "used": 20
+  },
+  "A18": {
+   "tiles": 64,
+   "used": 34
+  },
+  "A19": {
+   "tiles": 64,
+   "used": 19
+  },
+  "A2": {
+   "tiles": 64,
+   "used": 5
+  },
+  "A20": {
+   "tiles": 61,
+   "used": 30
+  },
+  "A21": {
+   "tiles": 64,
+   "used": 2
+  },
+  "A22": {
+   "tiles": 60,
+   "used": 31
+  },
+  "A23": {
+   "tiles": 59,
+   "used": 48
+  },
+  "A24": {
+   "tiles": 63,
+   "used": 29
+  },
+  "A25": {
+   "tiles": 63,
+   "used": 10
+  },
+  "A26": {
+   "tiles": 62,
+   "used": 30
+  },
+  "A27": {
+   "tiles": 61,
+   "used": 19
+  },
+  "A28": {
+   "tiles": 59,
+   "used": 13
+  },
+  "A29": {
+   "tiles": 64,
+   "used": 27
+  },
+  "A3": {
+   "tiles": 64,
+   "used": 5
+  },
+  "A30": {
+   "tiles": 64,
+   "used": 8
+  },
+  "A31": {
+   "tiles": 60,
+   "used": 5
+  },
+  "A32": {
+   "tiles": 62,
+   "used": 1
+  },
+  "A33": {
+   "tiles": 53,
+   "used": 0
+  },
+  "A34": {
+   "tiles": 63,
+   "used": 20
+  },
+  "A35": {
+   "tiles": 61,
+   "used": 0
+  },
+  "A36": {
+   "tiles": 62,
+   "used": 4
+  },
+  "A37": {
+   "tiles": 62,
+   "used": 4
+  },
+  "A38": {
+   "tiles": 31,
+   "used": 4
+  },
+  "A4": {
+   "tiles": 64,
+   "used": 3
+  },
+  "A5": {
+   "tiles": 55,
+   "used": 19
+  },
+  "A6": {
+   "tiles": 64,
+   "used": 13
+  },
+  "A7": {
+   "tiles": 64,
+   "used": 9
+  },
+  "A8": {
+   "tiles": 64,
+   "used": 3
+  },
+  "A9": {
+   "tiles": 59,
+   "used": 11
+  }
+ },
+ "sheet": "Remastered Johto",
+ "tiles": 2323,
+ "used": 626
+}

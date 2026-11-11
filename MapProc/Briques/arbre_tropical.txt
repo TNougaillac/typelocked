@@ -1,11 +1,9 @@
-# Forêt tropicale : un grand arbre à canopée.
+# Forêt tropicale : un bouquet de palmiers.
 Brique    = Arbre tropical
 Type      = decor
 Ambiances = forêt tropicale
 Poids     = 2
 [Map]
-ççç
-ççç
 ççç
 ççç
 ççç
