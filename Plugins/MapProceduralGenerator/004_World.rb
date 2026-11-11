@@ -885,7 +885,10 @@ module MapProceduralGenerator
   # them, in a later one: the player sees it and comes back (every field item
   # is obtained in a town with a gym, so before the League). When one of the
   # two lists is empty, the other one is used. A dark cave on a route only.
+  # The draw of a later item has its own generator, so that the world's draws
+  # stay those of a world without it.
   def choose_nooks(world, places, rng)
+    side = Random.new(rng.seed + 7)
     obtained = {}
     places.each do |p|
       (p.items || []).each { |item| obtained[item] = p.index }
@@ -896,8 +899,8 @@ module MapProceduralGenerator
       next if rng.rand(100) >= world.nooks
       kinds = NOOKS.select { |kind, item| obtained[item] && (kind != "sombre" || wp.kind == "route") }
       now, later = kinds.keys.partition { |kind| obtained[kinds[kind]] < (wp.tier || wp.index) }
-      lists = (rng.rand(100) < world.revisit) ? [later, now] : [now, later]
-      wp.nook = lists.find(&:any?)&.sample(random: rng)
+      wp.nook = now.sample(random: rng)
+      wp.nook = later.sample(random: side) if later.any? && (!wp.nook || side.rand(100) < world.revisit)
     end
   end
 
