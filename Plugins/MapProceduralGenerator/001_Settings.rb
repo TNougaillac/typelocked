@@ -376,7 +376,8 @@ module MapProceduralGenerator
   SURF_ITEM = :SURFSADDLE
   DIVE_ITEM = :DIVINGSUIT
   # Optional nooks (« Recoins » in a world, % per place), each behind an
-  # obstacle opened by a field item obtained earlier in the chain: a cut
+  # obstacle opened by a field item (obtained earlier in the chain, or later
+  # for a nook to come back to, see REVISIT): a cut
   # tree, a cracked rock or a boulder at the mouth of a pocket in the rock, a
   # rock wall to cross with the Grappling Hook, an islet in a pond (Surf), a
   # dark cave (Lantern, routes only). Their loot is in the inventory.
@@ -386,8 +387,41 @@ module MapProceduralGenerator
     "bloc"    => :HARNESS,
     "ilot"    => SURF_ITEM,
     "sombre"  => :LANTERN,
-    "grappin" => :GRAPPLINGHOOK
+    "grappin" => :GRAPPLINGHOOK,
+    "glace"   => :SKATES,
+    "boue"    => :WADERS,
+    "paroi"   => :CLIMBINGCLAWS,
+    "piste"   => :BICYCLE
   }.freeze
+  # Nooks crossed with a field item obtained outside the gyms (#270, #272):
+  # in a place of one of its ambiances (nil: any) and kinds, chance % of the
+  # nooks of CROSSING_FROM become a pocket reached by a corridor of that
+  # symbol (:street: the place's street), 3 tiles wide when wide, crossed
+  # with the item (an event, « MapProc <event> », on each middle tile of the
+  # corridor: pbMapProcCross; invisible, else drawn as tile T<barrier>, which
+  # blocks a walkable corridor). Slippery ice (Skates), marsh mud (Waders), a
+  # rock wall to climb (Climbing Claws), a cycle path behind its barriers
+  # (Bicycle).
+  CROSSINGS = {
+    "glace" => { item: :SKATES, ambiances: %w[neige], kinds: %w[ville route], chance: 50,
+                 corridor: "ǫ", wide: false, event: "Skate" },
+    "boue"  => { item: :WADERS, ambiances: %w[marais], kinds: %w[ville route], chance: 50,
+                 corridor: "ɓ", wide: true, event: "Wade" },
+    "paroi" => { item: :CLIMBINGCLAWS, ambiances: ["haute montagne", "minérale"], kinds: %w[ville route], chance: 50,
+                 corridor: "^", wide: false, event: "Climb" },
+    "piste" => { item: :BICYCLE, ambiances: nil, kinds: %w[ville], chance: 25,
+                 corridor: :street, wide: false, event: "Bike", barrier: 15292 }
+  }.freeze
+  CROSSING_FROM = %w[arbre rocher bloc].freeze
+  # These items are never given in a gym town's chain of field items: each
+  # world with a place of their ambiances (any world for the Bicycle) has a
+  # town where a hidden inhabitant gives each (placed by WorldEvents), drawn
+  # apart (seed x 1000 + 960) so the rest of the world stays the same.
+  # item => ambiances (nil: any)
+  EXTRA_FIELD_ITEMS = CROSSINGS.values.to_h { |c| [c[:item], c[:ambiances]] }.freeze
+  # Share in % of the nooks closed by a field item obtained later in the chain
+  # (« Revisiter » in a world): the player sees them and comes back.
+  REVISIT = 50
   # Obstacles closing a shortcut (« Raccourcis » in a world) at its end nearer
   # the start, and the field item that opens each: a cut tree, a cracked rock,
   # a boulder (in a gap of a wall across the route), a wall with no gap to

@@ -13,6 +13,8 @@ M = MapProceduralGenerator
 SEEDS = 1..10
 # Seeds of the worlds (WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others
 # locally)
+# Gap allowed between the share of nooks to come back to and « Revisiter »
+REVISIT_MARGIN = 30
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
 # that no half plant shows (very tall grass T7 needs itself or its base: T15, or
@@ -355,7 +357,8 @@ def check_nooks(name, place, bricks, layout)
     next if obstacle == "sombre"   # the loot is in the dark cave
     closed = (obstacle == "ilot") ? reached(place, bricks, layout, surf: false) : reached(place, bricks, layout, surf: true, blocked: [ox, oy])
     raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) s'atteint sans son obstacle" if closed[[x, y]]
-    wall = (obstacle == M::GRAPPLE) ? grapple_wall(ox, oy, fx, fy) : []
+    # The Grappling Hook's wall, the ice slid across with the Skates
+    wall = (obstacle == M::GRAPPLE || M::CROSSINGS[obstacle]) ? grapple_wall(ox, oy, fx, fy) : []
     raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) ne s'atteint pas avec son objet" if !reached(place, bricks, layout, surf: true, through: wall)[[x, y]]
   end
 end
@@ -570,6 +573,34 @@ places.each do |path|
       check_blocking(name, layout)
     end
   end
+  # A crossing (#270, #272): in a place of its ambiance and kind, its nook
+  # (forced here: the draw is luck) has a corridor of its symbol, its loot
+  # reached only across it. A nook often lacks room in a dense town: the
+  # seeds go on until one has it (up to 40)
+  M::CROSSINGS.each do |kind, crossing|
+    next if !crossing[:kinds].include?(place.kind)
+    ambiance = place.ambiances.map(&:name).find { |a| !crossing[:ambiances] || crossing[:ambiances].include?(a) }
+    next if !ambiance
+    symbol = (crossing[:corridor] == :street) ? place.street : crossing[:corridor]
+    found = (1..40).lazy.select do |seed|
+      themed = place.dup.tap { |p| p.ambiance = ambiance; p.nook = kind }
+      plan, _text, layout = begin
+        M.generate_place(themed, bricks, seed)
+      rescue M::Error
+        next false   # a seed where the nook doesn't fit with the rest
+      end
+      nook = layout.spots[:nooks].find { |n| n[2] == kind }
+      next false if !nook
+      name = "#{File.basename(path)} (recoin #{kind}, ambiance #{ambiance}, graine #{seed})"
+      MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
+      check_nooks(name, themed, bricks, layout)
+      _x, _y, _obstacle, ox, oy, fx, fy = nook
+      corridor = [[ox, oy], [fx, fy]].map { |x, y| layout.rows[y][x] }
+      raise M::Error, "#{name} : couloir du recoin sans « #{symbol} » (#{corridor.join})" if corridor.uniq != [symbol]
+      true
+    end.first(1).size
+    raise M::Error, "#{File.basename(path)} : aucun recoin #{kind} sur 40 graines en ambiance #{ambiance}" if found.zero?
+  end
   # A coastal ambiance (« Mer = oui ») is drawn only by the sea, and is drawn
   # there
   coastal = place.ambiances.select(&:coastal).map(&:name)
@@ -676,6 +707,9 @@ M::AMBIANCE_FLAGS.each do |ambiance, flag|
   CI.error(settings, nil, "AMBIANCE_FLAGS : #{flag} sans teinte (TONE_FLAGS)") if !M::TONE_FLAGS.key?(flag)
   CI.error(settings, nil, "AMBIANCE_FLAGS : ambiance « #{ambiance} » inconnue") if !ambiance_names.include?(ambiance)
 end
+# Nooks of each world opening now or later (« Revisiter »): [now, later]
+revisits = Hash.new { |hash, key| hash[key] = [0, 0] }
+crossings = Hash.new(0)
 worlds.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -741,11 +775,33 @@ worlds.each do |path|
       next CI.error(path, nil, "graine #{seed} : #{name} sans ville d'obtention") if !giver && gyms.length >= min
       CI.error(path, nil, "graine #{seed} : #{name} avant la #{min}e arène") if giver && gyms.index(giver).to_i < min - 1
     end
+    # Crossings (#270, #272: ice, mud, a wall to climb, a cycle path): only
+    # in their ambiances and kinds of place, and their item given in a town
+    # whenever one of their ambiances is in the world (always for any)
+    result.places.each do |wp, place, _text, layout|
+      layout.spots[:nooks].each do |nook|
+        crossing = M::CROSSINGS[nook[2]] || next
+        crossings[nook[2]] += 1
+        fits = (!crossing[:ambiances] || crossing[:ambiances].include?(layout.ambiance)) && crossing[:kinds].include?(place.kind)
+        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{nook[2]} en ambiance #{layout.ambiance}") if !fits
+      end
+    end
+    M::EXTRA_FIELD_ITEMS.each do |item, ambiances|
+      wanted = !ambiances || result.places.any? { |*, layout| ambiances.include?(layout.ambiance) }
+      giver = result.places.find { |p, *| (p.items || []).include?(item) }&.first
+      CI.error(path, nil, "graine #{seed} : #{item} sans ville où l'obtenir") if wanted && !giver
+      CI.error(path, nil, "graine #{seed} : #{item} donné sans #{ambiances&.join(' ni ')} dans le monde") if !wanted && giver
+      CI.error(path, nil, "graine #{seed} : #{item} donné hors d'une ville de la chaîne") if giver && (giver.kind != "ville" || giver.league)
+    end
+    # A nook opens with a field item obtained in a town of the chain (before
+    # the League), earlier or later than its place (a nook to come back to)
     atlas_items = M.world_atlas(result)[:items]
     result.places.each do |wp, _place, _text, layout|
       layout.spots[:nooks].each do |_x, _y, obstacle|
         giver = result.places.find { |p, *| p.name == atlas_items[M::NOOKS[obstacle]] }&.first
-        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} avant la ville de son objet") if !giver || giver.index >= (wp.tier || wp.index)
+        next CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} sans ville pour son objet") if !giver
+        next if obstacle == "ilot"
+        revisits[world.file][giver.index >= (wp.tier || wp.index) ? 1 : 0] += 1
       end
     end
     # The inventory: the same for the same seed, every gym and the start in it
@@ -851,9 +907,17 @@ worlds.each do |path|
     CI.error(path, nil, "graine #{seed} : #{gyms} arène(s) posée(s) au lieu de #{world.gyms}") if gyms != world.gyms
   end
   CI.error(path, nil, "aucune route de montagne au-delà de 2 niveaux (graines #{WORLD_SEEDS})") if world.mountains.max > 0 && highest <= 2
+  # About « Revisiter » % of the nooks open with an item obtained later
+  now, later = revisits[world.file]
+  share = (now + later).zero? ? nil : 100 * later / (now + later)
+  puts "#{world.file} : #{later} recoin(s) à revisiter sur #{now + later} (#{share || 0} %, réglé à #{world.revisit} %)"
+  if share && (now + later) >= 8 && (share - world.revisit).abs > REVISIT_MARGIN
+    CI.error(path, nil, "#{share} % de recoins à revisiter (graines #{WORLD_SEEDS}), #{world.revisit} % attendus à #{REVISIT_MARGIN} près")
+  end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end
 
+puts "Recoins à franchir avec un objet hors arène : #{M::CROSSINGS.keys.map { |kind| "#{kind} #{crossings[kind]}" }.join(', ')}"
 puts "#{worlds.length} mondes, #{places.length} lieux et #{bricks.length} briques lus, graines #{SEEDS} assemblées"
 CI.finish("Lieux MapProc")
