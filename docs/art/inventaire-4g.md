@@ -47,7 +47,7 @@ Les planches Remastered Johto et Kanto reprennent en partie les rips HGSS de Sir
 | B2 à B4 | Couvre-sols verts denses et herbe sombre turquoise | Variantes de sol des **forêts sombres** et des marais : **fait (#295)** |
 | B4, B8 | Plaque d'argile rouge | Sol de **volcan** ou de canyon, sans teinte : **fait (#295)** |
 | B7 | Gravier beige | Sol 4G des ambiances **minérale** et **haute montagne** (remplace T218) |
-| C1 à C7 | Paires d'arbres vert clair (variante printemps) et carrés d'herbe | Deuxième essence d'arbres de forêt, pour varier les routes |
+| C1 à C7 | Paires d'arbres vert clair (variante printemps) et carrés d'herbe | Deuxième essence d'arbres de forêt, pour varier les routes : **fait (#297)** |
 | D1, D4 | Buissons et **haies** taillées (rangées, coins) | Haies 4G (remplacent î T669 et û T685, et les haies de la prairie T4040 à T4169) |
 | D2, D3 | Parterres de tulipes, jardinière en bois, petits buissons fleuris, banc | Décor des villes et parcs (remplace â T523) |
 | D6 | Arbres d'automne jaune et rouge, souches mortes | Arbres de l'ambiance **automne**, bois mort des marais : **fait (#295)** |
@@ -145,7 +145,7 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 | A10, A11 (ship) | Tapis de feuilles mortes, arbres d'automne | Ambiance **automne** |
 | A15, A16 | Temple japonais à toit bleu | Sanctuaire, lieu de lore |
 | A16, A17 (ship) | **Paquebot** (S.S. Aqua) | Port de la gare maritime |
-| A18, A19 | Bonsaï, grand arbre rond | Parcs, arbre remarquable de place |
+| A18, A19 | Bonsaï, grand arbre rond | Parcs, arbre remarquable de place : **fait (#297)** |
 | A20 à A22 | Pagode violette, bâtiment rouge | Tour du Pacte |
 | A25 à A32 | Bâtiments verts, turquoise, dôme bleu, tour orange vitrée | Bâtiments de métropole |
 | A33 | **Phare**, guirlandes, **voilier** | Ports |
@@ -160,7 +160,7 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 |---|---|---|
 | A1 à A6 | Plaques d'herbe, de terre, de sable, de planches | Sols de villes et de plages |
 | A7 | Mares | Mares des villes |
-| A8, A9 | Arbres ronds, arbres fruitiers, plantes, fleurs | Vergers des Éleveurs, parcs |
+| A8, A9 | Arbres ronds, arbres fruitiers, plantes, fleurs | Vergers des Éleveurs, parcs : **fait (#297)** |
 | A10, A11, A22, A23 | Maisons à toit rouge, brun, vert, violet ; haies | Styles de maisons en plus (#199) |
 | A14, A15 | Lampadaires, parterres de fleurs | Décor de rue |
 | A16, A29 | Tours de verre | Gratte-ciel de métropole |

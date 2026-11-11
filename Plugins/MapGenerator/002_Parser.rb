@@ -29,6 +29,10 @@
 #                               cell is drawn by its place in the forest, the
 #                               overlaps as the sheet draws them, see
 #                               003_Builder.rb)
+#   t = T5000 2x2 forest=T5048 mix=T5096/T5144
+#                              (a forest of two essences: the second pair of
+#                               trees, its drawing and its halo copy, drawn
+#                               in clusters among the first, see 003_Builder.rb)
 #   [Terrains]                 (edge-aware tiles: one symbol, borders picked
 #   P = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283
 #       iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=D L1 @.
@@ -78,8 +82,9 @@ module MapGenerator
   FOREST_SIZE = 6
   # Multi-tile block: first tileset tile, size in tiles, layer index (0-2);
   # halo: [width, height, x, y, empty cells] of a larger drawing around it
-  # (or nil); forest: first tile of the halo copy of a forest drawing (or nil)
-  MapObject = Struct.new(:tile, :width, :height, :layer, :ground, :halo, :forest) do
+  # (or nil); forest: first tile of the halo copy of a forest drawing (or nil);
+  # mix: [drawing, halo copy] of a second essence of that forest (or nil)
+  MapObject = Struct.new(:tile, :width, :height, :layer, :ground, :halo, :forest, :mix) do
     # First tile of the whole drawing, and its size
     def drawing
       return [tile, FOREST_SIZE, FOREST_SIZE] if forest
@@ -139,18 +144,20 @@ module MapGenerator
         content = line.sub(/#.*\z/, "").strip
         next if content.empty?
         halo = %r{(?:\s+halo=(\d+)x(\d+)@(\d+),(\d+)(?:/([\d,]+))?)?}
-        unless content =~ /\A(\S)\s*=\s*T(\d+)\s+(\d+)x(\d+)#{halo}(?:\s+forest=T(\d+))?(?:\s+L([1-3]))?(?:\s+@(\S))?\z/
-          fail_at.call("attendu « symbole = T<n> <L>x<H> [halo=<L>x<H>@<x>,<y>[/cases vides] | forest=T<n>] [L1-L3] [@symbole] »")
+        unless content =~ /\A(\S)\s*=\s*T(\d+)\s+(\d+)x(\d+)#{halo}(?:\s+forest=T(\d+)(?:\s+mix=T(\d+)\/T(\d+))?)?(?:\s+L([1-3]))?(?:\s+@(\S))?\z/
+          fail_at.call("attendu « symbole = T<n> <L>x<H> [halo=<L>x<H>@<x>,<y>[/cases vides] | forest=T<n> [mix=T<n>/T<n>]] [L1-L3] [@symbole] »")
         end
         symbol = $1
         halo = $5 && ([$5, $6, $7, $8].map(&:to_i) << ($9 || "").split(",").map(&:to_i))
-        object = MapObject.new($2.to_i, $3.to_i, $4.to_i, ($11 || 2).to_i - 1, $12, halo, $10&.to_i)
+        mix = $11 && [$11.to_i, $12.to_i]
+        object = MapObject.new($2.to_i, $3.to_i, $4.to_i, ($13 || 2).to_i - 1, $14, halo, $10&.to_i, mix)
         fail_at.call("taille nulle pour « #{symbol} »") if object.width == 0 || object.height == 0
         if object.forest && (halo || object.width != 2 || object.height != 2)
           fail_at.call("un arbre de forêt « #{symbol} » fait 2x2, sans halo")
         end
-        if object.forest && object.forest % 8 + FOREST_SIZE > 8
-          fail_at.call("« #{symbol} » : forest=T#{object.forest} dépasse le bord droit du tileset (8 tuiles de large)")
+        [object.forest, *object.mix].compact.each do |first|
+          next if first % 8 + FOREST_SIZE <= 8
+          fail_at.call("« #{symbol} » : forêt en T#{first}, qui dépasse le bord droit du tileset (8 tuiles de large)")
         end
         if (h = object.halo) && (h[2] + object.width > h[0] || h[3] + object.height > h[1] || object.tile < (h[3] * 8) + h[2])
           fail_at.call("le halo de « #{symbol} » doit contenir son bloc")

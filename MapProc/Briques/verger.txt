@@ -1,0 +1,12 @@
+# Verger : des arbres fruitiers et en fleurs en rangs, un buisson fruitier.
+Brique    = Verger
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre
+Poids     = 4
+[Map]
+ʔ ʖ ʔ
+ʔ ʖ ʔ
+
+ʕ ʗ ʕ
+ʕ ʗ ʕ
+ ʙ

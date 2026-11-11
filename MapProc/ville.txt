@@ -73,6 +73,8 @@ chromes  = 0
 barriere = 1..2 par case
 # Enclos : un pré fermé de barrières (ambiances d'herbe)
 enclos   = 0..1
+# Arbre remarquable : un grand arbre, une fois par lieu au plus (#297).
+remarquable = 0..1
 decor    = 0        # décor propre à une ambiance : quantité donnée par l'ambiance
 # Monument : une statue de la Famille près de la place (n'importe où sans
 # place) ; laissée de côté si elle ne tient pas.
@@ -507,7 +509,7 @@ o = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (petite 
 Э = T14248 5x3 halo=6x7@0,3/5,11,17   # immeuble jaune
 s = T15616 5x1 halo=6x4@0,2/5,11   # stand au store bleu (SirMalo)
 y = T15648 5x1 halo=6x4@0,2/5,11   # stand au store rose (SirMalo)
-t = T5248 2x2 forest=T5296         # arbre
+t = T5248 2x2 forest=T5296 mix=T16112/T16160   # arbre (deux essences mêlées, #297)
 f = T9248 2x3 @q     # fontaine (SirMalo), au milieu de la place, sur ses pavés (les rues la longent : with=f)
 v = T9928 2x4        # statue de la Famille (monument d'une ville, statue HGSS de SirMalo)
 l = T9200 1x2 halo=1x3@0,1 # lampadaire
@@ -570,3 +572,9 @@ I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le m
 ʏ = T16076 2x1         # bois flotté (plage)
 ʐ = T16078 2x2         # plante de plage
 ʑ = T16088 2x2         # fougère (forêt sombre ; DPPt, Forêt Vestigion)
+ʓ = T16208 3x3               # arbre remarquable (Remastered Johto, une fois par lieu, #297)
+ʔ = T16211 1x2               # oranger (verger, Remastered Kanto)
+ʕ = T16212 1x2               # arbre en fleurs (verger)
+ʖ = T16213 1x2               # pommier en fleurs (verger)
+ʗ = T16214 1x2               # jeune arbre (verger)
+ʙ = T16215 1x1         # buisson fruitier (verger)
