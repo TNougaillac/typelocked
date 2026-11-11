@@ -69,7 +69,7 @@ module MapGenerator
   end
 
   def parse_world(text, file = "monde")
-    plan = WorldPlan.new(file, nil, 0, 20, [0, 0], nil, 1, 384 + 1, {}, [], [])
+    plan = WorldPlan.new(file, nil, 0, 20, [0, 0], nil, 24, 384 + 1, {}, [], [])
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       line = raw.chomp

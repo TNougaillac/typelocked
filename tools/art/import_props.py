@@ -8,6 +8,9 @@ tools/art/tileset_tables.rb):
 - KingTapir Tilesets (KingTapir, NocTurn): KingTapirSandstreamDesert.png,
   KingTapirAlolaMisc.png (their opaque grey shadows become see-through)
 
+Since #262, Graphics/Tilesets/Outside.png is no longer in the game: these
+objects stay only in Outside 4G, unused by the generation since #200.
+
 The packs are not in the repository. Run once from the repository root, with
 the folder of each unpacked pack (Pillow needed):
     python3 tools/art/import_props.py "<Emerald Outdoor>" "<KingTapirTilesets>"

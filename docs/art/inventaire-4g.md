@@ -227,4 +227,5 @@ Les 4 549 autres tuiles d'`Outside.png` restées dans `Outside 4G.png` ne sont p
 
 - La génération n'utilise que les tilesets 24 (Outside 4G), 25 (Cave 4G), 26 (Interior 4G) et 27 (Underwater 4G), plus les intérieurs d'Essentials, qui sont gardés.
 - Les tilesets extérieurs non 4G (1 Outside, 2 Outside waterfall, 6 Caves, 7 Dungeon cave, 9 Boat, 21 Underground Path, 22 Underwater, 23 Dungeon forest) ne servent plus qu'aux **cartes de la démo** d'Essentials et aux **exemples de MapGen** (`MapGen/*.txt`, tileset 1).
-- Deux de ces cartes servent de modèles d'événements : Route 3 (31), pour l'arbre et le rocher des recoins, et Ice Cave (34), pour le bloc de Force (`NOOK_EVENTS`).
+- Deux de ces cartes servaient de modèles d'événements : Route 3 (31), pour l'arbre et le rocher des recoins, et Ice Cave (34), pour le bloc de Force (`NOOK_EVENTS`).
+- Fait depuis : les cartes démo extérieures et ces tilesets sont supprimés ; la carte 31 « Modèles d'événements » garde les trois obstacles.

@@ -2,7 +2,7 @@
 # [Warps] déclare où mène chaque symbole ; [Events] place les portes sur la carte.
 # Génère les deux plans ensemble (« Tous ») : les portes sont reliées dans les deux sens.
 Name    = Exemple porte dehors
-Tileset = 1
+Tileset = 24
 Ground  = .
 [Legend]
 . = T1

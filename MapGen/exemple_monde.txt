@@ -14,7 +14,7 @@ Region  = 2
 Image   = exemple_monde.png
 Cell    = 20
 Origin  = 10,8
-Tileset = 1
+Tileset = 24
 Ground  = T1
 
 [Places]

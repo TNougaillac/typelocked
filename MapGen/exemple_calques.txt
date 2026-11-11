@@ -3,7 +3,7 @@
 # Dans [Layer2]/[Layer3] : "." = rien ; un symbole de [Legend] est posé à partir
 # de ce calque ; un objet de [Objects] est posé sur ce calque.
 Name    = Exemple calques
-Tileset = 1
+Tileset = 24
 Seed    = 1
 
 [Legend]

@@ -5,11 +5,11 @@
 #          - = rien sur ce calque. Jusqu'à 3 calques par symbole, séparés par des espaces.
 #          T1|T2|T3 = une des variantes au hasard.
 Name    = Exemple MapGen
-Tileset = 1
+Tileset = 24
 Seed    = 7
 
 [Legend]
-. = T1|T1|T1|T2|T3   # herbe (tileset Outside)
+. = T1|T1|T1|T2|T3   # herbe (tileset Outside 4G)
 " = T7               # hautes herbes
 * = T1 A5            # herbe + fleurs (autotile Flowers1) sur le 2e calque
 ~ = T1 A1            # mer (autotile Sea) sur de l'herbe : ses coins sont transparents
