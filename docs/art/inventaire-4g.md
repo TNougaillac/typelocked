@@ -221,6 +221,10 @@ Compte des tuiles retrouvées dans le jeu, sur le nombre de tuiles dessinées (`
 | Fontaine ronde (f) | T1125 à T1143 | Johto A36 ou fontaine de SirMalo déjà importée (#200) |
 | Bateau amarré (b) | T1096 à T1116 | Voilier de Buildings K10 |
 
+**Fait depuis** (`tools/art/replace_non4g.py`) : ces tuiles sont remplacées ou ne sont plus utilisées.
+
+![Remplacements (en haut : avant, en bas : après)](inventaire-4g/remplacements.png)
+
 Les 4 549 autres tuiles d'`Outside.png` restées dans `Outside 4G.png` ne sont plus utilisées par la génération. Cela comprend les objets d'Emerald Outdoor et de KingTapir (#110), retirés des lieux depuis #200.
 
 ## Cartes et tilesets non 4G

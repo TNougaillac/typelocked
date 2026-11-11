@@ -104,7 +104,7 @@ Sol   = T50
 " = T143                # hautes herbes sur la prairie
 : = {sol} T7             # herbes très hautes sur la prairie
 ; = T151
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
 # Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 iNW=T5803 iNE=T5802 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=ŀĿĳĲłŊŏPʘ L2 @.
@@ -113,15 +113,13 @@ t = T5344 2x2 forest=T5392
 ŏ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 iNW=T5803 iNE=T5802 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=ŀĿĳĲPʘ L2 @.
 é = T4973 3x3 halo=4x4@1,1/0,3,12
 è = T5000 3x3 halo=4x4@0,1/0,3,15
-î = T4040 2x2
-û = T4042 3x1
 à = {sol} T4045
 ê = T4996 1x3
 ë = T5024 1x2
-* = T4046                # fleurs sur la prairie (image fixe : l'autotile a un fond vert)
-Rive  = T4047 T4047 T4047
-Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188 with=fŀĿĳĲ
-q     = T4176               # pavé sous la fontaine
+* = T4046                # fleurs sur la prairie (SirMalo, sur l'herbe)
+Rive  = T50 T50 T50
+Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=fŀĿĳĲ   # dalles grises
+q     = T274               # pavé sous la fontaine
 arbre = 0..1 par case
 decor = 0..1 par case
 
@@ -131,7 +129,7 @@ Sol   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 : = {sol} T7             # herbes très hautes sur le sable
 ; = T175
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
 # Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲłŊŏPʘ L2 @.
@@ -140,12 +138,10 @@ t = T5440 2x2 forest=T5488
 ŏ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲPʘ L2 @.
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
-î = T4080 2x2
-û = T4082 3x1
 à = {sol} T4085
 ê = T5060 1x3
 ë = T5088 1x2
-Rive  = T833 T833 T833
+Rive  = T162 T162 T162
 Rue   = T274
 arbre = 0..1 par case
 parc  = 0..1 par case
@@ -157,12 +153,10 @@ Sol   = T218
 " = T133                # hautes herbes sur le gravier
 : = {sol} T7             # herbes très hautes sur le gravier
 ; = T189
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
 é = T5165 3x3 halo=4x4@1,1/0,3,12
 è = T5192 3x3 halo=4x4@0,1/0,3,15
-î = T4160 2x2
-û = T4162 3x1
 à = {sol} T4165
 ê = T5188 1x3
 ë = T5216 1x2
@@ -184,7 +178,7 @@ Sol   = T106
 " = T125                # hautes herbes sur la terre
 : = {sol} T7             # herbes très hautes sur la terre
 ; = T181
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
 # Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 iNW=T5883 iNE=T5882 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=ŀĿĳĲłŊŏPʘ L2 @.
@@ -193,12 +187,10 @@ t = T5536 2x2 forest=T5584
 ŏ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 iNW=T5883 iNE=T5882 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=ŀĿĳĲPʘ L2 @.
 é = T5101 3x3 halo=4x4@1,1/0,3,12
 è = T5128 3x3 halo=4x4@0,1/0,3,15
-î = T4120 2x2
-û = T4122 3x1
 à = {sol} T4125
 ê = T5124 1x3
 ë = T5152 1x2
-Rive  = T841 T841 T841
+Rive  = T106 T106 T106
 Rue   = T218
 q     = T218               # pavé sous la fontaine
 arbre = 0..1 par case
@@ -298,7 +290,7 @@ Sol   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 : = {sol} T7             # herbes très hautes sur le sable
 ; = T175
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
 # Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲłŊŏPʘ L2 @.
@@ -307,12 +299,10 @@ t = T5440 2x2 forest=T5488
 ŏ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲPʘ L2 @.
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
-î = T4080 2x2
-û = T4082 3x1
 à = {sol} T4085
 ê = T5060 1x3
 ë = T5088 1x2
-Rive  = T833 T833 T833
+Rive  = T162 T162 T162
 Rue   = T274
 arbre = 0..1 par case
 parc  = 0..1 par case
@@ -331,9 +321,9 @@ d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
 , = {sol} T895          # bloc gris
-! = T849               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit : la même tuile droite, comme la mare de Cedolan City)
-' = T849
-? = T849
+! = T1                 # rive sous l'eau (bout gauche, milieu, bout droit) : l'eau 4G dessine la sienne (EauBordee), le sol seul
+' = T1
+? = T1
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
 ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
 ˌ = {sol} T14913        # rangée du bas (pied des brins)
@@ -402,9 +392,9 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ë = T4960 1x2         # arbrisseau
 ô = T617 2x2         # champ labouré
 ü = T4936 3x3 halo=4x4@0,1/0,3,15         # arbre jaune (automne)
-ç = T563 3x7         # arbre tropical
-î = T669 2x2         # haie carrée
-û = T685 3x1         # haie
+ç = T15696 3x5         # palmiers (Remastered, Johtoshiptile)
+î = T15664 2x2       # haie carrée (SirMalo)
+û = T15688 3x1 halo=3x2@0,1   # haie (SirMalo ; son dessus passe devant le joueur)
 a = T9880 2x2        # gros rocher brun (désert)
 i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
 C = T15409 5x5 halo=7x7@1,1/0,6,28,35,42        # Centre Pokémon (SirMalo, HGSS)
@@ -505,13 +495,13 @@ o = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (petite 
 s = T15616 5x1 halo=6x4@0,2/5,11   # stand au store bleu (SirMalo)
 y = T15648 5x1 halo=6x4@0,2/5,11   # stand au store rose (SirMalo)
 t = T5248 2x2 forest=T5296         # arbre
-f = T1125 3x3 @q     # fontaine ronde, au milieu de la place, sur ses pavés (les rues la longent : with=f)
+f = T9248 2x3 @q     # fontaine (SirMalo), au milieu de la place, sur ses pavés (les rues la longent : with=f)
 v = T9928 2x4        # statue de la Famille (monument d'une ville, statue HGSS de SirMalo)
 l = T9200 1x2 halo=1x3@0,1 # lampadaire
 p = T8696 1x1          # jardinière (une par case, posée sur le sol)
 F = T14593 5x5 halo=8x9@1,4/0,1,2,3,4,5,6,7,14,15,22,23,30,31,39,47,55,63,71   # gare maritime (SirMalo ; sur le quai, sa porte au bas de l'escalier, sur la promenade)
 J = T14465 5x3 halo=7x7@1,3/5,6   # entrepôt du port (SirMalo)
-b = T1096 5x3 L3 @~  # bateau amarré, sur l'eau
+b = T15760 6x3 halo=6x6@0,3/0,1,4,5,6,7,10,11,12,17 L3 @~   # voilier amarré (SirMalo), sur l'eau ; son mât passe devant le joueur
 L = T14321 7x4 halo=8x10@1,5/0,1,2,7,40,48,56,64,72   # labo du Professeur (SirMalo ; posé par le monde dans la ville de départ)
 Ї = T14400 1x4 halo=1x10@0,5/0   # labo du Professeur, partie droite
 I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le monde sur le plateau)

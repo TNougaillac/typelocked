@@ -89,11 +89,11 @@ decor = 0..1 par case
 [Ambiance prairie]
 Poids = 1
 Sol   = T50
-Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 " = T143                # hautes herbes sur la prairie
 : = {sol} T7             # herbes très hautes sur la prairie
 ; = T151
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 iNW=T5803 iNE=T5802 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
@@ -104,13 +104,11 @@ m = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5
 M = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 iNW=T5803 iNE=T5802 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
 é = T4973 3x3 halo=4x4@1,1/0,3,12
 è = T5000 3x3 halo=4x4@0,1/0,3,15
-î = T4040 2x2
-û = T4042 3x1
 à = {sol} T4045
 ê = T4996 1x3
 ë = T5024 1x2
-* = T4046                # fleurs sur la prairie (image fixe : l'autotile a un fond vert)
-Rive  = T4047 T4047 T4047
+* = T4046                # fleurs sur la prairie (SirMalo, sur l'herbe)
+Rive  = T50 T50 T50
 arbre = 0..1 par case
 decor = 1..3 par case
 
@@ -121,7 +119,7 @@ Rue   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 : = {sol} T7             # herbes très hautes sur le sable
 ; = T175
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
@@ -132,12 +130,10 @@ m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5
 M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
-î = T4080 2x2
-û = T4082 3x1
 à = {sol} T4085
 ê = T5060 1x3
 ë = T5088 1x2
-Rive  = T833 T833 T833
+Rive  = T162 T162 T162
 arbre = 0..1 par case
 parc  = 0
 decor = 2..4 par case
@@ -150,12 +146,10 @@ Rue   = T218
 " = T133                # hautes herbes sur le gravier
 : = {sol} T7             # herbes très hautes sur le gravier
 ; = T189
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
 é = T5165 3x3 halo=4x4@1,1/0,3,12
 è = T5192 3x3 halo=4x4@0,1/0,3,15
-î = T4160 2x2
-û = T4162 3x1
 à = {sol} T4165
 ê = T5188 1x3
 ë = T5216 1x2
@@ -209,7 +203,7 @@ Rue   = T106
 " = T125                # hautes herbes sur la terre
 : = {sol} T7             # herbes très hautes sur la terre
 ; = T181
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 iNW=T5883 iNE=T5882 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
@@ -220,12 +214,10 @@ m = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5
 M = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 iNW=T5883 iNE=T5882 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
 é = T5101 3x3 halo=4x4@1,1/0,3,12
 è = T5128 3x3 halo=4x4@0,1/0,3,15
-î = T4120 2x2
-û = T4122 3x1
 à = {sol} T4125
 ê = T5124 1x3
 ë = T5152 1x2
-Rive  = T841 T841 T841
+Rive  = T106 T106 T106
 arbre = 0..2 par case
 decor = 1..2 par case
 
@@ -377,7 +369,7 @@ Rue   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
 : = {sol} T7             # herbes très hautes sur le sable
 ; = T175
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
 ¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
@@ -388,12 +380,10 @@ m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5
 M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
-î = T4080 2x2
-û = T4082 3x1
 à = {sol} T4085
 ê = T5060 1x3
 ë = T5088 1x2
-Rive  = T833 T833 T833
+Rive  = T162 T162 T162
 arbre = 0..1 par case
 parc  = 0
 decor = 2..3 par case
@@ -425,12 +415,10 @@ Rue   = T218
 " = T133                # hautes herbes sur le gravier
 : = {sol} T7             # herbes très hautes sur le gravier
 ; = T189
-# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+# Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
 é = T5165 3x3 halo=4x4@1,1/0,3,12
 è = T5192 3x3 halo=4x4@0,1/0,3,15
-î = T4160 2x2
-û = T4162 3x1
 à = {sol} T4165
 ê = T5188 1x3
 ë = T5216 1x2
@@ -508,9 +496,9 @@ d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
 , = {sol} T895          # bloc gris
-! = T849               # rive sous l'eau, sur l'herbe (bout gauche, milieu, bout droit : la même tuile droite, comme la mare de Cedolan City)
-' = T849
-? = T849
+! = T1                 # rive sous l'eau (bout gauche, milieu, bout droit) : l'eau 4G dessine la sienne (EauBordee), le sol seul
+' = T1
+? = T1
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
 ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
 ˌ = {sol} T14913        # rangée du bas (pied des brins)
@@ -616,9 +604,9 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 ë = T4960 1x2         # arbrisseau
 ô = T617 2x2         # champ labouré
 ü = T4936 3x3 halo=4x4@0,1/0,3,15         # arbre jaune (automne)
-ç = T563 3x7         # arbre tropical
-î = T669 2x2         # haie carrée
-û = T685 3x1         # haie
+ç = T15696 3x5         # palmiers (Remastered, Johtoshiptile)
+î = T15664 2x2       # haie carrée (SirMalo)
+û = T15688 3x1 halo=3x2@0,1   # haie (SirMalo ; son dessus passe devant le joueur)
 a = T9880 2x2        # gros rocher brun (désert)
 i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
 t = T5248 2x2 forest=T5296         # arbre
