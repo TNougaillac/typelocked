@@ -329,7 +329,7 @@ def check_nooks(name, place, bricks, layout)
     closed = (obstacle == "ilot") ? reached(place, bricks, layout, surf: false) : reached(place, bricks, layout, surf: true, blocked: [ox, oy])
     raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) s'atteint sans son obstacle" if closed[[x, y]]
     # The Grappling Hook's wall, the ice slid across with the Skates
-    wall = [M::GRAPPLE, M::ICE].include?(obstacle) ? grapple_wall(ox, oy, fx, fy) : []
+    wall = (obstacle == M::GRAPPLE || M::CROSSINGS[obstacle]) ? grapple_wall(ox, oy, fx, fy) : []
     raise M::Error, "#{name} : le butin du recoin #{obstacle} (#{x},#{y}) ne s'atteint pas avec son objet" if !reached(place, bricks, layout, surf: true, through: wall)[[x, y]]
   end
 end
@@ -535,27 +535,32 @@ places.each do |path|
       check_blocking(name, layout)
     end
   end
-  # A nook of ice (#270): in the snow, a nook of ICE_NOOK_FROM becomes one
-  # on some seeds, its loot reached only across the ice
-  if place.ambiances.any? { |a| a.name == M::ICE_AMBIANCE }
-    icy = (1..12).count do |seed|
-      themed = place.dup.tap { |p| p.ambiance = M::ICE_AMBIANCE; p.nook = M::ICE_NOOK_FROM.first }
+  # A crossing (#270, #272): in a place of its ambiance and kind, its nook
+  # (forced here: the draw is luck) has a corridor of its symbol, its loot
+  # reached only across it
+  M::CROSSINGS.each do |kind, crossing|
+    next if !crossing[:kinds].include?(place.kind)
+    ambiance = place.ambiances.map(&:name).find { |a| !crossing[:ambiances] || crossing[:ambiances].include?(a) }
+    next if !ambiance
+    symbol = (crossing[:corridor] == :street) ? place.street : crossing[:corridor]
+    found = (1..12).count do |seed|
+      themed = place.dup.tap { |p| p.ambiance = ambiance; p.nook = kind }
       plan, _text, layout = begin
         M.generate_place(themed, bricks, seed)
       rescue M::Error
         next false   # a seed where the nook doesn't fit with the rest
       end
-      ice = layout.spots[:nooks].find { |nook| nook[2] == M::ICE }
-      next false if !ice
-      name = "#{File.basename(path)} (recoin de glace, graine #{seed})"
+      nook = layout.spots[:nooks].find { |n| n[2] == kind }
+      next false if !nook
+      name = "#{File.basename(path)} (recoin #{kind}, ambiance #{ambiance}, graine #{seed})"
       MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
       check_nooks(name, themed, bricks, layout)
-      _x, _y, _obstacle, ox, oy, fx, fy = ice
+      _x, _y, _obstacle, ox, oy, fx, fy = nook
       corridor = [[ox, oy], [fx, fy]].map { |x, y| layout.rows[y][x] }
-      raise M::Error, "#{name} : couloir du recoin sans glace (#{corridor.join})" if corridor.uniq != [M::ICE_SYMBOL]
+      raise M::Error, "#{name} : couloir du recoin sans « #{symbol} » (#{corridor.join})" if corridor.uniq != [symbol]
       true
     end
-    raise M::Error, "#{File.basename(path)} : aucun recoin de glace sur 12 graines dans la neige" if icy.zero?
+    raise M::Error, "#{File.basename(path)} : aucun recoin #{kind} sur 12 graines en ambiance #{ambiance}" if found.zero?
   end
   # A coastal ambiance (« Mer = oui ») is drawn only by the sea, and is drawn
   # there
@@ -665,7 +670,7 @@ M::AMBIANCE_FLAGS.each do |ambiance, flag|
 end
 # Nooks of each world opening now or later (« Revisiter »): [now, later]
 revisits = Hash.new { |hash, key| hash[key] = [0, 0] }
-ice_nooks = 0
+crossings = Hash.new(0)
 worlds.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -731,18 +736,22 @@ worlds.each do |path|
       next CI.error(path, nil, "graine #{seed} : #{name} sans ville d'obtention") if !giver && gyms.length >= min
       CI.error(path, nil, "graine #{seed} : #{name} avant la #{min}e arène") if giver && gyms.index(giver).to_i < min - 1
     end
-    # Ice (#270): only in the snow, and a world with snow has a town where
-    # the Skates are given
-    result.places.each do |wp, _place, _text, layout|
-      icy = layout.spots[:nooks].any? { |nook| nook[2] == M::ICE }
-      CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin de glace hors de la neige") if icy && layout.ambiance != M::ICE_AMBIANCE
-      ice_nooks += 1 if icy
+    # Crossings (#270, #272: ice, mud, a wall to climb, a cycle path): only
+    # in their ambiances and kinds of place, and their item given in a town
+    # whenever one of their ambiances is in the world (always for any)
+    result.places.each do |wp, place, _text, layout|
+      layout.spots[:nooks].each do |nook|
+        crossing = M::CROSSINGS[nook[2]] || next
+        crossings[nook[2]] += 1
+        fits = (!crossing[:ambiances] || crossing[:ambiances].include?(layout.ambiance)) && crossing[:kinds].include?(place.kind)
+        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{nook[2]} en ambiance #{layout.ambiance}") if !fits
+      end
     end
-    M::EXTRA_FIELD_ITEMS.each do |item, ambiance|
-      wanted = result.places.any? { |*, layout| layout.ambiance == ambiance }
+    M::EXTRA_FIELD_ITEMS.each do |item, ambiances|
+      wanted = !ambiances || result.places.any? { |*, layout| ambiances.include?(layout.ambiance) }
       giver = result.places.find { |p, *| (p.items || []).include?(item) }&.first
-      CI.error(path, nil, "graine #{seed} : #{item} sans ville où les obtenir") if wanted && !giver
-      CI.error(path, nil, "graine #{seed} : #{item} donné sans #{ambiance} dans le monde") if !wanted && giver
+      CI.error(path, nil, "graine #{seed} : #{item} sans ville où l'obtenir") if wanted && !giver
+      CI.error(path, nil, "graine #{seed} : #{item} donné sans #{ambiances&.join(' ni ')} dans le monde") if !wanted && giver
       CI.error(path, nil, "graine #{seed} : #{item} donné hors d'une ville de la chaîne") if giver && (giver.kind != "ville" || giver.league)
     end
     # A nook opens with a field item obtained in a town of the chain (before
@@ -870,6 +879,6 @@ rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end
 
-puts "Recoins de glace (Patins) : #{ice_nooks}"
+puts "Recoins à franchir avec un objet hors arène : #{M::CROSSINGS.keys.map { |kind| "#{kind} #{crossings[kind]}" }.join(', ')}"
 puts "#{worlds.length} mondes, #{places.length} lieux et #{bricks.length} briques lus, graines #{SEEDS} assemblées"
 CI.finish("Lieux MapProc")

@@ -102,21 +102,27 @@ module MapProceduralGenerator
         ox, oy = spot[0] + brick.door[0], spot[1] + brick.door[1]
         @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @nook, ox, oy])
         # The Grappling Hook's wall, the ice: from the mouth to the inner face
-        @nooks[-1].push(ox, oy - 1) if [GRAPPLE, ICE].include?(@nook)
+        @nooks[-1].push(ox, oy - 1) if @nook == GRAPPLE || CROSSINGS[@nook]
       end
     end
 
-    # The obstacle of the nook: in the snow, some become slippery ice.
+    # The obstacle of the nook: in a place of their ambiance, some become a
+    # crossing (CROSSINGS: ice, mud, a wall to climb, a cycle path).
     def nook_kind
-      return @place.nook if @place.ambiance != ICE_AMBIANCE || !ICE_NOOK_FROM.include?(@place.nook)
-      return (@rng.rand(100) < ICE_NOOK_CHANCE) ? ICE : @place.nook
+      return @place.nook if !CROSSING_FROM.include?(@place.nook)
+      kinds = CROSSINGS.select do |_kind, c|
+        (!c[:ambiances] || c[:ambiances].include?(@place.ambiance)) && c[:kinds].include?(@place.kind)
+      end.keys
+      return @place.nook if kinds.empty?
+      kind = kinds[@rng.rand(kinds.length)]
+      return (@rng.rand(100) < CROSSINGS[kind][:chance]) ? kind : @place.nook
     end
 
     # A pocket of ground at the back of a block of rock, reached by a corridor
     # one tile wide from the south: the obstacle stands at its mouth (the
     # door, so a path leads to it). Three tiles wide, so that a pushed boulder
     # can be walked around. For the Grappling Hook, the corridor is rock too;
-    # for the Skates, slippery ice.
+    # for a crossing, its symbol (3 tiles wide for a wide one).
     # Returns the brick and the loot cell (a back corner).
     def nook_brick
       rock = "^"
@@ -124,8 +130,10 @@ module MapProceduralGenerator
       depth = @rng.rand(2..3)
       rows = [" #{rock * 5} ", rock * 7]
       depth.times { rows.push("#{rock * 2}#{ground * 3}#{rock * 2}") }
-      corridor = { GRAPPLE => rock, ICE => ICE_SYMBOL }[@nook] || ground
-      2.times { rows.push("#{rock * 3}#{corridor}#{rock * 3}") }
+      crossing = CROSSINGS[@nook]
+      corridor = (crossing && ((crossing[:corridor] == :street) ? @place.street : crossing[:corridor])) ||
+                 ((@nook == GRAPPLE) ? rock : ground)
+      2.times { rows.push(crossing&.[](:wide) ? "#{rock * 2}#{corridor * 3}#{rock * 2}" : "#{rock * 3}#{corridor}#{rock * 3}") }
       brick = Brick.new(NOOK, "Recoin", NOOK, [3, rows.length - 1], 1, false, rows)
       return brick, [(@rng.rand(2) == 0) ? 2 : 4, 2]
     end

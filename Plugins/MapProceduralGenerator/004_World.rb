@@ -348,12 +348,13 @@ module MapProceduralGenerator
   end
 
   # Each field item obtained outside the gyms (EXTRA_FIELD_ITEMS) whose
-  # ambiance the world has: a town of the chain where a hidden inhabitant
-  # gives it (drawn apart, the rest of the world stays the same).
+  # ambiance the world has (any world when it has none): a town of the chain
+  # where a hidden inhabitant gives it (drawn apart, the rest of the world
+  # stays the same).
   def give_extra_items(built, rng)
     towns = built.select { |wp, *| wp.kind == "ville" && !wp.league && !wp.victory }.map(&:first)
-    EXTRA_FIELD_ITEMS.each do |item, ambiance|
-      next if built.none? { |*, layout| layout.ambiance == ambiance } || towns.empty?
+    EXTRA_FIELD_ITEMS.each do |item, ambiances|
+      next if towns.empty? || (ambiances && built.none? { |*, layout| ambiances.include?(layout.ambiance) })
       (towns.sample(random: rng).items ||= []).push(item)
     end
   end
