@@ -52,9 +52,12 @@ TILES = {
     523: ("N", 3, 6, 17), 606: ("N", 3, 1, 17),
     # Ploughed field (2x2): four patches of soil
     617: ("N", 3, 0, 10), 618: ("N", 3, 1, 10), 625: ("N", 3, 2, 10), 626: ("N", 3, 3, 10),
-    # Wooden pier over the water and its south lip
-    1205: ("U", 2, 4, 10), 1206: ("U", 2, 5, 10), 1207: ("U", 2, 6, 10),
-    1213: ("U", 2, 4, 11), 1214: ("U", 2, 5, 11), 1215: ("U", 2, 6, 11),
+    # Wooden pier over the water and its south lip: the raft of SirMalo
+    # (a whole drawing) has a plank apart above it; MapProc's pier is drawn
+    # by its edges, so its top row is the raft's own top (no water between)
+    # and its middle rows the raft's lower half, which joins itself
+    1205: ("U", 2, 4, 11), 1206: ("U", 2, 5, 11), 1207: ("U", 2, 6, 11),
+    1213: ("U", 2, 4, 12), 1214: ("U", 2, 5, 12), 1215: ("U", 2, 6, 12),
     1221: ("U", 2, 4, 15), 1222: ("U", 2, 5, 15), 1223: ("U", 2, 6, 15),
 }
 # Tall grass on the mountains (over a level's ground, and on the grey rock
