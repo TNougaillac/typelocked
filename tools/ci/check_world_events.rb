@@ -265,13 +265,59 @@ def check_services(atlas, plans)
   end
 end
 
+# The nooks to come back to (#269: their field item is given after their
+# map's seals): a rare item (REVISIT_TABLE or a TM), a
+# Pokémon of the imposed type at most at the cap, or a trace of the Pact
+# before a rare item, the ball gone once taken. Returns [nooks, Pokémon,
+# lore].
+def check_revisits(atlas, zones, plans, type, species, tms)
+  opened = W.field_item_seals(atlas)
+  rare = W::REVISIT_TABLE.values.flat_map(&:keys).map(&:to_s) + tms.map { |tm| tm.first.to_s }
+  counts = [0, 0, 0]
+  atlas[:maps].each do |name, spots|
+    nooks = (spots[:nooks] || []).reject { |*, kind| kind == "sombre" }.map { |x, y, kind, *| [x, y, kind] }
+    nooks.push([*spots[:loot], "sombre"]) if spots[:dark] && spots[:loot]
+    nooks.each do |x, y, kind|
+      item = M::NOOKS[kind]
+      next if !zones[name] || opened[item].to_i <= zones[name].seals
+      counts[0] += 1
+      event = plans[name]&.events&.find { |e| e.x == x && e.y == y && e.label.start_with?("Recoin") }
+      raise MapEvents::Error, "#{name} : recoin à revisiter (#{x},#{y}) sans butin" if !event
+      next raise_if(!rare.include?(event.value("Item")), "#{name} : recoin à revisiter avec #{event.value('Item')}") if event.kind == :item
+      script = event.value("Script").to_s
+      if event.value("Hide") != "A" || event.value("Graphic") != W::NOOK_GRAPHIC || !script.start_with?('pbSetSelfSwitch(@event_id, "A", true) if ')
+        raise MapEvents::Error, "#{name} : butin du recoin #{event.label} mal écrit (#{script})"
+      end
+      if (found = script[/WorldEvents\.nook_pokemon\(:(\w+), (\d+)\)/, 1])
+        level = $2.to_i
+        cap = E::CAPS[opened[item]] || E::CAPS.last
+        raise MapEvents::Error, "#{name} : Pokémon de recoin sans type imposé" if !type
+        raise MapEvents::Error, "#{name} : #{found} n'est pas du type #{type}" if !species[found.to_sym]&.monotype_types&.include?(type)
+        raise MapEvents::Error, "#{name} : #{found} niveau #{level} au-dessus du plafond #{cap}" if level > cap
+        counts[1] += 1
+      elsif (found = script[/pbItemBall\(:(\w+)\)/, 1])
+        raise_if(!rare.include?(found), "#{name} : recoin à revisiter avec #{found}")
+        raise MapEvents::Error, "#{name} : trace du Pacte sans texte" if event.fields.none? { |key, _| key == "Text" }
+        counts[2] += 1
+      else
+        raise MapEvents::Error, "#{name} : butin du recoin #{event.label} inconnu (#{script})"
+      end
+    end
+  end
+  return counts
+end
+
+def raise_if(condition, message)
+  raise MapEvents::Error, message if condition
+end
+
 # Every nook and hill top has its loot, every field item is given in its town once its
 # lieutenant is beaten, the Heart Scales reach their number, a Move
 # Relearner stands in a town reached before the 2nd seal, gifts are given
 # once and reach their share.
 def check_items(atlas, zones, plans, items)
   loot = Hash.new(0)
-  plans.each { |name, plan| loot[name] = plan.events.count { |e| e.kind == :item && e.label.start_with?("Recoin") } }
+  plans.each { |name, plan| loot[name] = plan.events.count { |e| %i[item npc].include?(e.kind) && e.label.start_with?("Recoin") } }
   atlas[:maps].each do |name, spots|
     nooks = (spots[:nooks] || []).count { |_x, _y, kind, *| kind != "sombre" }
     nooks = 1 if spots[:dark] && spots[:loot]
@@ -900,8 +946,9 @@ end
 # items not given by a lieutenant are placed once each, the first ones in
 # nooks (up to half of them).
 def check_weather(seed, events, worlds)
-  # The nooks holding a Heart Scale keep it (see W.weather_nooks)
-  nooks = events[:items].count { |item| item[:source] == "recoin" && item[:item] != W::HEART_SCALE }
+  # The nooks holding a Heart Scale keep it, so do those to come back to
+  # (see W.weather_nooks)
+  nooks = events[:items].count { |item| item[:source] == "recoin" && !item[:revisit] && item[:item] != W::HEART_SCALE }
   W::WEATHER_ITEMS.each do |types, list|
     type = types.first
     typed = worlds[type]
@@ -937,6 +984,7 @@ blockades = 0
 blockable = 0
 enemy_pairs = 0
 settled = 0
+revisits = [0, 0, 0]
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -997,6 +1045,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_weather(seed, events, worlds)
       worlds.merge(nil => events).each do |type, typed|
         typed_plans = typed[:plans].to_h { |name, text| [name, MapEvents.parse(text, "#{where}, #{name}")] }
+        check_revisits(atlas, zones.to_h { |z| [z.name, z] }, typed_plans, type, roster, tms).each_with_index { |n, i| revisits[i] += n }
         check_rewards(result, atlas, typed_plans, typed[:guilds], type, items).compact.each { |kind| rewards[kind] += 1 }
       end
       type = worlds.keys.first
@@ -1018,6 +1067,13 @@ end
 share = guild_among.zero? ? 0 : (guild_walkers * 100.0 / guild_among).round
 if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE + 15)).cover?(share)
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
+end
+# A share of the nooks to come back to holds a Pokémon, another a trace
+nooks, pokemon, lore = revisits
+puts "Recoins à revisiter : #{nooks}, dont #{pokemon} Pokémon et #{lore} traces du Pacte"
+if nooks >= 20
+  CI.error(settings, nil, "REVISIT_POKEMON : aucun Pokémon dans #{nooks} recoins à revisiter") if pokemon.zero?
+  CI.error(settings, nil, "REVISIT_LORE : aucune trace du Pacte dans #{nooks} recoins à revisiter") if lore.zero?
 end
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
 puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
