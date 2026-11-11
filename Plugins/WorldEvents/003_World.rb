@@ -34,7 +34,8 @@ module WorldEvents
     league = []
     names = Hash.new { |hash, trainer_type| hash[trainer_type] = [] }
     if species && tms && caps
-      sets = Sets.new(dex || load_dex, tms, Random.new((seed * 1000) + 770))
+      dex ||= load_dex
+      sets = Sets.new(dex, tms, Random.new((seed * 1000) + 770))
       leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 720))
       league = league_events(atlas, species, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 740))
     end
@@ -69,6 +70,11 @@ module WorldEvents
       items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730), pact, revisit)
     end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760), freed_towns)
+    if !leaders.empty?
+      rematch_events(atlas, species, caps, leaders, plans, trainers,
+                     Lines.new(dialogues, region_name(result), Random.new((seed * 1000) + 870)),
+                     Sets.new(dex, tms, Random.new((seed * 1000) + 880)), Random.new((seed * 1000) + 890))
+    end
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
              league: league, items: items || [], guilds: guilds || [], merchants: merchants }
   end

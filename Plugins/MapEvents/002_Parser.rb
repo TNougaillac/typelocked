@@ -41,7 +41,11 @@
 #   Reward = pbAddPokemon(:EEVEE, 5)   = one script line run on a win;
 #   Rage = 71,6                 Rage = once game switch 71 is on, it sees 6
 #   RageBattle = Traître !      cells ahead and says the RageBattle texts
-#                               instead of Battle)
+#                               instead of Battle;
+#   Rematch = 65,101            Rematch = once beaten and game switch 65 on,
+#   RematchBattle = Encore !    it fights once more with version 101 of its
+#   RematchEnd = Bravo.         team, saying RematchBattle and RematchEnd,
+#   RematchGift = PPMAX         and gives RematchGift on a win)
 #   [Copy N]                   (a copy of event 2 of map 24, as it is there:
 #   Pos = 7,2                   pages, graphics, commands; it keeps its ID when
 #   From = 24,2                 free, for the events that name it, such as a
@@ -89,7 +93,8 @@ module MapEvents
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
     npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide Show] + MOVE_KEYS,
-    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle] + MOVE_KEYS + TRAINER_COMMENTS,
+    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle
+                Rematch RematchBattle RematchEnd RematchGift] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]
   }
@@ -172,6 +177,8 @@ module MapEvents
       fail_at.call("déplacement « #{value} » inconnu (#{MOVES.keys.join(', ')})")
     elsif key == "Rage" && value !~ /\A\d+\s*,\s*\d+\z/
       fail_at.call("attendu « Rage = interrupteur,vue », par exemple 71,6")
+    elsif key == "Rematch" && value !~ /\A\d+\s*,\s*\d+\z/
+      fail_at.call("attendu « Rematch = interrupteur,version », par exemple 65,101")
     elsif key == "From" && value !~ /\A\d+\s*,\s*\d+\z/
       fail_at.call("attendu « From = carte,événement », par exemple 24,2")
     elsif key == "Trigger" && !TRIGGERS[value]
@@ -232,6 +239,8 @@ module MapEvents
       end
       raise Error, "#{where} : « RageBattle » demande « Rage »" if entry.value("RageBattle") && !entry.value("Rage")
       raise Error, "#{where} : « Rage » demande « RageBattle »" if entry.value("Rage") && !entry.value("RageBattle")
+      raise Error, "#{where} : « RematchBattle » demande « Rematch »" if entry.value("RematchBattle") && !entry.value("Rematch")
+      raise Error, "#{where} : « Rematch » demande « RematchBattle »" if entry.value("Rematch") && !entry.value("RematchBattle")
       if entry.kind == :npc
         raise Error, "#{where} : « Text », « Script » ou « Gift » manquant" if !%w[Text Script Gift].any? { |k| entry.value(k) }
         raise Error, "#{where} : « Wait » demande « When »" if entry.value("Wait") && !entry.value("When")

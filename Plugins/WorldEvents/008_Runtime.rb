@@ -145,11 +145,13 @@ module WorldEvents
   end
 
   # Arceus (interpreter: the event's, for OverworldBoss): beaten or caught,
-  # the Pact is broken and the door of its room opens.
+  # the Pact is broken, the door of its room opens and the postgame begins
+  # (#106: no level cap, the lieutenants' rematches).
   def arceus(interpreter, level, switch)
     outcome = interpreter.boss_battle(:ARCEUS, level, **ARCEUS_BOSS)
     return if ![1, 4].include?(outcome)
     $game_switches[switch] = true
+    $game_switches[POSTGAME_SWITCH] = true
     $game_map.need_refresh = true
     say("arceus_fin")
   end
