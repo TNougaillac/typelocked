@@ -43,23 +43,23 @@ Les planches Remastered Johto et Kanto reprennent en partie les rips HGSS de Sir
 |---|---|---|
 | A1, A3, A5 | Plaques d'herbe pâle et de gravier crème, bordées d'herbe | Sol 4G de l'ambiance **prairie** (remplace T50) et gravier des places |
 | A4, A6 | Mare gelée dans la neige, mares bleues bordées | Mares des villes et de la neige |
-| A7, A8, B1 | Terre sombre, tapis de feuilles mortes orange, feuilles éparses | Ambiance **automne** (sol, rue, décor) |
-| B2 à B4 | Couvre-sols verts denses et herbe sombre turquoise | Variantes de sol des **forêts sombres** et des marais |
-| B4, B8 | Plaque d'argile rouge | Sol de **volcan** ou de canyon, sans teinte |
+| A7, A8, B1 | Terre sombre, tapis de feuilles mortes orange, feuilles éparses | Ambiance **automne** (sol, rue, décor) : **fait (#295)** |
+| B2 à B4 | Couvre-sols verts denses et herbe sombre turquoise | Variantes de sol des **forêts sombres** et des marais : **fait (#295)** |
+| B4, B8 | Plaque d'argile rouge | Sol de **volcan** ou de canyon, sans teinte : **fait (#295)** |
 | B7 | Gravier beige | Sol 4G des ambiances **minérale** et **haute montagne** (remplace T218) |
 | C1 à C7 | Paires d'arbres vert clair (variante printemps) et carrés d'herbe | Deuxième essence d'arbres de forêt, pour varier les routes |
 | D1, D4 | Buissons et **haies** taillées (rangées, coins) | Haies 4G (remplacent î T669 et û T685, et les haies de la prairie T4040 à T4169) |
 | D2, D3 | Parterres de tulipes, jardinière en bois, petits buissons fleuris, banc | Décor des villes et parcs (remplace â T523) |
-| D6 | Arbres d'automne jaune et rouge, souches mortes | Arbres de l'ambiance **automne**, bois mort des marais |
+| D6 | Arbres d'automne jaune et rouge, souches mortes | Arbres de l'ambiance **automne**, bois mort des marais : **fait (#295)** |
 | E1 à E5 | Rebords de petits plateaux (terre, pierre, herbe) et mare sombre | Terrasses basses des villes et des parcs |
 | E6, E7 | Mur de pierre, bassins bleus bordés de sable, petits arbres | Bassins des places, jardins |
-| E8 | Bois flotté, petites plantes | Décor des **plages** |
+| E8 | Bois flotté, petites plantes | Décor des **plages** : **fait (#295)** |
 | F3, G3 | Grands rebords de falaise vus de face (terre, pierre), plateaux d'herbe | Bord sud des massifs larges |
 | F5, G5 | Falaises au bord de l'herbe et de l'eau | Falaises qui plongent dans un lac |
-| F6, G6 | Plateaux de terre rouge | Relief du **volcan** ou d'un canyon |
-| H1, H2, I1, I2 | Falaises de sable | Relief des **plages** et du désert |
+| F6, G6 | Plateaux de terre rouge | Relief du **volcan** ou d'un canyon : **fait (#295)** |
+| H1, H2, I1, I2 | Falaises de sable | Relief des **plages** et du désert : **fait (#295)** |
 | H3 à H5, I3 à I5 | Falaises enneigées | À comparer aux falaises teintées du biome neige (#204) : la version d'origine est peut-être plus fine |
-| H6, H7 | Rebords moussus vert d'eau | Rives des **marais** |
+| H6, H7 | Rebords moussus vert d'eau | Rives des **marais** : **fait (#295)** |
 | I6 à I8 | Bordures de jardin, grands talus de terre, entrée de grotte sombre | Talus des routes de campagne, entrées de grotte |
 | J1, J4 | **Corniches** à sens unique (terre, pierre) | Corniches 4G (rebords où l'on saute) |
 | J2, J3, J5, J6 | Entrées de grotte avec éboulis (terre, neige, pierre) | Entrées de grotte variées par biome |
@@ -178,7 +178,7 @@ Compte des tuiles retrouvées dans le jeu, sur le nombre de tuiles dessinées (`
 | DPPt `Base`, `Sand` | 96/96, 36/96 | Sable : rebords des plages |
 | DPPt `Concrete Path`, `Dirt Path`, `Grassy Path`, `Path` | 16/96, 16/96, 16/96, 12/96 | Chemins à bords arrondis (seuls les centres sont pris) : rues de terre et de béton des styles de ville |
 | DPPt `Canalave`, `Hearthome`, `Jubilife`, `Oreburgh City Set`, `Eterna City Road` | 16/120, 16/120, 16/100, 4/112, 8/60 | Sols de ville propres à chaque style |
-| DPPt `Eterna Forest Set` | 40/192 | Sol de **forêt sombre** |
+| DPPt `Eterna Forest Set` | 40/192 | Sol de **forêt sombre** : **fait (#295)** |
 | DPPt `Snow Patches` | 13/64 | Plaques de neige sur l'herbe (lisière du biome neige) |
 | DPPt `Berry Soil` | 4/36 | **Terre à baies** (champ labouré, potager) |
 | DPPt `Ledges` | 8/58 | Corniches DPPt |

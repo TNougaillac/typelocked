@@ -1,0 +1,9 @@
+# Forêt sombre : un tapis de mousse.
+Brique    = Mousse
+Type      = decor
+Ambiances = forêt sombre
+Poids     = 4
+[Map]
+ ʆʆ
+ʆʆʆʆ
+ ʆʆʆ

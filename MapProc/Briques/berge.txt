@@ -1,0 +1,10 @@
+# Marais : une berge moussue autour d'un carré d'herbe, une souche dans la boue.
+Brique    = Berge moussue
+Type      = decor
+Ambiances = marais
+Poids     = 4
+[Map]
+ʉʉʉʉ
+ʉʉʉʉ
+ʉʉʉʉ
+ ʌʌ
