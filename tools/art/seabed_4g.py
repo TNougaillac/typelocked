@@ -3,6 +3,10 @@ its rock redrawn from the HGSS cave of the Remastered Kanto Johto Map Pack
 (Caves.png, see docs/CREDITS.md), tinted blue under the water: the 4G games
 have no diving, so no pack draws a seabed.
 
+Since #262, Graphics/Tilesets/Underwater.png and tileset 22 are no longer in
+the game: this script records how Underwater 4G was built and cannot be run
+again from scratch.
+
 - floor (T0-T3, T8, T9): the pack's pale sand, its plain middle tile;
 - rock (terrain R, T35-T53): the 3x3 rock mound (its corners, sides and
   middle) over the sand; the inner corners take the middle.

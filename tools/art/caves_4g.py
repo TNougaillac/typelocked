@@ -18,6 +18,9 @@ Then copies tileset 7 (passages kept: walls, rock, floor and ladder are at the
 same places) to ID 25 and names its autotile (tools/art/tileset_clone.rb,
 tools/art/tileset_autotiles.rb).
 
+Since #262, tileset 7 (Dungeon cave) is no longer in the game: this script
+records how Cave 4G was built and cannot be run again from scratch.
+
 Run from the repository root with the extracted pack's folder (Pillow needed):
     python3 tools/art/caves_4g.py "<Remastered Kanto Johto Map Pack folder>"
 """

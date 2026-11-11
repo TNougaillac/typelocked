@@ -1,12 +1,12 @@
 # Place de ville d'après l'illustration (allée centrale, Centre, Boutique, fontaine).
-# Plan pour le plugin MapGenerator, tileset Outside (1).
+# Plan pour le plugin MapGenerator, tileset Outside 4G (24).
 # Lancer : menu debug > Autres éditeurs > Générer des cartes (MapGen).
 # Les bâtiments et le décor sont des objets multi-cases ([Objects]) : leur symbole
 # couvre toute leur surface (CCCCC sur 5 lignes = un Centre de 5x5).
 # Les pavés sont des terrains ([Terrains]) : P et D suffisent, le plugin choisit
 # les bords et les angles. Fontaine et bancs sont dans [Layer2], sur les dalles.
 Name    = Place de la ville
-Tileset = 1
+Tileset = 24
 Seed    = 3
 Ground  = .
 
