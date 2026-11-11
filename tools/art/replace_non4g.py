@@ -9,7 +9,8 @@ Essentials). See docs/art/inventaire-4g.md.
   (trees, cliffs, tall grass, see GROUNDS in outside_4g.py) took the old
   ground in their see-through places and shadows; those pixels take the new
   ground, by place, darkened the same.
-- Drawings of another size are added below the tileset (hedges, tropical
+- Drawings of another size, or bigger than their block, are added below the
+  tileset, whole (hedges, rock wall, tropical
   tree, boat); the script prints their [Objects] lines.
 
 Sources (docs/CREDITS.md), not in the repository: SirMalo's sheets
@@ -47,9 +48,6 @@ TILES = {
     769: ("C", 6, 12), 770: ("C", 7, 12), 777: ("C", 6, 12), 778: ("C", 7, 12),
     # Pebble, rocks (over the ground)
     815: ("N", 3, 0, 27), 831: ("N", 3, 5, 34), 911: ("J", 0, 44),
-    # Rock wall R (3x3): the tall grey rock, for both of its colours
-    **{784 + dy * 8 + dx: ("N", 3, 5 + dx, 28 + dy) for dy in range(3) for dx in range(3)},
-    **{864 + dy * 8 + dx: ("N", 3, 5 + dx, 28 + dy) for dy in range(3) for dx in range(3)},
     # Yellow bush, tropical bush (over the ground)
     523: ("N", 3, 6, 17), 606: ("N", 3, 1, 17),
     # Ploughed field (2x2): four patches of soil
@@ -71,14 +69,17 @@ ON_GROUND = 24
 LAST_ON_GROUND = 5800
 SHADES = (1.0, 0.9, 0.8, 0.6)
 
-# Drawings added below the tileset: name => (tiles: rows of sources, block
-# x, y, width, height in the drawing, passages of the block, symbol)
+# Drawings added below the tileset, whole: name => (tiles: rows of sources,
+# block x, y, width, height in the drawing, passages of the block, symbol).
+# The halo above the block is drawn over the player, a row below it (only
+# shadow) under him.
 DRAWINGS = {
     "haie carrée": ([[("N", 3, 0, 24), ("N", 3, 4, 24)], [("N", 3, 0, 25), ("N", 3, 4, 25)]], (0, 0, 2, 2), 669, "î"),
     "haie": ([[("N", 3, 0, 24), ("N", 3, 1, 24), ("N", 3, 4, 24)],
               [("N", 3, 0, 25), ("N", 3, 1, 25), ("N", 3, 4, 25)]], (0, 1, 3, 1), 685, "û"),
     "palmier": ([[("J", x, y) for x in (4, 5, 6)] for y in range(41, 46)], (0, 0, 3, 5), SOLID, "ç"),
     "voilier": ([[("B", 10, x, y) for x in range(6)] for y in range(71, 77)], (0, 3, 6, 3), 1097, "b"),
+    "rocher": ([[("N", 3, x, y) for x in (2, 3, 4)] for y in (33, 34)], (0, 0, 3, 2), 784, "R"),
 }
 
 
@@ -149,7 +150,7 @@ def main():
                 inside = bx <= dx < bx + bw and by <= dy < by + bh
                 if not inside and not tile.getbbox():
                     empty.append(dy * len(row) + dx)
-                copies[str(first + (row0 + dy) * 8 + dx)] = passages if inside else TALL
+                copies[str(first + (row0 + dy) * 8 + dx)] = passages if inside else -1 if dy >= by + bh else TALL
         w, h = len(tiles[0]), len(tiles)
         block = first + (row0 + by) * 8 + bx
         halo = "" if (w, h) == (bw, bh) else f" halo={w}x{h}@{bx},{by}" + (f"/{','.join(map(str, empty))}" if empty else "")

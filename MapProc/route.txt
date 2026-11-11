@@ -189,7 +189,7 @@ w = T5985 T927
 7 = {sol} T6048
 8 = {sol} T6049
 9 = {sol} T6050
-R = T864 3x3
+R = T15784 3x2
 o = {sol} T895
 < = {sol} T6056
 - = {sol} T6057
@@ -461,7 +461,7 @@ w = T5985 T927
 7 = {sol} T6048
 8 = {sol} T6049
 9 = {sol} T6050
-R = T864 3x3
+R = T15784 3x2
 o = {sol} T895
 < = {sol} T6056
 - = {sol} T6057
@@ -610,7 +610,7 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 a = T9880 2x2        # gros rocher brun (désert)
 i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
 t = T5248 2x2 forest=T5296         # arbre
-R = T784 3x3         # rocher (mur que l'on passe par la grotte)
+R = T15784 3x2         # rocher (SirMalo ; mur que l'on passe par la grotte)
 W = T6529 4x4 halo=6x6@1,1/0,1,4,5,24,30   # maison rouge en bois (refuge)
 V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ļ = T8744 1x1 halo=1x2@0,1 # buisson
