@@ -1,0 +1,155 @@
+# Hand-written French data texts that PokeAPI lacks or gets wrong.
+# Each English line is followed by its translation.
+[SPECIES_FORM_NAMES]
+Normal
+Forme Normale
+Rotom
+Motisma
+Alolan
+Forme d'Alola
+Galarian
+Forme de Galar
+Galarian Standard Mode
+Mode Normal de Galar
+Galarian Zen Mode
+Mode Transe de Galar
+Red-Striped
+Motif Rouge
+Blue-Striped
+Motif Bleu
+Spiky-Eared
+Oreille Cochée
+Unknown Type
+Type inconnu
+Type: Unknown
+Type : ???
+Pa'u Style
+Style Hula
+Vanilla Cream
+Lait Vanille
+Ruby Cream
+Lait Ruby
+Matcha Cream
+Lait Matcha
+Mint Cream
+Lait Menthe
+Lemon Cream
+Lait Citron
+Salted Cream
+Lait Salé
+Ruby Swirl
+Mélange Ruby
+Caramel Swirl
+Mélange Caramel
+Rainbow Swirl
+Mélange Tricolore
+[ITEM_NAMES]
+Itemfinder
+Cherch'Objet
+[ITEM_NAME_PLURALS]
+Itemfinders
+Cherch'Objets
+[ITEM_DESCRIPTIONS]
+A device used for finding items. If there is a hidden item nearby when it is used, it emits a signal.
+Un appareil qui détecte les objets. S'il y a un objet caché à proximité, il émet un signal.
+A ticket required to board the ship to Doxy Island. It glows beautifully.
+Un passe pour embarquer sur le bateau qui mène à l'île Dox. Il brille d'une belle lueur.
+A faded sea chart that shows the way to a certain island.
+Une vieille carte marine délavée qui indique la route d'une île.
+[TRAINER_TYPE_NAMES]
+Aroma Lady
+Aromanesse
+Beauty
+Canon
+Biker
+Motard
+Bird Keeper
+Ornithologue
+Black Belt
+Karatéka
+Bug Catcher
+Scout
+Burglar
+Cambrioleur
+Camper
+Campeur
+Champion
+Maître
+Channeler
+Exorciste
+Cool Couple
+Duo Stylé
+Cool Trainer
+Topdresseur
+Crush Girl
+Fille Kung-Fu
+Crush Kin
+Duo Kung-Fu
+Cue Ball
+Loubard
+Elite Four
+Conseil 4
+Engineer
+Ingénieur
+Fisherman
+Pêcheur
+Gambler
+Parieur
+Gentleman
+Gentleman
+Gym Leader
+Champion d'Arène
+Hiker
+Montagnard
+Juggler
+Jongleur
+Lady
+Mademoiselle
+Lass
+Fillette
+Painter
+Peintre
+Picnicker
+Pique-Niqueuse
+Poké Maniac
+Pokémaniac
+Pokémon Breeder
+Éleveur
+Pokémon Ranger
+Pokémon Ranger
+Pokémon Trainer
+Dresseur
+Professor
+Professeur
+Psychic
+Médium
+Rival
+Rival
+Rocker
+Rockeur
+Rocket Boss
+Chef Rocket
+Ruin Maniac
+Fou des Ruines
+Sailor
+Marin
+Scientist
+Scientifique
+Sis and Bro
+Frère et Sœur
+Super Nerd
+Intello
+Swimmer
+Nageur
+Tamer
+Dompteur
+Team Rocket
+Team Rocket
+Tuber
+Bambin Plage
+Twins
+Jumelles
+Young Couple
+Jeune Couple
+Youngster
+Gamin

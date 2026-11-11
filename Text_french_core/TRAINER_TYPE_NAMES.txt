@@ -1,0 +1,98 @@
+# French texts (TRAINER_TYPE_NAMES). Each English line is followed by its translation.
+[TRAINER_TYPE_NAMES]
+Aroma Lady
+Aromanesse
+Beauty
+Canon
+Biker
+Motard
+Bird Keeper
+Ornithologue
+Black Belt
+Karatéka
+Bug Catcher
+Scout
+Burglar
+Cambrioleur
+Camper
+Campeur
+Champion
+Maître
+Channeler
+Exorciste
+Cool Couple
+Duo Stylé
+Cool Trainer
+Topdresseur
+Crush Girl
+Fille Kung-Fu
+Crush Kin
+Duo Kung-Fu
+Cue Ball
+Loubard
+Elite Four
+Conseil 4
+Engineer
+Ingénieur
+Fisherman
+Pêcheur
+Gambler
+Parieur
+Gentleman
+Gentleman
+Gym Leader
+Champion d'Arène
+Hiker
+Montagnard
+Juggler
+Jongleur
+Lady
+Mademoiselle
+Lass
+Fillette
+Painter
+Peintre
+Picnicker
+Pique-Niqueuse
+Poké Maniac
+Pokémaniac
+Pokémon Breeder
+Éleveur
+Pokémon Ranger
+Pokémon Ranger
+Pokémon Trainer
+Dresseur
+Professor
+Professeur
+Psychic
+Médium
+Rival
+Rival
+Rocker
+Rockeur
+Rocket Boss
+Chef Rocket
+Ruin Maniac
+Fou des Ruines
+Sailor
+Marin
+Scientist
+Scientifique
+Sis and Bro
+Frère et Sœur
+Super Nerd
+Intello
+Swimmer
+Nageur
+Tamer
+Dompteur
+Team Rocket
+Team Rocket
+Tuber
+Bambin Plage
+Twins
+Jumelles
+Young Couple
+Jeune Couple
+Youngster
+Gamin
