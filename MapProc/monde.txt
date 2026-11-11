@@ -97,9 +97,12 @@ Harnais  = 4
 Grappin  = 5
 Vol      = 6
 # Recoins : chance (en %) qu'un lieu ait un recoin facultatif, fermé par un
-# obstacle qu'ouvre un objet obtenu plus tôt : arbre à couper, rocher fissuré,
+# obstacle qu'ouvre un objet de terrain : arbre à couper, rocher fissuré,
 # rocher à pousser, îlot dans un étang (Surf), grotte sombre (Lanterne).
 Recoins  = 30
+# Revisiter : part (en %) des recoins fermés par un objet obtenu plus tard,
+# pour y revenir ; les autres s'ouvrent avec un objet déjà obtenu.
+Revisiter = 50
 # Démesure : chance (en %) qu'un lieu soit hors norme : forêt profonde, mer
 # d'herbes, chaos rocheux, lac géant, montagne colossale, route interminable,
 # ville-jardin, cité lacustre, grande foire, métropole ; et hors de la chaîne, une île

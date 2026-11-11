@@ -22,6 +22,7 @@ SEA    = [0x90d0f8, 0x4890e0, 0x285898].freeze
 SKY    = [0xf8f8f8, 0xc8d8f0, 0x8898c0].freeze
 RED    = [0xf07858, 0xc84030, 0x802018].freeze
 GLASS  = [0xd8f0ff, 0x88c0e8, 0x4878b0].freeze
+MOSS   = [0x98d070, 0x588838, 0x305020].freeze
 GLOW   = [0xfff8c0, 0xf8e070, 0xe0a830].freeze
 FLAME  = [0xffffff, 0xf8a838, 0xd85820].freeze
 
@@ -161,6 +162,26 @@ ICONS = {
     i.bar(DARK, 16, 9, 16, 18, 0.5, outline: false)
     i.poly(DARK, [[6, 6.5], [18, 6.5], [19, 9.5], [5, 9.5]])
     i.poly(DARK, [[5, 18], [19, 18], [19, 21], [5, 21]])
+  end,
+  # An ice skate (#270): a blue boot, its laces, a steel blade under it
+  "SKATES" => lambda do |i|
+    i.poly(SEA, [[6, 3], [13, 3], [13, 10], [19, 13], [20, 16], [20, 17.5], [5, 17.5], [5, 9]])
+    [[8, 5], [10, 5], [8, 7], [10, 7], [8, 9], [10, 9]].each { |x, y| i.dot(0xf8f8f8, x, y) }
+    i.bar(DARK, 7, 18.5, 7, 20, 0.6, outline: false)
+    i.bar(DARK, 17, 18.5, 17, 20, 0.6, outline: false)
+    i.poly(STEEL, [[3, 20], [21, 20], [22.5, 19], [23, 21], [21.5, 22], [3, 22]])
+  end,
+  # A tall rubber boot, mud at its foot.
+  "WADERS" => lambda do |i|
+    i.poly(MOSS, [[7, 2], [14, 2], [14, 14], [20, 16], [21, 20], [6, 20], [6, 9]])
+    i.bar(DARK, 7, 4, 14, 4, 0.8, outline: false)
+    i.poly(LEATHER, [[4, 20], [22, 20], [22, 22], [4, 22]])
+  end,
+  # A glove strap with three steel claws.
+  "CLIMBINGCLAWS" => lambda do |i|
+    i.poly(LEATHER, [[5, 12], [17, 12], [17, 20], [5, 20]])
+    i.bar(BRASS, 5, 16, 17, 16, 0.8, outline: false)
+    [[7, 12, 5, 3], [11, 12, 11, 2], [15, 12, 17, 3]].each { |ax, ay, bx, by| i.bar(STEEL, ax, ay, bx, by, 1.4) }
   end
 }.freeze
 

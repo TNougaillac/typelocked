@@ -98,6 +98,13 @@ module WorldEvents
     pbAddPokemon(species, level)
   end
 
+  # A Pokémon found in a nook to come back to (#269): added like a capture
+  # (the Nuzlocke nickname applies). False if the player can't take it (the
+  # nook keeps it).
+  def nook_pokemon(species, level)
+    return pbAddPokemon(species, level)
+  end
+
   # A beaten guild pays the player.
   def guild_money(amount)
     $player.money += amount

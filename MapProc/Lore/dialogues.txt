@@ -691,3 +691,32 @@ On a gagné, {joueur}. Ensemble.
 Mes gens vont dégager le passage de {ville}. Tu gagneras du chemin.
 Le passage de {ville} est fermé depuis trop longtemps. On te l'ouvre.
 Passe par {ville}. D'ici ton arrivée, la voie sera libre.
+
+# Une trace du Pacte au fond d'un recoin à revisiter, lue avant d'y ramasser
+# l'objet (#269). Sobre : ce que d'autres désignés ont laissé.
+[recoin_lore]
+Des lettres gravées dans la pierre, à moitié effacées : | « Lié au Feu, j'ai cru choisir. Le Pacte avait choisi avant moi. »
+Un carnet gonflé par l'humidité. Une seule page se lit encore : | « La Famille parle d'un don. Arceus n'a jamais rien donné sans reprendre. »
+Une inscription au couteau, très ancienne : | « Ici s'est arrêté un désigné. Personne n'est venu le chercher. »
+Un vieux médaillon de la Famille, sans nom. Au dos, gravé : | « Pour services rendus au Pacte. »
+Une feuille pliée, coincée sous une pierre : | « S'ils te disent que le Pacte protège {region}, demande-leur de qui. »
+Quelques mots tracés à la craie, presque illisibles : | « Le Parrain signe. Arceus regarde. Nous, on paie. »
+Une plaque de bois, noircie par le temps : | « Aux désignés d'avant. Ils ont tenu leur type jusqu'au bout. »
+
+# Un Pokémon du type imposé caché dans un recoin à revisiter (#269), avant
+# qu'il rejoigne l'équipe.
+[recoin_pokemon]
+Une Poké Ball usée, coincée entre deux pierres. | Elle tremble. Il y a encore quelqu'un dedans.
+Une vieille Poké Ball au fond du recoin. | Quelqu'un l'a laissée là il y a longtemps... et elle n'est pas vide.
+Une Poké Ball abandonnée. Son Pokémon attend depuis des années qu'on revienne le chercher.
+
+# Un habitant caché au bout de {ville} qui donne un objet de terrain gagné
+# hors des arènes (les Patins, #270).
+[terrain_cache]
+Tu m'as trouvé ? Peu de gens viennent jusqu'ici. | Tiens, prends ça. La Famille ne sait pas que je l'ai gardé.
+Chut... Les Cousins ne passent jamais dans ce coin. | J'ai quelque chose qui te servira plus qu'à moi.
+Ça fait des années que personne ne m'a parlé. | Garde ça. Là où tu vas, il en faudra.
+
+[terrain_cache_apres]
+Ne dis à personne que tu m'as vu.
+Fais-en bon usage. Et loin des Cousins.

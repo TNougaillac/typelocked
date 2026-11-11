@@ -230,6 +230,27 @@ module WorldEvents
     4 => { RARECANDY: 4, BIGNUGGET: 2, TM: 4, PPUP: 2, LEFTOVERS: 1, LIFEORB: 1, CHOICESCARF: 1,
            FOCUSSASH: 1, EXPSHARE: 1, LUCKYEGG: 1, HPUP: 1 }
   }.freeze
+  # The loot of a nook to come back to (#269: opened by a field item obtained
+  # after its map), by the same seals: TMs, evolution stones, strong held
+  # items only. Never a Heart Scale nor a Pact Incense there.
+  REVISIT_TABLE = {
+    0 => { TM: 6, FIRESTONE: 1, WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1, MOONSTONE: 1, SUNSTONE: 1,
+           EVIOLITE: 1, LEFTOVERS: 1, EXPSHARE: 1, SCOPELENS: 1, KINGSROCK: 1, METALCOAT: 1 },
+    4 => { TM: 6, DUSKSTONE: 1, SHINYSTONE: 1, DAWNSTONE: 1, ICESTONE: 1, LIFEORB: 1, CHOICEBAND: 1,
+           CHOICESPECS: 1, CHOICESCARF: 1, FOCUSSASH: 1, ASSAULTVEST: 1, ROCKYHELMET: 1, WEAKNESSPOLICY: 1 }
+  }.freeze
+  # Of the nooks to come back to: REVISIT_POKEMON % hold a Pokémon of the
+  # imposed type instead (at the level of their Tronçon, under the cap; a
+  # capture in Nuzlocke), and REVISIT_LORE % of the others a trace of the
+  # Pact read before the item ([recoin_lore]). Drawn apart from the items.
+  REVISIT_POKEMON = 25
+  REVISIT_LORE = 35
+  # Tiers of the Pokémon a nook can hold (never a « fort » one)
+  REVISIT_TIERS = %w[faible moyen].freeze
+  NOOK_GRAPHIC = "Object ball"
+  # The hidden inhabitant who gives a field item obtained outside the gyms
+  # (the Skates, #270)
+  HIDDEN_GIVER_GRAPHIC = "NPC 09"
   # Weather (#120): when the imposed type plays with a weather, its TMs and
   # its rock go to nooks spread along the way (the TM that casts it first),
   # in WEATHER_CHANCE % of the games. Types => items.
@@ -301,6 +322,7 @@ module WorldEvents
     "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
     "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
     "guilde_bonus_apres" => PLACE_TOKENS, "guilde_reglement" => PLACE_TOKENS, "guilde_reglement_fin" => %w[joueur],
+    "recoin_lore" => PLACE_TOKENS, "recoin_pokemon" => PLACE_TOKENS, "terrain_cache" => PLACE_TOKENS, "terrain_cache_apres" => PLACE_TOKENS,
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
 
