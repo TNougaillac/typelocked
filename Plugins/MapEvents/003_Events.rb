@@ -41,6 +41,7 @@ module MapEvents
     end
     page.list.push(RPG::EventCommand.new(123, 0, ["A", 0])) if entry.value("Once")   # Self switch A ON
     Compiler.push_end(page.list)
+    set_condition(page.condition, entry.value("Show")) if entry.value("Show")
     if entry.value("When")
       set_condition(page.condition, entry.value("When"))
       event.pages.unshift(texts_page(blank, entry, "Wait"))
@@ -109,6 +110,7 @@ module MapEvents
   # from hand-made trainers (Essentials only looks for "trainer(n)" in it).
   def build_trainer(event, entry, checker)
     event.name = "Trainer(#{entry.value('Sight') || 3}) #{TAG} #{entry.label}"
+    event.name += " Rage(#{entry.value('Rage').delete(' ')})" if entry.value("Rage")
     list = event.pages[0].list
     entry.fields.each do |key, value|
       next if !TRAINER_COMMENTS.include?(key)
@@ -121,15 +123,43 @@ module MapEvents
     Compiler.push_end(list)
     trainer = Compiler.convert_to_trainer_event(event, checker)
     add_rewards(trainer, entry)
+    add_rage(trainer, entry, checker) if entry.value("Rage")
     return trainer
   end
 
-  # Gym leader rewards, run on a win before the event's self switch A is set.
+  # Rage = switch,sight: the same trainer saying its RageBattle texts, its
+  # pages each after the matching one and only once the switch is on; its
+  # longer sight comes from the event's name (005_Rage.rb).
+  def add_rage(trainer, entry, checker)
+    switch = entry.value("Rage").split(",")[0].to_i
+    fields = entry.fields.reject { |key, _value| %w[Battle Rage RageBattle].include?(key) }
+    fields += entry.fields.filter_map { |key, value| ["Battle", value] if key == "RageBattle" }
+    rage = build_event(Entry.new(:trainer, entry.label, entry.x, entry.y, fields, entry.lineno), trainer.id, checker)
+    pages = []
+    trainer.pages.each_with_index do |page, i|
+      pages.push(page)
+      other = rage.pages[i]
+      next if !other
+      condition = other.condition
+      if condition.switch1_valid
+        condition.switch2_valid = true
+        condition.switch2_id = switch
+      else
+        condition.switch1_valid = true
+        condition.switch1_id = switch
+      end
+      pages.push(other)
+    end
+    trainer.pages = pages
+  end
+
+  # Rewards of a gym leader or a guild's, run on a win before the event's self switch A is set.
   def add_rewards(trainer, entry)
     rewards = []
     entry.fields.each { |key, value| rewards.push(message(value, 1)) if key == "Win" }
     badge = entry.value("Badge")
     Compiler.push_script(rewards, "$player.badges[#{badge.to_i - 1}] = true", 1) if badge
+    entry.fields.each { |key, value| Compiler.push_script(rewards, value, 1) if key == "Reward" }
     gift = entry.value("Gift")
     Compiler.push_script(rewards, "pbReceiveItem(:#{gift})", 1) if gift
     if (switch = entry.value("Switch"))
