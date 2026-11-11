@@ -218,6 +218,17 @@ module WorldEvents
   LEADER_IVS = [10, 12, 15, 18, 21, 24, 27, 30].freeze
   LEAGUE_IVS = 31
 
+  # Postgame (#106): game switch turned on once Arceus is beaten or caught;
+  # it lifts the level cap (LevelCap::POSTGAME_SWITCH, the same) and wakes
+  # the lieutenants for a rematch, with REMATCH_VERSION of their team in
+  # PBS/trainers.txt: REMATCH_PARTY_SIZE Pokémon of their type at Arceus's
+  # level, REMATCH_IVS; each gives one item of REMATCH_GIFTS (in turn).
+  POSTGAME_SWITCH = 65
+  REMATCH_VERSION = TRAINER_VERSION + 1
+  REMATCH_PARTY_SIZE = 6
+  REMATCH_IVS = 31
+  REMATCH_GIFTS = %i[PPMAX ABILITYCAPSULE RARECANDY ABILITYPATCH].freeze
+
   # Items of a world. How many: per square of a route, per town (islands
   # too), per floor of a cave (not the dark ones), plus the loot of each nook.
   ROUTE_ITEMS = 1..2
@@ -338,6 +349,7 @@ module WorldEvents
     "terrain_don" => PLACE_TOKENS, "terrain_apres" => PLACE_TOKENS,
     "lieutenant_combat" => PLACE_TOKENS, "lieutenant_fin" => BATTLE_TOKENS,
     "lieutenant_victoire" => PLACE_TOKENS, "lieutenant_ct" => PLACE_TOKENS,
+    "lieutenant_revanche" => PLACE_TOKENS, "lieutenant_revanche_fin" => BATTLE_TOKENS,
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,

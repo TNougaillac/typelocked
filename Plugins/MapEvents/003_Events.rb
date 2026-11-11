@@ -124,6 +124,7 @@ module MapEvents
     trainer = Compiler.convert_to_trainer_event(event, checker)
     add_rewards(trainer, entry)
     add_rage(trainer, entry, checker) if entry.value("Rage")
+    add_rematch(trainer, entry, checker) if entry.value("Rematch")
     return trainer
   end
 
@@ -151,6 +152,28 @@ module MapEvents
       pages.push(other)
     end
     trainer.pages = pages
+  end
+
+  # Rematch = switch,version: once the trainer is beaten (self switch A) and
+  # the switch is on, it fights once more with that version of its team
+  # (RematchBattle, RematchEnd, RematchGift); its win sets self switch B,
+  # whose page says RematchEnd ever after.
+  def add_rematch(trainer, entry, checker)
+    switch, version = entry.value("Rematch").split(",").map(&:to_i)
+    fields = entry.fields.select { |key, _value| %w[Type Name Sight Graphic Facing Backdrop DoubleBattle].include?(key) }
+    fields += [["BattleID", version.to_s], ["Battle", entry.value("RematchBattle")]]
+    fields.push(["EndBattle", entry.value("RematchEnd")]) if entry.value("RematchEnd")
+    fields.push(["Gift", entry.value("RematchGift")]) if entry.value("RematchGift")
+    fight, after = build_event(Entry.new(:trainer, entry.label, entry.x, entry.y, fields, entry.lineno), trainer.id, checker).pages
+    [fight, after].each do |page|
+      page.condition.switch1_valid = true
+      page.condition.switch1_id = switch
+      page.condition.self_switch_valid = true
+    end
+    fight.condition.self_switch_ch = "A"
+    after.condition.self_switch_ch = "B"
+    fight.list.each { |command| command.parameters[0] = "B" if command.code == 123 && command.parameters[0] == "A" }
+    trainer.pages += [fight, after]
   end
 
   # Rewards of a gym leader or a guild's, run on a win before the event's self switch A is set.
