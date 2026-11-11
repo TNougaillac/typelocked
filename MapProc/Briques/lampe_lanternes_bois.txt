@@ -1,0 +1,6 @@
+# Deux lanternes en bois, le long d'une rue (style rustique, #298).
+Brique = Lanternes en bois
+Type   = lampe
+Contre = rue
+[Map]
+ʜʜ

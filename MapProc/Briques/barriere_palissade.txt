@@ -1,0 +1,6 @@
+# Palissade le long d'une rue ou d'un chemin (villes de style chaud, #298).
+Brique = Palissade le long du chemin
+Type   = barriere
+Contre = rue
+[Map]
+ʚʚʚ
