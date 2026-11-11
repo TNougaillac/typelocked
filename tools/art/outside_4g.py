@@ -1,5 +1,9 @@
 """Outside 4G tileset (TypeLocked, issue #177).
 
+Since #262, Graphics/Tilesets/Outside.png and tileset 1 are no longer in the
+game: this script records how Outside 4G was built from them and cannot be
+run again from scratch. New 4G tiles are added to Outside 4G itself.
+
 Builds Graphics/Tilesets/Outside 4G.png from Graphics/Tilesets/Outside.png
 and SirMalo's HGSS sheets. The 4G tiles are used as they are drawn: whole
 16 px tiles, scaled x2 (nearest neighbour), never cut or redrawn.

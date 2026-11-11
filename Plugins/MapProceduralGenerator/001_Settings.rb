@@ -187,7 +187,7 @@ module MapProceduralGenerator
   # (it needs a section in PBS/dungeon_tilesets.txt, and its dungeon
   # parameters CAVE_AREA in PBS/dungeon_parameters.txt for the decorations),
   # its floor and rock tiles. Cave 4G (HGSS, tools/art/caves_4g.py) keeps
-  # the rock, floor and ladder tiles of Dungeon cave (7), with single walls.
+  # the rock, floor and ladder tiles of the demo's Dungeon cave, with single walls.
   CAVE_TILESET = 25
   CAVE_AREA = :cave
   CAVE_FLOOR = "T42"
@@ -440,12 +440,13 @@ module MapProceduralGenerator
   # Squares at most between the two ends of a route off the chain, and its
   # length at most (and the gap between the legs of a U)
   EXTRA_REACH = 6
-  # The obstacle events, copied from the demo: [map ID, event ID]. Their name
-  # keeps what Essentials looks for (CutTree, SmashRock, StrengthBoulder).
+  # The obstacle events, copied from the demo's onto map 31 « Modèles
+  # d'événements » (#262): [map ID, event ID]. Their name keeps what
+  # Essentials looks for (CutTree, SmashRock, StrengthBoulder).
   NOOK_EVENTS = {
     "arbre"  => [31, 1],
     "rocher" => [31, 22],
-    "bloc"   => [34, 5]
+    "bloc"   => [31, 2]
   }.freeze
   # Galleries of a dark cave (one floor, see CAVE_SHAPES)
   DARK_CAVE_SHAPE = { size: [14, 11], rooms: 2..3, radius: 1.2..2.2, loops: 0..1, width: 1..1 }.freeze
