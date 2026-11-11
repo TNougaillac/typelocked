@@ -14,7 +14,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds 012_Economy].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -263,6 +263,45 @@ def check_services(atlas, plans)
       raise MapEvents::Error, "#{name} : boutique sans vendeur" if !labels.include?("Vendeur")
     end
   end
+end
+
+# Economy (#176): each shop sells with the Family's margin, but at its PBS
+# price once the guild that frees its town wins (its switch in the script);
+# at most one travelling merchant per stretch, on one of its routes, his
+# basics from the shops of these seals and his rares from the table of
+# these seals, none sold in a shop. Returns the number of merchants.
+def check_economy(result, atlas, zones, plans, merchants, drawn)
+  seals = W.seals_at(result)
+  freed = drawn.filter_map { |g| g[:freed] && [g[:freed][:town], g[:switch]] }.to_h
+  atlas[:maps].each do |name, map|
+    next if map[:kind] != "interieur" || map[:building] != "boutique" || !plans[name]
+    clerk = plans[name].events.find { |e| e.label == "Vendeur" }
+    want = "WorldEvents.mart(#{[seals[map[:owner]] || 0, freed[map[:owner]]].compact.join(', ')})"
+    raise MapEvents::Error, "#{name} : vendeur « #{clerk&.value('Script')} » au lieu de « #{want} »" if clerk&.value("Script") != want
+  end
+  shops = W::MART_STOCK.values.flatten
+  merchants.group_by { |m| m[:seals] }.each do |n, list|
+    raise MapEvents::Error, "#{list.length} marchands ambulants à #{n} sceau(x)" if list.length > 1
+  end
+  merchants.each do |m|
+    where = "#{m[:map]} : marchand ambulant"
+    wp = result.places.map(&:first).find { |p| p.name == m[:map] }
+    raise MapEvents::Error, "#{where} hors d'une route" if !wp || wp.kind != "route"
+    raise MapEvents::Error, "#{where} à #{m[:seals]} sceau(x) au lieu de #{zones[m[:map]].seals}" if zones[m[:map]].seals != m[:seals]
+    event = plans[m[:map]]&.events&.find { |e| e.label == "Marchand" }
+    raise MapEvents::Error, "#{where} absent du plan" if !event || event.value("Graphic") != W::MERCHANT_GRAPHIC
+    script = "WorldEvents.merchant(%i[#{m[:basics].join(' ')}], #{m[:rares].inspect})"
+    raise MapEvents::Error, "#{where} : script « #{event.value('Script')} » au lieu de « #{script} »" if event.value("Script") != script
+    raise MapEvents::Error, "#{where} : stock vide" if m[:basics].empty? || m[:rares].empty?
+    stray = m[:basics] - W.mart_stock(m[:seals])
+    raise MapEvents::Error, "#{where} : objets de base #{stray.join(', ')} pas encore en boutique" if !stray.empty?
+    table = W::MERCHANT_RARE_TABLE.select { |from, _| from <= m[:seals] }.values.reduce(:merge)
+    m[:rares].each do |item, price|
+      raise MapEvents::Error, "#{where} : objet rare #{item} hors de la table de ses sceaux" if table[item] != price
+      raise MapEvents::Error, "#{where} : objet rare #{item} vendu en boutique" if shops.include?(item)
+    end
+  end
+  return merchants.length
 end
 
 # The nooks to come back to (#269: their field item is given after their
@@ -927,6 +966,22 @@ W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK :
 field_items = M::FIELD_ITEMS.values.map(&:first) + [M::SURF_ITEM, M::DIVE_ITEM] + M::EXTRA_FIELD_ITEMS.keys + M::NOOKS.values
 sold = W::MART_STOCK.values.flatten & field_items
 CI.error(settings, nil, "MART_STOCK : objets de terrain en boutique (#{sold.join(', ')})") if !sold.empty?
+# Economy (#176): the margin, the merchant's rares (none in a shop, no field
+# item) and his look
+CI.error(settings, nil, "MART_PRICE_FACTOR : #{W::MART_PRICE_FACTOR}, la Famille ne prend pas de marge") if W::MART_PRICE_FACTOR <= 1
+if W::MART_PRICE_FACTOR * W::MERCHANT_BASIC_FACTOR >= W::MART_PRICE_FACTOR
+  CI.error(settings, nil, "MERCHANT_BASIC_FACTOR : le marchand ambulant n'est pas moins cher que la boutique")
+end
+CI.error(settings, nil, "MERCHANT_RARE_TABLE : pas de ligne à 0 sceau") if !W::MERCHANT_RARE_TABLE[0]
+W::MERCHANT_RARE_TABLE.values.flat_map(&:to_a).each do |item, price|
+  CI.error(settings, nil, "MERCHANT_RARE_TABLE : objet #{item} absent de items.txt") if !items.include?(item.to_s)
+  CI.error(settings, nil, "MERCHANT_RARE_TABLE : #{item} vendu en boutique") if W::MART_STOCK.values.flatten.include?(item)
+  CI.error(settings, nil, "MERCHANT_RARE_TABLE : #{item} est un objet de terrain") if field_items.include?(item)
+  CI.error(settings, nil, "MERCHANT_RARE_TABLE : #{item} à #{price} $") if price <= 0
+end
+if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{W::MERCHANT_GRAPHIC}.png"))
+  CI.error(settings, nil, "MERCHANT_GRAPHIC : #{W::MERCHANT_GRAPHIC} absent de Graphics/Characters")
+end
 { "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE, "REVISIT_TABLE" => W::REVISIT_TABLE }.each do |key, table|
   CI.error(settings, nil, "#{key} : pas de ligne à 0 sceau") if !table[0]
   table.values.flat_map(&:keys).uniq.each do |item|
@@ -989,6 +1044,7 @@ guild_walkers = 0
 guild_among = 0
 rewards = Hash.new(0)
 freed = 0
+merchants = 0
 blockades = 0
 blockable = 0
 enemy_pairs = 0
@@ -1038,6 +1094,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       freed += check_liberations(result, atlas, plans, events[:guilds])
+      merchants += check_economy(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:merchants], events[:guilds])
       settled += check_showdowns(atlas, plans, events[:guilds], events[:trainers])
       enemy_pairs += check_rivalries(result, atlas, plans, events[:guilds], items)
       blocked, possible = check_blockades(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
@@ -1084,6 +1141,7 @@ if nooks >= 20
   CI.error(settings, nil, "REVISIT_POKEMON : aucun Pokémon dans #{nooks} recoins à revisiter") if pokemon.zero?
   CI.error(settings, nil, "REVISIT_LORE : aucune trace du Pacte dans #{nooks} recoins à revisiter") if lore.zero?
 end
+puts "Marchands ambulants : #{merchants} sur #{WORLD_SEEDS.size} monde(s)"
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
 puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
