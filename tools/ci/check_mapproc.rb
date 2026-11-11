@@ -13,6 +13,8 @@ M = MapProceduralGenerator
 SEEDS = 1..10
 # Seeds of the worlds (WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others
 # locally)
+# Gap allowed between the share of nooks to come back to and « Revisiter »
+REVISIT_MARGIN = 30
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
 # that no half plant shows (very tall grass T7 needs itself or its base: T15, or
@@ -638,6 +640,8 @@ M::AMBIANCE_FLAGS.each do |ambiance, flag|
   CI.error(settings, nil, "AMBIANCE_FLAGS : #{flag} sans teinte (TONE_FLAGS)") if !M::TONE_FLAGS.key?(flag)
   CI.error(settings, nil, "AMBIANCE_FLAGS : ambiance « #{ambiance} » inconnue") if !ambiance_names.include?(ambiance)
 end
+# Nooks of each world opening now or later (« Revisiter »): [now, later]
+revisits = Hash.new { |hash, key| hash[key] = [0, 0] }
 worlds.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -703,11 +707,15 @@ worlds.each do |path|
       next CI.error(path, nil, "graine #{seed} : #{name} sans ville d'obtention") if !giver && gyms.length >= min
       CI.error(path, nil, "graine #{seed} : #{name} avant la #{min}e arène") if giver && gyms.index(giver).to_i < min - 1
     end
+    # A nook opens with a field item obtained in a town of the chain (before
+    # the League), earlier or later than its place (a nook to come back to)
     atlas_items = M.world_atlas(result)[:items]
     result.places.each do |wp, _place, _text, layout|
       layout.spots[:nooks].each do |_x, _y, obstacle|
         giver = result.places.find { |p, *| p.name == atlas_items[M::NOOKS[obstacle]] }&.first
-        CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} avant la ville de son objet") if !giver || giver.index >= (wp.tier || wp.index)
+        next CI.error(path, nil, "#{wp.name} (graine #{seed}) : recoin #{obstacle} sans ville pour son objet") if !giver
+        next if obstacle == "ilot"
+        revisits[world.file][giver.index >= (wp.tier || wp.index) ? 1 : 0] += 1
       end
     end
     # The inventory: the same for the same seed, every gym and the start in it
@@ -813,6 +821,13 @@ worlds.each do |path|
     CI.error(path, nil, "graine #{seed} : #{gyms} arène(s) posée(s) au lieu de #{world.gyms}") if gyms != world.gyms
   end
   CI.error(path, nil, "aucune route de montagne au-delà de 2 niveaux (graines #{WORLD_SEEDS})") if world.mountains.max > 0 && highest <= 2
+  # About « Revisiter » % of the nooks open with an item obtained later
+  now, later = revisits[world.file]
+  share = (now + later).zero? ? nil : 100 * later / (now + later)
+  puts "#{world.file} : #{later} recoin(s) à revisiter sur #{now + later} (#{share || 0} %, réglé à #{world.revisit} %)"
+  if share && (now + later) >= 8 && (share - world.revisit).abs > REVISIT_MARGIN
+    CI.error(path, nil, "#{share} % de recoins à revisiter (graines #{WORLD_SEEDS}), #{world.revisit} % attendus à #{REVISIT_MARGIN} près")
+  end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
 end

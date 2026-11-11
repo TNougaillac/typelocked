@@ -304,7 +304,8 @@ module MapProceduralGenerator
   SURF_ITEM = :SURFSADDLE
   DIVE_ITEM = :DIVINGSUIT
   # Optional nooks (« Recoins » in a world, % per place), each behind an
-  # obstacle opened by a field item obtained earlier in the chain: a cut
+  # obstacle opened by a field item (obtained earlier in the chain, or later
+  # for a nook to come back to, see REVISIT): a cut
   # tree, a cracked rock or a boulder at the mouth of a pocket in the rock, a
   # rock wall to cross with the Grappling Hook, an islet in a pond (Surf), a
   # dark cave (Lantern, routes only). Their loot is in the inventory.
@@ -316,6 +317,9 @@ module MapProceduralGenerator
     "sombre"  => :LANTERN,
     "grappin" => :GRAPPLINGHOOK
   }.freeze
+  # Share in % of the nooks closed by a field item obtained later in the chain
+  # (« Revisiter » in a world): the player sees them and comes back.
+  REVISIT = 50
   # Obstacles closing a shortcut (« Raccourcis » in a world) at its end nearer
   # the start, and the field item that opens each: a cut tree, a cracked rock,
   # a boulder (in a gap of a wall across the route), a wall with no gap to

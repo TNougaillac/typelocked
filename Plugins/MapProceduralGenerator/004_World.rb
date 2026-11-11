@@ -78,6 +78,9 @@
 #                               in FIELD_ITEMS)
 #   Recoins  = 30              (chance in % that a place has an optional nook
 #                               behind an obstacle, see NOOKS; 0 by default)
+#   Revisiter = 50             (chance in % that a nook is closed by a field
+#                               item obtained later, to come back for;
+#                               REVISIT by default)
 #   Noms     = Bourg Typelock, Ville Rubis, ...
 #                              (optional town names, in order; "Ville
 #                               générée 1"... otherwise; routes are "Route
@@ -103,7 +106,7 @@ module MapProceduralGenerator
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
                      :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river,
                      :ports, :islands, :island_gyms, :names_file, :field_items, :nooks, :route_shapes, :route_width, :town_sizes, :loops, :shortcuts,
-                     :margin, :seas)
+                     :margin, :seas, :revisit)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac", "mer" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
@@ -166,7 +169,7 @@ module MapProceduralGenerator
 
   def parse_world(text, file = "monde")
     world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, 0..0, 0, 0, nil,
-                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"], 1..1, ["2x2"], 0..0, 0..0, 0, 0..0)
+                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"], 1..1, ["2x2"], 0..0, 0..0, 0, 0..0, REVISIT)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -213,6 +216,7 @@ module MapProceduralGenerator
       when "plongee"  then world.dive = integer(value, fail_at)
       when "fonds"    then world.dives = range(value, fail_at)
       when "recoins"  then world.nooks = integer(value, fail_at)
+      when "revisiter" then world.revisit = integer(value, fail_at)
       else
         item = FIELD_ITEMS.keys.find { |name| name.casecmp?(key) }
         fail_at.call("clé inconnue « #{key} »") if !item
@@ -864,10 +868,15 @@ module MapProceduralGenerator
     end
   end
 
-  # Places with a nook (« Recoins », in %): its obstacle drawn among those
-  # whose item was obtained in an earlier town of the chain (a dark cave on a
-  # route only).
+  # Places with a nook (« Recoins », in %). Its obstacle is opened by a field
+  # item obtained in an earlier town of the chain, or, for « Revisiter » % of
+  # them, in a later one: the player sees it and comes back (every field item
+  # is obtained in a town with a gym, so before the League). When one of the
+  # two lists is empty, the other one is used. A dark cave on a route only.
+  # The draw of a later item has its own generator, so that the world's draws
+  # stay those of a world without it.
   def choose_nooks(world, places, rng)
+    side = Random.new(rng.seed + 7)
     obtained = {}
     places.each do |p|
       (p.items || []).each { |item| obtained[item] = p.index }
@@ -876,8 +885,10 @@ module MapProceduralGenerator
     end
     places.each do |wp|
       next if rng.rand(100) >= world.nooks
-      kinds = NOOKS.select { |kind, item| obtained[item]&.<(wp.tier || wp.index) && (kind != "sombre" || wp.kind == "route") }.keys
-      wp.nook = kinds.sample(random: rng)
+      kinds = NOOKS.select { |kind, item| obtained[item] && (kind != "sombre" || wp.kind == "route") }
+      now, later = kinds.keys.partition { |kind| obtained[kinds[kind]] < (wp.tier || wp.index) }
+      wp.nook = now.sample(random: rng)
+      wp.nook = later.sample(random: side) if later.any? && (!wp.nook || side.rand(100) < world.revisit)
     end
   end
 
