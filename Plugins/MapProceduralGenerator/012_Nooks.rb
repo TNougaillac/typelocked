@@ -3,7 +3,8 @@
 # Once a place is written, the obstacle of its nook or shortcut (a cut tree, a
 # cracked rock, a boulder) is copied from its event of the demo (NOOK_EVENTS)
 # onto the mouth of the nook. The Grappling Hook's wall gets an event on each
-# face, made here (pbMapProcGrapple). The islets, the water and the dark
+# face, made here (pbMapProcGrapple), and so does each tile of a corridor of
+# ice (pbMapProcSkate, #270). The islets, the water and the dark
 # caves need no event. The loot itself is left to MapEvents (inventory).
 # open_nook_events lets a game switch open an obstacle (a rallied guild, #186).
 #===============================================================================
@@ -20,10 +21,10 @@ module MapProceduralGenerator
     map = load_data(path)
     map.events.delete_if { |_id, event| event.name.start_with?(NOOK_EVENT_PREFIX) }
     nooks.each do |_x, _y, obstacle, ox, oy, fx, fy|
-      if obstacle == GRAPPLE
-        # Over the wall and one tile past it, from either face
+      if [GRAPPLE, ICE].include?(obstacle)
+        # Over the wall (along the ice) and one tile past it, from either face
         distance = (fx - ox).abs + (fy - oy).abs + 2
-        [[ox, oy], [fx, fy]].each { |x, y| add_grapple_event(map, x, y, distance) }
+        [[ox, oy], [fx, fy]].each { |x, y| add_crossing_event(map, x, y, distance, obstacle) }
         next
       end
       next if !NOOK_EVENTS[obstacle]
@@ -48,7 +49,7 @@ module MapProceduralGenerator
     map = load_data(path)
     map.events.each_value do |event|
       next if !event.name.start_with?(NOOK_EVENT_PREFIX) || !cells.include?([event.x, event.y])
-      if event.name == NOOK_EVENT_PREFIX + GRAPPLE_EVENT
+      if [GRAPPLE_EVENT, ICE_EVENT].any? { |name| event.name == NOOK_EVENT_PREFIX + name }
         event.pages[0].list[0].parameters[0].sub!(/\)\z/, ", #{switch})")
         next
       end
@@ -61,16 +62,38 @@ module MapProceduralGenerator
     save_data(map, path)
   end
 
-  # An invisible event on a tile of the wall, run by the action button.
-  def add_grapple_event(map, x, y, distance)
+  # An invisible event on a tile of the wall (or of the ice), run by the
+  # action button.
+  def add_crossing_event(map, x, y, distance, obstacle)
     event = RPG::Event.new(x, y)
     event.id = (map.events.keys.max || 0) + 1
-    event.name = NOOK_EVENT_PREFIX + GRAPPLE_EVENT
+    name, call = (obstacle == ICE) ? [ICE_EVENT, "pbMapProcSkate"] : [GRAPPLE_EVENT, "pbMapProcGrapple"]
+    event.name = NOOK_EVENT_PREFIX + name
     event.pages[0].trigger = 0
-    event.pages[0].list = [RPG::EventCommand.new(355, 0, ["pbMapProcGrapple(#{distance})"]),
+    event.pages[0].list = [RPG::EventCommand.new(355, 0, ["#{call}(#{distance})"]),
                            RPG::EventCommand.new(0, 0, [])]
     map.events[event.id] = event
   end
+end
+
+# Crosses the slippery ice the player faces, with the Skates (#270): a slide
+# of that many tiles, through the ice's events. Returns true if the player
+# went across. switch: a game switch that, once on, lets the player across
+# without them (see open_nook_events).
+def pbMapProcSkate(distance, switch = nil)
+  lent = switch && $game_switches[switch]
+  if !$DEBUG && !lent && !$bag.has?(MapProceduralGenerator::NOOKS[MapProceduralGenerator::ICE])
+    pbMessage(_INTL("Une plaque de glace très lisse. Avec des patins, on pourrait la traverser."))
+    return false
+  end
+  return false if !pbConfirmMessage(_INTL("Une plaque de glace très lisse. Chausser les Patins ?"))
+  pbMessage(_INTL("{1} chausse les Patins !", $player.name))
+  x, y = $game_player.x, $game_player.y
+  $game_player.walk_anime = false
+  pbMoveRoute($game_player, [PBMoveRoute::FORWARD] * distance)
+  pbWait(0.05) while $game_player.move_route_forcing
+  $game_player.walk_anime = true
+  return $game_player.x != x || $game_player.y != y
 end
 
 # Crosses the rock wall the player faces, with the Grappling Hook: a jump of

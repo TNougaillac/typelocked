@@ -76,7 +76,7 @@ module WorldEvents
   # The loot of each nook, at the seals it opens with: a pocket or an islet
   # on its map, a dark cave at its far end; and of each hill top.
   def nook_slots(result, atlas, zones)
-    opened = field_item_seals(atlas)
+    opened = field_item_seals(atlas, zones)
     slots = []
     places = result.places.map(&:first) + (result.islands || []).map(&:first)
     places.each do |wp|
@@ -133,12 +133,19 @@ module WorldEvents
     return caps ? [top, caps[seals] || caps.last].min : top
   end
 
-  # Seals won once each field item is given: its town's lieutenant's.
-  def field_item_seals(atlas)
+  # Seals won once each field item is given: its town's lieutenant's; for
+  # one given outside the gyms (the Skates, #270), the seals on the way to
+  # its town.
+  def field_item_seals(atlas, zones = {})
     return atlas[:items].to_h do |item, town|
+      next [item, zones[town]&.seals || 0] if extra_field_item?(item)
       gym = atlas[:gyms].index(town)
       [item, gym ? gym + 1 : 0]
     end
+  end
+
+  def extra_field_item?(item)
+    return MapProceduralGenerator::EXTRA_FIELD_ITEMS.key?(item)
   end
 
   # How many of each source among count slots: gifts at least GIFT_SHARE %,
@@ -276,12 +283,17 @@ module WorldEvents
   end
 
   # Each field item: a member of the Family in its town gives it once the
-  # town's lieutenant is beaten (its switch).
+  # town's lieutenant is beaten (its switch). One obtained outside the gyms
+  # (the Skates, #270): a hidden inhabitant gives it at once.
   def field_item_events(atlas, plans, lines, rng)
     items = []
     atlas[:items].each_with_index do |(item, town), i|
       spots = atlas[:maps][town]
       next if !spots
+      if extra_field_item?(item)
+        items.push({ map: town, source: "cache_terrain", item: item }) if hidden_giver(spots, item, i, town, plans, lines, rng)
+        next
+      end
       cell = item_cell(spots, npc_cells(spots, rng), plans[town])
       next if !cell
       x, y, facing = cell
@@ -293,6 +305,20 @@ module WorldEvents
       items.push({ map: town, source: "terrain", item: item })
     end
     return items
+  end
+
+  # A hidden inhabitant who gives that field item: on the cell by a street
+  # farthest from the town's Pokémon Centre (a dead end first).
+  def hidden_giver(spots, item, index, town, plans, lines, rng)
+    door = (spots[:doors] || []).find { |_x, _y, kind| kind == "centre" } || spots[:exits]&.first&.drop(1) || [0, 0]
+    cells = npc_cells(spots, rng).sort_by { |x, y, _facing| [-((x - door[0]).abs + (y - door[1]).abs), y, x] }
+    cell = item_cell(spots, cells, plans[town])
+    return false if !cell
+    x, y, facing = cell
+    add(plans, town, "Npc", "Terrain#{index + 1}", x, y, ["Graphic", HIDDEN_GIVER_GRAPHIC], ["Facing", facing],
+        *texts(lines, "terrain_cache", "Text", spots[:title]), ["Gift", item],
+        *texts(lines, "terrain_cache_apres", "Once", spots[:title]))
+    return true
   end
 
   # A Move Relearner in a town reached with at most each RELEARNERS seals

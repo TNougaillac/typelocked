@@ -275,7 +275,7 @@ def check_revisits(atlas, zones, plans, type, species, tms)
   rare = W::REVISIT_TABLE.values.flat_map(&:keys).map(&:to_s) + tms.map { |tm| tm.first.to_s }
   counts = [0, 0, 0]
   atlas[:maps].each do |name, spots|
-    nooks = (spots[:nooks] || []).reject { |*, kind| kind == "sombre" }.map { |x, y, kind, *| [x, y, kind] }
+    nooks = (spots[:nooks] || []).reject { |nook| nook[2] == "sombre" }.map { |x, y, kind, *| [x, y, kind] }
     nooks.push([*spots[:loot], "sombre"]) if spots[:dark] && spots[:loot]
     nooks.each do |x, y, kind|
       item = M::NOOKS[kind]
@@ -327,6 +327,11 @@ def check_items(atlas, zones, plans, items)
   atlas[:items].each do |item, town|
     npc = plans[town]&.events&.find { |e| e.kind == :npc && e.value("Gift") == item.to_s }
     raise MapEvents::Error, "#{town} : personne ne donne #{item}" if !npc
+    # Given outside the gyms (the Skates): at once, never sold
+    if W.extra_field_item?(item)
+      raise MapEvents::Error, "#{town} : #{item} attend un sceau (#{npc.value('When')})" if npc.value("When")
+      next
+    end
     gym = atlas[:gyms].index(town)
     if gym && npc.value("When") != "S#{W::GYM_SWITCH + gym + 1}"
       raise MapEvents::Error, "#{town} : #{item} donné sans attendre le sceau de la ville (#{npc.value('When')})"
@@ -918,7 +923,11 @@ W::HOUSE_SPOTS.each do |template, cells|
   CI.error(settings, nil, "HOUSE_SPOTS : #{template}, les habitants coupent #{cut.first(3).inspect}") if !cut.empty?
 end
 W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
-{ "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE }.each do |key, table|
+# No shop sells a field item (FIELD_ITEMS, Surf, Dive, the Skates...)
+field_items = M::FIELD_ITEMS.values.map(&:first) + [M::SURF_ITEM, M::DIVE_ITEM] + M::EXTRA_FIELD_ITEMS.keys + M::NOOKS.values
+sold = W::MART_STOCK.values.flatten & field_items
+CI.error(settings, nil, "MART_STOCK : objets de terrain en boutique (#{sold.join(', ')})") if !sold.empty?
+{ "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE, "REVISIT_TABLE" => W::REVISIT_TABLE }.each do |key, table|
   CI.error(settings, nil, "#{key} : pas de ligne à 0 sceau") if !table[0]
   table.values.flat_map(&:keys).uniq.each do |item|
     CI.error(settings, nil, "#{key} : objet #{item} absent de items.txt") if item != :TM && !items.include?(item.to_s)

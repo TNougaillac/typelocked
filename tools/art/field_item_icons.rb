@@ -161,6 +161,14 @@ ICONS = {
     i.bar(DARK, 16, 9, 16, 18, 0.5, outline: false)
     i.poly(DARK, [[6, 6.5], [18, 6.5], [19, 9.5], [5, 9.5]])
     i.poly(DARK, [[5, 18], [19, 18], [19, 21], [5, 21]])
+  end,
+  # An ice skate (#270): a blue boot, its laces, a steel blade under it
+  "SKATES" => lambda do |i|
+    i.poly(SEA, [[6, 3], [13, 3], [13, 10], [19, 13], [20, 16], [20, 17.5], [5, 17.5], [5, 9]])
+    [[8, 5], [10, 5], [8, 7], [10, 7], [8, 9], [10, 9]].each { |x, y| i.dot(0xf8f8f8, x, y) }
+    i.bar(DARK, 7, 18.5, 7, 20, 0.6, outline: false)
+    i.bar(DARK, 17, 18.5, 17, 20, 0.6, outline: false)
+    i.poly(STEEL, [[3, 20], [21, 20], [22.5, 19], [23, 21], [21.5, 22], [3, 22]])
   end
 }.freeze
 

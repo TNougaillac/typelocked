@@ -248,6 +248,9 @@ module WorldEvents
   # Tiers of the Pokémon a nook can hold (never a « fort » one)
   REVISIT_TIERS = %w[faible moyen].freeze
   NOOK_GRAPHIC = "Object ball"
+  # The hidden inhabitant who gives a field item obtained outside the gyms
+  # (the Skates, #270)
+  HIDDEN_GIVER_GRAPHIC = "NPC 09"
   # Weather (#120): when the imposed type plays with a weather, its TMs and
   # its rock go to nooks spread along the way (the TM that casts it first),
   # in WEATHER_CHANCE % of the games. Types => items.
@@ -319,7 +322,7 @@ module WorldEvents
     "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
     "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
     "guilde_bonus_apres" => PLACE_TOKENS, "guilde_reglement" => PLACE_TOKENS, "guilde_reglement_fin" => %w[joueur],
-    "recoin_lore" => PLACE_TOKENS, "recoin_pokemon" => PLACE_TOKENS,
+    "recoin_lore" => PLACE_TOKENS, "recoin_pokemon" => PLACE_TOKENS, "terrain_cache" => PLACE_TOKENS, "terrain_cache_apres" => PLACE_TOKENS,
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
 
