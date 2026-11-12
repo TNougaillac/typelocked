@@ -1,0 +1,12 @@
+# Phare : posé le long du quai d'un port, comme les entrepôts (#299). Un par
+# port au plus.
+Brique = Phare
+Type   = port
+Unique = oui
+Porte  = 3,4
+[Map]
+ʡʡʡʡʡʡʡ
+ʡʡʡʡʡʡʡ
+ʡʡʡʡʡʡʡ
+ʡʡʡʡʡʡʡ
+ʡʡʡʡʡʡʡ

@@ -313,7 +313,11 @@ module MapProceduralGenerator
   STYLE_KINDS = { "maison" => :houses, "barriere" => :fences, "lampe" => :furniture }.freeze
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
-  LAST_KINDS = %w[batisse special barriere].freeze
+  LAST_KINDS = %w[batisse barriere].freeze
+  # Optional bricks tried right after the required buildings but the
+  # houses (the unique buildings, too big to find room once the town is
+  # built, #299)
+  EARLY_KINDS = %w[special].freeze
   # Fences (« barriere » in [Briques]): along a street, all along it.
   FENCE = "barriere"
   EXTRA_SALT = 7951

@@ -73,23 +73,23 @@ Les maisons, Centres, Boutiques et arènes par type sont déjà dans le jeu (#19
 | Carrés | Ce que c'est | Usage proposé |
 |---|---|---|
 | A6 | Pavillon vitré vert d'eau | Club des nageurs, aquarium (guilde des Nageurs) |
-| F9, F10 | **Pagode** violette (tour à étages) | Tour du Pacte, lieu de lore lié à Arceus |
+| F9, F10 | **Pagode** violette (tour à étages) | Tour du Pacte, lieu de lore lié à Arceus : **fait (#299)** |
 | G6, G7 | Nénuphars ; quai couvert à toit gris | Gare maritime, marais |
-| H1 à H3 | Coin en brique rouge, **arche** décorée, étals de marché à auvent orange | Entrée de ville, marché |
+| H1 à H3 | Coin en brique rouge, **arche** décorée, étals de marché à auvent orange | Entrée de ville, marché : **étal fait (#299)** |
 | I6, I7 | Grand bâtiment à toit orange | Théâtre, salle des fêtes de la Famille |
 | I8 à I10 | Rails métalliques courbes | Voie ferrée, montagnes russes de la foire |
 | J1 à J5 | Grand **dôme** futuriste bleu et or | Stade, siège de la Famille dans une métropole |
 | J9, K1 | Bâtiment rouge à l'entrée japonaise, maison à toit bleu | Dojo, manoir d'un Ancien |
-| K5 | Guirlandes de fanions sur poteaux | Foire des Forains, fête de ville |
+| K5 | Guirlandes de fanions sur poteaux | Foire des Forains, fête de ville : **fait (#299)** |
 | K10, L3, L4 | **Voilier**, **paquebot** | Ports (remplacent le bateau b T1096) |
-| L1, L2 | **Phare** | Ports et caps |
+| L1, L2 | **Phare** | Ports et caps : **fait (#299)** |
 | L7, L8 | Portique en bois | Entrée de quai ou de parc |
 | M3 à M6 | Étals à auvent rayé vert | Marchés, marchand ambulant (#176) |
-| M7 à M10 | Bâtiment octogonal à toit rouge | Salle de jeux, casino de la Famille |
+| M7 à M10 | Bâtiment octogonal à toit rouge | Salle de jeux, casino de la Famille : **fait (#299)** |
 | N4 à N8 | Bâtiment à toit vert en bois, bâtiment à toit rose vitré | Boutiques spéciales, QG de guilde |
 | P5, P6 | Tour de verre bleue | Gratte-ciel de métropole |
-| Q3 à Q5 | Bâtiment à toit rouge et blanc | Gare, grand magasin |
-| R1 à R3 | Serre en verre arrondie | Jardin botanique, labo de recherche |
+| Q3 à Q5 | Bâtiment à toit rouge et blanc | Gare, grand magasin : **fait (#299)** |
+| R1 à R3 | Serre en verre arrondie | Jardin botanique, labo de recherche : **fait (#299)** |
 
 ## SirMalo — Urban
 

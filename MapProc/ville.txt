@@ -521,6 +521,18 @@ l = T9200 1x2 halo=1x3@0,1 # lampadaire
 p = T8696 1x1          # jardinière (une par case, posée sur le sol)
 F = T14593 5x5 halo=8x9@1,4/0,1,2,3,4,5,6,7,14,15,22,23,30,31,39,47,55,63,71   # gare maritime (SirMalo ; sur le quai, sa porte au bas de l'escalier, sur la promenade)
 J = T14465 5x3 halo=7x7@1,3/5,6   # entrepôt du port (SirMalo)
+# Bâtiments uniques 4G (SirMalo, #299) : chacun posé au plus une fois par lieu (« Unique » de sa brique)
+ʠ = T16408 7x3 halo=8x13@0,9/0,1,2,4,5,6,7,15,23,31,39,47,55,63,96   # pagode du Pacte
+ʡ = T16488 7x5 halo=8x13@0,6/0,1,5,6,7,8,14,15,16,22,23,31,39,47   # phare (le long du quai d'un port)
+ʢ = T16576 8x4 halo=8x9@0,4/64   # gare
+ʣ = T16648 1x4 halo=1x9@0,4/8   # gare, partie droite
+ʤ = T16753 7x4 halo=8x14@1,8/88,96,104,105   # casino de la Famille
+ʥ = T16864 4x4 halo=6x14@0,8/5,11,17,23,29,35   # casino de la Famille, partie droite
+ʦ = T16945 7x5 halo=8x11@1,4/0,1,2,3,4,8,9,10,11,16,17,18,19,24,25,26,27,32,80,81,82,83   # serre
+ʧ = T17032 2x5 halo=3x11@0,4/1,2,5,8,11,14   # serre, partie droite
+ʨ = T17112 1x1 halo=3x5@0,3/7,8,11,14   # guirlande de fanions, poteau gauche
+ʩ = T17153 1x1 halo=3x5@1,3/5,6,8,9,12   # guirlande de fanions, poteau droit (on passe sous les fanions)
+ʪ = T17176 4x3 halo=4x5@0,1   # étal de marché à auvent orange
 b = T15760 6x3 halo=6x6@0,3/0,1,4,5,6,7,10,11,12,17 L3 @~   # voilier amarré (SirMalo), sur l'eau ; son mât passe devant le joueur
 L = T14321 7x4 halo=8x10@1,5/0,1,2,7,40,48,56,64,72   # labo du Professeur (SirMalo ; posé par le monde dans la ville de départ)
 Ї = T14400 1x4 halo=1x10@0,5/0   # labo du Professeur, partie droite

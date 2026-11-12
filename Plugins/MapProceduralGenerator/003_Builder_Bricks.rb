@@ -36,10 +36,18 @@ module MapProceduralGenerator
       # The optional bricks of LAST_KINDS after all the others, so that they
       # never take the room of a park or its grass
       last, optional = optional.partition { |k| LAST_KINDS.include?(k) }
+      # The optional bricks of EARLY_KINDS (the unique buildings, big)
+      # right after the required buildings but the houses, while there is
+      # room; left out when they don't fit
+      early, optional = optional.partition { |k| EARLY_KINDS.include?(k) }
       # A headquarters with no room on the quay among the required buildings,
       # before the houses take its room
       required = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == "maison") ? 1 : 0, (k == DECOR) ? 1 : 0] }
       required.insert(required.count { |k| with_door.call(k) == 0 && k != "maison" }, *@inland_hqs)
+      houses_at = required.count { |k| with_door.call(k) == 0 && k != "maison" }
+      required.insert(houses_at, *early)
+      early_at = houses_at...(houses_at + early.length)
+      optional_at = ->(i) { i >= required.length || early_at.cover?(i) }
       order = required +
               optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] } +
               last.shuffle(random: @extra_rng)
@@ -57,7 +65,7 @@ module MapProceduralGenerator
         next if QUAY_HQS.include?(kind) && place_smallest(kind)
         error("impossible de placer le QG « #{kind} » hors du quai") if QUAY_HQS.include?(kind)
         # « pack »: the boosted bricks, the big ones first
-        next place_big(kind) if i >= required.length && excess[:pack] && boosted.call(kind) == 0
+        next place_big(kind) if optional_at.call(i) && excess[:pack] && boosted.call(kind) == 0
         next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
         # The rocks on a route's mesas go where they fit, or not at all
         next if HIGHLAND.include?(kind) && @mesas
@@ -73,7 +81,7 @@ module MapProceduralGenerator
           place_brick(kind)
           next
         end
-        next if i >= required.length || place_smallest(kind)
+        next if optional_at.call(i) || place_smallest(kind)
         # A required brick under the leaves of the border rather than none
         # (the border keeps its ground there, see plant_border)
         @loose_canopy = true
@@ -733,6 +741,8 @@ module MapProceduralGenerator
         end
       end
       mark_halo(brick, x, y, 1)
+      # A unique building (« Unique = oui ») is laid once per place at most
+      @bricks.delete(brick) if brick.unique
       @hq_cells.push([x + (brick.rows.map(&:length).max / 2), y + (brick.rows.length / 2), brick.kind]) if GUILD_HQS.key?(brick.kind)
       # Nothing (no path) against a hill or a ridge but below its stair
       hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true } if ringed?(brick)
