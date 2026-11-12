@@ -1,0 +1,6 @@
+# Tas de bûches (SirMalo Urban F2) (#320).
+Brique    = Bûches
+Type      = decor
+Ambiances = chemins de terre, forêt sombre, automne, marais
+[Map]
+ґґ

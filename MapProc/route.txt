@@ -745,6 +745,11 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ҋ = T18412 2x2   # rocher
 Ҍ = T18414 1x1   # caillou enneigé
 ҍ = T18440 3x1   # terre à baies
+# Décor de rue et de marché 4G (#320, tools/art/street_decor_4g.py, SirMalo Urban F)
+Ґ = T18568 3x1 halo=3x6@0,5/0,2,5,8,9,11,14   # éolienne
+ґ = T18539 2x1 halo=2x2@0,1   # bûches
+Ғ = T18541 2x1 halo=2x2@0,1   # tas de rochers
+Ҕ = T18594 3x1 halo=3x3@0,2   # cloche
 # Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,
 # son rebord à cheval sur les cases (sa moitié extérieure en halo) ; un bout
 # gauche, un milieu répété, un bout droit
