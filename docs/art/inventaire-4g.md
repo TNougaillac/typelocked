@@ -161,9 +161,9 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 | A1 à A6 | Plaques d'herbe, de terre, de sable, de planches | Sols de villes et de plages |
 | A7 | Mares | Mares des villes |
 | A8, A9 | Arbres ronds, arbres fruitiers, plantes, fleurs | Vergers des Éleveurs, parcs : **fait (#297)** |
-| A10, A11, A22, A23 | Maisons à toit rouge, brun, vert, violet ; haies | Styles de maisons en plus (#199) |
+| A10, A11, A22, A23 | Maisons à toit rouge, brun, vert, violet ; haies | Styles de maisons en plus (#199) : **verrière, verte au toit orange et toit violet faites (#299)** (A22, A23) |
 | A14, A15 | Lampadaires, parterres de fleurs | Décor de rue |
-| A16, A29 | Tours de verre | Gratte-ciel de métropole : **fait (#299)**, sans porte |
+| A16, A29 | Tours de verre | Gratte-ciel de métropole |
 | A17, A21 | Auvent de marché, **pont en bois**, clôtures blanches | Marchés, rivières |
 | A26, A32 | Bâtiment jaune, bâtiment à toit orange | Grands magasins |
 | A30 | **Phare** rouge et blanc | Ports |

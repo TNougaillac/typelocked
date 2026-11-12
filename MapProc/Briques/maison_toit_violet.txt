@@ -1,0 +1,6 @@
+Brique = Maison au toit violet
+Type   = maison
+Porte  = 1,1
+[Map]
+ѲѲѲѲ
+ѲѲѲѲ

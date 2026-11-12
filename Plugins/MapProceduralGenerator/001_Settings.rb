@@ -308,14 +308,14 @@ module MapProceduralGenerator
     "chaud"    => { weight: 2, ambiances: { "sable" => 3, "volcan" => 4, "plage" => 3, "terre battue" => 2 },
                     houses: ["Maison bordeaux à cheminée", "Maison orange à balustrade", "Maison crème", "Maison orange",
                              "Maison orange à escalier", "Maison rouge à auvent", "Maison au toit rouge", "Maison verte à cheminée",
-                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge"],
+                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge", "Maison verte au toit orange"],
                     fences: ["Palissade le long du chemin", "Longue palissade le long du chemin"],
                     furniture: ["Réverbère rouge", "Bancs", "Jardinière", "Lampadaire", "Boîte aux lettres"] },
     "froid"    => { weight: 2, ambiances: { "neige" => 3, "minérale" => 3, "verdoyante" => 2, "prairie" => 2 },
                     houses: ["Garage", "Maison à auvent vert", "Maison bleue à cheminée", "Maison et jardin", "Maison mauve",
                              "Maison au toit de mousse", "Maison au pignon bleu", "Petite maison à toit plat", "Maison turquoise à annexe",
                              "Haute maison turquoise", "Maison violette", "Grande maison aux tuiles violettes", "Maison au toit vitré",
-                             "Maison au toit vitré bleu", "Petite maison verte"],
+                             "Maison au toit vitré bleu", "Petite maison verte", "Maison à verrière", "Maison au toit violet"],
                     fences: ["Barrière blanche le long du chemin", "Longue barrière blanche le long du chemin"],
                     furniture: ["Réverbère turquoise", "Bouche d'incendie", "Lampadaire d'Émeraude", "Distributeurs", "Bancs"] }
   }.freeze
@@ -360,7 +360,9 @@ module MapProceduralGenerator
     "R" => "Door_Goldenrod01", "Ζ" => "Door_Goldenrod01", "Η" => "Door_Goldenrod01",
     "Κ" => "Door_Goldenrod01", "Φ" => "Door_Goldenrod01", "ι" => "Door_Goldenrod01",
     "Ι" => "Door_Newbark01", "Σ" => "Door_Newbark01", "Τ" => "Door_Newbark01",
-    "L" => "Door_Goldenrod01", "J" => "Door_Newbark01"
+    "L" => "Door_Goldenrod01", "J" => "Door_Newbark01",
+    # Kanto's houses (tools/art/kanto_houses_4g.py): the sheet leaves a hole for the door
+    "Ѱ" => "Door_Olivine01", "ѱ" => "Door_Goldenrod01", "Ѳ" => "Door_Goldenrod01"
   }.freeze
 
   # The end of every world's chain, after its last town: the Victory Road (a

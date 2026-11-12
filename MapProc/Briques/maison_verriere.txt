@@ -1,0 +1,6 @@
+Brique = Maison à verrière
+Type   = maison
+Porte  = 1,1
+[Map]
+ѰѰѰѰ
+ѰѰѰѰ
