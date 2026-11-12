@@ -198,8 +198,9 @@ module MapProceduralGenerator
   CAVE_TILESET = 25
   # Caves by biome (#300): the ambiance of the place a cave opens on => its
   # tileset, laid out like Cave 4G (tools/art/cave_styles_4g.py): ice, lava,
-  # moss. The others keep CAVE_TILESET.
-  CAVE_STYLES = { "neige" => 28, "volcan" => 29, "forêt sombre" => 30, "marais" => 30, "forêt tropicale" => 30 }.freeze
+  # moss, mine. The others keep CAVE_TILESET.
+  CAVE_STYLES = { "neige" => 28, "volcan" => 29, "forêt sombre" => 30, "marais" => 30, "forêt tropicale" => 30,
+                  "minérale" => 31, "haute montagne" => 31 }.freeze
   CAVE_AREA = :cave
   CAVE_FLOOR = "T42"
   CAVE_ROCK = "T40"

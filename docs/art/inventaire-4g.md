@@ -125,10 +125,10 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 | A1 à A5 | Murs de grotte gris et beiges, formations rocheuses, lac souterrain, arbre de corail mort | Variantes de grotte par biome (Cave 4G n'a qu'une roche) |
 | A6 à A9 | Roches violettes et rouges, **bassins de lave** | Grottes du **volcan** : **sol rouge fait (#300)** |
 | A10 à A13, A18 | Cristaux et sol de **glace**, plafonds enneigés | Grottes de la **neige** : **fait (#300)** |
-| A14, A15 | Passerelles et rails de grotte | Galeries de mine |
-| A16, A17 | Planchers et caisses en bois | Mine, repaire des Contrebandiers |
+| A14, A15 | Passerelles et rails de grotte | Galeries de mine : non repris (#300), les grottes générées ne posent pas de décor |
+| A16, A17 | Planchers et caisses en bois | Mine, repaire des Contrebandiers : **plaques de gravier et sol pavé faits (#300)** pour le style mine ; planchers et caisses non repris |
 | A19 à A21 | Grottes moussues et brunes | Grottes des forêts et des marais : **fait (#300)** |
-| A22 à A24 | Intérieur de temple rouge, **tourbillon** | Sanctuaire d'Arceus, tourbillons en mer |
+| A22 à A24 | Intérieur de temple rouge, **tourbillon** | Sanctuaire d'Arceus, tourbillons en mer : non repris (#300), le temple est un bâtiment entier et le tourbillon est coupé par le bord de la planche |
 
 ### Johto (JohtoCompactExterior et Johtoshiptile)
 
