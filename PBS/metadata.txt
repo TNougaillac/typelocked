@@ -31,3 +31,23 @@ SurfCharset = hero_girl_surf
 DiveCharset = hero_girl_surf
 FishCharset = hero_girl_fish
 SurfFishCharset = hero_girl_fish
+#-------------------------------
+[3]
+TrainerType = POKEMONTRAINER_Brendan
+WalkCharset = hero_lucas
+RunCharset = hero_lucas_run
+CycleCharset = hero_lucas_bike
+SurfCharset = hero_lucas_surf
+DiveCharset = hero_lucas_surf
+FishCharset = hero_lucas_fish
+SurfFishCharset = hero_lucas_fish
+#-------------------------------
+[4]
+TrainerType = POKEMONTRAINER_May
+WalkCharset = hero_dawn
+RunCharset = hero_dawn_run
+CycleCharset = hero_dawn_bike
+SurfCharset = hero_dawn_surf
+DiveCharset = hero_dawn_surf
+FishCharset = hero_dawn_fish
+SurfFishCharset = hero_dawn_fish
