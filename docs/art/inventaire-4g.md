@@ -179,7 +179,7 @@ Compte des tuiles retrouvées dans le jeu, sur le nombre de tuiles dessinées (`
 | DPPt `Concrete Path`, `Dirt Path`, `Grassy Path`, `Path` | 16/96, 16/96, 16/96, 12/96 | Chemins à bords arrondis (seuls les centres sont pris) : rues de terre et de béton des styles de ville |
 | DPPt `Canalave`, `Hearthome`, `Jubilife`, `Oreburgh City Set`, `Eterna City Road` | 16/120, 16/120, 16/100, 4/112, 8/60 | Sols de ville propres à chaque style |
 | DPPt `Eterna Forest Set` | 40/192 | Sol de **forêt sombre** : **fait (#295)** |
-| DPPt `Snow Patches` | 13/64 | Plaques de neige sur l'herbe (lisière du biome neige) |
+| DPPt `Snow Patches` | 13/64 | Plaques de neige sur l'herbe (lisière du biome neige) : **fait (#301)**, congères posées en haute montagne |
 | DPPt `Berry Soil` | 4/36 | **Terre à baies** (champ labouré, potager) |
 | DPPt `Ledges` | 8/58 | Corniches DPPt |
 | DPPt `Flower` (quatre autotiles), `Flowers (Static)`, `Grass`, `Tall Grass` | 0 | Fleurs 4G (remplacent les fleurs * T4046 de la prairie) |
