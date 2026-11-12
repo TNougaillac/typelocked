@@ -119,9 +119,14 @@ module MapProceduralGenerator
       @bricks.select! { |b| !b.ambiances || b.ambiances.include?(place.ambiance) }
       # and some left out by the place's excess
       @bricks.reject! { |b| excess[:without]&.include?(b.name) }
-      # and the houses of another style than the place's (HOUSE_STYLES)
-      houses = HOUSE_STYLES[house_style(place, seed)][:houses]
-      @bricks.reject! { |b| b.kind == "maison" && !houses.include?(b.name) } if @bricks.any? { |b| b.kind == "maison" && houses.include?(b.name) }
+      # and the houses, fences and furniture of another style than the
+      # place's (HOUSE_STYLES, STYLE_KINDS)
+      style = HOUSE_STYLES[house_style(place, seed)]
+      STYLE_KINDS.each do |kind, key|
+        names = style[key]
+        next if !@bricks.any? { |b| b.kind == kind && names.include?(b.name) }
+        @bricks.reject! { |b| b.kind == kind && !names.include?(b.name) }
+      end
       @left_out -= @bricks.map(&:kind)
       @palette = palette
       @seed = seed

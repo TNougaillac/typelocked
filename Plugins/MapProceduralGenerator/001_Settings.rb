@@ -282,24 +282,35 @@ module MapProceduralGenerator
   # brick type => [models in a place of one square (20x20 tiles), more models
   # for each other square]. A village has 2 house models, a big town more.
   MODELS = { "maison" => [2, 0.6], "immeuble" => [1, 0.4], "batisse" => [1, 0.4] }.freeze
-  # Styles of houses: a place builds all its houses (« maison ») in one of
-  # them, so that their roofs and walls go together. weight: how often it is
-  # drawn, more in some ambiances; houses: the names of their bricks.
+  # Styles of towns: a place builds all its houses (« maison »), fences
+  # (« barriere ») and street furniture (« lampe ») in one of them, so that
+  # its roofs, walls, fences and lamps go together (#298). weight: how often
+  # it is drawn, more in some ambiances; houses, fences, furniture: the names
+  # of their bricks (a kind left with none of them in an ambiance keeps all
+  # of its bricks).
   HOUSE_STYLES = {
     "rustique" => { weight: 1, ambiances: { "chemins de terre" => 3, "automne" => 3, "marais" => 4, "terre battue" => 2, "neige" => 2 },
                     houses: ["Case en paille", "Chalet rouge", "Chaumière", "Chaumière à cheminée", "Maison aux bardeaux",
-                             "Maison en bois", "Maison ocre", "Maison en rondins"] },
+                             "Maison en bois", "Maison ocre", "Maison en rondins"],
+                    fences: ["Barrière le long du chemin", "Longue barrière le long du chemin", "Très longue barrière le long du chemin"],
+                    furniture: ["Banc de bois", "Lanterne suspendue", "Lanternes en bois", "Jardinière", "Boîte aux lettres"] },
     "chaud"    => { weight: 2, ambiances: { "sable" => 3, "volcan" => 4, "plage" => 3, "terre battue" => 2 },
                     houses: ["Maison bordeaux à cheminée", "Maison orange à balustrade", "Maison crème", "Maison orange",
                              "Maison orange à escalier", "Maison rouge à auvent", "Maison au toit rouge", "Maison verte à cheminée",
-                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge"] },
+                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge"],
+                    fences: ["Palissade le long du chemin", "Longue palissade le long du chemin"],
+                    furniture: ["Réverbère rouge", "Bancs", "Jardinière", "Lampadaire", "Boîte aux lettres"] },
     "froid"    => { weight: 2, ambiances: { "neige" => 3, "minérale" => 3, "verdoyante" => 2, "prairie" => 2 },
                     houses: ["Garage", "Maison à auvent vert", "Maison bleue à cheminée", "Maison et jardin", "Maison mauve",
                              "Maison au toit de mousse", "Maison au pignon bleu", "Petite maison à toit plat", "Maison turquoise à annexe",
                              "Haute maison turquoise", "Maison violette", "Grande maison aux tuiles violettes", "Maison au toit vitré",
-                             "Maison au toit vitré bleu", "Petite maison verte"] }
+                             "Maison au toit vitré bleu", "Petite maison verte"],
+                    fences: ["Barrière blanche le long du chemin", "Longue barrière blanche le long du chemin"],
+                    furniture: ["Réverbère turquoise", "Bouche d'incendie", "Lampadaire d'Émeraude", "Distributeurs", "Bancs"] }
   }.freeze
   HOUSE_STYLE_SALT = 5381
+  # Brick type => the key of HOUSE_STYLES that lists its bricks
+  STYLE_KINDS = { "maison" => :houses, "barriere" => :fences, "lampe" => :furniture }.freeze
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
   LAST_KINDS = %w[batisse special barriere].freeze

@@ -1,0 +1,6 @@
+# Barrière blanche le long d'une rue ou d'un chemin (villes de style froid, #298).
+Brique = Barrière blanche le long du chemin
+Type   = barriere
+Contre = rue
+[Map]
+ʛʛʛʛ

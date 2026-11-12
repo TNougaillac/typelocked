@@ -1,0 +1,6 @@
+# Réverbère rouge, le long d'une rue (style chaud, #298).
+Brique = Réverbère rouge
+Type   = lampe
+Contre = rue
+[Map]
+ʝʝ
