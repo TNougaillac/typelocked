@@ -230,7 +230,10 @@ module MapProceduralGenerator
   # drawn among those of its brick type: [map ID, x, y of its exit (the door
   # mat, the player arrives just above it)]. The copy keeps the map's tiles,
   # not its events. A centre's copy is the healing spot of its town.
-  HOUSE_INTERIORS = [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]].freeze
+  # Houses: the rooms of Mew's Gen 4 Interior Tiles (#322, maps written by
+  # tools/art/interior_mew.py on the Interior Mew tileset); the guilds keep
+  # the demo's houses (6, 8, 26, 27) of their leaders' spots.
+  HOUSE_INTERIORS = [[21, 5, 8], [22, 5, 8], [23, 6, 9], [28, 4, 7]].freeze
   INTERIORS = {
     "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
     "boutique" => [[25, 4, 8], [54, 4, 8]],

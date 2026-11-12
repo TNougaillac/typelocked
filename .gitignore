@@ -6,3 +6,8 @@ Data/MapProcAtlas.rxdata
 
 # Maps of the generated worlds (the demo maps already in the repo stay tracked)
 Data/Map[0-9]*.rxdata
+# ... but the house rooms of tools/art/interior_mew.py (#322), on IDs the demo left free
+!Data/Map021.rxdata
+!Data/Map022.rxdata
+!Data/Map023.rxdata
+!Data/Map028.rxdata
