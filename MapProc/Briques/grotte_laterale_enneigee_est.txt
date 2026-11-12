@@ -1,0 +1,10 @@
+# Entrée de grotte latérale : un rocher gris sous la neige dont la bouche s'ouvre vers
+# l'est ; on y entre de côté (#296). Posée comme les autres entrées de grotte.
+Brique    = Entrée latérale enneigée (est)
+Type      = grotte
+Ambiances = neige
+Porte     = 1,1 est
+[Map]
+ѨѨ
+ѨѨ
+ѨѨ

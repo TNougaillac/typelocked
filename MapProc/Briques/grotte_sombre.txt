@@ -1,0 +1,10 @@
+# Entrée de grotte sombre : un petit trou dans la terre, en forêt sombre
+# (#296). Posée comme les autres entrées, sur les routes qui passent par une
+# grotte.
+Brique    = Entrée de grotte sombre
+Type      = grotte
+Ambiances = forêt sombre
+Porte     = 1,1
+[Map]
+ѣѣѣ
+ѣѣѣ

@@ -692,6 +692,43 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ʐ = T16078 2x2         # plante de plage
 ʑ = T16088 2x2         # fougère (forêt sombre ; DPPt, Forêt Vestigion)
 ʓ = T16208 3x3               # arbre remarquable (Remastered Johto, une fois par lieu, #297)
+# Talus (SirMalo, #296) : deux gradins de terre ou de roche, un bout gauche,
+# deux milieux qui alternent, un bout droit
+ϩ = T17285 1x2 halo=1x3@0,1   # talus de terre, bout gauche
+Ϫ = T17286 1x2 halo=1x3@0,1   # talus de terre, milieu
+ϫ = T17287 1x2 halo=1x3@0,1   # talus de terre, milieu (bis)
+Ϭ = T17312 1x2 halo=1x3@0,1   # talus de terre, bout droit
+ϭ = T17313 1x2 halo=1x3@0,1   # talus rocheux, bout gauche
+Ϯ = T17314 1x2 halo=1x3@0,1   # talus rocheux, milieu
+ϯ = T17315 1x2 halo=1x3@0,1   # talus rocheux, milieu (bis)
+Ѡ = T17316 1x2 halo=1x3@0,1   # talus rocheux, bout droit
+# Bosses : une courte corniche que l'on saute vers le sud (passages de la corniche)
+ѡ = T17329 2x1 halo=4x1@1,0   # bosse de terre
+Ѣ = T17333 2x1 halo=4x1@1,0   # bosse de pierre
+ѣ = T17336 3x2   # entrée de grotte sombre (forêt sombre ; porte au milieu de la rangée du bas)
+# Entrées de grotte latérales (SirMalo, #296) : la bouche s'ouvre vers l'est ou
+# l'ouest (« Porte = 1,1 est »), son seuil en halo devant elle
+Ѥ = T17339 2x3 halo=3x3@0,0   # entrée latérale brune (est)
+ѥ = T17361 2x3 halo=3x3@1,0   # entrée latérale brune (ouest)
+Ѧ = T17363 2x3 halo=3x3@0,0   # entrée latérale grise (est)
+ѧ = T17385 2x3 halo=3x3@1,0   # entrée latérale grise (ouest)
+Ѩ = T17387 2x3 halo=4x3@0,0/3   # entrée latérale enneigée (est)
+ѩ = T17410 2x3 halo=4x3@2,0/0   # entrée latérale enneigée (ouest)
+# Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,
+# son rebord à cheval sur les cases (sa moitié extérieure en halo) ; un bout
+# gauche, un milieu répété, un bout droit
+ʫ = T17217 1x2 halo=2x4@1,1   # terrasse de terre, bout gauche
+ʬ = T17218 1x2 halo=1x4@0,1   # terrasse de terre, milieu
+ʭ = T17219 1x2 halo=2x4@0,1   # terrasse de terre, bout droit
+ʮ = T17222 1x2 halo=2x4@1,1   # terrasse de pierre, bout gauche
+ʯ = T17223 1x2 halo=1x4@0,1   # terrasse de pierre, milieu
+Ϣ = T17248 1x2 halo=2x4@0,1   # terrasse de pierre, bout droit
+ϣ = T17251 1x2 halo=2x4@1,1   # terrasse herbeuse, bout gauche
+Ϥ = T17252 1x2 halo=1x4@0,1   # terrasse herbeuse, milieu
+ϥ = T17253 1x2 halo=2x4@0,1   # terrasse herbeuse, bout droit
+Ϧ = T17281 1x2 halo=2x4@1,1   # terrasse moussue, bout gauche
+ϧ = T17282 1x2 halo=1x4@0,1   # terrasse moussue, milieu
+Ϩ = T17283 1x2 halo=2x4@0,1   # terrasse moussue, bout droit
 ʔ = T16211 1x2               # oranger (verger, Remastered Kanto)
 ʕ = T16212 1x2               # arbre en fleurs (verger)
 ʖ = T16213 1x2               # pommier en fleurs (verger)

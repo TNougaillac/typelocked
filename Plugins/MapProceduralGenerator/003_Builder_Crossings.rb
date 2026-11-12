@@ -272,12 +272,16 @@ module MapProceduralGenerator
     def place_cave_entrances(start, depth)
       return if !@bricks.any? { |b| b.kind == CAVE }
       [[0, start], [start + depth, vertical_route? ? @h : @w]].each do |from, to|
+        # The brick and the path that leaves its door (below it, or beside a
+        # side door), all on that side of the wall
         side = lambda do |brick, x, y|
-          a0 = vertical_route? ? y : x
-          a1 = a0 + (vertical_route? ? brick.rows.length + STREET_WIDTH : brick.rows[0].length)
-          next a0 >= from && a1 <= to
+          ax, ay = brick.path_start
+          a0, size, path = vertical_route? ? [y, brick.rows.length, ay] : [x, brick.rows[0].length, ax]
+          next [a0, a0 + path].min >= from && [a0 + size, a0 + path + STREET_WIDTH].max <= to
         end
         next if place_brick(CAVE, side)
+        # The drawn entrance didn't fit: any other one
+        next if @bricks.select { |b| b.kind == CAVE }.sort_by(&:name).any? { |b| put_brick(b, side) }
         error("impossible de placer l'entrée de la grotte ; allonge la route")
       end
     end

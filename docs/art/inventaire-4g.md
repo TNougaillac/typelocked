@@ -51,18 +51,18 @@ Les planches Remastered Johto et Kanto reprennent en partie les rips HGSS de Sir
 | D1, D4 | Buissons et **haies** taillées (rangées, coins) | Haies 4G (remplacent î T669 et û T685, et les haies de la prairie T4040 à T4169) |
 | D2, D3 | Parterres de tulipes, jardinière en bois, petits buissons fleuris, banc | Décor des villes et parcs (remplace â T523) |
 | D6 | Arbres d'automne jaune et rouge, souches mortes | Arbres de l'ambiance **automne**, bois mort des marais : **fait (#295)** |
-| E1 à E5 | Rebords de petits plateaux (terre, pierre, herbe) et mare sombre | Terrasses basses des villes et des parcs |
+| E1 à E5 | Rebords de petits plateaux (terre, pierre, herbe) et mare sombre | Terrasses basses des villes et des parcs : **fait (#296)** |
 | E6, E7 | Mur de pierre, bassins bleus bordés de sable, petits arbres | Bassins des places, jardins |
 | E8 | Bois flotté, petites plantes | Décor des **plages** : **fait (#295)** |
 | F3, G3 | Grands rebords de falaise vus de face (terre, pierre), plateaux d'herbe | Bord sud des massifs larges |
-| F5, G5 | Falaises au bord de l'herbe et de l'eau | Falaises qui plongent dans un lac |
+| F5, G5 | Falaises au bord de l'herbe et de l'eau | Falaises qui plongent dans un lac : non repris (#296), ce sont des pentes de falaise vers l'herbe |
 | F6, G6 | Plateaux de terre rouge | Relief du **volcan** ou d'un canyon : **fait (#295)** |
 | H1, H2, I1, I2 | Falaises de sable | Relief des **plages** et du désert : **fait (#295)** |
 | H3 à H5, I3 à I5 | Falaises enneigées | À comparer aux falaises teintées du biome neige (#204) : la version d'origine est peut-être plus fine |
 | H6, H7 | Rebords moussus vert d'eau | Rives des **marais** : **fait (#295)** |
-| I6 à I8 | Bordures de jardin, grands talus de terre, entrée de grotte sombre | Talus des routes de campagne, entrées de grotte |
-| J1, J4 | **Corniches** à sens unique (terre, pierre) | Corniches 4G (rebords où l'on saute) |
-| J2, J3, J5, J6 | Entrées de grotte avec éboulis (terre, neige, pierre) | Entrées de grotte variées par biome |
+| I6 à I8 | Bordures de jardin, grands talus de terre, entrée de grotte sombre | Talus des routes de campagne, entrées de grotte : **talus et grotte sombre faits (#296)** |
+| J1, J4 | **Corniches** à sens unique (terre, pierre) | Corniches 4G (rebords où l'on saute) : **fait (#296)** |
+| J2, J3, J5, J6 | Entrées de grotte avec éboulis (terre, neige, pierre) | Entrées de grotte variées par biome : **J2, J5, J6 faits (#296)**, entrées latérales brune, grise et enneigée ; J3 non repris |
 
 ## SirMalo — Buildings
 
