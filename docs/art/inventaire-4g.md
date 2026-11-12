@@ -104,7 +104,7 @@ Les maisons, Centres, Boutiques et arènes par type sont déjà dans le jeu (#19
 | C8 | Murets de pierre | Enclos de place, jardins |
 | D1 à D5 | **Clôtures** : poteaux en bois, palissade blanche, garde-corps métalliques, bornes | Clôtures 4G des villes (les enclos en bois sont déjà dans le jeu) : **en partie fait (#298)** |
 | E1 à E5 | Mobilier urbain : boîte aux lettres, poubelles, réverbères, panneaux, distributeurs | Décor de rue (les réverbères et bancs sont en partie déjà là, #200) : **en partie fait (#298)** |
-| F1 à F4 | Éoliennes, rochers, panneaux d'affichage, étal de fruits, lanternes, bouche d'incendie, statues | Décor de ferme (éoliennes), de marché et de place |
+| F1 à F4 | Éoliennes, rochers, panneaux d'affichage, étal de fruits, lanternes, bouche d'incendie, statues | Décor de ferme (éoliennes), de marché et de place : **faits (#320)** sauf la vasque et le range-vélos (débordent de la colonne) |
 
 ## Mew's Gen 4 Interior Tiles
 

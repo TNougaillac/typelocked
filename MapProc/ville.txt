@@ -688,6 +688,17 @@ I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le m
 ҋ = T18412 2x2   # rocher
 Ҍ = T18414 1x1   # caillou enneigé
 ҍ = T18440 3x1   # terre à baies
+# Décor de rue et de marché 4G (#320, tools/art/street_decor_4g.py, SirMalo Urban F)
+Ґ = T18568 3x1 halo=3x6@0,5/0,2,5,8,9,11,14   # éolienne
+ґ = T18539 2x1 halo=2x2@0,1   # bûches
+Ғ = T18541 2x1 halo=2x2@0,1   # tas de rochers
+Ҕ = T18594 3x1 halo=3x3@0,2   # cloche
+ғ = T18592 2x1 halo=2x3@0,2   # panneau Pokémon
+Җ = T18589 2x1 halo=2x2@0,1   # table
+җ = T18591 1x1 halo=1x2@0,1   # panneau d'affichage
+Ҙ = T18616 4x2 halo=4x4@0,2   # étal bleu
+ҙ = T18612 3x1 halo=3x2@0,1   # distributeurs
+қ = T18648 2x1 halo=2x3@0,2   # statue à la sphère
 # Bâtiments uniques, partie 2 (SirMalo, #299) : dôme futuriste, tour de verre
 # (en deux objets côte à côte dès qu'un dessin dépasse 8 cases)
 Ѭ = T17625 7x4 halo=8x16@1,10/0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,32,33,40,112,120,121,122   # dôme futuriste, partie 1 (porte 7,3 de la brique)

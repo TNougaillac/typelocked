@@ -1,0 +1,7 @@
+# Cloche sous son portique (SirMalo Urban F2) (#320).
+Brique    = Cloche
+Type      = decor
+Ambiances = verdoyante, automne
+Unique    = oui
+[Map]
+ҔҔҔ

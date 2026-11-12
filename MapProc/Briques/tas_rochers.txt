@@ -1,0 +1,6 @@
+# Tas de rochers (SirMalo Urban F2) (#320).
+Brique    = Tas de rochers
+Type      = decor
+Ambiances = minérale, haute montagne
+[Map]
+ҒҒ
