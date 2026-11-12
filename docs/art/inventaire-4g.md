@@ -76,10 +76,10 @@ Les maisons, Centres, Boutiques et arènes par type sont déjà dans le jeu (#19
 | F9, F10 | **Pagode** violette (tour à étages) | Tour du Pacte, lieu de lore lié à Arceus : **fait (#299)** |
 | G6, G7 | Nénuphars ; quai couvert à toit gris | Gare maritime, marais |
 | H1 à H3 | Coin en brique rouge, **arche** décorée, étals de marché à auvent orange | Entrée de ville, marché : **étal fait (#299)** |
-| I6, I7 | Grand bâtiment à toit orange | Théâtre, salle des fêtes de la Famille |
+| I6, I7 | Grand bâtiment à toit orange | Théâtre, salle des fêtes de la Famille : **fait (#321)** |
 | I8 à I10 | Rails métalliques courbes | Voie ferrée, montagnes russes de la foire |
 | J1 à J5 | Grand **dôme** futuriste bleu et or | Stade, siège de la Famille dans une métropole : **fait (#299)** |
-| J9, K1 | Bâtiment rouge à l'entrée japonaise, maison à toit bleu | Dojo, manoir d'un Ancien |
+| J9, K1 | Bâtiment rouge à l'entrée japonaise, maison à toit bleu | Dojo, manoir d'un Ancien : **faits (#321)** |
 | K5 | Guirlandes de fanions sur poteaux | Foire des Forains, fête de ville : **fait (#299)** |
 | K10, L3, L4 | **Voilier**, **paquebot** | Ports (remplacent le bateau b T1096) : paquebot non repris (#299), trop grand pour la mer d'un port |
 | L1, L2 | **Phare** | Ports et caps : **fait (#299)** |

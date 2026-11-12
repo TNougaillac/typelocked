@@ -1054,7 +1054,11 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_weather(seed, events, worlds)
       worlds.merge(nil => events).each do |type, typed|
         typed_plans = typed[:plans].to_h { |name, text| [name, MapEvents.parse(text, "#{where}, #{name}")] }
-        check_revisits(atlas, zones.to_h { |z| [z.name, z] }, typed_plans, type, roster, tms).each_with_index { |n, i| revisits[i] += n }
+        nooks, pokemon, lore = check_revisits(atlas, zones.to_h { |z| [z.name, z] }, typed_plans, type, roster, tms)
+        # The nooks once a world: its imposed types draw them again with the same dice
+        revisits[0] += nooks if !type
+        revisits[1] += pokemon
+        revisits[2] += lore
         check_rewards(result, atlas, typed_plans, typed[:guilds], type, items).compact.each { |kind| rewards[kind] += 1 }
       end
       type = worlds.keys.first
@@ -1077,9 +1081,17 @@ share = guild_among.zero? ? 0 : (guild_walkers * 100.0 / guild_among).round
 if guild_among >= 30 && !((W::GUILD_ROUTE_CHANCE - 15)..(W::GUILD_ROUTE_CHANCE + 15)).cover?(share)
   CI.error(settings, nil, "GUILD_ROUTE_CHANCE : #{share} % de membres de guilde sur leurs routes (#{guild_walkers}/#{guild_among})")
 end
-# A share of the nooks to come back to holds a Pokémon, another a trace
+# A share of the nooks to come back to holds a Pokémon, another a trace: in
+# the worlds (once 20 nooks are drawn), and on 40 nooks of one draw
 nooks, pokemon, lore = revisits
-puts "Recoins à revisiter : #{nooks}, dont #{pokemon} Pokémon et #{lore} traces du Pacte"
+puts "Recoins à revisiter : #{nooks}, dont #{pokemon} Pokémon et #{lore} traces du Pacte (sous tous les types)"
+slots = Array.new(40) { { revisit: true, seals: 0 } }
+zone = Struct.new(:seals, :levels).new(0, [10, 20])
+W.revisit_loot(slots, { "zone" => zone }, { species: roster, type: :WATER, caps: E::CAPS, rng: Random.new(1) })
+if slots.none? { |slot| slot[:pokemon] } || slots.none? { |slot| slot[:lore] }
+  CI.error(settings, nil, "REVISIT_POKEMON, REVISIT_LORE : #{slots.count { |slot| slot[:pokemon] }} Pokémon et " \
+                          "#{slots.count { |slot| slot[:lore] }} traces du Pacte dans 40 recoins")
+end
 if nooks >= 20
   CI.error(settings, nil, "REVISIT_POKEMON : aucun Pokémon dans #{nooks} recoins à revisiter") if pokemon.zero?
   CI.error(settings, nil, "REVISIT_LORE : aucune trace du Pacte dans #{nooks} recoins à revisiter") if lore.zero?
