@@ -110,7 +110,7 @@ Les maisons, Centres, Boutiques et arènes par type sont déjà dans le jeu (#19
 
 ![Mew's Gen 4 Interior Tiles](inventaire-4g/mew-interior.png)
 
-Seuls les sols sont utilisés (#194). Le reste est le **mobilier 4G** des intérieurs (#46) : murs en bois, pierre et plâtre (A1 à B7), fenêtres (A6 à B8), rideaux et horloge (B8), tables et nappes (A9, A10), tapis (B10), bibliothèques et commodes (A11, B11), plante verte, réfrigérateurs (A12, B12), bureaux (A13).
+Les sols servent au tileset Interior 4G (#194). **La planche entière est le tileset Interior Mew (#322)** : murs, sols et mobilier des quatre pièces de maison (`tools/art/interior_mew.py`). Mobilier : murs en bois, pierre et plâtre (A1 à B7), fenêtres (A6 à B8), rideaux et horloge (B8), tables et nappes (A9, A10), tapis (B10), bibliothèques et commodes (A11, B11), plante verte, réfrigérateurs (A12, B12), bureaux (A13).
 
 ## Remastered Kanto Johto Map Pack
 

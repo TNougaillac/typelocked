@@ -290,6 +290,11 @@ module WorldEvents
   HOUSE_BUILDINGS = %w[maison immeuble port special].freeze
   HOUSE_SPOTS = {
     6  => [[7, 4, "bas"]],
+    # The rooms of Mew (#322, tools/art/interior_mew.py)
+    21 => [[2, 5, "bas"], [8, 6, "gauche"]],
+    22 => [[3, 5, "bas"], [7, 6, "bas"]],
+    23 => [[5, 6, "bas"], [8, 7, "gauche"]],
+    28 => [[4, 5, "bas"]],
     8  => [[1, 4, "bas"], [5, 4, "bas"], [8, 4, "bas"]],
     11 => [[5, 3, "bas"], [10, 3, "bas"]],
     12 => [[2, 7, "bas"], [6, 7, "bas"], [10, 7, "bas"]],
