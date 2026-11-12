@@ -76,6 +76,8 @@ dundees = 0
 barriere = 0..2 par case
 # Enclos : un pré fermé de barrières (ambiances d'herbe)
 enclos   = 0..1
+# Arbre remarquable : un grand arbre, une fois par lieu au plus (#297).
+remarquable = 0..1
 decor  = 0
 
 # Ambiances : chaque route en tire une selon son poids (l'herbe le plus souvent).
@@ -623,7 +625,7 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 û = T15688 3x1 halo=3x2@0,1   # haie (SirMalo ; son dessus passe devant le joueur)
 a = T9880 2x2        # gros rocher brun (désert)
 i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
-t = T5248 2x2 forest=T5296         # arbre
+t = T5248 2x2 forest=T5296 mix=T16112/T16160   # arbre (deux essences mêlées, #297)
 R = T15784 3x2         # rocher (SirMalo ; mur que l'on passe par la grotte)
 W = T6529 4x4 halo=6x6@1,1/0,1,4,5,24,30   # maison rouge en bois (refuge)
 V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
@@ -689,3 +691,9 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ʏ = T16076 2x1         # bois flotté (plage)
 ʐ = T16078 2x2         # plante de plage
 ʑ = T16088 2x2         # fougère (forêt sombre ; DPPt, Forêt Vestigion)
+ʓ = T16208 3x3               # arbre remarquable (Remastered Johto, une fois par lieu, #297)
+ʔ = T16211 1x2               # oranger (verger, Remastered Kanto)
+ʕ = T16212 1x2               # arbre en fleurs (verger)
+ʖ = T16213 1x2               # pommier en fleurs (verger)
+ʗ = T16214 1x2               # jeune arbre (verger)
+ʙ = T16215 1x1         # buisson fruitier (verger)
