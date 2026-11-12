@@ -1,0 +1,8 @@
+# Terrasse basse bordée d'herbe : un massif surélevé (#296).
+Brique    = Terrasse herbeuse
+Type      = decor
+Ambiances = verdoyante, plage
+Poids     = 3
+[Map]
+ϣϤϤϥ
+ϣϤϤϥ
