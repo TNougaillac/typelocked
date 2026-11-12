@@ -17,7 +17,7 @@ module MapProceduralGenerator
   # floor (exits, ladders, floor, far; loot in a dark cave); warps: [[x, y,
   # target map name, tx, ty]]; seed: of the walls and decorations drawn by
   # the painter; dark: a dark cave (a nook, see NOOKS)
-  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark)
+  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark, :tileset)
 
   module_function
 
@@ -250,7 +250,7 @@ module MapProceduralGenerator
     text = +"# Grotte de #{route}, générée par MapProceduralGenerator (#{floor.dark ? 'grotte sombre' : (floor.level == 0) ? '1er étage' : 'sous-sol'}).\n"
     text << "# Les murs sont dessinés par le générateur de donjon d'Essentials quand la carte est écrite.\n"
     text << "Name    = #{floor.name}\n"
-    text << "Tileset = #{CAVE_TILESET}\n"
+    text << "Tileset = #{floor.tileset || CAVE_TILESET}\n"
     text << "Ground  = .\n"
     text << "\n[Legend]\n. = #{CAVE_FLOOR}\nx = #{CAVE_ROCK}\n"
     text << "\n[Warps]\n"

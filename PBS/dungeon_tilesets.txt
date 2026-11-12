@@ -7,3 +7,27 @@ Tile = 41,void_decoration
 Tile = 42,floor
 Tile = 0,walls
 FloorPatchUnderWalls = true
+#-------------------------------
+[28]   # Cave 4G glace
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
+#-------------------------------
+[29]   # Cave 4G lave
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
+#-------------------------------
+[30]   # Cave 4G mousse
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
