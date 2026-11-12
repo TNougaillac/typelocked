@@ -78,16 +78,16 @@ Les maisons, Centres, Boutiques et arènes par type sont déjà dans le jeu (#19
 | H1 à H3 | Coin en brique rouge, **arche** décorée, étals de marché à auvent orange | Entrée de ville, marché : **étal fait (#299)** |
 | I6, I7 | Grand bâtiment à toit orange | Théâtre, salle des fêtes de la Famille |
 | I8 à I10 | Rails métalliques courbes | Voie ferrée, montagnes russes de la foire |
-| J1 à J5 | Grand **dôme** futuriste bleu et or | Stade, siège de la Famille dans une métropole |
+| J1 à J5 | Grand **dôme** futuriste bleu et or | Stade, siège de la Famille dans une métropole : **fait (#299)** |
 | J9, K1 | Bâtiment rouge à l'entrée japonaise, maison à toit bleu | Dojo, manoir d'un Ancien |
 | K5 | Guirlandes de fanions sur poteaux | Foire des Forains, fête de ville : **fait (#299)** |
-| K10, L3, L4 | **Voilier**, **paquebot** | Ports (remplacent le bateau b T1096) |
+| K10, L3, L4 | **Voilier**, **paquebot** | Ports (remplacent le bateau b T1096) : paquebot non repris (#299), trop grand pour la mer d'un port |
 | L1, L2 | **Phare** | Ports et caps : **fait (#299)** |
 | L7, L8 | Portique en bois | Entrée de quai ou de parc |
 | M3 à M6 | Étals à auvent rayé vert | Marchés, marchand ambulant (#176) |
 | M7 à M10 | Bâtiment octogonal à toit rouge | Salle de jeux, casino de la Famille : **fait (#299)** |
 | N4 à N8 | Bâtiment à toit vert en bois, bâtiment à toit rose vitré | Boutiques spéciales, QG de guilde |
-| P5, P6 | Tour de verre bleue | Gratte-ciel de métropole |
+| P5, P6 | Tour de verre bleue | Gratte-ciel de métropole : **fait (#299)**, sans porte |
 | Q3 à Q5 | Bâtiment à toit rouge et blanc | Gare, grand magasin : **fait (#299)** |
 | R1 à R3 | Serre en verre arrondie | Jardin botanique, labo de recherche : **fait (#299)** |
 
@@ -163,7 +163,7 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 | A8, A9 | Arbres ronds, arbres fruitiers, plantes, fleurs | Vergers des Éleveurs, parcs : **fait (#297)** |
 | A10, A11, A22, A23 | Maisons à toit rouge, brun, vert, violet ; haies | Styles de maisons en plus (#199) |
 | A14, A15 | Lampadaires, parterres de fleurs | Décor de rue |
-| A16, A29 | Tours de verre | Gratte-ciel de métropole |
+| A16, A29 | Tours de verre | Gratte-ciel de métropole : **fait (#299)**, sans porte |
 | A17, A21 | Auvent de marché, **pont en bois**, clôtures blanches | Marchés, rivières |
 | A26, A32 | Bâtiment jaune, bâtiment à toit orange | Grands magasins |
 | A30 | **Phare** rouge et blanc | Ports |
