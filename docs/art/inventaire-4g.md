@@ -184,7 +184,7 @@ Compte des tuiles retrouvées dans le jeu, sur le nombre de tuiles dessinées (`
 | DPPt `Ledges` | 8/58 | Corniches DPPt |
 | DPPt `Flower` (quatre autotiles), `Flowers (Static)`, `Grass`, `Tall Grass` | 0 | Fleurs 4G (remplacent les fleurs * T4046 de la prairie) |
 | HGSS `Flowers 02`, `Flowers 04` | 0/25, 0/25 | Fleurs d'autres couleurs : **`Flowers 02` fait (#301)**, en autotile supplémentaire |
-| HGSS `Beach` | 0/288 | Rive de sable animée (remplace les rives T833 et T841) |
+| HGSS `Beach` | 0/288 | Rive de sable animée (remplace les rives T833 et T841) : **fait (#301)**, autotile `HGSS Shore` (A7) de la plage |
 | HGSS `Ledge` | 224/320 | Corniches (en partie déjà prises) |
 | HGSS `Waves`, `Sea`, `Beach Corner` | 218/288, 224/352, 192/352 | Déjà utilisés, sauf quelques images |
 | Remastered `Lake`, `Land`, `Land2`, `STILL`, `Cavewater`, `A_beach`, `TFJ_Waterfall` | 0 | Eau des grottes (Cavewater), cascades 4G animées (TFJ_Waterfall, à la place des cascades d'Essentials : non repris (#301), bleu nuit quand l'eau du jeu est bleu clair ; les cascades d'Essentials sont animées à la place), lacs |

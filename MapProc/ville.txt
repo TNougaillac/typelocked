@@ -297,6 +297,16 @@ decor = 1..2 par case
 Poids = 3
 Mer   = oui
 Sol   = T162
+# Rive de sable animée (#301) : l'eau de la plage est l'autotile A7 (HGSS Shore,
+# tools/art/shore_4g.py), les vagues sur le sable, à la place de la berge de terre de A1
+~ = {sol} A7
+( = {sol} A7 T1221
+_ = {sol} A7 T1222
+) = {sol} A7 T1223
+% = {sol} A7 A6
+$ = {sol} A7 A4
+£ = {sol} A7 A4
+µ = {sol} A7 A6
 " = T124                # hautes herbes sur le sable (le fond vert de T18062 est opaque)
 : = {sol} T18063             # herbes très hautes sur le sable
 ; = T175

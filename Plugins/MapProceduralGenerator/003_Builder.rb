@@ -77,10 +77,10 @@ module MapProceduralGenerator
   # Brick types of the nooks, drawn by the builder: a pocket of ground in the
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
-  # The sea autotile (A1), whose bottom edge is drawn by the bank below it
-  # (« Rive » of the place file) on the ground of the row underneath, unless
-  # it draws its own (« EauBordee »)
-  SEA_TILES = (48...96).freeze
+  # The sea autotiles (A1, and A7: the sandy shore of the beach, #301), whose
+  # bottom edge is drawn by the bank below it (« Rive » of the place file) on
+  # the ground of the row underneath, unless it draws its own (« EauBordee »)
+  SEA_TILES = ((48...96).to_a + (336...384).to_a).freeze
   NOOK = "recoin"
   ISLET = "ilot"
   DARK_CAVE = "grotte sombre"

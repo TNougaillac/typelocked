@@ -249,12 +249,12 @@ def check_spill(plan, name)
   end
 end
 
-# Raises on a sea cell (autotile A1) with a dirty edge: below it, only more
+# Raises on a sea cell (autotile A1 or A7) with a dirty edge: below it, only more
 # water, the place's bank tiles, a mountain level (it draws its own top) or
 # the map's edge (anything when the water draws its own bank, « EauBordee »);
 # and every sea cell in some 2x2 block of water (edges count).
 def check_water(plan, name, place)
-  sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.cover?(t) } }.keys
+  sea = plan.legend.select { |_c, layers| layers.flatten.any? { |t| M::SEA_TILES.include?(t) } }.keys
   wet = sea + plan.objects.select { |_c, o| sea.include?(o.ground) }.keys + plan.terrains.select { |_c, t| sea.include?(t.ground) }.keys
   clean = wet + place.banks.to_s.chars + place.levels.to_a + [M::CLIFF]
   rows = plan.rows
