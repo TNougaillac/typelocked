@@ -1,0 +1,11 @@
+# Plaque de neige : une neige qui fond sur le gravier de la haute montagne
+# (#301). On marche dessus.
+Brique    = Plaque de neige
+Type      = decor
+Ambiances = haute montagne
+Poids     = 4
+[Map]
+ѴѴѴѴ
+ѴѴѴѴ
+ѴѴѴѴ
+ѴѴѴѴ
