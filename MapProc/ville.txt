@@ -636,6 +636,8 @@ I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le m
 Ѫ = T17448 4x6 halo=4x9@0,2/1,2 L3 @~
 # Placette ronde (SirMalo Urban A4, #298) : un anneau de briques où l'on marche
 ѫ = T17504 5x5
+# Mare (SirMalo Nature A6, #301, tools/art/ponds_4g.py) : eau dormante bordée de terre, bloquante
+ѳ = T18024 4x4   # mare
 # Bâtiments uniques, partie 2 (SirMalo, #299) : dôme futuriste, tour de verre
 # (en deux objets côte à côte dès qu'un dessin dépasse 8 cases)
 Ѭ = T17625 7x4 halo=8x16@1,10/0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,32,33,40,112,120,121,122   # dôme futuriste, partie 1 (porte 7,3 de la brique)

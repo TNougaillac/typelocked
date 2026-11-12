@@ -42,7 +42,7 @@ Les planches Remastered Johto et Kanto reprennent en partie les rips HGSS de Sir
 | Carrés | Ce que c'est | Usage proposé |
 |---|---|---|
 | A1, A3, A5 | Plaques d'herbe pâle et de gravier crème, bordées d'herbe | Sol 4G de l'ambiance **prairie** (remplace T50) et gravier des places |
-| A4, A6 | Mare gelée dans la neige, mares bleues bordées | Mares des villes et de la neige |
+| A4, A6 | Mare gelée dans la neige, mares bleues bordées | Mares des villes et de la neige : **mare bleue faite (#301)** (A6) |
 | A7, A8, B1 | Terre sombre, tapis de feuilles mortes orange, feuilles éparses | Ambiance **automne** (sol, rue, décor) : **fait (#295)** |
 | B2 à B4 | Couvre-sols verts denses et herbe sombre turquoise | Variantes de sol des **forêts sombres** et des marais : **fait (#295)** |
 | B4, B8 | Plaque d'argile rouge | Sol de **volcan** ou de canyon, sans teinte : **fait (#295)** |
