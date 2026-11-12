@@ -97,7 +97,7 @@ Les maisons, Centres, Boutiques et arènes par type sont déjà dans le jeu (#19
 
 | Carrés | Ce que c'est | Usage proposé |
 |---|---|---|
-| A1 à A3, A5 à A10, B1 à B8 | **Revêtements** : pavés ronds, briques, dalles, mosaïques, place circulaire en brique (A4), feuilles sur pavés, tapis rouge | Rues et places variées par style de ville (italien, américain, français), places d'arène : **A1, A3 faits (#298)** |
+| A1 à A3, A5 à A10, B1 à B8 | **Revêtements** : pavés ronds, briques, dalles, mosaïques, place circulaire en brique (A4), feuilles sur pavés, tapis rouge | Rues et places variées par style de ville (italien, américain, français), places d'arène : **A1, A3 faits (#298)** ; **B2, B8, B9 faits (#316)** (ardoise bleue, pavé sombre, ocre) |
 | A4 | Place circulaire en brique | Rond-point, place de la fontaine : **placette ronde faite (#298)** |
 | C1 à C3 | **Pont en bois**, caisses | Pontons et quais 4G (remplacent \| et ( _ ), T1205 à T1223) |
 | C4, C5, C6, C7 | Pont au-dessus d'une rivière avec marches, **pont en pierre** en arche, bancs de pierre | Ponts des rivières de ville : **pont de pierre C5, C6 fait (#298)** ; C6, C7 (ponts vus de côté) non repris |
@@ -158,7 +158,7 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 
 | Carrés | Ce que c'est | Usage proposé |
 |---|---|---|
-| A1 à A6 | Plaques d'herbe, de terre, de sable, de planches | Sols de villes et de plages |
+| A1 à A6 | Plaques d'herbe, de terre, de sable, de planches | Sols de villes et de plages : **rues de terre, de sable, de dalles ocre et de pavés violets faites (#316)** |
 | A7 | Mares | Mares des villes |
 | A8, A9 | Arbres ronds, arbres fruitiers, plantes, fleurs | Vergers des Éleveurs, parcs : **fait (#297)** |
 | A10, A11, A22, A23 | Maisons à toit rouge, brun, vert, violet ; haies | Styles de maisons en plus (#199) : **verrière, verte au toit orange et toit violet faites (#299)** (A22, A23) |
@@ -176,8 +176,8 @@ Compte des tuiles retrouvées dans le jeu, sur le nombre de tuiles dessinées (`
 | Planche | Dans le jeu | Usage proposé du reste |
 |---|---|---|
 | DPPt `Base`, `Sand` | 96/96, 36/96 | Sable : rebords des plages |
-| DPPt `Concrete Path`, `Dirt Path`, `Grassy Path`, `Path` | 16/96, 16/96, 16/96, 12/96 | Chemins à bords arrondis (seuls les centres sont pris) : rues de terre et de béton des styles de ville |
-| DPPt `Canalave`, `Hearthome`, `Jubilife`, `Oreburgh City Set`, `Eterna City Road` | 16/120, 16/120, 16/100, 4/112, 8/60 | Sols de ville propres à chaque style |
+| DPPt `Concrete Path`, `Dirt Path`, `Grassy Path`, `Path` | 16/96, 16/96, 16/96, 12/96 | Chemins à bords arrondis (seuls les centres sont pris) : rues de terre et de béton des styles de ville : **béton, terre et sable faits (#316)** |
+| DPPt `Canalave`, `Hearthome`, `Jubilife`, `Oreburgh City Set`, `Eterna City Road` | 16/120, 16/120, 16/100, 4/112, 8/60 | Sols de ville propres à chaque style : **Hearthome, Jubilife, Oreburgh et Eterna faits (#316)** ; Canalave (sans bords) non repris |
 | DPPt `Eterna Forest Set` | 40/192 | Sol de **forêt sombre** : **fait (#295)** |
 | DPPt `Snow Patches` | 13/64 | Plaques de neige sur l'herbe (lisière du biome neige) : **fait (#301)**, congères posées en haute montagne |
 | DPPt `Berry Soil` | 4/36 | **Terre à baies** (champ labouré, potager) |
