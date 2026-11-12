@@ -221,7 +221,7 @@ module MapProceduralGenerator
     #   hill_tops: the cell on top of each hill, away from its stair (a loot
     #   to climb for).
     def inventory
-      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, brick| door_front(x, y, brick) }
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each { |start| walk_foot(start, seen) if !seen[start[1]][start[0]] }
       on_street = ->(x, y) { inside?(x, y) && @street[y][x] && !@stairs_at&.key?([x, y]) }
@@ -307,6 +307,10 @@ module MapProceduralGenerator
 
     def error(msg)
       raise Error, "#{@place.file} (graine #{@seed}) : #{msg}"
+    end
+
+    def door_front(x, y, brick)
+      return MapProceduralGenerator.door_front(x, y, brick)
     end
 
     def inside?(x, y)
@@ -499,7 +503,7 @@ module MapProceduralGenerator
       if @place.crossing == "grotte"
         @exits.each do |side, ex, ey|
           seen = walk([ex, ey])
-          next if @doors.any? { |dx, dy, brick| brick.kind == CAVE && seen[dy + 1][dx] }
+          next if @doors.any? { |dx, dy, brick| brick.kind == CAVE && door_front(dx, dy, brick).then { |fx, fy| seen[fy][fx] } }
           error("la sortie #{side} ne mène à aucune entrée de la grotte")
         end
         return
@@ -508,12 +512,13 @@ module MapProceduralGenerator
       start = if !@exits.empty?
                 @exits[0][1, 2]
               else
-                [@doors[0][0], @doors[0][1] + 1]
+                door_front(*@doors[0])
               end
       seen = walk(start)
       @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
       @doors.each do |dx, dy, brick|
-        error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]
+        fx, fy = door_front(dx, dy, brick)
+        error("la porte de « #{brick.name} » est inaccessible") if !seen[fy][fx]
       end
     end
 

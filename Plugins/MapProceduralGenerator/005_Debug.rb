@@ -145,7 +145,7 @@ module MapProceduralGenerator
   def world_start(result, map_ids)
     wp, place, _text, layout = result.places.select { |p, *| p.kind == "ville" }.min_by { |p, *| p.index }
     door = layout.doors.find { |_x, _y, brick| brick.kind == "centre" } || layout.doors.first
-    x, y = door ? [door[0], door[1] + 1] : [place.width / 2, place.height / 2]
+    x, y = door ? door_front(*door) : [place.width / 2, place.height / 2]
     return map_ids[wp.name], x, y
   end
 

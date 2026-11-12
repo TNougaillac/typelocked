@@ -8,7 +8,10 @@ SirMalo's NatureRMXP.png (docs/art/inventaire-4g.md):
   that alternate, right end);
 - mounds to jump down (J1 earth, J4 stone): a short ledge, its passages the
   ledge's (T6056 to T6058);
-- a small dark cave entrance (I7), its passages a cave entrance's.
+- a small dark cave entrance (I7), its passages a cave entrance's;
+- cave mouths in the side of a rock (J2 brown, J5 grey, J6 grey under snow),
+  walked into from the east or the west: the mouth's cell is only entered
+  from that side, the sill in front of it is plain ground.
 Each drawing is whole in its frame: the pixels of a piece's frame never go
 beyond it (the script stops otherwise).
 
@@ -34,7 +37,8 @@ SOLID = 428  # passages of a blocked tile
 LEDGE = "T6057"   # the ledge's middle tile (corniche « - »)
 CAVE = [["T6016", "T6017", "T6018"], ["T6024", "T6025", "T6026"]]   # a cave entrance's two bottom rows
 # Pieces: name => (symbol, Nature column, x, y, width, height of the frame,
-# block x, y, w, h in it, passages of the block: SOLID, "ledge" or "cave",
+# block x, y, w, h in it, passages of the block: SOLID, "ledge", "cave" or
+# a side mouth's, "est" or "ouest" (the side it is walked into from),
 # the sides where the piece joins the next one: « gauche », « droite »)
 PIECES = {}
 for name, sym, row in [("terrasse de terre", "ʫʬʭ", 3), ("terrasse de pierre", "ʮʯϢ", 12),
@@ -52,6 +56,13 @@ for name, sym, x0, y0, touching in [("talus de terre", "ϩϪϫϬ", 0, 51, []), (
 PIECES["bosse de terre"] = ("ѡ", 9, 2, 0, 4, 1, 1, 0, 2, 1, "ledge", [])
 PIECES["bosse de pierre"] = ("Ѣ", 9, 2, 24, 4, 1, 1, 0, 2, 1, "ledge", [])
 PIECES["entrée de grotte sombre"] = ("ѣ", 8, 0, 54, 3, 2, 0, 0, 3, 2, "cave", [])
+# (the snowy one's sill is two tiles wide, under its drift)
+for name, sym, row, sill in [("brune", "Ѥѥ", 12, 1), ("grise", "Ѧѧ", 36, 1), ("enneigée", "Ѩѩ", 44, 2)]:
+    PIECES[f"entrée latérale {name} (est)"] = (sym[0], 9, 0, row, 2 + sill, 3, 0, 0, 2, 3, "est", [])
+    PIECES[f"entrée latérale {name} (ouest)"] = (sym[1], 9, 6 - sill, row, 2 + sill, 3, sill, 0, 2, 3, "ouest", [])
+# Passages of a side mouth's cell: closed but towards the side it opens on
+# (1 = down, 2 = left, 4 = right, 8 = up)
+MOUTHS = {"est": (1, "=11"), "ouest": (0, "=13")}   # side => (column of the mouth in the block, passages)
 
 
 def check_whole(sheets, name, col, x, y, w, h, joins):
@@ -97,6 +108,12 @@ def main():
                     copies[dest] = LEDGE
                 elif kind == "cave":
                     copies[dest] = CAVE[dy][dx]
+                elif kind in MOUTHS:
+                    mouth, passages = MOUTHS[kind]
+                    if (dx, dy) == (bx + mouth, by + 1):
+                        copies[dest] = passages
+                    else:
+                        copies[dest] = SOLID if inside and tile.getbbox() else -1
                 elif inside:
                     copies[dest] = SOLID
                 else:
