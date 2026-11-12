@@ -31,3 +31,11 @@ Tile = 41,void_decoration
 Tile = 42,floor
 Tile = 0,walls
 FloorPatchUnderWalls = true
+#-------------------------------
+[31]   # Cave 4G mine
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true

@@ -9,7 +9,9 @@ sand).
 - ice (snow): the blue ice mound, the blue rock floor, patches of snow;
 - lava (volcano): the brown mound, the red floor, patches of brown earth;
 - moss (dark forest, marsh, tropical forest): the mossy mound, the green
-  floor, patches of pale earth.
+  floor, patches of pale earth;
+- mine (mineral, high mountain): the brown mound, the cobbled floor, patches
+  of grey gravel.
 Each tileset is a copy of tileset 25 (passages kept: the tiles are at the
 same places), with its own graphic and autotile.
 
@@ -34,6 +36,7 @@ STYLES = {
     "glace": (28, 48, (3, 93), (0, 104), (3, 104), {}),
     "lave": (29, 0, (6, 34), (0, 36), (3, 36), {}),
     "mousse": (30, 96, (1, 34), (1, 27), (4, 27), {16: (1, 145), 18: (1, 145)}),
+    "mine": (31, 0, (4, 78), (4, 117), (6, 123), {}),
 }
 FLOOR_TILE = 42
 
