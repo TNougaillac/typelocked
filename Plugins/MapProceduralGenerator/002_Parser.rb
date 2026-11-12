@@ -94,6 +94,7 @@
 #                               lamps, benches, signs)
 #   Ambiances = sable, minérale (optional: only drawn in places of one of
 #                               these [Ambiance], comma-separated)
+#   Unique = oui               (optional: laid once per place at most)
 #   [Map]
 #   CCCCC                      (palette symbols; " " = not part of the brick)
 #===============================================================================
@@ -128,7 +129,7 @@ module MapProceduralGenerator
   # coastal: « Mer = oui », drawn only by the sea (see coastal?)
   Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets,
                         :coastal)
-  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
+  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances, :unique)
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
@@ -289,6 +290,9 @@ module MapProceduralGenerator
         fail_at.call("seule valeur possible : « Contre = rue »") unless value == "rue"
         brick.by_street = true
       when "ambiances" then brick.ambiances = value.split(",").map(&:strip)
+      when "unique"
+        fail_at.call("seule valeur possible : « Unique = oui »") unless value == "oui"
+        brick.unique = true
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
