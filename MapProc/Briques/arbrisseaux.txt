@@ -1,0 +1,6 @@
+# Deux arbrisseaux (SirMalo Nature D2) (#317).
+Brique    = Arbrisseaux
+Type      = decor
+Ambiances = verdoyante, prairie, automne
+[Map]
+ѸѸ ѸѸ

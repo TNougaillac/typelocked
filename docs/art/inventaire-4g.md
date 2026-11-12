@@ -48,8 +48,8 @@ Les planches Remastered Johto et Kanto reprennent en partie les rips HGSS de Sir
 | B4, B8 | Plaque d'argile rouge | Sol de **volcan** ou de canyon, sans teinte : **fait (#295)** |
 | B7 | Gravier beige | Sol 4G des ambiances **minérale** et **haute montagne** (remplace T218) |
 | C1 à C7 | Paires d'arbres vert clair (variante printemps) et carrés d'herbe | Deuxième essence d'arbres de forêt, pour varier les routes : **fait (#297)** |
-| D1, D4 | Buissons et **haies** taillées (rangées, coins) | Haies 4G (remplacent î T669 et û T685, et les haies de la prairie T4040 à T4169) |
-| D2, D3 | Parterres de tulipes, jardinière en bois, petits buissons fleuris, banc | Décor des villes et parcs (remplace â T523) |
+| D1, D4 | Buissons et **haies** taillées (rangées, coins) | Haies 4G (remplacent î T669 et û T685, et les haies de la prairie T4040 à T4169) : **faites (#262, #317)**, buissons sombres et enneigés, haies basses et hautes |
+| D2, D3 | Parterres de tulipes, jardinière en bois, petits buissons fleuris, banc | Décor des villes et parcs (remplace â T523) : **arbrisseau, petits buissons, pot, topiaire et jardinières faits (#317)** ; tulipes et parterre non repris (collés aux hautes herbes) |
 | D6 | Arbres d'automne jaune et rouge, souches mortes | Arbres de l'ambiance **automne**, bois mort des marais : **fait (#295)** |
 | E1 à E5 | Rebords de petits plateaux (terre, pierre, herbe) et mare sombre | Terrasses basses des villes et des parcs : **fait (#296)** |
 | E6, E7 | Mur de pierre, bassins bleus bordés de sable, petits arbres | Bassins des places, jardins |
@@ -180,9 +180,9 @@ Compte des tuiles retrouvées dans le jeu, sur le nombre de tuiles dessinées (`
 | DPPt `Canalave`, `Hearthome`, `Jubilife`, `Oreburgh City Set`, `Eterna City Road` | 16/120, 16/120, 16/100, 4/112, 8/60 | Sols de ville propres à chaque style : **Hearthome, Jubilife, Oreburgh et Eterna faits (#316)** ; Canalave (sans bords) non repris |
 | DPPt `Eterna Forest Set` | 40/192 | Sol de **forêt sombre** : **fait (#295)** |
 | DPPt `Snow Patches` | 13/64 | Plaques de neige sur l'herbe (lisière du biome neige) : **fait (#301)**, congères posées en haute montagne |
-| DPPt `Berry Soil` | 4/36 | **Terre à baies** (champ labouré, potager) |
+| DPPt `Berry Soil` | 4/36 | **Terre à baies** (champ labouré, potager) : **faite (#317)** |
 | DPPt `Ledges` | 8/58 | Corniches DPPt |
-| DPPt `Flower` (quatre autotiles), `Flowers (Static)`, `Grass`, `Tall Grass` | 0 | Fleurs 4G (remplacent les fleurs * T4046 de la prairie) |
+| DPPt `Flower` (quatre autotiles), `Flowers (Static)`, `Grass`, `Tall Grass` | 0 | Fleurs 4G (remplacent les fleurs * T4046 de la prairie) : **fleurs animées et fixes faites (#317)**, dans le massif `*` |
 | HGSS `Flowers 02`, `Flowers 04` | 0/25, 0/25 | Fleurs d'autres couleurs : **`Flowers 02` fait (#301)**, en autotile supplémentaire |
 | HGSS `Beach` | 0/288 | Rive de sable animée (remplace les rives T833 et T841) : **fait (#301)**, autotile `HGSS Shore` (A7) de la plage |
 | HGSS `Ledge` | 224/320 | Corniches (en partie déjà prises) |

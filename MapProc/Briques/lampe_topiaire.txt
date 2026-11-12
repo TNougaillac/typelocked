@@ -1,0 +1,6 @@
+# Deux topiaires, le long d'une rue (style froid) (#317).
+Brique    = Topiaires
+Type      = lampe
+Contre    = rue
+[Map]
+Ѻ Ѻ

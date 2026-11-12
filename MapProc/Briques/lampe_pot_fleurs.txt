@@ -1,0 +1,6 @@
+# Pot de fleurs, le long d'une rue (style rustique) (#317).
+Brique    = Pot de fleurs
+Type      = lampe
+Contre    = rue
+[Map]
+ѹѹ

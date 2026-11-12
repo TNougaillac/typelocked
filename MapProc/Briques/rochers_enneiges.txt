@@ -1,0 +1,8 @@
+# Neige et haute montagne : rochers givrés (SirMalo Nature D5) (#317).
+Brique    = Rochers enneigés
+Type      = decor
+Ambiances = neige, haute montagne
+Poids     = 2
+[Map]
+ҊҊ Ҍ
+ҊҊ  

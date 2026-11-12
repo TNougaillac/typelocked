@@ -1,0 +1,7 @@
+# Deux rangs de terre à baies (DPPt Berry Soil) (#317).
+Brique    = Terre à baies
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre, terre battue
+[Map]
+ҍҍҍ
+ҍҍҍ
