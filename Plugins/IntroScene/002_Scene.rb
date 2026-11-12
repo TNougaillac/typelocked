@@ -33,7 +33,7 @@ module IntroScene
     @sprites[:professor] = picture(PROFESSOR, Graphics.width / 2)
     CHARACTERS.each_with_index do |char, i|
       x = Graphics.width * (i + 1) / (CHARACTERS.length + 1)
-      @sprites[char[:id]] = picture(char[:picture], x)
+      @sprites[char[:id]] = preview(char[:charset], x)
       @sprites[char[:id]].visible = false
     end
   end
@@ -45,6 +45,22 @@ module IntroScene
     if !y && sprite.bitmap
       sprite.ox = sprite.bitmap.width / 2
       sprite.oy = sprite.bitmap.height
+    end
+    sprite
+  end
+
+  # Front frame of a charset (4x4 frames), zoomed, anchored at its bottom
+  # center (x).
+  def preview(charset, x)
+    sprite = IconSprite.new(x, PICTURE_BASELINE, @viewport)
+    sprite.setBitmap("Graphics/Characters/" + charset)
+    if sprite.bitmap
+      w = sprite.bitmap.width / 4
+      h = sprite.bitmap.height / 4
+      sprite.src_rect = Rect.new(0, 0, w, h)
+      sprite.ox = w / 2
+      sprite.oy = h
+      sprite.zoom_x = sprite.zoom_y = PREVIEW_ZOOM
     end
     sprite
   end
