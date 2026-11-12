@@ -313,6 +313,7 @@ module MapProceduralGenerator
       rng = Random.new((seed * 1000) + 500 + wp.index)
       excess = side_excess(world, "grotte", rng)
       floors = cave_floors(wp.name.sub("Route", "Grotte"), wp.name, doors, excess, rng)
+      floors.each { |floor| floor.tileset = CAVE_STYLES[layout.ambiance] }
       warps[wp.name].concat(cave_warps(doors, floors))
       floors.map { |floor| [wp, floor.name, cave_floor_text(floor, wp.name), floor, excess] }
     end
@@ -321,6 +322,7 @@ module MapProceduralGenerator
       door = layout.doors.find { |_x, _y, brick| brick.kind == DARK_CAVE }
       next [] if !door
       floor = dark_cave_floor("#{wp.name} - grotte sombre", wp.name, door, Random.new((seed * 1000) + 600 + wp.index))
+      floor.tileset = CAVE_STYLES[layout.ambiance]
       ex, ey = floor.spots[:exits][0]
       warps[wp.name].push([door[0], door[1], floor.name, ex, ey + 1, 2])
       [[wp, floor.name, cave_floor_text(floor, wp.name), floor, nil]]

@@ -825,7 +825,10 @@ worlds.each do |path|
     # Caves: two floors each, A -> 1F -> ladder -> basement (-> B)
     map_names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
     result.caves.each do |wp, name, text, floor|
-      MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[M::CAVE_TILESET])
+      MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[floor.tileset || M::CAVE_TILESET])
+      # Its style is its route's ambiance's (CAVE_STYLES)
+      ambiance = result.places.find { |p, *| p.equal?(wp) }[3].ambiance
+      CI.error(path, nil, "#{name} (graine #{seed}) : tileset #{floor.tileset.inspect} pour l'ambiance #{ambiance}") if floor.tileset != M::CAVE_STYLES[ambiance]
       check_cave("#{name} (graine #{seed})", floor, map_names)
       # A dark cave: one floor, its way out to its route, its loot
       if floor.dark
