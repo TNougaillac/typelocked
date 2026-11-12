@@ -178,7 +178,7 @@ module MapProceduralGenerator
       choose_plan
       lay_grid if @plan == "grille" || (excess[:grid] && @plan == "canal")
       lay_plaza(hub) if @plan != "clairière"
-      lay_canal(hub) if @plan == "canal"
+      lay_stone_canal(hub) || lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
       cross if @place.crossing
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)

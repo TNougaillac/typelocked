@@ -714,6 +714,8 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ѧ = T17385 2x3 halo=3x3@1,0   # entrée latérale grise (ouest)
 Ѩ = T17387 2x3 halo=4x3@0,0/3   # entrée latérale enneigée (est)
 ѩ = T17410 2x3 halo=4x3@2,0/0   # entrée latérale enneigée (ouest)
+# Placette ronde (SirMalo Urban A4, #298) : un anneau de briques où l'on marche
+ѫ = T17504 5x5
 # Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,
 # son rebord à cheval sur les cases (sa moitié extérieure en halo) ; un bout
 # gauche, un milieu répété, un bout droit

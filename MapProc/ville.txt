@@ -49,6 +49,9 @@ special  = 0..1
 maison   = 1..2 par case
 # Bâtisses sans porte : du décor de ville, fermé
 batisse  = 0..1 par case
+# Placette ronde : un anneau de briques contre une rue (#298), dans les
+# ambiances de sa brique.
+placette = 0..1
 foire    = 0..2
 parc     = 0..1 par case
 lampe    = 0..2 par case
@@ -627,6 +630,12 @@ I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le m
 ѧ = T17385 2x3 halo=3x3@1,0   # entrée latérale grise (ouest)
 Ѩ = T17387 2x3 halo=4x3@0,0/3   # entrée latérale enneigée (est)
 ѩ = T17410 2x3 halo=4x3@2,0/0   # entrée latérale enneigée (ouest)
+# Pont de pierre (SirMalo Urban C5, C6, #298) : enjambe du nord au sud un canal
+# qui coule d'ouest en est ; son bloc (parapets et tablier) sur l'eau, ses
+# poteaux en halo sur les berges
+Ѫ = T17448 4x6 halo=4x9@0,2/1,2 L3 @~
+# Placette ronde (SirMalo Urban A4, #298) : un anneau de briques où l'on marche
+ѫ = T17504 5x5
 ʔ = T16211 1x2               # oranger (verger, Remastered Kanto)
 ʕ = T16212 1x2               # arbre en fleurs (verger)
 ʖ = T16213 1x2               # pommier en fleurs (verger)
