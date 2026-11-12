@@ -1,0 +1,7 @@
+# Petits buissons, ronds et fleuris (SirMalo Nature D3) (#317).
+Brique    = Petits buissons
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre
+[Map]
+ѻ ѼѼ
+ѽѽ  ѻ

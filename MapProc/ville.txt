@@ -373,7 +373,7 @@ x = {sol} T919          # cailloux gris
 : = {sol} T18063            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
 ˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
-* = {sol} A5|T3         # massif de fleurs (orange : A5 ; blanches : autotile supplémentaire T3, #301)
+* = {sol} A5|T3|T4|T5|T6|T7|T18352|T18353|T18354   # massif de fleurs (orange : A5 ; blanches : autotile supplémentaire T3, #301 ; bleues, roses, violettes, jaunes : T4 à T7 et fleurs fixes DPPt, #317)
 ~ = {sol} A1            # eau des lacs
 e = {sol} T777          # escalier taillé dans une montagne (« eɛ » : gauche, droite)
 ɛ = {sol} T778
@@ -670,6 +670,24 @@ I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le m
 ѳ = T18024 4x4   # mare
 # Plaque de neige (DPPt Snow Patches, #301) : brique des routes de haute montagne, symbole partagé
 Ѵ = T18064 4x4   # plaque de neige
+# Végétation 4G (#317, tools/art/vegetation_4g.py) : buissons, arbrisseau, pots, jardinières,
+# haies et rochers de SirMalo (Nature D1 à D5), terre à baies DPPt
+Ѷ = T18368 2x1 halo=2x2@0,1   # buisson sombre
+ѷ = T18370 2x1 halo=2x2@0,1   # buisson enneigé
+Ѹ = T18372 2x1 halo=2x2@0,1   # arbrisseau
+ѹ = T18374 2x1 halo=2x2@0,1   # pot de fleurs
+Ѻ = T18384 1x1 halo=1x2@0,1   # topiaire
+ѻ = T18377 1x1   # petit buisson
+Ѽ = T18378 2x1   # buisson rond
+ѽ = T18380 2x1   # buisson en fleurs
+Ѿ = T18390 2x1 halo=2x2@0,1   # jardinière
+ѿ = T18400 4x1 halo=4x2@0,1   # jardinière longue
+Ҁ = T18404 3x1 halo=3x2@0,1   # haie basse
+ҁ = T18416 2x3 halo=2x4@0,1   # haie haute
+Ҋ = T18410 2x2   # rocher enneigé
+ҋ = T18412 2x2   # rocher
+Ҍ = T18414 1x1   # caillou enneigé
+ҍ = T18440 3x1   # terre à baies
 # Bâtiments uniques, partie 2 (SirMalo, #299) : dôme futuriste, tour de verre
 # (en deux objets côte à côte dès qu'un dessin dépasse 8 cases)
 Ѭ = T17625 7x4 halo=8x16@1,10/0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,32,33,40,112,120,121,122   # dôme futuriste, partie 1 (porte 7,3 de la brique)

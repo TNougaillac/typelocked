@@ -517,7 +517,7 @@ x = {sol} T919          # cailloux gris
 : = {sol} T18063            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
 ˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
-* = {sol} A5|T3         # massif de fleurs (orange : A5 ; blanches : autotile supplémentaire T3, #301)
+* = {sol} A5|T3|T4|T5|T6|T7|T18352|T18353|T18354   # massif de fleurs (orange : A5 ; blanches : autotile supplémentaire T3, #301 ; bleues, roses, violettes, jaunes : T4 à T7 et fleurs fixes DPPt, #317)
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
 % = {sol} A1 A3         # eau profonde (on y plonge avec Plongée)
 µ = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
@@ -727,6 +727,24 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ѳ = T18024 4x4   # mare
 # Plaque de neige (DPPt Snow Patches, #301, tools/art/snow_patches_4g.py) : neige qui fond, où l'on marche
 Ѵ = T18064 4x4   # plaque de neige
+# Végétation 4G (#317, tools/art/vegetation_4g.py) : buissons, arbrisseau, pots, jardinières,
+# haies et rochers de SirMalo (Nature D1 à D5), terre à baies DPPt
+Ѷ = T18368 2x1 halo=2x2@0,1   # buisson sombre
+ѷ = T18370 2x1 halo=2x2@0,1   # buisson enneigé
+Ѹ = T18372 2x1 halo=2x2@0,1   # arbrisseau
+ѹ = T18374 2x1 halo=2x2@0,1   # pot de fleurs
+Ѻ = T18384 1x1 halo=1x2@0,1   # topiaire
+ѻ = T18377 1x1   # petit buisson
+Ѽ = T18378 2x1   # buisson rond
+ѽ = T18380 2x1   # buisson en fleurs
+Ѿ = T18390 2x1 halo=2x2@0,1   # jardinière
+ѿ = T18400 4x1 halo=4x2@0,1   # jardinière longue
+Ҁ = T18404 3x1 halo=3x2@0,1   # haie basse
+ҁ = T18416 2x3 halo=2x4@0,1   # haie haute
+Ҋ = T18410 2x2   # rocher enneigé
+ҋ = T18412 2x2   # rocher
+Ҍ = T18414 1x1   # caillou enneigé
+ҍ = T18440 3x1   # terre à baies
 # Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,
 # son rebord à cheval sur les cases (sa moitié extérieure en halo) ; un bout
 # gauche, un milieu répété, un bout droit

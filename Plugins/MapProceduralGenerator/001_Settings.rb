@@ -199,8 +199,11 @@ module MapProceduralGenerator
   # Extra autotiles of Outside 4G (#301): a tileset has 7 autotiles, Essentials
   # draws these animated ones in place of its first tiles (T0, T1...), which
   # tools/art/extra_autotiles_4g.py left free. Single tile autotiles, in the
-  # order of the script: the waterfall's crest, fall and foot, white flowers.
-  EXTRA_AUTOTILES = { 24 => [[], ["Waterfall crest", "Waterfall", "Waterfall bottom", "HGSS Flowers 02"]] }.freeze
+  # order of the scripts: the waterfall's crest, fall and foot, white flowers;
+  # the DPPt flowers (tools/art/vegetation_4g.py, #317).
+  EXTRA_AUTOTILES = { 24 => [[], ["Waterfall crest", "Waterfall", "Waterfall bottom", "HGSS Flowers 02",
+                                  "DPPt Flowers Blue", "DPPt Flowers Pink", "DPPt Flowers Purple",
+                                  "DPPt Flowers Yellow"]] }.freeze
 
   # Caves by biome (#300): the ambiance of the place a cave opens on => its
   # tileset, laid out like Cave 4G (tools/art/cave_styles_4g.py): ice, lava,
@@ -311,20 +314,21 @@ module MapProceduralGenerator
                     houses: ["Case en paille", "Chalet rouge", "Chaumière", "Chaumière à cheminée", "Maison aux bardeaux",
                              "Maison en bois", "Maison ocre", "Maison en rondins"],
                     fences: ["Barrière le long du chemin", "Longue barrière le long du chemin", "Très longue barrière le long du chemin"],
-                    furniture: ["Banc de bois", "Lanterne suspendue", "Lanternes en bois", "Jardinière", "Boîte aux lettres"] },
+                    furniture: ["Banc de bois", "Lanterne suspendue", "Lanternes en bois", "Jardinière", "Boîte aux lettres", "Pot de fleurs"] },
     "chaud"    => { weight: 2, ambiances: { "sable" => 3, "volcan" => 4, "plage" => 3, "terre battue" => 2 },
                     houses: ["Maison bordeaux à cheminée", "Maison orange à balustrade", "Maison crème", "Maison orange",
                              "Maison orange à escalier", "Maison rouge à auvent", "Maison au toit rouge", "Maison verte à cheminée",
                              "Petite maison bleue", "Petite maison orange", "Petite maison rouge", "Maison verte au toit orange"],
                     fences: ["Palissade le long du chemin", "Longue palissade le long du chemin"],
-                    furniture: ["Réverbère rouge", "Bancs", "Jardinière", "Lampadaire", "Boîte aux lettres"] },
+                    furniture: ["Réverbère rouge", "Bancs", "Jardinière", "Lampadaire", "Boîte aux lettres", "Jardinière orange",
+                               "Longue jardinière orange"] },
     "froid"    => { weight: 2, ambiances: { "neige" => 3, "minérale" => 3, "verdoyante" => 2, "prairie" => 2 },
                     houses: ["Garage", "Maison à auvent vert", "Maison bleue à cheminée", "Maison et jardin", "Maison mauve",
                              "Maison au toit de mousse", "Maison au pignon bleu", "Petite maison à toit plat", "Maison turquoise à annexe",
                              "Haute maison turquoise", "Maison violette", "Grande maison aux tuiles violettes", "Maison au toit vitré",
                              "Maison au toit vitré bleu", "Petite maison verte", "Maison à verrière", "Maison au toit violet"],
                     fences: ["Barrière blanche le long du chemin", "Longue barrière blanche le long du chemin"],
-                    furniture: ["Réverbère turquoise", "Bouche d'incendie", "Lampadaire d'Émeraude", "Distributeurs", "Bancs"] }
+                    furniture: ["Réverbère turquoise", "Bouche d'incendie", "Lampadaire d'Émeraude", "Distributeurs", "Bancs", "Topiaires"] }
   }.freeze
   HOUSE_STYLE_SALT = 5381
   # Brick type => the key of HOUSE_STYLES that lists its bricks

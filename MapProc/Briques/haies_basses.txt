@@ -1,0 +1,6 @@
+# Deux haies basses taillées (SirMalo Nature D4) (#317).
+Brique    = Haies basses
+Type      = decor
+Ambiances = verdoyante, prairie, terre battue
+[Map]
+ҀҀҀ ҀҀҀ
