@@ -120,7 +120,7 @@ module MapProceduralGenerator
         @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @nook])
       when "sombre"
         cave = @bricks.select { |b| b.kind == CAVE }.min_by(&:name) || return
-        brick = Brick.new(DARK_CAVE, "Grotte sombre", DARK_CAVE, cave.door, 1, false, cave.rows)
+        brick = Brick.new(DARK_CAVE, "Grotte sombre", DARK_CAVE, cave.door, 1, false, cave.rows, nil, nil, cave.door_side)
         spot = put_brick(brick) || return
         @nooks.push([spot[0] + brick.door[0], spot[1] + brick.door[1], @nook])
       else
@@ -202,7 +202,7 @@ module MapProceduralGenerator
 
     # Free tiles that can be walked to from the exits and doors.
     def reachable_ground
-      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, brick| door_front(x, y, brick) }
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each do |start|
         next if seen[start[1]][start[0]]
@@ -492,7 +492,7 @@ module MapProceduralGenerator
     # A town's house stands on a plot that often (PLOT_CHANCE), where one
     # has room (plot_room?), else as usual.
     def put_brick(brick, allowed = nil)
-      if brick.door && plots? && @rng.rand(100) < PLOT_CHANCE
+      if brick.door && !brick.door_side && plots? && @rng.rand(100) < PLOT_CHANCE
         spot = lay_brick(brick, ->(b, x, y) { (!allowed || allowed.call(b, x, y)) && plot_room?(b, x, y) }, true)
         return spot if spot
       end
@@ -511,7 +511,8 @@ module MapProceduralGenerator
           next if brick.by_street && !touches_street?(brick, x, y)
           next if brick.kind == FENCE && !lines_street?(brick, x, y)
           if brick.door
-            d = distances[y + bh][x + brick.door[0]]
+            ax, ay = brick.path_start
+            d = distances[y + ay][x + ax]
             next if !d || d > MAX_DOOR_DISTANCE
             spots.push([x, y, d])
           else
@@ -547,7 +548,8 @@ module MapProceduralGenerator
         row.each_char.with_index { |c, dx| cells.push([x + dx, y + dy]) if c != " " && !@solid[y + dy][x + dx] }
       end
       cells.each { |cx, cy| @solid[cy][cx] = true }
-      reached = street_distances[y + brick.rows.length][x + brick.door[0]]
+      ax, ay = brick.path_start
+      reached = street_distances[y + ay][x + ax]
       cells.each { |cx, cy| @solid[cy][cx] = false }
       return !reached.nil?
     end
@@ -560,9 +562,10 @@ module MapProceduralGenerator
       return false if !bank_free?(brick, x, y) || !halo_free?(brick, x, y)
       return false if ringed?(brick) && hill_ring(brick).any? { |dx, dy| !inside?(x + dx, y + dy) || @street[y + dy][x + dx] }
       return true if !brick.door
-      # The path under the door must be free or already a street
-      fx, fy = x + brick.door[0], y + brick.rows.length
-      return false if !inside?(fx + STREET_WIDTH - 1, fy + STREET_WIDTH - 1)
+      # The path in front of the door must be free or already a street
+      ax, ay = brick.path_start
+      fx, fy = x + ax, y + ay
+      return false if !inside?(fx, fy) || !inside?(fx + STREET_WIDTH - 1, fy + STREET_WIDTH - 1)
       STREET_WIDTH.times do |oy|
         STREET_WIDTH.times { |ox| return false if @solid[fy + oy][fx + ox] }
       end
@@ -752,7 +755,8 @@ module MapProceduralGenerator
       dx, dy = x + brick.door[0], y + brick.door[1]
       @doors.push([dx, dy, brick])
       street_distances   # again, now that the brick is in the way
-      carve_path(dx, dy + 1)
+      ax, ay = brick.path_start
+      carve_path(x + ax, y + ay)
     end
   end
 end

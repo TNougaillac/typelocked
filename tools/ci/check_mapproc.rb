@@ -294,7 +294,7 @@ def check_blocking(name, layout)
   spots[:ground].each do |x, y|
     raise M::Error, "#{name} : boue ou lave #{x + 1},#{y + 1} sur un passage" if BLOCKING.include?(layout.rows[y][x])
   end
-  needed = spots[:exits].map { |_side, x, y| [x, y] } + spots[:doors].map { |x, y, _kind| [x, y + 1] }
+  needed = spots[:exits].map { |_side, x, y| [x, y] } + layout.doors.map { |x, y, brick| M.door_front(x, y, brick) }
   needed.each { |cell| raise M::Error, "#{name} : #{cell.map { |v| v + 1 }.join(',')} coupé du reste par la boue ou la lave" if !ground[cell] }
 end
 

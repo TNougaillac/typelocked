@@ -194,7 +194,7 @@ module MapProceduralGenerator
     ladder_up = farthest_block(grids[1], start)
     far_end = farthest_block(grids[1], ladder_up)
     below = ->(block) { block_cell(block).then { |x, y| [x, y + 1] } }
-    door_a, door_b = doors.map { |x, y, _brick| [x, y + 1] }
+    door_a, door_b = doors.map { |x, y, brick| [*door_front(x, y, brick), DOOR_FACINGS[brick.door_side]] }
     floors = [
       [entrance_a, door_a, ladder_down, ladder_up, names[1]],
       [door_b ? far_end : nil, door_b, ladder_up, ladder_down, names[0]]
@@ -254,7 +254,7 @@ module MapProceduralGenerator
     text << "Ground  = .\n"
     text << "\n[Legend]\n. = #{CAVE_FLOOR}\nx = #{CAVE_ROCK}\n"
     text << "\n[Warps]\n"
-    floor.warps.each_with_index { |(_x, _y, target, tx, ty), i| text << "#{i + 1} = #{target} #{tx},#{ty} bas\n" }
+    floor.warps.each_with_index { |(_x, _y, target, tx, ty, facing), i| text << "#{i + 1} = #{target} #{tx},#{ty} #{facing || 'bas'}\n" }
     text << "\n[Map]\n"
     floor.rows.each { |row| text << row.map { |f| f ? "." : "x" }.join << "\n" }
     text << "\n[Events]\n"

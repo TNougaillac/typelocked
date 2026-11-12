@@ -95,6 +95,8 @@
 #   Ambiances = sable, minérale (optional: only drawn in places of one of
 #                               these [Ambiance], comma-separated)
 #   Unique = oui               (optional: laid once per place at most)
+#   Porte = 1,1 est            (a door on a side of the brick, walked into
+#                               from the east or « ouest »)
 #   [Map]
 #   CCCCC                      (palette symbols; " " = not part of the brick)
 #===============================================================================
@@ -129,7 +131,23 @@ module MapProceduralGenerator
   # coastal: « Mer = oui », drawn only by the sea (see coastal?)
   Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets,
                         :coastal)
-  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances, :unique)
+  # door_side: nil = the door is walked into from below; « est », « ouest » =
+  # from that side of it (« Porte = 1,1 est », a cave's mouth in a rock wall)
+  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances, :unique, :door_side) do
+    # The cell in front of the door, from the brick's corner: [x, y]
+    def front
+      ox, oy = DOOR_FRONTS[door_side]
+      return [door[0] + ox, door[1] + oy]
+    end
+
+    # The top left cell of the path that leaves the door (STREET_WIDTH wide)
+    def path_start
+      return (door_side == "ouest") ? [door[0] - STREET_WIDTH, door[1]] : front
+    end
+  end
+  DOOR_FRONTS = { nil => [0, 1], "est" => [1, 0], "ouest" => [-1, 0] }.freeze
+  # The way the player faces when coming out of a door (MapGen's [Warps])
+  DOOR_FACINGS = { nil => "bas", "est" => "droite", "ouest" => "gauche" }.freeze
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
@@ -137,6 +155,12 @@ module MapProceduralGenerator
   SIDES = %w[nord sud est ouest]
 
   module_function
+
+  # The cell in front of a door laid at x, y (the door's own cell): [x, y].
+  def door_front(x, y, brick)
+    fx, fy = brick.front
+    return [x - brick.door[0] + fx, y - brick.door[1] + fy]
+  end
 
   def read(path)
     return File.read(path, encoding: "UTF-8").sub(/\A﻿/, "")
@@ -283,8 +307,9 @@ module MapProceduralGenerator
       when "brique" then brick.name = value
       when "type"   then brick.kind = value
       when "porte"
-        fail_at.call("attendu « colonne,ligne », ex. 2,4") unless value =~ /\A(\d+),(\d+)\z/
+        fail_at.call("attendu « colonne,ligne », ex. 2,4, ou « 1,1 est »") unless value =~ /\A(\d+),(\d+)(?:\s+(est|ouest))?\z/
         brick.door = [$1.to_i, $2.to_i]
+        brick.door_side = $3
       when "poids"  then brick.weight = integer(value, fail_at)
       when "contre"
         fail_at.call("seule valeur possible : « Contre = rue »") unless value == "rue"
@@ -303,7 +328,12 @@ module MapProceduralGenerator
     brick.rows.map! { |row| row.ljust(width) }
     if brick.door
       x, y = brick.door
-      if y != brick.rows.length - 1 || x >= width || brick.rows[y][x] == " "
+      if brick.door_side
+        fx, = brick.front
+        if y >= brick.rows.length || x >= width || brick.rows[y][x] == " " || (fx.between?(0, width - 1) && brick.rows[y][fx] != " ")
+          raise Error, "#{file} : la porte #{x},#{y} doit être une case du bord #{brick.door_side} de [Map]"
+        end
+      elsif y != brick.rows.length - 1 || x >= width || brick.rows[y][x] == " "
         raise Error, "#{file} : la porte #{x},#{y} doit être une case de la dernière ligne de [Map]"
       end
     end

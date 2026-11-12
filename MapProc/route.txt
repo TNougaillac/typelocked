@@ -706,6 +706,14 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 ѡ = T17329 2x1 halo=4x1@1,0   # bosse de terre
 Ѣ = T17333 2x1 halo=4x1@1,0   # bosse de pierre
 ѣ = T17336 3x2   # entrée de grotte sombre (forêt sombre ; porte au milieu de la rangée du bas)
+# Entrées de grotte latérales (SirMalo, #296) : la bouche s'ouvre vers l'est ou
+# l'ouest (« Porte = 1,1 est »), son seuil en halo devant elle
+Ѥ = T17339 2x3 halo=3x3@0,0   # entrée latérale brune (est)
+ѥ = T17361 2x3 halo=3x3@1,0   # entrée latérale brune (ouest)
+Ѧ = T17363 2x3 halo=3x3@0,0   # entrée latérale grise (est)
+ѧ = T17385 2x3 halo=3x3@1,0   # entrée latérale grise (ouest)
+Ѩ = T17387 2x3 halo=4x3@0,0/3   # entrée latérale enneigée (est)
+ѩ = T17410 2x3 halo=4x3@2,0/0   # entrée latérale enneigée (ouest)
 # Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,
 # son rebord à cheval sur les cases (sa moitié extérieure en halo) ; un bout
 # gauche, un milieu répété, un bout droit

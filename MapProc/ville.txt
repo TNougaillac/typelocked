@@ -619,6 +619,14 @@ I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le m
 ѡ = T17329 2x1 halo=4x1@1,0   # bosse de terre
 Ѣ = T17333 2x1 halo=4x1@1,0   # bosse de pierre
 ѣ = T17336 3x2   # entrée de grotte sombre (forêt sombre ; porte au milieu de la rangée du bas)
+# Entrées de grotte latérales (SirMalo, #296) : la bouche s'ouvre vers l'est ou
+# l'ouest (« Porte = 1,1 est »), son seuil en halo devant elle
+Ѥ = T17339 2x3 halo=3x3@0,0   # entrée latérale brune (est)
+ѥ = T17361 2x3 halo=3x3@1,0   # entrée latérale brune (ouest)
+Ѧ = T17363 2x3 halo=3x3@0,0   # entrée latérale grise (est)
+ѧ = T17385 2x3 halo=3x3@1,0   # entrée latérale grise (ouest)
+Ѩ = T17387 2x3 halo=4x3@0,0/3   # entrée latérale enneigée (est)
+ѩ = T17410 2x3 halo=4x3@2,0/0   # entrée latérale enneigée (ouest)
 ʔ = T16211 1x2               # oranger (verger, Remastered Kanto)
 ʕ = T16212 1x2               # arbre en fleurs (verger)
 ʖ = T16213 1x2               # pommier en fleurs (verger)

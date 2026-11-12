@@ -1,0 +1,10 @@
+# Entrée de grotte latérale : un rocher gris dont la bouche s'ouvre vers
+# l'ouest ; on y entre de côté (#296). Posée comme les autres entrées de grotte.
+Brique    = Entrée latérale grise (ouest)
+Type      = grotte
+Ambiances = minérale, haute montagne
+Porte     = 0,1 ouest
+[Map]
+ѧѧ
+ѧѧ
+ѧѧ

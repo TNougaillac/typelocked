@@ -62,7 +62,7 @@ Les planches Remastered Johto et Kanto reprennent en partie les rips HGSS de Sir
 | H6, H7 | Rebords moussus vert d'eau | Rives des **marais** : **fait (#295)** |
 | I6 à I8 | Bordures de jardin, grands talus de terre, entrée de grotte sombre | Talus des routes de campagne, entrées de grotte : **talus et grotte sombre faits (#296)** |
 | J1, J4 | **Corniches** à sens unique (terre, pierre) | Corniches 4G (rebords où l'on saute) : **fait (#296)** |
-| J2, J3, J5, J6 | Entrées de grotte avec éboulis (terre, neige, pierre) | Entrées de grotte variées par biome |
+| J2, J3, J5, J6 | Entrées de grotte avec éboulis (terre, neige, pierre) | Entrées de grotte variées par biome : **J2, J5, J6 faits (#296)**, entrées latérales brune, grise et enneigée ; J3 non repris |
 
 ## SirMalo — Buildings
 
