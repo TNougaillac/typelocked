@@ -17,12 +17,12 @@ SEEDS = 1..10
 REVISIT_MARGIN = 30
 WORLD_SEEDS = (ENV["WORLD_SEEDS"] || "3").then { |s| s.include?("..") ? Range.new(*s.split("..").map(&:to_i)) : 1..s.to_i }
 # Vegetation drawn over two tiles: tile => tiles allowed just below it, so
-# that no half plant shows (very tall grass T7 needs itself or its base: T15, or
+# that no half plant shows (very tall grass T18063 needs itself or its base: T15, or
 # T151, T175, T181, T189, T14637 on the meadow, sand, dirt, gravel and snow).
-# The very tall grass (its top row T7, the rows below T14915) has its foot
+# The very tall grass (its top row T18063, the rows below T14915) has its foot
 # (or more of it) on the row below
 VERY_TALL_BELOW = [14915, 15, 151, 175, 181, 189, 14637].map { |n| 384 + n }.freeze
-SPILL_BELOW = { 384 + 7 => VERY_TALL_BELOW, 384 + 14915 => VERY_TALL_BELOW }.freeze
+SPILL_BELOW = { 384 + 18_063 => VERY_TALL_BELOW, 384 + 14915 => VERY_TALL_BELOW }.freeze
 
 # Records the bricks each builder lays (with its place), to check that a
 # brick kept for some ambiances is never laid elsewhere.
@@ -919,6 +919,15 @@ worlds.each do |path|
   end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, e.message[/\A[^:]*, ligne (\d+) :/, 1]&.to_i, e.message)
+end
+
+# Extra autotiles (#301): each one drawn in place of a first tile of its
+# tileset has its file
+M::EXTRA_AUTOTILES.each do |tileset, lists|
+  lists.flatten.each do |name|
+    file = File.join("Graphics", "Autotiles", "#{name}.png")
+    CI.error(file, nil, "autotile supplémentaire du tileset #{tileset} absent") if !File.exist?(File.join(ROOT, file))
+  end
 end
 
 puts "Recoins à franchir avec un objet hors arène : #{M::CROSSINGS.keys.map { |kind| "#{kind} #{crossings[kind]}" }.join(', ')}"

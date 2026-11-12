@@ -196,6 +196,12 @@ module MapProceduralGenerator
   # its floor and rock tiles. Cave 4G (HGSS, tools/art/caves_4g.py) keeps
   # the rock, floor and ladder tiles of the demo's Dungeon cave, with single walls.
   CAVE_TILESET = 25
+  # Extra autotiles of Outside 4G (#301): a tileset has 7 autotiles, Essentials
+  # draws these animated ones in place of its first tiles (T0, T1...), which
+  # tools/art/extra_autotiles_4g.py left free. Single tile autotiles, in the
+  # order of the script: the waterfall's crest, fall and foot, white flowers.
+  EXTRA_AUTOTILES = { 24 => [[], ["Waterfall crest", "Waterfall", "Waterfall bottom", "HGSS Flowers 02"]] }.freeze
+
   # Caves by biome (#300): the ambiance of the place a cave opens on => its
   # tileset, laid out like Cave 4G (tools/art/cave_styles_4g.py): ice, lava,
   # moss, mine. The others keep CAVE_TILESET.
@@ -635,3 +641,5 @@ module MapProceduralGenerator
   FILLER_ROCK_SYMBOLS = %w[ø ö õ ó].freeze
   FILLER_SYMBOLS = ((0x3B1..0x3C9).to_a + (0x391..0x3A9).to_a - [0x3A2] + (0x410..0x44F).to_a).map { |c| c.chr(Encoding::UTF_8) }.freeze
 end
+
+TilemapRenderer::EXTRA_AUTOTILES.merge!(MapProceduralGenerator::EXTRA_AUTOTILES) if defined?(TilemapRenderer)
