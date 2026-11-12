@@ -75,13 +75,15 @@ def drop_neighbours(drawing, drop):
                     px[a, b] = (0, 0, 0, 0)
 
 
-def main():
+def main(buildings=None):
+    """Adds these buildings (BUILDINGS by default) under the tileset."""
+    buildings = buildings or BUILDINGS
     sheet = Image.open(f"{sys.argv[1]}/{SHEETS['B']}").convert("RGBA")
     target = Image.open(TARGET).convert("RGBA")
     first = target.height // TILE * 8
     tiles, copies, lines = {}, {}, []
     at = first
-    for name, (symbols, parts, (bx, by, bw, bh), door, apart, drop) in BUILDINGS.items():
+    for name, (symbols, parts, (bx, by, bw, bh), door, apart, drop) in buildings.items():
         check_whole(sheet, name, parts, apart)
         drawing = drawing_image(sheet, parts)
         drop_neighbours(drawing, drop)
