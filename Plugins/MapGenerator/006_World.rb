@@ -8,8 +8,9 @@
 #                               0,0 by default)
 #   Image   = monde.png        (Town Map image in Graphics/UI/Town Map, drawn
 #                               from the plan; mapRegion<Region>.png by default)
-#   Tileset = 1                (tileset and ground of the maps created empty,
-#   Ground  = T1                1 and T1 by default)
+#   Tileset = 24               (tileset and ground of the maps created empty,
+#   Ground  = T18057            24 and T18057, the grass of Outside 4G, by
+#                               default)
 #   [Places]
 #   A = Bourg Typelock  vol=12,8   (one symbol = one map, found by its name;
 #   1 = Route 1                     vol=x,y = fly destination on that map;
@@ -69,7 +70,7 @@ module MapGenerator
   end
 
   def parse_world(text, file = "monde")
-    plan = WorldPlan.new(file, nil, 0, 20, [0, 0], nil, 24, 384 + 1, {}, [], [])
+    plan = WorldPlan.new(file, nil, 0, 20, [0, 0], nil, 24, 384 + 18_057, {}, [], [])
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       line = raw.chomp

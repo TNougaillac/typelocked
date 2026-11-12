@@ -90,7 +90,7 @@ monument = 1
 # Plusieurs « Rue » : des styles de dalles, chaque ville en tire un.
 [Ambiance verdoyante]
 Poids = 8
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=fŀĿĳĲ   # dalles grises
 Rue   = T9960 N=T9961 S=T9962 W=T9963 E=T9964 NW=T9965 NE=T9966 SW=T9967 SE=T9968 iNW=T9969 iNE=T9970 iSW=T9971 iSE=T9972 with=fŀĿĳĲ   # dalles bleues
 Rue   = T9976 N=T9977 S=T9978 W=T9979 E=T9980 NW=T9981 NE=T9982 SW=T9983 SE=T9984 iNW=T9985 iNE=T9986 iSW=T9987 iSE=T9988 with=fŀĿĳĲ   # dalles violettes
@@ -100,7 +100,7 @@ decor = 0..1 par case
 
 [Ambiance chemins de terre]
 Poids = 2
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100 with=fŀĿĳĲ
 Rue   = T16264 N=T16265 S=T16266 W=T16267 E=T16268 NW=T16269 NE=T16270 SW=T16271 SE=T16272 iNW=T16273 iNE=T16274 iSW=T16275 iSE=T16276 with=fŀĿĳĲ   # terre tassée (SirMalo, #298)
 q     = T106               # pavé sous la fontaine
@@ -110,7 +110,7 @@ decor = 0..1 par case
 Poids = 1
 Sol   = T50
 " = T143                # hautes herbes sur la prairie
-: = {sol} T7             # herbes très hautes sur la prairie
+: = {sol} T18063             # herbes très hautes sur la prairie
 ; = T151
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
@@ -134,8 +134,8 @@ decor = 0..1 par case
 [Ambiance sable]
 Poids = 1
 Sol   = T162
-" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = {sol} T7             # herbes très hautes sur le sable
+" = T124                # hautes herbes sur le sable (le fond vert de T18062 est opaque)
+: = {sol} T18063             # herbes très hautes sur le sable
 ; = T175
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
@@ -159,7 +159,7 @@ decor = 1..2 par case
 Poids = 1
 Sol   = T218
 " = T133                # hautes herbes sur le gravier
-: = {sol} T7             # herbes très hautes sur le gravier
+: = {sol} T18063             # herbes très hautes sur le gravier
 ; = T189
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
@@ -184,7 +184,7 @@ decor = 1..2 par case
 Poids = 1
 Sol   = T106
 " = T125                # hautes herbes sur la terre
-: = {sol} T7             # herbes très hautes sur la terre
+: = {sol} T18063             # herbes très hautes sur la terre
 ; = T181
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
@@ -206,7 +206,7 @@ decor = 0..1 par case
 
 [Ambiance automne]
 Poids = 1
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268 with=fŀĿĳĲ   # dalles grises
 Rue   = T9976 N=T9977 S=T9978 W=T9979 E=T9980 NW=T9981 NE=T9982 SW=T9983 SE=T9984 iNW=T9985 iNE=T9986 iSW=T9987 iSE=T9988 with=fŀĿĳĲ   # dalles violettes
 Rue   = T16264 N=T16265 S=T16266 W=T16267 E=T16268 NW=T16269 NE=T16270 SW=T16271 SE=T16272 iNW=T16273 iNE=T16274 iSW=T16275 iSE=T16276 with=fŀĿĳĲ   # terre tassée (SirMalo, #298)
@@ -219,7 +219,7 @@ decor = 1..1 par case
 Poids = 1
 Sol   = T14632|T14632|T14632|T14633|T14634|T14635
 " = T14636               # hautes herbes sur la neige
-: = {sol} T7             # herbes très hautes sur la neige
+: = {sol} T18063             # herbes très hautes sur la neige
 ; = T14637
 ǩ = T14640|T14641|T14642|T14643   # neige profonde
 ǫ = T14644|T14645|T14646|T14647   # glace
@@ -248,7 +248,7 @@ decor = 1..2 par case
 # profonde en plaques entre les maisons, rues de terre.
 [Ambiance marais]
 Poids = 1
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100 with=fŀĿĳĲ
 Rue   = T16264 N=T16265 S=T16266 W=T16267 E=T16268 NW=T16269 NE=T16270 SW=T16271 SE=T16272 iNW=T16273 iNE=T16274 iSW=T16275 iSE=T16276 with=fŀĿĳĲ   # terre tassée (SirMalo, #298)
 q     = T106               # terre sous la fontaine
@@ -297,8 +297,8 @@ decor = 1..2 par case
 Poids = 3
 Mer   = oui
 Sol   = T162
-" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = {sol} T7             # herbes très hautes sur le sable
+" = T124                # hautes herbes sur le sable (le fond vert de T18062 est opaque)
+: = {sol} T18063             # herbes très hautes sur le sable
 ; = T175
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
@@ -333,17 +333,17 @@ d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
 , = {sol} T895          # bloc gris
-! = T1                 # rive sous l'eau (bout gauche, milieu, bout droit) : l'eau 4G dessine la sienne (EauBordee), le sol seul
-' = T1
-? = T1
-" = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
+! = T18057                 # rive sous l'eau (bout gauche, milieu, bout droit) : l'eau 4G dessine la sienne (EauBordee), le sol seul
+' = T18057
+? = T18057
+" = {sol} T18062            # hautes herbes (T18063, l'herbe très haute, déborde sur la tuile du dessous)
 ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
 ˌ = {sol} T14913        # rangée du bas (pied des brins)
 ˑ = {sol} T14914        # tache d'une seule rangée
-: = {sol} T7            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
+: = {sol} T18063            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
 ˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
-* = {sol} A5            # massif de fleurs
+* = {sol} A5|T3         # massif de fleurs (orange : A5 ; blanches : autotile supplémentaire T3, #301)
 ~ = {sol} A1            # eau des lacs
 e = {sol} T777          # escalier taillé dans une montagne (« eɛ » : gauche, droite)
 ɛ = {sol} T778
@@ -406,7 +406,7 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ʆ = T15864 N=T15865 S=T15866 W=T15867 E=T15868 NW=T15869 NE=T15870 SW=T15871 SE=T15872 iNW=T15873 iNE=T15874 iSW=T15875 iSE=T15876   # mousse (forêt sombre)
 ʇ = T15880 N=T15881 S=T15882 W=T15883 E=T15884 NW=T15885 NE=T15886 SW=T15887 SE=T15888 iNW=T15889 iNE=T15890 iSW=T15891 iSE=T15892 with=ʈ   # terre rouge (volcan)
 ʈ = T15896 N=T15897 S=T15898 W=T15899 E=T15900 NW=T15901 NE=T15902 SW=T15903 SE=T15904 iNW=T15905 iNE=T15906 iSW=T15907 iSE=T15908   # boue séchée, dans la terre rouge (volcan)
-ʉ = T1 N=T15912 S=T15913 W=T15914 E=T15915 NW=T15916 NE=T15917 SW=T15918 SE=T15919   # berge moussue autour d'herbe (marais)
+ʉ = T18057 N=T15912 S=T15913 W=T15914 E=T15915 NW=T15916 NE=T15917 SW=T15918 SE=T15919   # berge moussue autour d'herbe (marais)
 
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin
