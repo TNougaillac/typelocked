@@ -50,7 +50,8 @@ module MapProceduralGenerator
   # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
   # by weight; boost: [Briques] types raised to that many times their
   # highest count. GRID: tiles between two streets of a « grille » (across,
-  # down); CANAL: width of the canal of a « canal ». PLAN_SALT: their own
+  # down); CANAL: width of the canal of a « canal » that runs from north to
+  # south. PLAN_SALT: their own
   # draws.
   TOWN_PLANS = {
     "carrefour" => { weight: 4 },
@@ -60,6 +61,12 @@ module MapProceduralGenerator
   }.freeze
   GRID = { across: 14..16, down: 12..14 }.freeze
   CANAL = { width: 4..5 }.freeze
+  # The stone bridge of a canal that runs from west to east (see
+  # PlaceBuilder#lay_stone_canal): its object in ville.txt (its block: the
+  # parapets and the deck over the water; its halo: the posts on the banks),
+  # that often (%) among the canals; kind: the type of its cells; apart: tiles
+  # between two bridges at least (from deck to deck).
+  STONE_BRIDGE = { symbol: "Ѫ", chance: 50, kind: "pont", apart: 8 }.freeze
   PLAN_SALT = 0x91A45
 
   # The avenue of a town (the streets of its first two exits) is one tile
@@ -320,8 +327,9 @@ module MapProceduralGenerator
   LAST_KINDS = %w[batisse barriere].freeze
   # Optional bricks tried right after the required buildings but the
   # houses (the unique buildings, too big to find room once the town is
-  # built, #299)
-  EARLY_KINDS = %w[special].freeze
+  # built, #299; the round square, which needs five tiles along a street,
+  # #298)
+  EARLY_KINDS = %w[special placette].freeze
   # Fences (« barriere » in [Briques]): along a street, all along it.
   FENCE = "barriere"
   EXTRA_SALT = 7951
