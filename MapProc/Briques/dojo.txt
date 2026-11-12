@@ -1,0 +1,10 @@
+# Dojo à toit rouge (SirMalo Buildings J9), une fois par ville au plus (#321).
+Brique    = Dojo
+Type      = special
+Unique    = oui
+Porte     = 3,2
+Ambiances = chemins de terre, automne, terre battue, minérale
+[Map]
+ҠҠҠҠҠҠҠ
+ҠҠҠҠҠҠҠ
+ҠҠҠҠҠҠҠ
