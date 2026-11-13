@@ -120,6 +120,25 @@ module WorldEvents
   # from the entry, the lieutenant and each other
   GYM_MEMBER_SIGHT = 3
   GYM_MEMBER_ROOM = 3
+  # The mechanic of a generated gym (#121): barriers on the cells around the
+  # lieutenant, lifted once the statues of the room are all touched (game
+  # switch GYM_STATUE_SWITCH + the gym's rank, 111 to 130). Statues by gym
+  # (1st to 8th), never nearer than GYM_STATUE_ROOM cells to the entry, the
+  # lieutenant, a member or each other, never cutting the room.
+  GYM_STATUE_SWITCH = 110
+  GYM_STATUE_LOCKS  = 20
+  GYM_STATUES       = [1, 1, 2, 2, 2, 3, 3, 3].freeze
+  GYM_STATUE_ROOM   = 2
+  GYM_STATUE        = "Gym statue"
+  # Types whose statues bear a number and must be touched in that order (a
+  # mistake puts them all out), types whose statues are invisible (found by
+  # bumping into the action key).
+  GYM_ORDERED = %i[PSYCHIC ELECTRIC STEEL].freeze
+  GYM_HIDDEN  = %i[GHOST DARK].freeze
+  # Barrier charset by type (tools/art/gym_props_4g.py), GYM_BARRIER otherwise.
+  GYM_BARRIERS = { ROCK: "Gym boulder", GROUND: "Gym boulder", FIGHTING: "Gym boulder", ICE: "Gym ice",
+                   WATER: "Gym ice", GRASS: "Gym tree", BUG: "Gym tree", POISON: "Gym tree" }.freeze
+  GYM_BARRIER = "Gym barrier"
   # Trainer type of a lieutenant (gym leader for the Monotype) by the type of
   # its gym: its sprite (tools/art/family_sprites.rb).
   LEADER_TYPES = {
@@ -326,6 +345,9 @@ module WorldEvents
     "lieutenant_combat" => PLACE_TOKENS, "lieutenant_fin" => BATTLE_TOKENS,
     "lieutenant_victoire" => PLACE_TOKENS, "lieutenant_ct" => PLACE_TOKENS,
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
+    "arene_barriere" => PLACE_TOKENS, "arene_barriere_ordre" => PLACE_TOKENS, "arene_barriere_cachee" => PLACE_TOKENS,
+    "arene_statue" => [], "arene_statue_deja" => [], "arene_statue_rang" => %w[rang], "arene_statue_erreur" => [],
+    "arene_ouverte" => [],
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
     "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS, "guilde_sortie" => PLACE_TOKENS,
