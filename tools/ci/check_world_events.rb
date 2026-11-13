@@ -112,7 +112,8 @@ def check_gyms(atlas, plans, leaders, tms)
       dx, dy = W::STEPS[e.value("Facing")]
       (1..e.value("Sight").to_i).map { |k| [e.x + (dx * k), e.y + (dy * k)] }.take_while { |x, y| grid[y]&.[](x) }
     end
-    if reach(grid, arrival, standing + seen)[target]
+    # (a generated gym is one open room: its members are fought or not)
+    if spots[:template] && reach(grid, arrival, standing + seen)[target]
       raise MapEvents::Error, "#{map} : on atteint le lieutenant sans passer devant un membre"
     end
   end

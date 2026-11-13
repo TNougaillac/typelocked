@@ -327,12 +327,12 @@ module MapProceduralGenerator
   GUILD_HALL_SHAPE = { size: [14, 6], rooms: 2..3, radius: 1.2..2.4, loops: 0..1, width: 1..1 }.freeze
   GUILD_HALL_GAP = 2
   GUILD_DUNGEON_TILESETS = { "contrebande" => 33, "chromes" => 34, "nageurs" => 35, "temple" => 36 }.freeze
-  # A gym's interior (#121): halls like a guild of rooms' dungeon, GYM_GATES
-  # gates held by members of the Family, the lieutenant at the far end; drawn
+  # A gym's interior (#121): one room (GYM_ROOM_SHAPE, see CAVE_SHAPES),
+  # the lieutenant at its far end, the members of the Family in it; drawn
   # on the Normal gym's tileset (tools/art/gym_interiors_4g.py, one per type
   # from 37: WorldEvents swaps it for its lieutenant's type).
   GYM = "arene"
-  GYM_GATES = 2
+  GYM_ROOM_SHAPE = { size: [14, 11], rooms: 3..4, radius: 1.6..2.8, loops: 1..2, width: 1..2 }.freeze
   GYM_TILESET = 37
   # Its map metadata (that of the demo's gym, map 10), after its name
   GYM_METADATA = ["BattleBack = indoor3", "Environment = Rock", "Flags = DisableBoxLink"].freeze

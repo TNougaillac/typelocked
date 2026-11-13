@@ -282,21 +282,24 @@ module MapProceduralGenerator
     return halls_floor(name, owner, door, HQ_GATES, GUILD_DUNGEON_TILESETS[kind], kind, rng)
   end
 
-  # A gym's interior behind that door of its town (#121): halls like a
-  # guild's dungeon (GYM_GATES gates, the lieutenant at the far end), drawn
+  # A gym's interior behind that door of its town (#121): one room
+  # (GYM_ROOM_SHAPE, a hall of a guild's dungeon with no gate), the
+  # lieutenant at its far end from the entrance (south), drawn
   # on the Normal gym's tileset (WorldEvents swaps it for its lieutenant's
   # type), its exit always open (no locks).
   def gym_floor(name, owner, door, rng)
-    floor = halls_floor(name, owner, door, GYM_GATES, GYM_TILESET, GYM, rng)
+    floor = halls_floor(name, owner, door, 0, GYM_TILESET, GYM, rng, GYM_ROOM_SHAPE)
     floor.spots.delete(:locks)
     return floor
   end
 
-  # Halls stacked from the entrance (south) to the back (north), gates + 1 of
-  # them (see guild_dungeon_floor), on that tileset, for that building.
-  def halls_floor(name, owner, door, gate_count, tileset, building, rng)
-    halls = Array.new(gate_count + 1) { cave_blocks(GUILD_HALL_SHAPE, rng) }
-    cw, ch = GUILD_HALL_SHAPE[:size]
+  # Halls of that shape stacked from the entrance (south) to the back
+  # (north), gates + 1 of them (see guild_dungeon_floor), on that tileset,
+  # for that building. One hall (no gate): the entrance on its lowest row,
+  # the back its farthest block.
+  def halls_floor(name, owner, door, gate_count, tileset, building, rng, shape = GUILD_HALL_SHAPE)
+    halls = Array.new(gate_count + 1) { cave_blocks(shape, rng) }
+    cw, ch = shape[:size]
     step = ch + GUILD_HALL_GAP
     grid = Array.new((step * halls.length) - GUILD_HALL_GAP) { Array.new(cw, false) }
     # Hall 0 (the entrance) at the bottom
@@ -322,8 +325,14 @@ module MapProceduralGenerator
       rows = top.call(i)...(top.call(i) + ch)
       rows.flat_map { |y| (0...cw).select { |x| dist[y][x] }.map { |x| [x, y] } }.max_by { |x, y| [dist[y][x], -y, -x] }
     end
-    entrance = hall_far.call(0, gates[0])
-    leader = hall_far.call(gate_count, gates[-1])
+    if gates.empty?
+      low = grid.rindex { |row| row.any? }
+      entrance = [grid[low].each_index.select { |x| grid[low][x] }.min_by { |x| [(x - (cw / 2)).abs, x] }, low]
+      leader = hall_far.call(0, entrance)
+    else
+      entrance = hall_far.call(0, gates[0])
+      leader = hall_far.call(gate_count, gates[-1])
+    end
     entry = block_cell(entrance).then { |x, y| [x, y + 1] }
     rows = cave_rows(grid)
     ground = rows.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] }.map { |x| [x, y] } }

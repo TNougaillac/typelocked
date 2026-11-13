@@ -485,7 +485,7 @@ end
 # guard's cell and the one he looks at on the floor; the exit held by the
 # lock.
 # A gym's interior (#121, building GYM) is checked the same way, on the
-# Normal gym's tileset, GYM_GATES gates, its exit never held.
+# Normal gym's tileset, one room with no gate, its exit never held.
 def check_guild_dungeon(path, where, wp, floor, result, map_names)
   gym = floor.guild == M::GYM
   tileset = gym ? M::GYM_TILESET : M::GUILD_DUNGEON_TILESETS[floor.guild]
@@ -522,7 +522,7 @@ def check_guild_dungeon(path, where, wp, floor, result, map_names)
     end
     seen
   end
-  gates = gym ? M::GYM_GATES : M::HQ_GATES
+  gates = gym ? 0 : M::HQ_GATES
   CI.error(path, nil, "#{where} : #{spots[:gates].length} goulets au lieu de #{gates}") if spots[:gates].length != gates
   CI.error(path, nil, "#{where} : chef hors d'atteinte") if !walk.call([])[spots[:leader]]
   spots[:gates].each_with_index do |(x, y), i|

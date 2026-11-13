@@ -61,14 +61,12 @@ module WorldEvents
     return leaders
   end
 
-  # The layout of a generated gym (#121, MapProceduralGenerator.gym_floor):
-  # the lieutenant at its far end, a member on each gate (blocking: the
-  # corridor in front of him), the others on its floor cells away from the
-  # entry, the lieutenant, the gates and each other.
+  # The layout of a generated gym (#121, MapProceduralGenerator.gym_floor,
+  # one room): the lieutenant at its far end, the members on its floor cells
+  # away from the entry, the lieutenant and each other, never seeing the
+  # exit nor standing by it.
   def gym_floor_layout(spots, rng)
-    gates = spots[:gates].each_with_index.map { |(x, y), i| [x, y, spots[:gate_facing][i], GYM_GATE_SIGHT] }
-    near = [spots[:entry], spots[:leader], *spots[:gates]]
-    # Never seeing the exit nor standing by it
+    near = [spots[:entry], spots[:leader]]
     blocked = blocked_cells(spots)
     cells = spots[:facing].select do |x, y, _f|
       near.all? { |nx, ny| (nx - x).abs + (ny - y).abs > GYM_MEMBER_ROOM } &&
@@ -80,14 +78,14 @@ module WorldEvents
       others.push([x, y, facing, GYM_MEMBER_SIGHT])
       break if others.length >= GYM_MEMBERS.max
     end
-    return { leader: spots[:leader], blocking: gates, others: others, hold: true }
+    return { leader: spots[:leader], blocking: [], others: others, hold: true }
   end
 
   # One blocking cell, then the others drawn among the rest.
   def gym_members(layout, rng)
     count = rng.rand(GYM_MEMBERS)
-    # A generated gym (hold): every gate held
-    return layout[:blocking] + layout[:others].shuffle(random: rng).first(count - layout[:blocking].length) if layout[:hold]
+    # A generated gym (hold): among its free cells
+    return layout[:others].shuffle(random: rng).first(count) if layout[:hold]
     blocking = layout[:blocking].shuffle(random: rng)
     rest = (blocking.drop(1) + layout[:others]).shuffle(random: rng)
     return [blocking.first] + rest.first(count - 1)

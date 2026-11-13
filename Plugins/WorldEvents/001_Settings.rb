@@ -116,10 +116,8 @@ module WorldEvents
     }
   }.freeze
   GYM_MEMBERS = 2..4
-  # A generated gym (#121): sight of a member on a gate (its corridor), of
-  # the others, and their distance (cells) from the entry, the lieutenant,
-  # the gates and each other
-  GYM_GATE_SIGHT = 1
+  # A generated gym (#121): sight of its members, and their distance (cells)
+  # from the entry, the lieutenant and each other
   GYM_MEMBER_SIGHT = 3
   GYM_MEMBER_ROOM = 3
   # Trainer type of a lieutenant (gym leader for the Monotype) by the type of
