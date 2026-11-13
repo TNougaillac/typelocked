@@ -193,13 +193,23 @@ module WorldEvents
                            (outside[:hqs] || []).find { |_x, _y, kind| kind == guild.hq })
       next if !zone || !anchor
       # Its leader inside (a headquarters with a door), else by the street
-      # nearest it, like its members; in a dungeon, past its gates
-      dungeon = outside[:gates]
+      # nearest it, like its members; in a dungeon, past its gates: its
+      # place for a guild of the outdoors (#335), behind its door for a
+      # guild of rooms (room, #337), at its far end
+      room, inner = atlas[:maps].find { |_name, m| m[:kind] == "donjon" && m[:building] == guild.hq && m[:owner] == route }
+      dungeon = outside[:gates] ? outside : inner
       map, spots = !dungeon && atlas[:maps].find { |_name, m| m[:kind] == "interieur" && m[:building] == guild.hq && m[:owner] == route }
       x, y, facing = spots && GUILD_LEADER_SPOTS[spots[:template]]
-      cell = x ? [x, y, facing, 1] : hq_cell(outside, anchor, plans[route], rng, dungeon && past_gate(outside, -1))
+      cell = if inner
+               [*inner[:leader], "bas", 1]
+             elsif x
+               [x, y, facing, 1]
+             else
+               hq_cell(outside, anchor, plans[route], rng, dungeon && past_gate(outside, -1))
+             end
       next if !cell
-      map = route if !x
+      map = room if room
+      map = route if !x && !room
       seals = zone.seals
       level = guild_level(zones, zone, caps)
       pool = guild.pool.filter_map { |id| species[id] }
@@ -221,9 +231,9 @@ module WorldEvents
           *lines.boxes("#{tag}_chef_victoire", title).map { |box| ["Win", box] }, *reward_lines(reward, lines),
           ["Switch", switch])
       lock = dungeon && guild_lock(guilds, guild)
-      members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
-                              [lines, tag, title], rng, rivals, lock)
-      close_exit(plans, outside, guild, route, lock, switch, lines, title) if lock
+      members = guild_members(dungeon || outside, inner ? inner[:gates][0] : anchor, guild, pool, species, zone, level,
+                              room || route, plans, trainers, names, [lines, tag, title], rng, rivals, lock)
+      close_exit(plans, dungeon, guild, room || route, lock, switch, lines, title) if lock
       blocks = (blockade && blockade[:id] == guild.id) ? blockade : nil
       bar_route(plans, blocks, guild, switch, lines, title) if blocks
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
@@ -511,15 +521,18 @@ module WorldEvents
     return [top, caps[zone.seals] || caps.last].min
   end
 
-  # The members by the street, nearest the headquarters first. In a
-  # dungeon (lock: its switch), one in the corridor of each gate first,
-  # facing the exit and gone once beaten (the first one closes the exit),
-  # the others past the first gate.
+  # The members by the street, nearest the headquarters first (route: their
+  # map). In a dungeon (lock: its switch), one in the corridor of each gate
+  # first, facing the exit (across its corridor in a guild of rooms) and
+  # gone once beaten (the first one closes the exit), the others past the
+  # first gate.
   def guild_members(spots, anchor, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng,
                     rivals = {}, lock = nil)
     sizes = PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min]
     members = []
-    gates = lock ? spots[:gates].map { |x, y| [x, y, FACE_EXIT[spots[:exits][0][0]], GUILD_GATE_SIGHT] } : []
+    gates = (lock ? spots[:gates] : []).each_with_index.map do |(x, y), i|
+      [x, y, spots[:gate_facing]&.[](i) || FACE_EXIT[spots[:exits][0][0]], GUILD_GATE_SIGHT]
+    end
     inside = lock && past_gate(spots, 0)
     [rng.rand(GUILD_MEMBERS), gates.length].max.times do |i|
       cell = gates[i] || hq_cell(spots, anchor, plans[route], rng, inside)
@@ -537,7 +550,7 @@ module WorldEvents
       add(plans, route, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", title)],
           ["EndBattle", lose], *gate, *rage_lines(rivals, guild, spots, cell, lines, title))
-      members.push({ type: type, name: name, team: team, label: label })
+      members.push({ type: type, name: name, team: team, label: label, map: route })
     end
     return members
   end
@@ -546,6 +559,7 @@ module WorldEvents
   # Dungeons (#335)
   #-----------------------------------------------------------------------------
   FACE_EXIT = { "nord" => "haut", "sud" => "bas", "ouest" => "gauche", "est" => "droite" }.freeze
+  FACE_IN = { "nord" => "bas", "sud" => "haut", "ouest" => "droite", "est" => "gauche" }.freeze
 
   # The game switch that closes a guild's dungeon: its rank in guildes.txt
   # after GUILD_LOCK_SWITCH.
@@ -555,20 +569,27 @@ module WorldEvents
 
   # The ground of a dungeon past that gate (an index of spots[:gates], -1:
   # the last one): { [x, y] => true }, the cells not reached from its exit
-  # through that gate's corridor.
+  # (where the player comes in: entry) through that gate's corridor (its
+  # cells: cuts, else its guard's cell).
   def past_gate(spots, gate)
     ground = (spots[:ground] || []).to_h { |cell| [cell, true] }
-    near = walk_cells(ground, spots[:exits][0][1, 2], [spots[:gates][gate]])
+    cut = spots[:cuts] ? spots[:cuts][gate] : [spots[:gates][gate]]
+    near = walk_cells(ground, spots[:entry] || spots[:exits][0][1, 2], cut)
     return ground.reject { |cell, _| near[cell] }
   end
 
   # The exit of a dungeon closed once its first member is beaten (lock on)
-  # until its leader is (switch on): an unseen NPC on each cell of its inner
-  # row, saying [guilde_sortie] when the player walks into it.
+  # until its leader is (switch on): a member of the guild on each cell of
+  # its inner row (the exit itself in a guild of rooms: locks), facing in,
+  # saying [guilde_sortie] when the player walks into it. Being seen, it
+  # bars the way (Essentials lets the player walk through an unseen event).
   def close_exit(plans, spots, guild, route, lock, switch, lines, title)
-    gate_cells([spots[:exits][0]]).each_with_index do |(x, y), i|
-      add(plans, route, "Npc", "Sortie#{guild.id.capitalize}#{i + 1}", x, y, ["Trigger", "contact"],
-          ["Show", "S#{lock}"], ["Hide", "S#{switch}"], *lines.boxes("guilde_sortie", title).map { |box| ["Text", box] })
+    cells = spots[:locks] || gate_cells([spots[:exits][0]])
+    facing = spots[:locks] ? "bas" : FACE_IN[spots[:exits][0][0]]
+    cells.each_with_index do |(x, y), i|
+      add(plans, route, "Npc", "Sortie#{guild.id.capitalize}#{i + 1}", x, y, ["Graphic", "trainer_#{guild.member_types.first}"],
+          ["Facing", facing], ["Trigger", "contact"], ["Show", "S#{lock}"], ["Hide", "S#{switch}"],
+          *lines.boxes("guilde_sortie", title).map { |box| ["Text", box] })
     end
   end
 end

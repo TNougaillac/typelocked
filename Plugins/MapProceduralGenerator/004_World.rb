@@ -328,6 +328,17 @@ module MapProceduralGenerator
       warps[wp.name].push([door[0], door[1], floor.name, ex, ey + 1, 2])
       [[wp, floor.name, cave_floor_text(floor, wp.name), floor, nil]]
     end
+    # The dungeons of the guilds of rooms, behind their building's door (#337)
+    caves += hqs.filter_map do |kind, name|
+      next if !HQ_ROOM_KINDS.include?(kind)
+      wp, _place, _text, layout = built.find { |p, *| p.name == name }
+      door = layout.doors.find { |_x, _y, brick| brick.kind == kind }
+      next if !door
+      floor = guild_dungeon_floor("#{name} - donjon", name, door, kind, Random.new((seed * 1000) + 650 + wp.index))
+      ex, ey = floor.spots[:entry]
+      warps[name].push([door[0], door[1], floor.name, ex, ey, 8, DOOR_GRAPHICS[door[2].rows[door[2].door[1]][door[2].door[0]]]])
+      [wp, floor.name, cave_floor_text(floor, name), floor, nil]
+    end
     seabeds = built.filter_map do |wp, place, _text, layout|
       next if !wp.deep
       name = "#{wp.name} (fonds)"
@@ -341,7 +352,8 @@ module MapProceduralGenerator
       warps[island[0].name].push(ferry_warp(island[4], island[1].name, port))
     end
     interiors = place_interiors(built.map { |wp, _place, _text, layout| [wp, layout, wp.index] } +
-                                islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed)
+                                islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed,
+                                hqs.select { |kind, _name| HQ_ROOM_KINDS.include?(kind) })
     interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8, it.graphic]) if it.door }
     built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }

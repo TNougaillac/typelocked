@@ -475,8 +475,16 @@ def check_dungeon_encounters(result, zones, lines, generated, seed, roster)
     raise MapEvents::Error, "#{name} : pas de zone de rencontres" if !zone
     raise MapEvents::Error, "#{name} : rencontres hors du pool de la guilde #{kind}" if zone.pool != POOLS[kind]
     tables = generated.tables.select { |t| t.zone.name == name }
-    # The dungeon of a guild of the outdoors is in its grass (a room's, #337)
-    raise MapEvents::Error, "#{name} : aucune rencontre dans les herbes du donjon" if !M::HQ_ROOM_KINDS.include?(kind) && tables.none? { |t| t.type == "Land" && !t.slots.empty? }
+    # The dungeon of a guild of the outdoors is in its grass; a room's, on
+    # the whole floor behind its door (#337), from the same pool
+    if M::HQ_ROOM_KINDS.include?(kind)
+      inside = zones.find { |z| z.name == "#{name} - donjon" }
+      raise MapEvents::Error, "#{name} : donjon sans rencontres du pool de la guilde" if !inside || inside.pool != POOLS[kind]
+      tables += generated.tables.select { |t| t.zone.name == inside.name }
+      raise MapEvents::Error, "#{name} : aucune rencontre sur le sol du donjon" if tables.none? { |t| t.type == "Cave" && !t.slots.empty? }
+    elsif tables.none? { |t| t.type == "Land" && !t.slots.empty? }
+      raise MapEvents::Error, "#{name} : aucune rencontre dans les herbes du donjon"
+    end
     tables.each do |table|
       outside = table.slots.reject { |e| zone.pool.include?(e.species.id) }
       raise MapEvents::Error, "#{name} : #{outside.map { |e| e.species.id }.join(', ')} hors du pool" if !outside.empty?
@@ -516,7 +524,8 @@ def check_guilds(result, atlas, zones, plans, drawn, bricks)
     size = W::GUILD_LEADER_PARTY_SIZES[[zone.seals, W::GUILD_LEADER_PARTY_SIZES.length - 1].min]
     raise MapEvents::Error, "chef #{g[:id]} : #{team.length} Pokémon au lieu de #{size}" if team.length != size || !(4..6).include?(team.length)
     labels = g[:members].map { |m| m[:label] }
-    members = plans[g[:hq]]&.events&.select { |e| e.kind == :trainer && labels.include?(e.label) } || []
+    # In a guild of rooms' dungeon (#337), behind its door
+    members = plans[g[:members].first&.[](:map) || g[:hq]]&.events&.select { |e| e.kind == :trainer && labels.include?(e.label) } || []
     raise MapEvents::Error, "guilde #{g[:id]} : #{members.length} membres" if !W::GUILD_MEMBERS.include?(members.length) || members.length != labels.length
     (g[:members].map { |m| m[:team] } + [team]).flatten(1).each do |species, _level|
       raise MapEvents::Error, "guilde #{g[:id]} : #{species} hors de son pool" if !guild.pool.include?(species)
@@ -637,24 +646,29 @@ def check_liberations(result, atlas, plans, drawn)
   return seen.length
 end
 
-# A guild's dungeon (#335): a member in the corridor of each gate, facing
-# the exit, gone once beaten, the first one closing the exit (its lock
-# switch); the others and the leader past the gates (the leader past the
-# last one); an unseen NPC on each cell of the exit's inner row, there
-# only under the lock and gone once the leader is beaten.
+# A guild's dungeon: its place for a guild of the outdoors (#335), the map
+# behind its building's door for a guild of rooms (#337, the leader there).
+# A member in the corridor of each gate, facing the exit (across the
+# corridor in a room), gone once beaten, the first one closing the exit
+# (its lock switch); the others and the leader past the gates (the leader
+# past the last one); a member of the guild on each cell of the exit's
+# inner row (on the exit in a room), seen, there only under the lock and
+# gone once the leader is beaten.
 def check_dungeon(g, guild, atlas, plans, members, chef)
-  spots = atlas[:maps][g[:hq]]
-  where = "donjon #{guild.id} (#{g[:hq]})"
-  kind_room = M::HQ_ROOM_KINDS.include?(guild.hq)
-  raise MapEvents::Error, "#{where} : #{spots[:gates]&.length.to_i} barrières" if !kind_room && spots[:gates]&.length != M::HQ_GATES
-  return if !spots[:gates]
+  room = M::HQ_ROOM_KINDS.include?(guild.hq)
+  name = room ? atlas[:maps].find { |_n, m| m[:kind] == "donjon" && m[:building] == guild.hq && m[:owner] == g[:hq] }&.first : g[:hq]
+  where = "donjon #{guild.id} (#{name || g[:hq]})"
+  raise MapEvents::Error, "#{where} : pas de donjon derrière la porte" if !name
+  spots = atlas[:maps][name]
+  raise MapEvents::Error, "#{where} : #{spots[:gates]&.length.to_i} barrières" if spots[:gates]&.length != M::HQ_GATES
+  raise MapEvents::Error, "#{where} : chef hors du donjon (#{g[:map]})" if room && g[:map] != name
   lock = W.guild_lock(GUILDS, guild)
   raise MapEvents::Error, "#{where} : interrupteur #{lock} hors de GUILD_LOCKS" if lock > W::GUILD_LOCK_SWITCH + W::GUILD_LOCKS
-  facing = W::FACE_EXIT[spots[:exits][0][0]]
   spots[:gates].each_with_index do |(x, y), i|
+    facing = spots[:gate_facing] ? spots[:gate_facing][i] : W::FACE_EXIT[spots[:exits][0][0]]
     m = members.find { |e| e.x == x && e.y == y }
     raise MapEvents::Error, "#{where} : barrière #{i + 1} sans membre" if !m
-    raise MapEvents::Error, "#{where} : #{m.label} ne fait pas face à la sortie" if m.value("Facing") != facing
+    raise MapEvents::Error, "#{where} : #{m.label} ne garde pas son goulet" if m.value("Facing") != facing
     raise MapEvents::Error, "#{where} : #{m.label} reste une fois battu" if m.value("Hide") != "A"
     raise MapEvents::Error, "#{where} : #{m.label} ne ferme pas la sortie" if (i == 0) != (m.value("Switch").to_i == lock)
   end
@@ -663,12 +677,12 @@ def check_dungeon(g, guild, atlas, plans, members, chef)
     raise MapEvents::Error, "#{where} : #{e.label} avant la première barrière" if !first[[e.x, e.y]]
   end
   raise MapEvents::Error, "#{where} : chef avant la dernière barrière" if !W.past_gate(spots, -1)[[chef.x, chef.y]]
-  exits = plans[g[:hq]].events.select { |e| e.label.start_with?("Sortie") }
-  if exits.map { |e| [e.x, e.y] }.sort != W.gate_cells([spots[:exits][0]]).sort
+  exits = plans[name].events.select { |e| e.label.start_with?("Sortie") }
+  if exits.map { |e| [e.x, e.y] }.sort != (spots[:locks] || W.gate_cells([spots[:exits][0]])).sort
     raise MapEvents::Error, "#{where} : sortie mal fermée (#{exits.map { |e| [e.x, e.y] }.inspect})"
   end
   exits.each do |e|
-    raise MapEvents::Error, "#{where} : #{e.label} visible" if e.value("Graphic")
+    raise MapEvents::Error, "#{where} : #{e.label} invisible (on le traverserait)" if e.value("Graphic") != "trainer_#{guild.member_types.first}"
     raise MapEvents::Error, "#{where} : #{e.label} hors du verrou" if e.value("Show") != "S#{lock}" || e.value("Hide") != "S#{g[:switch]}"
   end
 end
@@ -701,7 +715,7 @@ def check_rivalries(world, result, atlas, plans, drawn, items)
   end
   rivals = W.guild_rivals(atlas, GUILDS)
   vengeance = DIALOGUES["guilde_vengeance"].map { |line| line.split(/\s*\|\s*/).first[/\A[^{]+/] }
-  members = drawn.flat_map { |g| (g[:members].map { |m| [g, g[:hq], m, false] }) + g[:routes].map { |m| [g, m[:map], m, true] } }
+  members = drawn.flat_map { |g| (g[:members].map { |m| [g, m[:map], m, false] }) + g[:routes].map { |m| [g, m[:map], m, true] } }
   members.each do |g, map, member, route|
     entry = plans[map].events.find { |e| e.label == member[:label] }
     where = "#{map} : #{member[:label]} (#{g[:id]})"
@@ -822,7 +836,7 @@ def check_guild_routes(result, atlas, plans, drawn)
     raise MapEvents::Error, "#{where} : absent du plan" if plans[member[:map]].events.none? { |e| e.label == member[:label] }
     member[:team].each { |species, _level| raise MapEvents::Error, "#{where} : #{species} hors du pool" if !guild.pool.include?(species) }
   end
-  at_hq = drawn.flat_map { |g| g[:members].map { |m| [g[:hq], m[:label]] } }
+  at_hq = drawn.flat_map { |g| g[:members].map { |m| [m[:map], m[:label]] } }
   among = routes.keys.sum do |route|
     (plans[route]&.events || []).count do |e|
       e.kind == :trainer && !e.label.start_with?("Cousin", "Chef") && !at_hq.include?([route, e.label])
@@ -1091,7 +1105,8 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       raise MapEvents::Error, "#{name} : carte absente de l'inventaire" if !spots
       # The gates of the first town, the members of a blocking headquarters
       gates = (name == atlas[:start]) ? W.gate_cells(spots[:exits]) : []
-      gates += W.gate_cells([spots[:exits][0]]) if spots[:gates] # the closed exit of a dungeon
+      # The closed exit of a dungeon (its exit itself in a guild of rooms')
+      gates += spots[:locks] || W.gate_cells([spots[:exits][0]]) if spots[:gates]
       gates += events[:guilds].filter_map { |g| g[:blocks] && g[:blocks][:route] == name && g[:blocks][:cells] }.flatten(1)
       check_cells(plans[name], spots, gates)
     rescue MapEvents::Error => e

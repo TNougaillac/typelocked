@@ -46,7 +46,8 @@ module ProceduralEncounters
     end
     result.caves.each do |wp, name, *|
       route = zones[wp.name]
-      zones[name] = Zone.new(name, wp.index, route.seals, route.levels, nil, ["Cave"], route.surf)
+      # A guild's dungeon (#337) draws from the pool of its headquarters' place
+      zones[name] = Zone.new(name, wp.index, route.seals, route.levels, nil, ["Cave"], route.surf, route.pool)
     end
     # An island by boat: the seals and levels of its port
     (result.islands || []).each do |wp, port, place, text, layout|
