@@ -1,0 +1,11 @@
+# Camp des braconniers : le QG des Braconniers (#216, #338), en forêt sombre.
+# La hutte de chaume ronde (Remastered Johto, tools/art/poacher_hut_4g.py),
+# un tas de bûches et du bois coupé à côté. Posé seulement là où la guilde
+# est tirée.
+Brique    = Camp des braconniers
+Type      = braconniers
+Ambiances = forêt sombre
+Porte     = 4,1
+[Map]
+ґґ  ҨҨҨҨ
+žžž ҨҨҨҨ

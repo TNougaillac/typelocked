@@ -143,6 +143,7 @@ Les intérieurs de grotte (`Caves.png`) et les extérieurs (`JohtoCompactExterio
 | A9 | Lanternes de pierre, **pont en bois** arqué | Jardins, rivières |
 | A10, A11 | Planchers, caisses, palissades, poteaux | Quais, enclos |
 | A10, A11 (ship) | Tapis de feuilles mortes, arbres d'automne | Ambiance **automne** |
+| A15 | **Hutte de chaume** ronde | Camp des Braconniers : **fait (#338)** |
 | A15, A16 | Temple japonais à toit bleu | Sanctuaire, lieu de lore |
 | A16, A17 (ship) | **Paquebot** (S.S. Aqua) | Port de la gare maritime |
 | A18, A19 | Bonsaï, grand arbre rond | Parcs, arbre remarquable de place : **fait (#297)** |

@@ -70,6 +70,8 @@ carriere = 0
 poste = 0
 # Campement des Dundees (#220), dans le marais, posé de même.
 dundees = 0
+# Camp des braconniers (#338), en forêt sombre, posé de même.
+braconniers = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
 # Barrières le long des chemins (posées après le reste, là où il reste de la place).
@@ -748,6 +750,7 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 # Décor de rue et de marché 4G (#320, tools/art/street_decor_4g.py, SirMalo Urban F)
 Ґ = T18568 3x1 halo=3x6@0,5/0,2,5,8,9,11,14   # éolienne
 ґ = T18539 2x1 halo=2x2@0,1   # bûches
+Ҩ = T18880 4x2 halo=4x5@0,3/0,3   # hutte de chaume (camp des braconniers, Remastered Johto, #338)
 Ғ = T18541 2x1 halo=2x2@0,1   # tas de rochers
 Ҕ = T18594 3x1 halo=3x3@0,2   # cloche
 # Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,

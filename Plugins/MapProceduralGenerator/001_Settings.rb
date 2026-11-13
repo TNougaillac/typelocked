@@ -251,6 +251,8 @@ module MapProceduralGenerator
     "pontes"   => [[6, 6, 8]],
     # The Dundees' hunting camp (#220): a hut
     "dundees"  => [[8, 3, 9]],
+    # The Poachers' camp (#338): their thatched hut, a hut
+    "braconniers" => [[8, 3, 9]],
     # The Chromed's den (#221): the garage, a house
     "chromes"  => [[6, 6, 8]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
@@ -267,7 +269,7 @@ module MapProceduralGenerator
   # in (none: any). Its quantity is 0 in [Briques]: the guilds' draw sets it
   # (#182).
   # The ruins' temple is always there (« temple = 1 » in the ruins); the
-  # poachers' camp and the cemetery have no brick yet (#216, #211).
+  # cemetery has no brick yet (#211).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
                 "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
                 "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [],
