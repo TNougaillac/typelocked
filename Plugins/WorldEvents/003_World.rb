@@ -50,8 +50,15 @@ module WorldEvents
     if zones && sets
       blockade = guild_blockade(result, atlas, guilds, zones, Random.new((seed * 1000) + 820))
       definitions = guilds
+      # The field items its guilds give (#274), back to their hidden
+      # inhabitant when a leader is missing
+      hidden = atlas[:items]
+      atlas = guild_field_sources(atlas, guilds)
       guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
                             Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade, rivals || {})
+      given = guilds.filter_map { |g| g[:field_item] }
+      lost = atlas[:items].keys.select { |item| hq_place?(atlas, atlas[:items][item]) && !given.include?(item) }
+      atlas = atlas.merge(items: atlas[:items].merge(hidden.slice(*lost))) if !lost.empty?
       rival_bonuses(atlas, definitions, guilds, plans, lines, Random.new((seed * 1000) + 830))
       showdowns(atlas, definitions, guilds, rivals || {}, species, zones, plans, trainers, names, lines,
                 Random.new((seed * 1000) + 840))
@@ -68,7 +75,7 @@ module WorldEvents
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760),
                     (freed || []).to_h { |zone| [zone[:town], zone[:switch]] })
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
-             league: league, items: items || [], guilds: guilds || [] }
+             league: league, items: items || [], guilds: guilds || [], sources: atlas[:items] }
   end
 
   def plan_text(name, events)

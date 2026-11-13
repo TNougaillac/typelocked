@@ -317,6 +317,40 @@ end
 # lieutenant is beaten, the Heart Scales reach their number, a Move
 # Relearner stands in a town reached before the 2nd seal, gifts are given
 # once and reach their share.
+# The field items obtained outside the gyms (#274): each one the world has
+# (hidden: MapProc's towns of their hidden inhabitants) has exactly one
+# source, the leader of a guild of the world that declares it (« Objet »,
+# on its headquarters' place, the hidden inhabitant gone), else its hidden
+# inhabitant; a guild that declares one the world has, and whose leader is
+# there, gives it.
+def check_guild_field_items(hidden, atlas, drawn, plans)
+  return hidden[:items].count do |item, town|
+    next false if !W.extra_field_item?(item)
+    sources = plans.sum do |_name, plan|
+      plan.events.count do |e|
+        (e.kind == :npc && e.value("Gift") == item.to_s) ||
+          e.fields.any? { |key, value| key == "Reward" && value == "pbReceiveItem(:#{item})" }
+      end
+    end
+    raise MapEvents::Error, "#{item} : #{sources} sources au lieu d'une" if sources != 1
+    guild = GUILDS.find { |g| g.field_item == item && drawn.any? { |d| d[:id] == g.id } }
+    giver = guild && drawn.find { |d| d[:id] == guild.id }
+    if giver
+      raise MapEvents::Error, "#{item} : la guilde #{guild.id} ne le donne pas" if giver[:field_item] != item || atlas[:items][item] != giver[:hq]
+      # Its headquarters reached without it: no obstacle of that item there
+      kind = M::NOOKS.key(item)
+      [giver[:hq], giver[:map]].uniq.each do |name|
+        if (atlas[:maps][name][:nooks] || []).any? { |nook| nook[2] == kind }
+          raise MapEvents::Error, "#{item} : obstacle #{kind} au QG de #{guild.id} (#{name})"
+        end
+      end
+    elsif atlas[:items][item] != town
+      raise MapEvents::Error, "#{item} : donné à #{atlas[:items][item]} sans guilde (habitant caché à #{town})"
+    end
+    giver
+  end
+end
+
 def check_items(atlas, zones, plans, items)
   loot = Hash.new(0)
   plans.each { |name, plan| loot[name] = plan.events.count { |e| %i[item npc].include?(e.kind) && e.label.start_with?("Recoin") } }
@@ -327,6 +361,8 @@ def check_items(atlas, zones, plans, items)
     raise MapEvents::Error, "#{name} : #{loot[name]} butins pour #{nooks} recoins" if loot[name] != nooks
   end
   atlas[:items].each do |item, town|
+    # Given by a guild's leader (check_guild_field_items)
+    next if W.hq_place?(atlas, town)
     npc = plans[town]&.events&.find { |e| e.kind == :npc && e.value("Gift") == item.to_s }
     raise MapEvents::Error, "#{town} : personne ne donne #{item}" if !npc
     # Given outside the gyms (the Skates): at once, never sold
@@ -551,7 +587,12 @@ def check_rewards(result, atlas, plans, drawn, type, items)
     chef = plans[g[:map]].events.find { |e| e.label == g[:leader][:label] }
     raise MapEvents::Error, "#{where} : interrupteur #{chef.value('Switch')} au lieu de #{g[:switch]}" if chef.value("Switch").to_i != g[:switch]
     raise MapEvents::Error, "#{where} : chef sans réplique de victoire" if !chef.value("Win")
-    scripts = chef.fields.filter_map { |key, value| value if key == "Reward" }
+    # Its field item (#274), on top of its reward
+    given = "pbReceiveItem(:#{g[:field_item]})"
+    scripts = chef.fields.filter_map { |key, value| value if key == "Reward" && value != given }
+    if g[:field_item] && (g[:field_item] != guild.field_item || chef.fields.count { |key, value| key == "Reward" && value == given } != 1)
+      raise MapEvents::Error, "#{where} : objet de terrain #{g[:field_item]} mal donné par le chef"
+    end
     raise MapEvents::Error, "#{where} : sans récompense" if !reward
     typed = guild.pool.select { |id| type && ROSTER[id].monotype_types.include?(type) }
     shortcuts = W.guild_shortcuts(result, g[:hq]).reject { |wp, _layout| taken.include?(wp.name) }
@@ -1065,6 +1106,7 @@ end
 
 count = 0
 pact_total = 0
+guild_fields = 0
 guild_walkers = 0
 guild_among = 0
 rewards = Hash.new(0)
@@ -1135,7 +1177,10 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       guild_among += among
       check_lines(drawn)
       check_habitants(result, atlas, plans)
-      check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
+      # The field items of the guilds given at their headquarters (#274)
+      sourced = atlas.merge(items: events[:sources])
+      guild_fields += check_guild_field_items(atlas, sourced, events[:guilds], plans)
+      check_items(sourced, zones.to_h { |z| [z.name, z] }, plans, events[:items])
       # The same world under several imposed types (those of the weathers)
       worlds = W::WEATHER_ITEMS.keys.to_h { |types| [types.first, W.world_events(result, seed, **args, type: types.first)] }
       check_weather(seed, events, worlds)
@@ -1146,7 +1191,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
         revisits[0] += nooks if !type
         revisits[1] += pokemon
         revisits[2] += lore
-        check_rewards(result, atlas, typed_plans, typed[:guilds], type, items).compact.each { |kind| rewards[kind] += 1 }
+        check_rewards(result, sourced, typed_plans, typed[:guilds], type, items).compact.each { |kind| rewards[kind] += 1 }
       end
       type = worlds.keys.first
       if W.world_events(result, seed, **args, type: type)[:guilds].map { |g| g[:reward] } != worlds[type][:guilds].map { |g| g[:reward] }
@@ -1186,5 +1231,6 @@ end
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
 puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
+puts "Objets de terrain donnés par un chef de guilde : #{guild_fields}"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

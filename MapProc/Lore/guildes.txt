@@ -11,6 +11,9 @@
 #   Titre    = ce titre (vérifié contre trainer_types.txt)
 #   Ennemis  = les guildes ennemies (réciproques), vide si aucune
 #   Pool     = les espèces de ses équipes (roster du jeu, sans légendaire)
+#   Objet    = (facultatif) l'objet de terrain hors arène que donne son chef
+#              (#274), en plus de sa récompense, quand le monde a cet objet
+#              et que la guilde est tirée ; sinon un habitant caché le donne
 # Les répliques de chaque guilde sont dans dialogues.txt, sections
 # [guilde_<id>_chef_combat], [guilde_<id>_chef_fin], [guilde_<id>_chef_victoire]
 # (après sa défaite, avant sa récompense), [guilde_<id>_membre_combat] et
@@ -41,6 +44,7 @@ Membres  = SWIMMER_M, SWIMMER_F
 Chef     = CHEF_NAGEURS
 Titre    = Maître nageur
 Ennemis  = PONTES
+Objet    = SKATES
 Pool     = TENTACOOL, TENTACRUEL, GOLDEEN, SEAKING, STARYU, STARMIE, AZURILL, MARILL, AZUMARILL,
            BUIZEL, FLOATZEL, FINNEON, LUMINEON, MANTYKE, MANTINE, CORSOLA, CURSOLA, WAILMER, WAILORD,
            SOBBLE, DRIZZILE, INTELEON, SEEL, DEWGONG, SPHEAL, SEALEO, WALREIN, LAPRAS, SHELLDER,
@@ -56,6 +60,7 @@ Membres  = FISHERMAN, CAMPER
 Chef     = CHEF_DUNDEES
 Titre    = Grand chasseur
 Ennemis  = PONTES
+Objet    = WADERS
 Pool     = TOTODILE, CROCONAW, FERALIGATR, SANDILE, KROKOROK, KROOKODILE, CHEWTLE, DREDNAW, SEVIPER,
            EKANS, ARBOK, TYRUNT, TYRANTRUM
 
@@ -146,6 +151,7 @@ Membres  = HIKER, RUINMANIAC
 Chef     = CHEF_MINEURS
 Titre    = Chef de galerie
 Ennemis  = 
+Objet    = CLIMBINGCLAWS
 Pool     = GEODUDE, GRAVELER, GOLEM, ONIX, STEELIX, ROGGENROLA, BOLDORE, GIGALITH, DIGLETT, DUGTRIO,
            NOSEPASS, PROBOPASS, CARBINK, ROLYCOLY, CARKOL, COALOSSAL
 
@@ -184,5 +190,6 @@ Membres  = TEAMROCKET_M, TEAMROCKET_F
 Chef     = CHEF_CHROMES
 Titre    = Chef de bande
 Ennemis  = 
+Objet    = BICYCLE
 Pool     = KOFFING, WEEZING, SCRAGGY, SCRAFTY, POOCHYENA, MIGHTYENA, ZIGZAGOON, LINOONE, OBSTAGOON,
            ELECTRIKE, MANECTRIC, TOXEL, TOXTRICITY, PANCHAM, PANGORO
