@@ -107,7 +107,11 @@ def check_gyms(atlas, plans, leaders, tms)
     arrival = spots[:template] ? spots[:arrival] : spots[:entry]
     target = [leader.x, leader.y + 1]
     standing = events.map { |e| [e.x, e.y] }
-    raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, arrival, standing)[target]
+    barriers = events.select { |e| e.label.start_with?("Barriere") }
+    check_gym_mechanic(map, events, barriers, drawn, i, grid, arrival, standing) if !spots[:template]
+    # The barriers lift once the statues are lit
+    open = standing - barriers.map { |e| [e.x, e.y] }
+    raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, arrival, open)[target]
     seen = members.flat_map do |e|
       dx, dy = W::STEPS[e.value("Facing")]
       (1..e.value("Sight").to_i).map { |k| [e.x + (dx * k), e.y + (dy * k)] }.take_while { |x, y| grid[y]&.[](x) }
@@ -116,6 +120,34 @@ def check_gyms(atlas, plans, leaders, tms)
     if spots[:template] && reach(grid, arrival, standing + seen)[target]
       raise MapEvents::Error, "#{map} : on atteint le lieutenant sans passer devant un membre"
     end
+  end
+end
+
+# The mechanic of a generated gym (#121): barriers on every floor cell
+# around the lieutenant, hidden by its switch, and its statues (touched to
+# turn it on), each reachable while the barriers stand, in the number the
+# lieutenant drew; none of them in a cramped room only.
+def check_gym_mechanic(map, events, barriers, drawn, index, grid, arrival, standing)
+  statues = events.select { |e| e.label.start_with?("Statue") }
+  raise MapEvents::Error, "#{map} : #{statues.length} statues au lieu de #{drawn[:statues]}" if statues.length != drawn[:statues]
+  if statues.empty?
+    raise MapEvents::Error, "#{map} : barrières sans statue" if !barriers.empty?
+    return puts("#{map} : salle trop étroite, pas de statue")
+  end
+  leader = events.find { |e| e.label == "Lieutenant" }
+  around = W::STEPS.values.map { |dx, dy| [leader.x + dx, leader.y + dy] }.select { |x, y| grid[y]&.[](x) }
+  if barriers.map { |e| [e.x, e.y] }.sort != around.sort
+    raise MapEvents::Error, "#{map} : barrières #{barriers.map { |e| [e.x, e.y] }} au lieu de #{around}"
+  end
+  switch = "S#{W::GYM_STATUE_SWITCH + index + 1}"
+  barriers.each { |e| raise MapEvents::Error, "#{map} : [NPC #{e.label}] sans Hide = #{switch}" if e.value("Hide") != switch }
+  seen = reach(grid, arrival, standing)
+  statues.each do |e|
+    raise MapEvents::Error, "#{map} : [NPC #{e.label}] hors d'atteinte" if W::STEPS.values.none? { |dx, dy| seen[[e.x + dx, e.y + dy]] }
+    script = "WorldEvents.gym_statue(#{e.label[/\d+/]}, #{statues.length}, #{switch[1..]}, #{W::GYM_ORDERED.include?(drawn[:type])})"
+    raise MapEvents::Error, "#{map} : [NPC #{e.label}] Script #{e.value('Script')}" if e.value("Script") != script
+    hidden = W::GYM_HIDDEN.include?(drawn[:type])
+    raise MapEvents::Error, "#{map} : [NPC #{e.label}] statue visible/invisible à tort" if hidden == !e.value("Graphic").nil?
   end
 end
 
@@ -155,6 +187,8 @@ def check_cells(plan, spots, gates)
     # A guild member holding a dungeon gate stands in its 1-tile corridor
     next if (spots[:gates] || []).include?(cell) && entry.label.start_with?("Guilde")
     raise MapEvents::Error, "#{where} : sur une sortie, une porte ou devant" if blocked.include?(cell)
+    # A gym's barrier on the ground around the lieutenant (check_gym_mechanic)
+    next if entry.label.start_with?("Barriere") && (spots[:ground] || []).include?(cell)
     raise MapEvents::Error, "#{where} : case hors de l'inventaire (inaccessible ?)" if !free.include?(cell)
     next if entry.kind != :trainer
     # A trainer never sees an exit or a door
@@ -1117,6 +1151,7 @@ end
 count = 0
 pact_total = 0
 guild_fields = 0
+gym_statues = []
 guild_walkers = 0
 guild_among = 0
 rewards = Hash.new(0)
@@ -1168,6 +1203,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_start(atlas, plans)
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
+      gym_statues.concat(events[:leaders].map { |l| l[:statues] })
       # The right hands of the showdowns fight only there (check_showdowns)
       seconds = events[:guilds].filter_map { |g| g[:showdown] && "[#{g[:showdown][:foes][1][0]},#{g[:showdown][:foes][1][1]}," }
       check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers].reject { |sec| sec.start_with?(*seconds) },
@@ -1242,5 +1278,6 @@ puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }
 puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
 puts "Objets de terrain donnés par un chef de guilde : #{guild_fields}"
+puts "Arènes à statues : #{gym_statues.count(&:positive?)} sur #{gym_statues.length}, #{gym_statues.sum} statues"
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")

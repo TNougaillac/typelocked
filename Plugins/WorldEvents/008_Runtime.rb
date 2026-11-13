@@ -134,6 +134,31 @@ module WorldEvents
     $game_map.need_refresh = true
     say("arceus_fin")
   end
+
+  # A statue of a generated gym (#121, Statue<rank> of count): lit once
+  # touched (its self switch A). Ordered: it says its number, and a statue
+  # touched out of turn puts them all out. The last one lit turns on switch,
+  # which lifts the barriers around the lieutenant.
+  def gym_statue(rank, count, switch, ordered)
+    statues = (1..count).map { |k| $game_map.events.values.find { |e| e.name.end_with?(" Statue#{k}") } }
+    return if statues.include?(nil)
+    key = ->(event) { [$game_map.map_id, event.id, "A"] }
+    return say("arene_statue_deja") if $game_self_switches[key.call(statues[rank - 1])]
+    say("arene_statue_rang", "rang" => rank.to_s) if ordered
+    if ordered && statues.count { |e| $game_self_switches[key.call(e)] } != rank - 1
+      statues.each { |e| $game_self_switches[key.call(e)] = false }
+      pbSEPlay("GUI party switch")
+      return say("arene_statue_erreur")
+    end
+    $game_self_switches[key.call(statues[rank - 1])] = true
+    pbSEPlay("Voltorb Flip tile")
+    say("arene_statue")
+    return if statues.any? { |e| !$game_self_switches[key.call(e)] }
+    $game_switches[switch] = true
+    $game_map.need_refresh = true
+    pbSEPlay("Door slide")
+    say("arene_ouverte")
+  end
 end
 
 # Heals done in each Centre (map ID => count), saved with the game.

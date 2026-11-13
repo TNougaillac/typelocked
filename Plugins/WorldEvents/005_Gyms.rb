@@ -55,8 +55,9 @@ module WorldEvents
             ["Type", member], ["Name", member_name], ["BattleID", TRAINER_VERSION],
             ["Battle", lines.text("membre_combat", title)], ["EndBattle", lose])
       end
+      statues = layout[:hold] ? gym_mechanic(plans, map, spots, layout, members, type, i, lines, title, rng) : 0
       leaders.push({ gym: i + 1, map: map, town: town, type: type, trainer: trainer, name: name, team: team,
-                     sets: team_sets, tm: tm, members: members.length })
+                     sets: team_sets, tm: tm, members: members.length, statues: statues })
     end
     return leaders
   end
@@ -79,6 +80,63 @@ module WorldEvents
       break if others.length >= GYM_MEMBERS.max
     end
     return { leader: spots[:leader], blocking: [], others: others, hold: true }
+  end
+
+  # The mechanic of a generated gym (#121): barriers on the cells around the
+  # lieutenant, lifted once the room's statues are all touched (in their
+  # order for GYM_ORDERED, invisible for GYM_HIDDEN). Returns the number of
+  # statues placed (0: no mechanic, the room being too cramped).
+  def gym_mechanic(plans, map, spots, layout, members, type, index, lines, title, rng)
+    return 0 if index >= GYM_STATUE_LOCKS
+    ground = spots[:ground].to_h { |cell| [cell, true] }
+    lx, ly = layout[:leader]
+    barriers = STEPS.values.map { |dx, dy| [lx + dx, ly + dy] }.select { |cell| ground[cell] }
+    taken = [layout[:leader], *barriers, *members.map { |x, y, *| [x, y] }]
+    open = gym_reach(ground, spots[:entry], taken)
+    return 0 if barriers.none? { |bx, by| STEPS.values.any? { |dx, dy| open[[bx + dx, by + dy]] } }
+    near = [spots[:entry], layout[:leader], *members.map { |x, y, *| [x, y] }]
+    blocked = blocked_cells(spots)
+    statues = []
+    count = GYM_STATUES[[index, GYM_STATUES.length - 1].min]
+    spots[:floor].shuffle(random: rng).each do |cell|
+      break if statues.length >= count
+      next if !open[cell] || blocked.include?(cell)
+      next if (near + statues).any? { |nx, ny| (nx - cell[0]).abs + (ny - cell[1]).abs <= GYM_STATUE_ROOM }
+      # Never cutting the room: every other cell still reached
+      after = gym_reach(ground, spots[:entry], taken + statues + [cell])
+      next if after.length != open.length - statues.length - 1
+      statues.push(cell)
+    end
+    return 0 if statues.empty?
+    switch = GYM_STATUE_SWITCH + index + 1
+    ordered = GYM_ORDERED.include?(type)
+    hidden = GYM_HIDDEN.include?(type)
+    section = ordered ? "arene_barriere_ordre" : (hidden ? "arene_barriere_cachee" : "arene_barriere")
+    barriers.each_with_index do |(x, y), k|
+      add(plans, map, "NPC", "Barriere#{k + 1}", x, y, ["Graphic", GYM_BARRIERS.fetch(type, GYM_BARRIER)],
+          ["Text", lines.text(section, title)], ["Hide", "S#{switch}"])
+    end
+    statues.each_with_index do |(x, y), k|
+      add(plans, map, "NPC", "Statue#{k + 1}", x, y, *(hidden ? [] : [["Graphic", GYM_STATUE]]),
+          ["Script", "WorldEvents.gym_statue(#{k + 1}, #{statues.length}, #{switch}, #{ordered})"])
+    end
+    return statues.length
+  end
+
+  # { cell => true } of the ground cells reached from start, not through taken.
+  def gym_reach(ground, start, taken)
+    seen = { start => true }
+    queue = [start]
+    until queue.empty?
+      x, y = queue.shift
+      STEPS.each_value do |dx, dy|
+        cell = [x + dx, y + dy]
+        next if seen[cell] || !ground[cell] || taken.include?(cell)
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    return seen
   end
 
   # One blocking cell, then the others drawn among the rest.
