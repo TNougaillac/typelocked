@@ -82,11 +82,12 @@ module WorldEvents
   end
 
   # Seals won on the way to each place, by name: the lieutenants of the
-  # chain before it (an island counts as its port).
+  # chain before it (an island counts as its port, a place off the chain as
+  # the place of its tier).
   def seals_at(result)
     gyms = result.places.filter_map { |wp, *| wp.index if wp.gym } +
            (result.islands || []).filter_map { |wp, *| wp.index if wp.gym }
-    seals = result.places.to_h { |wp, *| [wp.name, gyms.count { |i| i < wp.index }] }
+    seals = result.places.to_h { |wp, *| [wp.name, gyms.count { |i| i < (wp.extra ? wp.tier : wp.index) }] }
     (result.islands || []).each { |wp, port, *| seals[wp.name] = seals[port.name] || gyms.count { |i| i < wp.index } }
     return seals
   end

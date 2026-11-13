@@ -50,8 +50,9 @@ module WorldEvents
         count = squares.times.sum { rng.rand(ROUTE_TRAINERS) }
         types = TRAINER_TYPES[MapProceduralGenerator.mountain_tables?(wp, layout) ? "montagne" : layout.ambiance] || TRAINER_TYPES[nil]
         draw.call(wp.name, facing_cells(spots), types, count, COUSIN_CHANCE)
-      elsif wp.name != atlas[:start]
-        # No Cousin in the first town: the player has no Pokémon yet
+      elsif wp.kind == "ville" && wp.name != atlas[:start]
+        # No Cousin in the first town: the player has no Pokémon yet, nor
+        # at a guild's headquarters
         draw.call(wp.name, facing_cells(spots), COUSIN_TYPES, rng.rand(TOWN_COUSINS), 100)
       end
     end

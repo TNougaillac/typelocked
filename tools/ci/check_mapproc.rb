@@ -406,10 +406,9 @@ end
 # walked.
 def check_extra_routes(path, seed, result)
   places = result.places.map(&:first)
-  touch = lambda do |a, b|
-    (a.x + a.w == b.x || b.x + b.w == a.x) && a.y < b.y + b.h && b.y < a.y + a.h ||
-      (a.y + a.h == b.y || b.y + b.h == a.y) && a.x < b.x + b.w && b.x < a.x + a.w
-  end
+  # A headquarters' place is linked to its route only (check_hqs)
+  hq = ->(a, b) { a.extra == M::HQ_EXTRA && !b.equal?(a.ends[0]) }
+  touch = ->(a, b) { M.touching?(a, b) && !hq.call(a, b) && !hq.call(b, a) }
   open = places.reject(&:lock)
   seen = [places.find { |wp| wp.index == 0 }]
   queue = seen.dup
@@ -441,6 +440,35 @@ def check_extra_routes(path, seed, result)
     last = gyms.select { |g| g < b.index }.max
     CI.error(path, nil, "#{where} : #{M::LOCKS[wp.lock]} obtenu avant la dernière arène avant #{b.name}") if !giver || (last && giver < last)
     CI.error(path, nil, "#{where} : palier #{wp.tier} au lieu de #{[giver, b.index].compact.min}") if wp.tier != [giver, b.index].compact.min
+  end
+end
+
+# The guilds' headquarters (#334): each a place of its own (type=lieu), a
+# dead end with one exit towards the plain route of the chain it branches
+# off, of an ambiance its brick allows, kept apart ([NoLinks]) from any
+# other place it touches, its brick drawn whole; every place of that kind
+# is one of them.
+def check_hqs(path, seed, result, bricks)
+  touch = ->(a, b) { M.touching?(a, b) }
+  apart = MapGenerator.parse_world(result.text, "graine #{seed}").no_links
+  places = result.places.select { |wp, *| wp.extra == M::HQ_EXTRA }
+  CI.error(path, nil, "graine #{seed} : #{places.length} lieux de QG pour #{result.hqs.length} QG") if places.length != result.hqs.length
+  result.hqs.each do |kind, name|
+    where = "#{name} (graine #{seed}), QG #{kind}"
+    wp, _place, _text, layout = places.find { |w, *| w.name == name }
+    next CI.error(path, nil, "#{where} : pas un lieu à part") if !wp || wp.kind != "lieu"
+    parent = wp.ends[0]
+    parent_layout = result.places.find { |w, *| w.equal?(parent) }[3]
+    CI.error(path, nil, "#{where} : #{wp.exits.length} sorties au lieu d'une") if wp.exits.length != 1
+    plain = parent.kind == "route" && !parent.extra && !parent.mask && !parent.crossing && !parent.mountain && !parent.victory && !parent.league
+    CI.error(path, nil, "#{where} : branché sur #{parent.name}, pas une route simple de la chaîne") if !plain || wp.tier != parent.index
+    allowed = M::GUILD_HQS[kind]
+    CI.error(path, nil, "#{where} : route en ambiance #{parent_layout.ambiance}") if !allowed.empty? && !allowed.include?(parent_layout.ambiance)
+    others = result.places.map(&:first).reject { |w| w.equal?(wp) || w.equal?(parent) }.select { |w| touch.call(wp, w) }
+    linked = others.reject { |w| apart.include?([wp.symbol, w.symbol].sort) }
+    CI.error(path, nil, "#{where} : relié à #{linked.map(&:name).join(', ')}") if !linked.empty?
+    CI.error(path, nil, "#{where} : ne touche pas sa route") if !touch.call(wp, parent)
+    CI.error(path, nil, "#{where} : QG non dessiné entier") if !hq_drawn?(layout.rows, bricks.select { |b| b.kind == kind })
   end
 end
 
@@ -750,6 +778,7 @@ worlds.each do |path|
       check_lock("#{wp.name} (graine #{seed})", place, bricks, layout)
     end
     check_extra_routes(path, seed, result)
+    check_hqs(path, seed, result, bricks)
     # Every town has its Pokémon Centre and Mart, and its gym if it has one;
     # a town with a gym covers 2 squares at least (a village has none)
     result.places.each do |wp, _place, _text, layout|

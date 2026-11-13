@@ -123,7 +123,8 @@ module MapProceduralGenerator
   # its rectangle, nil = all of it; joints: [x, y, w, h] the blocks of squares
   # where its streets meet (its corners), from its top-left; trace: its line
   # on the Town Map, in half squares from its top-left; extra: a route off
-  # the chain, "boucle" or "raccourci" (see add_extra_routes), ends: [the
+  # the chain, "boucle" or "raccourci" (see add_extra_routes), or a guild's
+  # headquarters, HQ_EXTRA (see place_world_hqs; kind "lieu"), ends: [the
   # place of its end nearer the start, the other one], tier: the index of the
   # place of the chain from which it can be walked (nil: its own index),
   # lock: the obstacle of a shortcut (a key of LOCKS)
@@ -302,7 +303,7 @@ module MapProceduralGenerator
     rescue Error
       raise if attempt == WORLD_TRIES - 1
     end
-    hqs = place_world_hqs(built, bricks, seed)
+    hqs = place_world_hqs(world, built, town, route, bricks, seed, map_ids)
     give_extra_items(built, Random.new((seed * 1000) + 960))
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }
@@ -362,18 +363,26 @@ module MapProceduralGenerator
   end
 
   # Draws the guilds' headquarters of the world (WORLD_GUILDS among those of
-  # GUILD_HQS whose place exists) and lays each on one of its places, built
-  # again with it (one already there, like the ruins' temple, is kept); an
-  # enemy that joins (draw_hq_kinds) goes on the place nearest its enemy.
-  # { brick type => place name }.
-  def place_world_hqs(built, bricks, seed)
+  # GUILD_HQS that a route allows, hq_places) and lays each as a place of its
+  # own (#334): a dead end off one of those routes, the route built again
+  # with its exit to it (build_hq). An enemy that joins (draw_hq_kinds) goes
+  # off the route nearest its enemy's. { brick type => place name }.
+  def place_world_hqs(world, built, town, route, bricks, seed, map_ids)
     rng = Random.new((seed * 1000) + 950)
     hqs = {}
     kinds = GUILD_HQS.keys.select { |kind| bricks.any? { |b| b.kind == kind } && !hq_places(built, kind).empty? }
-    draw_hq_kinds(kinds, rng).each do |kind, enemy|
-      near = enemy && hqs[enemy] && built.find { |wp, *| wp.name == hqs[enemy] }[0].index
-      place = place_hq(built, bricks, kind, seed, rng, near)
+    picks = draw_hq_kinds(kinds, rng)
+    lay = lambda do |kind, enemy|
+      near = enemy && hqs[enemy] && built.find { |wp, *| wp.name == hqs[enemy] }[0].ends[0].index
+      place = place_hq(world, built, town.counts.key?(kind) ? town : route, bricks, kind, seed, rng, map_ids, near)
       hqs[kind] = place if place
+    end
+    picks.each { |kind, enemy| lay.call(kind, enemy) }
+    # A headquarters with no room left: another one in its stead (next to an
+    # enemy already there)
+    (kinds - picks.map(&:first)).shuffle(random: rng).each do |kind|
+      break if hqs.length >= picks.length
+      lay.call(kind, (HQ_ENEMIES[kind] || []).find { |enemy| hqs[enemy] })
     end
     return hqs
   end
@@ -399,36 +408,108 @@ module MapProceduralGenerator
     return picks
   end
 
-  # Indexes in built of the places where that headquarters may stand.
+  # Indexes in built of the routes that headquarters may branch off: plain
+  # straight routes of the chain (like the ends of the routes off it) of an
+  # ambiance it allows.
   def hq_places(built, kind)
     allowed = GUILD_HQS[kind]
     return built.each_index.select do |i|
-      wp, place, _text, layout = built[i]
-      next false if !place.counts.key?(kind) || wp.league || wp.victory || wp.island
-      next false if QUAY_HQS.include?(kind) && !place.port
+      wp, _place, _text, layout = built[i]
+      next false if wp.kind != "route" || wp.extra || wp.mask || wp.crossing || wp.mountain || wp.victory || wp.league
       allowed.empty? || allowed.include?(layout.ambiance)
     end
   end
 
-  # The name of the place where that headquarters is now, nil if it never
-  # fits. near: the index of a place to lay it nearest to (its enemy's).
-  def place_hq(built, bricks, kind, seed, rng, near = nil)
+  # The name of the headquarters' place, nil if it never fits. Its routes
+  # are tried in the seed's order (near: the index of a route to try first,
+  # its enemy's), and on each its free spots (hq_spots), the smallest first.
+  def place_hq(world, built, base, bricks, kind, seed, rng, map_ids, near = nil)
     places = hq_places(built, kind)
-    there = places.find { |i| built[i][3].spots[:hqs].any? { |_x, _y, k| k == kind } }
-    return built[there][0].name if there
     order = near ? places.sort_by { |i| [(built[i][0].index - near).abs, built[i][0].index] } : places.shuffle(random: rng)
     order.each do |i|
-      wp, place, _text, layout = built[i]
-      themed = place.dup
-      themed.counts = place.counts.merge(kind => 1..1)
-      themed.ambiance = layout.ambiance
-      text, new_layout = generate_world_place(themed, bricks, (seed * 1000) + wp.index)
-      next if new_layout.spots[:hqs].none? { |_x, _y, k| k == kind }
-      built[i] = [wp, themed, text, new_layout]
-      return wp.name
-    rescue Error
-      next
+      hq_spots(world, built, built[i][0]).each do |spot|
+        hq = build_hq(world, built, i, base, bricks, kind, spot, seed, rng, map_ids)
+        next if !hq
+        built.push(hq)
+        return hq[0].name
+      end
     end
+    return nil
+  end
+
+  # Free rectangles of HQ_PLACE_SIZES squares on a side of that route (not
+  # its sea side): [x, y, w, h, side of the route towards it], in the
+  # order of HQ_PLACE_SIZES, those that touch no other place first (see
+  # hq_neighbours), then from the top-left; inside the margin.
+  def hq_spots(world, built, parent)
+    taken = Array.new(world.height) { Array.new(world.width) }
+    built.each { |wp, *| wp.h.times { |dy| wp.w.times { |dx| taken[wp.y + dy][wp.x + dx] = wp } } }
+    m = world.margin
+    spots = HQ_PLACE_SIZES.each_with_index.flat_map do |(w, h), order|
+      DIRECTIONS.filter_map do |side, (dx, dy)|
+        next if side == parent.port
+        # Its edge against the route, from a square of the route
+        (0...(dx == 0 ? parent.w : parent.h)).filter_map do |k|
+          x = (dx > 0) ? parent.x + parent.w : (dx < 0) ? parent.x - w : parent.x + k
+          y = (dy > 0) ? parent.y + parent.h : (dy < 0) ? parent.y - h : parent.y + k
+          next if x < m || y < m || x + w > world.width - m || y + h > world.height - m
+          next if (y...y + h).any? { |cy| (x...x + w).any? { |cx| taken[cy][cx] } }
+          spot = WorldPlace.new(nil, "lieu", nil, x, y, w, h)
+          crowded = built.any? { |wp, *| !wp.equal?(parent) && touching?(spot, wp) } ? 1 : 0
+          [[order, crowded], [x, y, w, h, side]]
+        end
+      end.flatten(1)
+    end
+    return spots.sort_by.with_index { |(key, _spot), i| [*key, i] }.map(&:last)
+  end
+
+  # True if the rectangles of a and b share a stretch of edge (not only a
+  # corner): MapGen links such places, unless kept apart ([NoLinks]).
+  def touching?(a, b)
+    return ((a.x + a.w == b.x || b.x + b.w == a.x) && a.y < b.y + b.h && b.y < a.y + a.h) ||
+           ((a.y + a.h == b.y || b.y + b.h == a.y) && a.x < b.x + b.w && b.x < a.x + a.w)
+  end
+
+  # The places a headquarters' place touches besides its route: kept apart
+  # on the world plan ([NoLinks]), its only way in is its exit.
+  def hq_neighbours(built, hq)
+    return built.map(&:first).select { |wp| !wp.equal?(hq) && !wp.equal?(hq.ends[0]) && touching?(hq, wp) }
+  end
+
+  # [WorldPlace, Place, MapGen plan text, Layout] of a headquarters on that
+  # spot, its route (built[i]) built again with its exit to it; nil, the
+  # route left as it was, if either can't be built. The place is drawn from
+  # the file of its brick (base) in the route's ambiance (when the file has
+  # it), with its brick, the decoration of HQ_DECOR and its border.
+  def build_hq(world, built, i, base, bricks, kind, (x, y, w, h, side), seed, rng, map_ids)
+    parent, parent_place, = built[i]
+    before = parent.exits.length
+    count = built.count { |p, *| p.extra == HQ_EXTRA }
+    name = "#{HQ_NAME} #{count + 1}"
+    wp = WorldPlace.new(HQ_SYMBOLS[count], "lieu", name, x, y, w, h, [], false)
+    wp.index = built.length
+    wp.extra = HQ_EXTRA
+    wp.ends = [parent, parent]
+    wp.tier = parent.index
+    wp.title = HQ_TITLES[kind]
+    link(world, parent, wp, side, rng)
+    place = base.dup
+    place.name = name
+    place.width, place.height = w * world.cell, h * world.cell
+    place.exits = wp.exits
+    place.map_id = map_ids[name]
+    place.counts = base.counts.select { |k, _| HQ_DECOR.include?(k) }.merge(kind => 1..1)
+    place.per_case = base.per_case & HQ_DECOR
+    place.ambiance = built[i][3].ambiance if base.ambiances.any? { |a| a.name == built[i][3].ambiance }
+    # The smugglers' warehouse on a quay: the sea across from its exit
+    place.port = side if QUAY_HQS.include?(kind)
+    text, layout = generate_world_place(place, bricks, (seed * 1000) + 400 + wp.index)
+    raise Error, "#{name} : QG « #{kind} » non posé" if layout.spots[:hqs].none? { |_x, _y, k| k == kind }
+    parent_text, parent_layout = generate_world_place(parent_place, bricks, (seed * 1000) + parent.index)
+    built[i] = [parent, parent_place, parent_text, parent_layout]
+    return [wp, place, text, layout]
+  rescue Error
+    parent.exits.slice!(before..)
     return nil
   end
 
@@ -1210,7 +1291,7 @@ module MapProceduralGenerator
   # of a shortcut.
   def extra_notes(built)
     return built.filter_map do |wp, *|
-      next if !wp.extra
+      next if !wp.extra || wp.extra == HQ_EXTRA
       lock = wp.lock ? ", fermé par #{wp.lock} (#{LOCKS[wp.lock]})" : ""
       "#{wp.extra} : #{wp.title}, entre #{wp.ends[0].title} et #{wp.ends[1].title}#{lock}"
     end
@@ -1277,6 +1358,8 @@ module MapProceduralGenerator
     end
     fillers.each { |f| f.h.times { |dy| f.w.times { |dx| grid[f.y + dy][f.x + dx] = f.symbol } } }
     grid.each { |row| text << row << "\n" }
+    apart = built.select { |wp, *| wp.extra == HQ_EXTRA }.flat_map { |wp, *| hq_neighbours(built, wp).map { |other| [wp.symbol, other.symbol] } }
+    text << "\n[NoLinks]\n" << apart.map { |pair| "#{pair.join(' ')}\n" }.join if !apart.empty?
     return text
   end
 end

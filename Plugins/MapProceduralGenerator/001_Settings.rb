@@ -278,9 +278,9 @@ module MapProceduralGenerator
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
   # Guilds of a world (#183): once the world is built, this many
-  # headquarters are drawn among those whose place exists (an ambiance it
-  # allows, a port for a quay's), each laid on one of those places drawn by
-  # the seed (fewer if fewer fit).
+  # headquarters are drawn among those a route allows (its ambiance), each a
+  # place of its own branched off one of those routes drawn by the seed
+  # (#334; fewer if fewer fit).
   WORLD_GUILDS = 3..5
   # Enemy guilds (#189), by the brick type of their headquarters (the
   # « Ennemis » of MapProc/Lore/guildes.txt, checked by the CI): once one is
@@ -291,6 +291,23 @@ module MapProceduralGenerator
                  "contrebande" => %w[chantier], "pontes" => %w[nageurs dundees braconniers],
                  "nageurs" => %w[pontes], "dundees" => %w[pontes] }.freeze
   HQ_ENEMY_CHANCE = 70
+  # A guild's headquarters is a place of its own (#334), a dead end off a
+  # route of its ambiance: « QG généré N » on the world plan (type=lieu),
+  # one of these symbols, a route off the chain of this kind (WorldPlace
+  # extra), of the first of these sizes in squares that fits.
+  HQ_NAME = "QG généré"
+  HQ_SYMBOLS = %w[♠ ♣ ♥ ♦ ★ ☆ ♪ ♫].freeze
+  HQ_EXTRA = "qg"
+  HQ_PLACE_SIZES = [[1, 1], [2, 1], [1, 2]].freeze
+  # The bricks of its file (route or town) a headquarters' place keeps around
+  # its own: the decoration (the ambiance's too)
+  HQ_DECOR = %w[prairie herbes arbre parc lampe barriere enclos remarquable decor].freeze
+  # Name shown in game of each headquarters' place
+  HQ_TITLES = { "ferme" => "Ferme des Éleveurs", "chantier" => "Chantier", "carriere" => "Carrière",
+                "contrebande" => "Entrepôts du Quai", "poste" => "Poste forestier", "forains" => "Champ de foire",
+                "nageurs" => "Club de natation", "pontes" => "Plage de ponte", "dundees" => "Campement des Dundees",
+                "chromes" => "Repaire des Chromés", "temple" => "Temple en ruine", "braconniers" => "Camp des braconniers",
+                "cimetiere" => "Cimetière" }.freeze
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.
