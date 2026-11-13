@@ -138,6 +138,12 @@ module WorldEvents
     return parse_guilds(File.read(path, encoding: "UTF-8"), path, known)
   end
 
+  # { headquarters => species ids } of the guilds: the encounters of their
+  # dungeons (ProceduralEncounters.world_zones).
+  def guild_pools(guilds)
+    return guilds.to_h { |guild| [guild.hq, guild.pool] }
+  end
+
   #-----------------------------------------------------------------------------
   # On the routes
   #-----------------------------------------------------------------------------

@@ -510,8 +510,13 @@ module MapProceduralGenerator
     place.ambiance = built[i][3].ambiance if base.ambiances.any? { |a| a.name == built[i][3].ambiance }
     # The smugglers' warehouse on a quay: the sea across from its exit
     place.port = side if QUAY_HQS.include?(kind)
-    # A guild of the outdoors: the place is its dungeon, closed by gates
-    place.gates = HQ_GATES if !HQ_ROOM_KINDS.include?(kind)
+    # A guild of the outdoors: the place is its dungeon, closed by gates, and
+    # its grass, the guild's wild Pokémon (#336), on each case
+    if !HQ_ROOM_KINDS.include?(kind)
+      place.gates = HQ_GATES
+      place.counts = place.counts.merge("herbes" => HQ_GRASS)
+      place.per_case |= ["herbes"]
+    end
     text, layout = generate_world_place(place, bricks, (seed * 1000) + 400 + wp.index)
     raise Error, "#{name} : QG « #{kind} » non posé" if layout.spots[:hqs].none? { |_x, _y, k| k == kind }
     parent_text, parent_layout = generate_world_place(parent_place, bricks, (seed * 1000) + parent.index)
