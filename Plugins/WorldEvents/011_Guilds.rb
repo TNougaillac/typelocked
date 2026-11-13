@@ -15,8 +15,9 @@ module WorldEvents
   # id: the section's (« ELEVEURS »); position: GUILD_POSITIONS; biomes:
   # ambiances (none: wherever its headquarters goes); hq: brick type; member_types: trainer types; leader: trainer type;
   # enemies: guild ids; pool: species ids; line: the line of its section.
-  Guild = Struct.new(:id, :name, :position, :biomes, :hq, :member_types, :leader, :title, :enemies, :pool, :line)
-  GUILD_KEYS = %w[Nom Position Biomes QG Membres Chef Titre Ennemis Pool].freeze
+  Guild = Struct.new(:id, :name, :position, :biomes, :hq, :member_types, :leader, :title, :enemies, :pool, :line,
+                     :field_item)
+  GUILD_KEYS = %w[Nom Position Biomes QG Membres Chef Titre Ennemis Pool Objet].freeze
 
   module_function
 
@@ -65,7 +66,7 @@ module WorldEvents
 
   def guild_from(raw, file, known)
     fields = raw[:fields]
-    (GUILD_KEYS - %w[Biomes Ennemis]).each do |key|
+    (GUILD_KEYS - %w[Biomes Ennemis Objet]).each do |key|
       raise Error, "#{file}, ligne #{raw[:line]} : [#{raw[:id]}] sans « #{key} »" if !fields[key] || fields[key][0].strip.empty?
     end
     value = ->(key) { fields[key]&.first.to_s.strip }
@@ -105,7 +106,13 @@ module WorldEvents
       next if known[:dialogues][section] && !known[:dialogues][section].empty?
       raise Error, "#{file}, ligne #{raw[:line]} : section [#{section}] absente ou vide de dialogues.txt"
     end
-    return Guild.new(raw[:id], value.call("Nom"), position, biomes, hq, types, leader, title, list.call("Ennemis"), pool, raw[:line])
+    # A field item obtained outside the gyms that its leader gives (#274)
+    item = fields["Objet"] && value.call("Objet").to_sym
+    if item && !MapProceduralGenerator::EXTRA_FIELD_ITEMS.key?(item)
+      fail_at.call("Objet", "objet « #{item} » : pas un objet de terrain hors arène (#{MapProceduralGenerator::EXTRA_FIELD_ITEMS.keys.join(', ')})")
+    end
+    return Guild.new(raw[:id], value.call("Nom"), position, biomes, hq, types, leader, title, list.call("Ennemis"), pool, raw[:line],
+                     item)
   end
 
   # The ambiances a guild may live in: those of the routes and towns.
@@ -142,6 +149,22 @@ module WorldEvents
   # dungeons (ProceduralEncounters.world_zones).
   def guild_pools(guilds)
     return guilds.to_h { |guild| [guild.hq, guild.pool] }
+  end
+
+  # The atlas with each field item of a guild of the world (#274) given at
+  # its headquarters' place instead of by a hidden inhabitant: those
+  # obtained outside the gyms (EXTRA_FIELD_ITEMS) that the world gives
+  # (atlas[:items]) and a guild there declares (« Objet »).
+  def guild_field_sources(atlas, guilds)
+    hqs = atlas[:hqs] || {}
+    items = atlas[:items].dup
+    guilds.each { |guild| items[guild.field_item] = hqs[guild.hq] if guild.field_item && items.key?(guild.field_item) && hqs[guild.hq] }
+    return atlas.merge(items: items)
+  end
+
+  # Whether that place is a guild's headquarters
+  def hq_place?(atlas, name)
+    return (atlas[:hqs] || {}).value?(name)
   end
 
   #-----------------------------------------------------------------------------
@@ -225,11 +248,13 @@ module WorldEvents
       label = guild.id.capitalize
       switch = guild_switch(guilds, guild)
       reward = guild_reward(guild, route, result, atlas, species, type, level, seals, taken, rewards)
+      # Its field item (#274), on top of its reward
+      field = (guild.field_item && atlas[:items][guild.field_item] == route) ? guild.field_item : nil
       taken.push(reward[:route] || reward[:item]) if reward
       add(plans, map, "Trainer", "Chef#{label}", cell[0], cell[1], ["Facing", cell[2]], ["Sight", cell[3]], ["Type", guild.leader],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_chef_combat", title)], ["EndBattle", lose],
           *lines.boxes("#{tag}_chef_victoire", title).map { |box| ["Win", box] }, *reward_lines(reward, lines),
-          ["Switch", switch])
+          *(field ? [["Reward", "pbReceiveItem(:#{field})"]] : []), ["Switch", switch])
       lock = dungeon && guild_lock(guilds, guild)
       members = guild_members(dungeon || outside, inner ? inner[:gates][0] : anchor, guild, pool, species, zone, level,
                               room || route, plans, trainers, names, [lines, tag, title], rng, rivals, lock)
@@ -238,7 +263,8 @@ module WorldEvents
       bar_route(plans, blocks, guild, switch, lines, title) if blocks
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
         leader: { type: guild.leader, name: name, team: team, sets: team_sets, label: "Chef#{label}" }, members: members,
-        routes: [], switch: switch, reward: reward, freed: freed[guild.id]&.slice(:town, :maps), blocks: blocks }
+        routes: [], switch: switch, reward: reward, freed: freed[guild.id]&.slice(:town, :maps), blocks: blocks,
+        field_item: field }
     end
   end
 
@@ -489,7 +515,8 @@ module WorldEvents
   def guild_field_items(result, atlas, hq)
     index = result.places.to_h { |wp, *| [wp.name, wp.index] }
     at = chain_index(result.places.find { |wp, *| wp.name == hq }[0])
-    return atlas[:items].select { |_item, town| index[town] && index[town] > at }.sort_by { |_item, town| index[town] }.map(&:first)
+    return atlas[:items].select { |_item, town| index[town] && index[town] > at && !hq_place?(atlas, town) }
+                        .sort_by { |_item, town| index[town] }.map(&:first)
   end
 
   # The lines of the leader's plan for its reward.

@@ -290,6 +290,8 @@ module WorldEvents
     atlas[:items].each_with_index do |(item, town), i|
       spots = atlas[:maps][town]
       next if !spots
+      # Given by a guild's leader (#274): no hidden inhabitant
+      next items.push({ map: town, source: "guilde", item: item }) if hq_place?(atlas, town)
       if extra_field_item?(item)
         items.push({ map: town, source: "cache_terrain", item: item }) if hidden_giver(spots, item, i, town, plans, lines, rng)
         next
