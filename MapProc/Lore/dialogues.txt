@@ -643,6 +643,10 @@ La bande te doit une tournée. | Tiens. Maintenant dégage de notre garage.
 
 # Membres d'une guilde qui barrent la route de leur QG ({ville} : la route)
 # tant que leur chef n'est pas battu.
+[guilde_sortie]
+Impossible de partir maintenant. Le chef t'attend au fond.
+Impossible de partir maintenant. Les membres gardent la sortie.
+
 [guilde_barrage]
 La route est à nous. Personne ne passe sans l'accord du chef. | Va le voir, s'il te reçoit.
 Demi-tour. Le chef n'a pas donné sa permission.

@@ -154,3 +154,12 @@ class << TrainerBattle
     return __world_events_start_core(*args)
   end
 end
+
+# A defeat opens the guilds' dungeons again (#335): the player wakes at a
+# Centre, the exits closed by GUILD_LOCK_SWITCH no longer hold them.
+alias __world_events_pbStartOver pbStartOver
+
+def pbStartOver(*args)
+  (1..WorldEvents::GUILD_LOCKS).each { |i| $game_switches[WorldEvents::GUILD_LOCK_SWITCH + i] = false }
+  return __world_events_pbStartOver(*args)
+end

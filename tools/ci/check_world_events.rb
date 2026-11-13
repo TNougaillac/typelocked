@@ -141,7 +141,9 @@ def check_cells(plan, spots, gates)
   plan.events.each do |entry|
     cell = [entry.x, entry.y]
     where = "[#{entry.kind.capitalize} #{entry.label}] en #{entry.x},#{entry.y}"
-    next if gates.include?(cell) && entry.label.start_with?("Garde", "Barrage")
+    next if gates.include?(cell) && entry.label.start_with?("Garde", "Barrage", "Sortie")
+    # A guild member holding a dungeon gate stands in its 1-tile corridor
+    next if (spots[:gates] || []).include?(cell) && entry.label.start_with?("Guilde")
     raise MapEvents::Error, "#{where} : sur une sortie, une porte ou devant" if blocked.include?(cell)
     raise MapEvents::Error, "#{where} : case hors de l'inventaire (inaccessible ?)" if !free.include?(cell)
     next if entry.kind != :trainer
@@ -497,6 +499,7 @@ def check_guilds(result, atlas, zones, plans, drawn, bricks)
     (g[:members].map { |m| m[:team] } + [team]).flatten(1).each do |species, _level|
       raise MapEvents::Error, "guilde #{g[:id]} : #{species} hors de son pool" if !guild.pool.include?(species)
     end
+    check_dungeon(g, guild, atlas, plans, members, chef)
   end
 end
 
@@ -612,6 +615,42 @@ def check_liberations(result, atlas, plans, drawn)
   return seen.length
 end
 
+# A guild's dungeon (#335): a member in the corridor of each gate, facing
+# the exit, gone once beaten, the first one closing the exit (its lock
+# switch); the others and the leader past the gates (the leader past the
+# last one); an unseen NPC on each cell of the exit's inner row, there
+# only under the lock and gone once the leader is beaten.
+def check_dungeon(g, guild, atlas, plans, members, chef)
+  spots = atlas[:maps][g[:hq]]
+  where = "donjon #{guild.id} (#{g[:hq]})"
+  kind_room = M::HQ_ROOM_KINDS.include?(guild.hq)
+  raise MapEvents::Error, "#{where} : #{spots[:gates]&.length.to_i} barrières" if !kind_room && spots[:gates]&.length != M::HQ_GATES
+  return if !spots[:gates]
+  lock = W.guild_lock(GUILDS, guild)
+  raise MapEvents::Error, "#{where} : interrupteur #{lock} hors de GUILD_LOCKS" if lock > W::GUILD_LOCK_SWITCH + W::GUILD_LOCKS
+  facing = W::FACE_EXIT[spots[:exits][0][0]]
+  spots[:gates].each_with_index do |(x, y), i|
+    m = members.find { |e| e.x == x && e.y == y }
+    raise MapEvents::Error, "#{where} : barrière #{i + 1} sans membre" if !m
+    raise MapEvents::Error, "#{where} : #{m.label} ne fait pas face à la sortie" if m.value("Facing") != facing
+    raise MapEvents::Error, "#{where} : #{m.label} reste une fois battu" if m.value("Hide") != "A"
+    raise MapEvents::Error, "#{where} : #{m.label} ne ferme pas la sortie" if (i == 0) != (m.value("Switch").to_i == lock)
+  end
+  first = W.past_gate(spots, 0)
+  (members.reject { |e| spots[:gates].include?([e.x, e.y]) }).each do |e|
+    raise MapEvents::Error, "#{where} : #{e.label} avant la première barrière" if !first[[e.x, e.y]]
+  end
+  raise MapEvents::Error, "#{where} : chef avant la dernière barrière" if !W.past_gate(spots, -1)[[chef.x, chef.y]]
+  exits = plans[g[:hq]].events.select { |e| e.label.start_with?("Sortie") }
+  if exits.map { |e| [e.x, e.y] }.sort != W.gate_cells([spots[:exits][0]]).sort
+    raise MapEvents::Error, "#{where} : sortie mal fermée (#{exits.map { |e| [e.x, e.y] }.inspect})"
+  end
+  exits.each do |e|
+    raise MapEvents::Error, "#{where} : #{e.label} visible" if e.value("Graphic")
+    raise MapEvents::Error, "#{where} : #{e.label} hors du verrou" if e.value("Show") != "S#{lock}" || e.value("Hide") != "S#{g[:switch]}"
+  end
+end
+
 # Rivalries (#189): enemies drawn together lie near each other (no place
 # where the later one could stand is nearer the other); the members of a
 # guild with a rallying enemy (W.guild_rivals) see farther and say a line of
@@ -633,7 +672,7 @@ def check_rivalries(world, result, atlas, plans, drawn, items)
       # it (a free spot now was free when it was laid)
       order = result.places.to_h { |wp, *| [wp.name, wp.index] }
       later, other = (order[place] > order[hqs[enemy]]) ? [kind, hqs[enemy]] : [enemy, place]
-      routes = M.hq_places(result.places, later).select { |i| !M.hq_spots(world, result.places, result.places[i][0]).empty? }
+      routes = M.hq_places(result.places, later).select { |i| !M.hq_spots(world, result.places, result.places[i][0], M.hq_sizes(later)).empty? }
       nearest = [routes.map { |i| (result.places[i][0].index - index[other]).abs }.min || gap, gap].min
       raise MapEvents::Error, "QG ennemis #{kind} et #{enemy} à #{gap} lieux l'un de l'autre (#{nearest} possible)" if gap > nearest + 1
     end
@@ -1024,6 +1063,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       raise MapEvents::Error, "#{name} : carte absente de l'inventaire" if !spots
       # The gates of the first town, the members of a blocking headquarters
       gates = (name == atlas[:start]) ? W.gate_cells(spots[:exits]) : []
+      gates += W.gate_cells([spots[:exits][0]]) if spots[:gates] # the closed exit of a dungeon
       gates += events[:guilds].filter_map { |g| g[:blocks] && g[:blocks][:route] == name && g[:blocks][:cells] }.flatten(1)
       check_cells(plans[name], spots, gates)
     rescue MapEvents::Error => e

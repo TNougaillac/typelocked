@@ -324,7 +324,7 @@ module WorldEvents
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
-    "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
+    "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS, "guilde_sortie" => PLACE_TOKENS,
     "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
     "guilde_bonus_apres" => PLACE_TOKENS, "guilde_reglement" => PLACE_TOKENS, "guilde_reglement_fin" => %w[joueur],
     "recoin_lore" => PLACE_TOKENS, "recoin_pokemon" => PLACE_TOKENS, "terrain_cache" => PLACE_TOKENS, "terrain_cache_apres" => PLACE_TOKENS,
@@ -361,6 +361,15 @@ module WorldEvents
   # the lines of [habitant_libre], the Cousins of the town and of the routes
   # that touch it are gone.
   GUILD_SWITCH   = 70
+  # A guild's dungeon (#335, a headquarters' place with gates): a member
+  # stands in the corridor of each gate (seeing GUILD_GATE_SIGHT cells
+  # ahead), gone once beaten; the others and the leader past the gates. The
+  # first member beaten turns on GUILD_LOCK_SWITCH + its rank: the exit says
+  # [guilde_sortie] and stops the player until the leader is beaten (a
+  # defeat turns those switches off, the player waking at a Centre).
+  GUILD_LOCK_SWITCH = 90
+  GUILD_LOCKS       = 20   # switches 91 to 110, one guild each at most
+  GUILD_GATE_SIGHT  = 4
   GUILD_ALLY     = "alliée"
   GUILD_FREEING  = "affiliée"
   GUILD_MONEY    = 1000

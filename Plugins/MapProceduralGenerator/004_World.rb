@@ -427,7 +427,7 @@ module MapProceduralGenerator
     places = hq_places(built, kind)
     order = near ? places.sort_by { |i| [(built[i][0].index - near).abs, built[i][0].index] } : places.shuffle(random: rng)
     order.each do |i|
-      hq_spots(world, built, built[i][0]).each do |spot|
+      hq_spots(world, built, built[i][0], hq_sizes(kind)).each do |spot|
         hq = build_hq(world, built, i, base, bricks, kind, spot, seed, rng, map_ids)
         next if !hq
         built.push(hq)
@@ -437,17 +437,24 @@ module MapProceduralGenerator
     return nil
   end
 
-  # Free rectangles of HQ_PLACE_SIZES squares on a side of that route (not
-  # its sea side): [x, y, w, h, side of the route towards it], in the
-  # order of HQ_PLACE_SIZES, those that touch no other place first (see
+  # The sizes a headquarters' place may take, [across its route, away from
+  # it] in squares: a dungeon's for a guild of the outdoors (#335).
+  def hq_sizes(kind)
+    return HQ_ROOM_KINDS.include?(kind) ? HQ_PLACE_SIZES : HQ_DUNGEON_SIZES
+  end
+
+  # Free rectangles of those sizes (hq_sizes) on a side of that route (not
+  # its sea side): [x, y, w, h, side of the route towards it], in the order
+  # of the sizes, those that touch no other place first (see
   # hq_neighbours), then from the top-left; inside the margin.
-  def hq_spots(world, built, parent)
+  def hq_spots(world, built, parent, sizes = HQ_PLACE_SIZES)
     taken = Array.new(world.height) { Array.new(world.width) }
     built.each { |wp, *| wp.h.times { |dy| wp.w.times { |dx| taken[wp.y + dy][wp.x + dx] = wp } } }
     m = world.margin
-    spots = HQ_PLACE_SIZES.each_with_index.flat_map do |(w, h), order|
+    spots = sizes.each_with_index.flat_map do |(across, away), order|
       DIRECTIONS.filter_map do |side, (dx, dy)|
         next if side == parent.port
+        w, h = (dx == 0) ? [across, away] : [away, across]
         # Its edge against the route, from a square of the route
         (0...(dx == 0 ? parent.w : parent.h)).filter_map do |k|
           x = (dx > 0) ? parent.x + parent.w : (dx < 0) ? parent.x - w : parent.x + k
@@ -503,6 +510,8 @@ module MapProceduralGenerator
     place.ambiance = built[i][3].ambiance if base.ambiances.any? { |a| a.name == built[i][3].ambiance }
     # The smugglers' warehouse on a quay: the sea across from its exit
     place.port = side if QUAY_HQS.include?(kind)
+    # A guild of the outdoors: the place is its dungeon, closed by gates
+    place.gates = HQ_GATES if !HQ_ROOM_KINDS.include?(kind)
     text, layout = generate_world_place(place, bricks, (seed * 1000) + 400 + wp.index)
     raise Error, "#{name} : QG « #{kind} » non posé" if layout.spots[:hqs].none? { |_x, _y, k| k == kind }
     parent_text, parent_layout = generate_world_place(parent_place, bricks, (seed * 1000) + parent.index)
