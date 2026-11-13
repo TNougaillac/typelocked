@@ -102,18 +102,27 @@ def check_gyms(atlas, plans, leaders, tms)
     end
     members = events.select { |e| e.kind == :trainer && e.label.start_with?("Membre") }
     raise MapEvents::Error, "#{map} : #{members.length} membres" if !W::GYM_MEMBERS.include?(members.length)
-    grid = PASSABLE[spots[:template]]
+    # A generated gym (#121): its floor, from its entry
+    grid = spots[:template] ? PASSABLE[spots[:template]] : ground_grid(spots[:ground])
+    arrival = spots[:template] ? spots[:arrival] : spots[:entry]
     target = [leader.x, leader.y + 1]
     standing = events.map { |e| [e.x, e.y] }
-    raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, spots[:arrival], standing)[target]
+    raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, arrival, standing)[target]
     seen = members.flat_map do |e|
       dx, dy = W::STEPS[e.value("Facing")]
       (1..e.value("Sight").to_i).map { |k| [e.x + (dx * k), e.y + (dy * k)] }.take_while { |x, y| grid[y]&.[](x) }
     end
-    if reach(grid, spots[:arrival], standing + seen)[target]
+    if reach(grid, arrival, standing + seen)[target]
       raise MapEvents::Error, "#{map} : on atteint le lieutenant sans passer devant un membre"
     end
   end
+end
+
+# Rows of passable cells (true) of a generated floor's ground cells
+def ground_grid(ground)
+  grid = Array.new(ground.map(&:last).max + 1) { Array.new(ground.map(&:first).max + 1, false) }
+  ground.each { |x, y| grid[y][x] = true }
+  return grid
 end
 
 # [width, height] of a demo map (the template of an interior)

@@ -63,3 +63,111 @@ Tile = 40,void
 Tile = 42,floor
 Tile = 0,walls
 DoubleWalls = true
+#-------------------------------
+[37]   # Arene 4G normal
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[38]   # Arene 4G fire
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[39]   # Arene 4G water
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[40]   # Arene 4G grass
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[41]   # Arene 4G electric
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[42]   # Arene 4G ice
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[43]   # Arene 4G fighting
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[44]   # Arene 4G poison
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[45]   # Arene 4G ground
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[46]   # Arene 4G flying
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[47]   # Arene 4G psychic
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[48]   # Arene 4G bug
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[49]   # Arene 4G rock
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[50]   # Arene 4G ghost
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[51]   # Arene 4G dragon
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[52]   # Arene 4G dark
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[53]   # Arene 4G steel
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[54]   # Arene 4G fairy
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true

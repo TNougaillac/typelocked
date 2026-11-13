@@ -21,7 +21,7 @@ module WorldEvents
     types = leader_types(atlas[:gyms].length, species, tms, rng)
     atlas[:gyms].each_with_index do |town, i|
       map, spots = atlas[:maps].find { |_name, m| m[:building] == "arene" && m[:owner] == town }
-      layout = spots && GYM_LAYOUTS[spots[:template]]
+      layout = spots && (GYM_LAYOUTS[spots[:template]] || gym_floor_layout(spots, rng))
       next if !layout
       type = types[i]
       cap = caps[i] || caps.last
@@ -61,9 +61,33 @@ module WorldEvents
     return leaders
   end
 
+  # The layout of a generated gym (#121, MapProceduralGenerator.gym_floor):
+  # the lieutenant at its far end, a member on each gate (blocking: the
+  # corridor in front of him), the others on its floor cells away from the
+  # entry, the lieutenant, the gates and each other.
+  def gym_floor_layout(spots, rng)
+    gates = spots[:gates].each_with_index.map { |(x, y), i| [x, y, spots[:gate_facing][i], GYM_GATE_SIGHT] }
+    near = [spots[:entry], spots[:leader], *spots[:gates]]
+    # Never seeing the exit nor standing by it
+    blocked = blocked_cells(spots)
+    cells = spots[:facing].select do |x, y, _f|
+      near.all? { |nx, ny| (nx - x).abs + (ny - y).abs > GYM_MEMBER_ROOM } &&
+        (0..GYM_MEMBER_SIGHT).none? { |i| blocked.include?([x, y + i]) }
+    end
+    others = []
+    cells.shuffle(random: rng).each do |x, y, facing|
+      next if others.any? { |ox, oy, *| (ox - x).abs + (oy - y).abs <= GYM_MEMBER_ROOM }
+      others.push([x, y, facing, GYM_MEMBER_SIGHT])
+      break if others.length >= GYM_MEMBERS.max
+    end
+    return { leader: spots[:leader], blocking: gates, others: others, hold: true }
+  end
+
   # One blocking cell, then the others drawn among the rest.
   def gym_members(layout, rng)
     count = rng.rand(GYM_MEMBERS)
+    # A generated gym (hold): every gate held
+    return layout[:blocking] + layout[:others].shuffle(random: rng).first(count - layout[:blocking].length) if layout[:hold]
     blocking = layout[:blocking].shuffle(random: rng)
     rest = (blocking.drop(1) + layout[:others]).shuffle(random: rng)
     return [blocking.first] + rest.first(count - 1)

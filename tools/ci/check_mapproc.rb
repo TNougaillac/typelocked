@@ -484,15 +484,23 @@ end
 # (its cells cut, the leader is no longer reached from the entry), its
 # guard's cell and the one he looks at on the floor; the exit held by the
 # lock.
+# A gym's interior (#121, building GYM) is checked the same way, on the
+# Normal gym's tileset, GYM_GATES gates, its exit never held.
 def check_guild_dungeon(path, where, wp, floor, result, map_names)
-  CI.error(path, nil, "#{where} : tileset #{floor.tileset.inspect}") if floor.tileset != M::GUILD_DUNGEON_TILESETS[floor.guild]
-  CI.error(path, nil, "#{where} : QG #{floor.guild} sur #{wp.name}") if result.hqs[floor.guild] != wp.name || floor.owner != wp.name
+  gym = floor.guild == M::GYM
+  tileset = gym ? M::GYM_TILESET : M::GUILD_DUNGEON_TILESETS[floor.guild]
+  CI.error(path, nil, "#{where} : tileset #{floor.tileset.inspect}") if floor.tileset != tileset
+  if gym
+    CI.error(path, nil, "#{where} : arène hors d'une ville à arène") if (!wp.gym && !wp.island_gym && !result.islands.any? { |i, *| i.equal?(wp) }) || floor.owner != wp.name
+  elsif result.hqs[floor.guild] != wp.name || floor.owner != wp.name
+    CI.error(path, nil, "#{where} : QG #{floor.guild} sur #{wp.name}")
+  end
   begin
     check_cave(where, floor, map_names, GUILD_DUNGEON_TILESET)
   rescue M::Error => e
     return CI.error(path, nil, e.message)
   end
-  layout = result.places.find { |p, *| p.equal?(wp) }[3]
+  layout = (result.places + result.islands.map { |i, _port, place, text, lay| [i, place, text, lay] }).find { |p, *| p.equal?(wp) }[3]
   door = layout.doors.find { |_x, _y, brick| brick.kind == floor.guild }
   ex, ey = floor.spots[:exits][0]
   if !door || floor.warps.map { |w| w[0, 5] } != [[ex, ey, wp.name, door[0], door[1] + 1]]
@@ -514,14 +522,16 @@ def check_guild_dungeon(path, where, wp, floor, result, map_names)
     end
     seen
   end
-  CI.error(path, nil, "#{where} : #{spots[:gates].length} goulets au lieu de #{M::HQ_GATES}") if spots[:gates].length != M::HQ_GATES
+  gates = gym ? M::GYM_GATES : M::HQ_GATES
+  CI.error(path, nil, "#{where} : #{spots[:gates].length} goulets au lieu de #{gates}") if spots[:gates].length != gates
   CI.error(path, nil, "#{where} : chef hors d'atteinte") if !walk.call([])[spots[:leader]]
   spots[:gates].each_with_index do |(x, y), i|
     CI.error(path, nil, "#{where} : goulet #{i + 1} contournable") if walk.call(spots[:cuts][i])[spots[:leader]]
     front = [x + 1, y] if spots[:gate_facing][i] == "droite"
     CI.error(path, nil, "#{where} : garde du goulet #{i + 1} hors du sol") if !ground[[x, y]] || !front || !ground[front]
   end
-  CI.error(path, nil, "#{where} : sortie non gardée") if spots[:locks] != [[ex, ey]]
+  CI.error(path, nil, "#{where} : sortie non gardée") if !gym && spots[:locks] != [[ex, ey]]
+  CI.error(path, nil, "#{where} : sortie de l'arène fermée") if gym && spots[:locks]
 end
 
 # A guild of the outdoors has its dungeon (#335): HQ_GATES gates, each
@@ -938,7 +948,8 @@ worlds.each do |path|
     missing = ([atlas[:start]] + atlas[:gyms]).reject { |name| atlas[:maps][name] }
     CI.error(path, nil, "graine #{seed} : inventaire sans #{missing.join(', ')}") if !missing.empty?
     # Caves: two floors each, A -> 1F -> ladder -> basement (-> B)
-    map_names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
+    # (an island's gym leads back to its island, #121)
+    map_names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name } + result.islands.map { |wp, *| wp.name }
     result.caves.each do |wp, name, text, floor|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[floor.tileset || M::CAVE_TILESET])
       next check_guild_dungeon(path, "#{name} (graine #{seed})", wp, floor, result, map_names) if floor.guild
@@ -967,7 +978,7 @@ worlds.each do |path|
       check_water(plan, "#{wp.name} (graine #{seed})", place)
       check_spots("#{wp.name} (graine #{seed})", place, bricks, layout)
       port_text = result.places.find { |p, *| p.equal?(port) }[2]
-      inside = result.interiors.map(&:name)
+      inside = result.interiors.map(&:name) + result.caves.map { |_wp, name, *| name }
       ok = (plan.warps.values.map(&:target) - inside) == [port.name] &&
            (MapGenerator.parse(port_text, place.file).warps.values.map(&:target) - inside) == [wp.name] && !names.include?(wp.name)
       CI.error(path, nil, "#{wp.name} (graine #{seed}) : le bateau ne relie pas l'île à #{port.name}") if !ok
