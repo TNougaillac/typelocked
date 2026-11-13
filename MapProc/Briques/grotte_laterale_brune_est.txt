@@ -1,0 +1,10 @@
+# Entrée de grotte latérale : un rocher brun dont la bouche s'ouvre vers
+# l'est ; on y entre de côté (#296). Posée comme les autres entrées de grotte.
+Brique    = Entrée latérale brune (est)
+Type      = grotte
+Ambiances = verdoyante, prairie, sable, terre battue, automne, forêt tropicale, marais, plage, forêt sombre, ruines
+Porte     = 1,1 est
+[Map]
+ѤѤ
+ѤѤ
+ѤѤ

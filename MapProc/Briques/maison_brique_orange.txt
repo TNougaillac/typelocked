@@ -1,0 +1,7 @@
+Brique = Maison orange à balustrade
+Type   = maison
+Porte  = 1,2
+[Map]
+ΙΙΙΙ
+ΙΙΙΙ
+ΙΙΙΙ

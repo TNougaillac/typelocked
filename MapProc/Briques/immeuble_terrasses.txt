@@ -1,0 +1,8 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Immeuble à terrasses
+Type   = batisse
+[Map]
+ППППП
+ППППП
+ППППП
+ППППП

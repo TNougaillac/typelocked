@@ -1,0 +1,10 @@
+# Neige : une congère de neige profonde (on n'y court pas, à vélo non plus).
+Brique    = Neige profonde
+Type      = decor
+Ambiances = neige
+Poids     = 3
+[Map]
+ ǩǩǩ
+ǩǩǩǩǩ
+ǩǩǩǩǩ
+ ǩǩǩ

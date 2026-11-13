@@ -1,0 +1,9 @@
+# Plage : des rochers et des galets sur le sable.
+Brique    = Rochers de plage
+Type      = decor
+Ambiances = plage
+Poids     = 2
+[Map]
+c d  c
+ d c
+cd   d

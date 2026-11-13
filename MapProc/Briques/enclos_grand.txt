@@ -1,0 +1,10 @@
+# Grand enclos : un pré plus large fermé de barrières en bois.
+Brique    = Grand enclos en bois
+Type      = enclos
+Ambiances = verdoyante, prairie, chemins de terre
+[Map]
+ȸȸȸȸȸȸ
+ȸȸȸȸȸȸ
+ȸȸȸȸȸȸ
+ȸȸȸȸȸȸ
+ȸȸȸȸȸȸ

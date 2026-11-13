@@ -46,7 +46,7 @@ module MapProceduralGenerator
   def paint_cave(map_id, floor)
     path = sprintf("Data/Map%03d.rxdata", map_id)
     map = load_data(path)
-    tileset = GameData::DungeonTileset.try_get(CAVE_TILESET)
+    tileset = GameData::DungeonTileset.try_get(floor.tileset || CAVE_TILESET)
     dungeon = CaveDungeon.new(floor.rows, tileset, GameData::DungeonParameters.try_get(CAVE_AREA), floor.seed)
     dungeon.generate
     map.width, map.height = dungeon.width, dungeon.height

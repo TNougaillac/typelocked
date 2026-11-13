@@ -1,0 +1,8 @@
+# Volcan : une bande de sol noir.
+Brique    = Sol noir (bande)
+Type      = decor
+Ambiances = volcan
+Poids     = 2
+[Map]
+ɱɱɱɱɱɱɱɱ
+ɱɱɱɱɱɱɱɱ

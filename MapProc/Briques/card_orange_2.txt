@@ -1,8 +1,7 @@
-Brique = Bâtiment Card orange (miroir)
+Brique = Maison rose à pignon
 Type   = special
-Porte  = 1,3
+Porte  = 1,2
 [Map]
-AAAA
-AAAA
-AAAA
-AAAA
+AAAAAA
+AAAAAA
+AAAAAA

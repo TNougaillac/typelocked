@@ -145,7 +145,7 @@ module MapProceduralGenerator
   def world_start(result, map_ids)
     wp, place, _text, layout = result.places.select { |p, *| p.kind == "ville" }.min_by { |p, *| p.index }
     door = layout.doors.find { |_x, _y, brick| brick.kind == "centre" } || layout.doors.first
-    x, y = door ? [door[0], door[1] + 1] : [place.width / 2, place.height / 2]
+    x, y = door ? door_front(*door) : [place.width / 2, place.height / 2]
     return map_ids[wp.name], x, y
   end
 
@@ -159,6 +159,11 @@ module MapProceduralGenerator
     lines = MapGenerator.read_pbs(file)
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
     result.caves.each do |wp, name, _text, floor|
+      # A gym (#121): its town's name, the battle backdrop of the demo's gym
+      if floor.guild == GYM
+        replace_section(lines, map_ids[name], name, ["Name = #{wp.title}", position.call(wp), *GYM_METADATA])
+        next
+      end
       body = ["Name = #{floor.dark ? wp.title : wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"]
       body.push("DarkMap = true") if floor.dark
       replace_section(lines, map_ids[name], name, body)

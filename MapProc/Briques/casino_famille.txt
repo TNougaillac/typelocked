@@ -1,0 +1,11 @@
+# Casino de la Famille : la salle de jeux de la mafia, une fois par ville au
+# plus (#299).
+Brique = Casino de la Famille
+Type   = special
+Unique = oui
+Porte  = 5,3
+[Map]
+ʤʤʤʤʤʤʤʥʥʥʥ
+ʤʤʤʤʤʤʤʥʥʥʥ
+ʤʤʤʤʤʤʤʥʥʥʥ
+ʤʤʤʤʤʤʤʥʥʥʥ

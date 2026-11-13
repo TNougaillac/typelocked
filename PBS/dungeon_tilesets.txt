@@ -1,28 +1,173 @@
 ﻿# See the documentation on the wiki to learn how to edit this file.
 #-------------------------------
-[7]   # Dungeon cave
+[25]   # Cave 4G
 Autotile = 1,floor_patch
 Tile = 40,void
 Tile = 41,void_decoration
-Tile = 48,void_decoration_large
 Tile = 42,floor
-Tile = 50,floor_decoration_large
 Tile = 0,walls
-DoubleWalls = true
 FloorPatchUnderWalls = true
 #-------------------------------
-[23]   # Dungeon forest
-Autotile = 1,floor_decoration
+[28]   # Cave 4G glace
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
+#-------------------------------
+[29]   # Cave 4G lave
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
+#-------------------------------
+[30]   # Cave 4G mousse
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
+#-------------------------------
+[31]   # Cave 4G mine
+Autotile = 1,floor_patch
+Tile = 40,void
+Tile = 41,void_decoration
+Tile = 42,floor
+Tile = 0,walls
+FloorPatchUnderWalls = true
+#-------------------------------
+[33]   # Donjon 4G entrepot
 Tile = 40,void
 Tile = 42,floor
-Tile = 43,floor
-Tile = 44,floor
-Tile = 45,floor
-Tile = 46,floor
-Tile = 47,floor_patch
-Tile = 8,walls
-Tile = 25,wall_top
-SnapToLargeGrid = true
-LargeVoidTiles = true
-LargeWallTiles = true
-ThinNorthWallOffset = -8
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[34]   # Donjon 4G repaire
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[35]   # Donjon 4G club
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[36]   # Donjon 4G temple
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[37]   # Arene 4G normal
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[38]   # Arene 4G fire
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[39]   # Arene 4G water
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[40]   # Arene 4G grass
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[41]   # Arene 4G electric
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[42]   # Arene 4G ice
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[43]   # Arene 4G fighting
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[44]   # Arene 4G poison
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[45]   # Arene 4G ground
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[46]   # Arene 4G flying
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[47]   # Arene 4G psychic
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[48]   # Arene 4G bug
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[49]   # Arene 4G rock
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[50]   # Arene 4G ghost
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[51]   # Arene 4G dragon
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[52]   # Arene 4G dark
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[53]   # Arene 4G steel
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[54]   # Arene 4G fairy
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true

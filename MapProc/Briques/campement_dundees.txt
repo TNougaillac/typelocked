@@ -1,0 +1,11 @@
+# Campement des Dundees : le QG des chasseurs (#220), dans le marais. La case
+# en paille où l'on entre, au bord d'une mare à roseaux. Posé seulement là où
+# la guilde est tirée.
+Brique    = Campement des Dundees
+Type      = dundees
+Ambiances = marais
+Porte     = 6,2
+[Map]
+ɗɗɗ  ΡΡΡΡ
+ɗɦɗ  ΡΡΡΡ
+ɗɗɗ  ΡΡΡΡ

@@ -1,0 +1,7 @@
+# Neige : deux buissons sous le givre (SirMalo Nature D1) (#317).
+Brique    = Buissons enneigés
+Type      = decor
+Ambiances = neige
+Poids     = 2
+[Map]
+ѷѷ ѷѷ

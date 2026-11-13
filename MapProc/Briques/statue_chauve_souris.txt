@@ -1,8 +1,0 @@
-# Statue d'une chauve-souris sur un socle.
-Brique    = Statue de chauve-souris
-Type      = decor
-Ambiances = minérale, automne
-[Map]
-ŃŃŃ
-ŃŃŃ
-ŃŃŃ

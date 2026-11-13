@@ -1,0 +1,13 @@
+# Forêt sombre : une clairière de hautes herbes entre les arbres, ouverte au
+# sud (on y entre toujours).
+Brique    = Clairière
+Type      = decor
+Ambiances = forêt sombre
+Poids     = 2
+[Map]
+tttttt
+tttttt
+tt""tt
+tt""tt
+tt""tt
+tt""tt

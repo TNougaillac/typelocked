@@ -1,9 +1,8 @@
-# Désert : des parasols de plage.
+# Désert et plage : des parasols de plage, en rang (chaque dessin déborde
+# de 2 cases à gauche et 1 à droite : 3 cases entre deux parasols).
 Brique    = Parasols
 Type      = decor
-Ambiances = sable
+Ambiances = sable, plage
 [Map]
-œœ ßß
-œœ ßß
-  ÿÿ
-  ÿÿ
+œœ   ßß   ÿÿ
+œœ   ßß   ÿÿ

@@ -1,0 +1,7 @@
+Brique = Maison rouge à auvent
+Type   = maison
+Porte  = 1,2
+[Map]
+ΤΤΤΤ
+ΤΤΤΤ
+ΤΤΤΤ

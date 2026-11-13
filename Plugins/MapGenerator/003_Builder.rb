@@ -37,13 +37,101 @@ module MapGenerator
     # Objects go last so autotile neighbours only see the ground
     plan.anchors.each do |x, y, symbol, z|
       object = plan.objects[symbol]
+      next if object.forest
       object.height.times do |dy|
         object.width.times do |dx|
           data[x + dx, y + dy, z] = 384 + object.tile + (dy * 8) + dx
         end
       end
     end
+    # Halos last, on layer 3, only where it is empty: a drawing never covers
+    # what a plan put there
+    plan.anchors.each { |x, y, symbol, _z| draw_halo(plan.objects[symbol], x, y, data) }
+    plan.objects.each { |symbol, object| draw_forest(plan, symbol, object, data) if object.forest }
     return data
+  end
+
+  # Rows of a forest drawing (SirMalo's 2x2 pair of trees): 0 tips, 1 upper
+  # canopy, 2 lower canopy over the tips of the tree in front, 3 upper
+  # canopy over the tree behind, 4 lower canopy, 5 trunks. Columns: 0 left
+  # spill, 1 left half, 2 right half under the next tree, 3 left half over
+  # the previous tree, 4 right half, 5 right spill. The spills only hold
+  # leaves on rows 3 and 4: the other rows take theirs.
+  FOREST_SPILL_ROWS = { 1 => 3, 2 => 4, 3 => 3, 4 => 4 }
+
+  # Draws every tree of a forest symbol by its place among the others: a
+  # tree with a tree below shows that tree's upper canopy in its lower row,
+  # one at the edge its trunk; two trees side by side join when their rows
+  # match. The canopy above the forest and the spills on its sides are a
+  # halo, on layer 3 where it is empty, then on layer 2 under it (the front
+  # drawing on top).
+  # A forest of two essences (mix=) draws the second in clusters of
+  # FOREST_CLUSTER cells, about one in MIX_SHARE of them, so that its trees
+  # mostly overlap their own kind.
+  FOREST_CLUSTER = 6
+  MIX_SHARE = 3
+
+  def draw_forest(plan, symbol, object, data)
+    trees = {}   # [x, y] => [drawing row, drawing column, layer]
+    essences = {}   # [x, y] => [drawing, halo copy] of the tree's essence
+    plan.anchors.each do |x, y, s, z|
+      next if s != symbol
+      essence = forest_essence(plan, object, x, y)
+      2.times do |dy|
+        2.times do |dx|
+          trees[[x + dx, y + dy]] = [dy, dx, z]
+          essences[[x + dx, y + dy]] = essence
+        end
+      end
+    end
+    trees.each { |(x, y), tree| tree[0] += trees[[x, y + 2 - tree[0]]] ? 2 : 4 }
+    trees.each do |(x, y), tree|
+      side = trees[[x + (tree[1] == 0 ? -1 : 1), y]]
+      joined = side && side[0] == tree[0]
+      tree[1] = tree[1] == 0 ? (joined ? 3 : 1) : (joined ? 2 : 4)
+    end
+    halos = Hash.new { |hash, cell| hash[cell] = [] }   # [x, y] => [[row, column, essence], ...]
+    trees.each do |(x, y), (row, column, _z)|
+      next if row.odd? || trees[[x, y - 1]]
+      halos[[x, y - 1]].push([1, column, essences[[x, y]]])
+      halos[[x, y - 2]].push([0, column, essences[[x, y]]]) if !trees[[x, y - 2]]
+    end
+    (trees.map { |cell, (row, column, _z)| [cell, [row, column, essences[cell]]] } +
+     halos.flat_map { |cell, list| list.map { |role| [cell, role] } }).each do |(x, y), (row, column, essence)|
+      next if !(spill = FOREST_SPILL_ROWS[row])
+      halos[[x - 1, y]].push([spill, 0, essence]) if column == 1
+      halos[[x + 1, y]].push([spill, 5, essence]) if column == 4
+    end
+    trees.each { |(x, y), (row, column, z)| data[x, y, z] = 384 + essences[[x, y]][0] + (row * 8) + column }
+    halos.each do |(x, y), list|
+      next if x < 0 || y < 0 || x >= data.xsize || y >= data.ysize
+      layers = (trees[[x, y]] ? [2] : [2, 1]).select { |z| data[x, y, z] == 0 }
+      list.zip(layers) { |(row, column, essence), z| data[x, y, z] = 384 + essence[1] + (row * 8) + column if z }
+    end
+  end
+
+  # The essence of the tree anchored at x, y: [drawing, halo copy], the
+  # second one (mix=) by clusters, picked from the plan's seed.
+  def forest_essence(plan, object, x, y)
+    first = [object.tile, object.forest]
+    return first if !object.mix
+    key = ((x / FOREST_CLUSTER) * 73_856_093) ^ ((y / FOREST_CLUSTER) * 19_349_663) ^ (plan.seed.to_i * 83_492_791)
+    return Random.new(key).rand(MIX_SHARE) == 0 ? object.mix : first
+  end
+
+  def draw_halo(object, x, y, data)
+    return if !object.halo
+    first, width, height = object.drawing
+    ox, oy = object.halo[2], object.halo[3]
+    height.times do |dy|
+      width.times do |dx|
+        next if dx >= ox && dx < ox + object.width && dy >= oy && dy < oy + object.height
+        next if object.halo[4].include?((dy * width) + dx)
+        cx, cy = x - ox + dx, y - oy + dy
+        next if cx < 0 || cy < 0 || cx >= data.xsize || cy >= data.ysize || data[cx, cy, 2] != 0
+        data[cx, cy, 2] = 384 + first + (dy * 8) + dx
+      end
+    end
   end
 
   # Picks each terrain cell's tile from which neighbours belong to the same
@@ -72,9 +160,27 @@ module MapGenerator
                elsif !inside.call(-1, 1) then "iSW"
                elsif !inside.call(1, 1) then "iSE"
                end
-        data[x, y, z || terrain.layer] = terrain.roles[role] || terrain.center
+        layer = z || terrain.layer
+        data[x, y, layer] = terrain.roles[role] || terrain.center
+        # An inner corner is drawn over the inside tile (the layer below),
+        # which shows through its see-through half
+        data[x, y, layer - 1] = terrain.center if role&.start_with?("i") && terrain.roles[role] && terrain.center > 0 && layer > 0
+        draw_outer_rim(terrain, inside, w, e, x, y - 1, data, z || terrain.layer) if n && y > 0
       end
     end
+  end
+
+  # The rim above a north edge, on the cell outside it (rows above are
+  # already drawn: it never covers a tile there): its ends curve down at the
+  # terrain's corners and up where the terrain rises beside it.
+  def draw_outer_rim(terrain, inside, w, e, x, y, data, z)
+    role = if w then "oNW"
+           elsif e then "oNE"
+           elsif inside.call(1, -1) then "oiNW"
+           elsif inside.call(-1, -1) then "oiNE"
+           end
+    id = terrain.roles[role] || terrain.roles["oN"]
+    data[x, y, z] = id if id && data[x, y, z] == 0
   end
 
   # Autotile IDs are 48 * slot + pattern. Cells were filled with the base ID;
@@ -125,7 +231,10 @@ module MapGenerator
       end
     end
     plan.objects.each do |symbol, object|
-      last = 384 + object.tile + ((object.height - 1) * 8) + object.width - 1
+      first, width, height = object.drawing
+      last = 384 + first + ((height - 1) * 8) + width - 1
+      last = [last, 384 + object.forest + ((FOREST_SIZE - 1) * 9)].max if object.forest
+      object.mix&.each { |first_mix| last = [last, 384 + first_mix + ((FOREST_SIZE - 1) * 9)].max }
       next if last < tileset.passages.xsize
       raise Error, "#{plan.file} : l'objet « #{symbol} » sort du tileset « #{tileset.name} »"
     end

@@ -1,7 +1,8 @@
 Brique = Petite maison rouge
 Type   = maison
-Porte  = 1,2
+Porte  = 1,3
 [Map]
 rrrr
 rrrr
-wwww
+rrrr
+rrrr

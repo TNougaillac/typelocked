@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Château d’eau
+Type   = batisse
+[Map]
+ЖЖ
+ЖЖ
+ЖЖ

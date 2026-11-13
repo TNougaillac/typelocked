@@ -6,6 +6,7 @@
 # maps, after the maps and their encounters. The plans and the trainers go
 # next to the world's export (MapProc/Export/<world>_<seed>_evenements.txt,
 # _dresseurs.txt), to read them or run them again from the MapEvents folder.
+# Each gym is then painted in its lieutenant's type (010_GymExteriors.rb).
 # When the world is deleted, its trainers go too.
 #===============================================================================
 module WorldEvents
@@ -16,23 +17,39 @@ module WorldEvents
   def write_world(result, seed, export)
     caps = ProceduralEncounters.level_caps
     species = ProceduralEncounters.load_species
-    zones = ProceduralEncounters.world_zones(result, caps)
-    _lines, generated = ProceduralEncounters.world_encounters(result, species, caps, seed)
+    guilds = load_guilds(".", species)
+    pools = guild_pools(guilds)
+    zones = ProceduralEncounters.world_zones(result, caps, pools)
+    _lines, generated = ProceduralEncounters.world_encounters(result, species, caps, seed, pools)
     type = Monotype.active? ? Monotype.data.type : nil
     events = world_events(result, seed, zones: zones, encounters: generated, species: species, tms: game_tms, caps: caps,
-                                        type: type)
+                                        type: type, guilds: guilds)
     write_trainers(events[:trainers])
+    paint_gyms(events[:leaders])
     events[:plans].each_value do |text|
       plan = MapEvents.parse(text, File.basename(export))
       _map_id, notes = MapEvents.generate(plan)
       notes.each { |note| Console.echoln_li(note) }
       MapProceduralGenerator.busy_update
     end
+    open_shortcuts(events[:guilds])
     separator = "\n#-------------------------------\n"
     File.write(export.sub(/\.txt\z/, "_evenements.txt"), events[:plans].values.join(separator))
     File.write(export.sub(/\.txt\z/, "_dresseurs.txt"), events[:trainers].join(separator))
     Console.echoln_li(_INTL("Événements placés sur {1} cartes, {2} dresseurs, {3} objets.", events[:plans].length,
                                  events[:trainers].length, events[:items].length))
+  end
+
+  # The obstacle of the shortcut a rallied guild opens gives way once the
+  # guild's switch is on.
+  def open_shortcuts(guilds)
+    infos = load_data("Data/MapInfos.rxdata")
+    guilds.each do |guild|
+      reward = guild[:reward]
+      next if !reward || reward[:kind] != "raccourci"
+      map_id = infos.select { |_id, info| info.name == reward[:route] }.keys.min
+      MapProceduralGenerator.open_nook_events(map_id, reward[:cells], guild[:switch]) if map_id
+    end
   end
 
   # Every TM of the game: [[item, move, type, power, status?]]

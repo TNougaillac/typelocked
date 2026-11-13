@@ -1,0 +1,8 @@
+# Deux haies hautes taillées (SirMalo Nature D4) (#317).
+Brique    = Haies hautes
+Type      = decor
+Ambiances = verdoyante, prairie
+[Map]
+ҁҁ ҁҁ
+ҁҁ ҁҁ
+ҁҁ ҁҁ

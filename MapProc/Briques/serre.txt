@@ -1,0 +1,13 @@
+# Serre : un jardin botanique, une fois par ville au plus, dans les villes
+# vertes (#299).
+Brique    = Serre
+Type      = special
+Unique    = oui
+Ambiances = verdoyante, chemins de terre, prairie
+Porte     = 5,4
+[Map]
+ʦʦʦʦʦʦʦʧʧ
+ʦʦʦʦʦʦʦʧʧ
+ʦʦʦʦʦʦʦʧʧ
+ʦʦʦʦʦʦʦʧʧ
+ʦʦʦʦʦʦʦʧʧ

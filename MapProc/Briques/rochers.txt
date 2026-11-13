@@ -1,0 +1,7 @@
+# Rochers gris (SirMalo Nature D5) (#317).
+Brique    = Rochers
+Type      = decor
+Ambiances = minérale, haute montagne, chemins de terre
+[Map]
+ҋҋ
+ҋҋ

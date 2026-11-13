@@ -1,0 +1,10 @@
+# Gare : la gare de la ville, une fois par ville au plus (#299).
+Brique = Gare
+Type   = special
+Unique = oui
+Porte  = 4,3
+[Map]
+ʢʢʢʢʢʢʢʢʣ
+ʢʢʢʢʢʢʢʢʣ
+ʢʢʢʢʢʢʢʢʣ
+ʢʢʢʢʢʢʢʢʣ

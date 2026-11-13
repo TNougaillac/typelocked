@@ -1,7 +1,7 @@
 # Minéral : rochers gris et cailloux.
 Brique    = Rochers gris
 Type      = decor
-Ambiances = minérale
+Ambiances = minérale, haute montagne
 Poids     = 2
 [Map]
 j,

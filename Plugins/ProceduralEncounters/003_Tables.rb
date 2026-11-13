@@ -9,14 +9,17 @@
 #    land, cave or surfing table (surfing once Surf is obtained) of that
 #    tronçon or of the previous ones within COVER_WINDOW.
 # 3. Families: every family of the roster shows up at least once in the world.
+# A zone with a pool (a guild's dungeon) draws only from it, among the whole
+# roster, with no dominant type: it takes no part in steps 2 and 3.
 # Coverage first fills tables up to their max, then up to their overflow.
 # Plain Ruby: same zones + same seed = same tables.
 #===============================================================================
 module ProceduralEncounters
   # A map that gets encounters. levels: [min, max] of the place; land_biome:
   # biome of its Land table; types: encounter types to write (TABLES keys);
-  # surf: Surf is obtained by then.
-  Zone = Struct.new(:name, :index, :seals, :levels, :land_biome, :types, :surf)
+  # surf: Surf is obtained by then; pool: species ids its tables are drawn
+  # from instead of the world's (a guild's dungeon), nil for the others.
+  Zone = Struct.new(:name, :index, :seals, :levels, :land_biome, :types, :surf, :pool)
   # role: :dominant (of a dominant type), :biome or :cover (added by a
   # coverage pass)
   Entry = Struct.new(:species, :weight, :min_level, :max_level, :role)
@@ -26,12 +29,15 @@ module ProceduralEncounters
 
   module_function
 
-  def generate(zones, species, seed)
+  # roster: every species (load_species), for the pools; species: those
+  # drawn for the world.
+  def generate(zones, species, seed, roster = species)
     rng = Random.new(seed)
     uses = Hash.new(0)
     tables = zones.flat_map do |zone|
       zone.types.map { |type| Table.new(zone, type, table_levels(zone, type), [], []) }
     end
+    pooled, tables = tables.partition { |t| t.zone.pool }
     previous = []
     tables.each do |table|
       if TABLES[table.type][:dominant]
@@ -51,8 +57,28 @@ module ProceduralEncounters
     end
     gaps = cover_types(tables, species, uses, rng)
     missing = cover_families(tables, species, uses, rng)
+    pooled.each { |table| draw_pool(table, roster, uses, rng) }
+    tables = zones.flat_map { |zone| (tables + pooled).select { |t| t.zone.equal?(zone) } }
     tables.each { |t| t.slots.sort_by!.with_index { |e, i| [-e.weight, i] } }
     return Result.new(tables, gaps, missing)
+  end
+
+  # A table of a zone with a pool: its Pokémon by tier, stage and use, the
+  # biome and the types left aside.
+  def draw_pool(table, roster, uses, rng)
+    pool = table.zone.pool.filter_map { |id| roster[id] }
+    rng.rand(TABLES[table.type][:species]).times do
+      picks = pool.filter_map { |sp| fits?(sp, table) && [sp, pool_weight(sp, table, uses)] }
+      break if picks.empty?
+      sp, w = weighted(picks, rng)
+      add(table, sp, w, uses, :biome)
+    end
+  end
+
+  def pool_weight(sp, table, uses)
+    tier = TIER_WEIGHTS[sp.tier] || 1.0
+    tier += table.zone.seals * FORT_PER_SEAL if sp.tier == "fort"
+    return tier / sp.stage / (1 + (uses[sp.id] * REUSE_PENALTY))
   end
 
   # DOMINANT_TYPES types of the table's biome, by weight, those of the
@@ -164,9 +190,13 @@ module ProceduralEncounters
       cover == true || (cover == :surf && t.zone.surf)
     end
     gaps = []
-    covering.map { |t| t.zone.seals }.uniq.sort.each do |seals|
+    # The window counts tronçons, not seals: a port and its island may both
+    # have a gym, two seals at once with no tronçon between them
+    tiers = covering.map { |t| t.zone.seals }.uniq.sort
+    tiers.each_with_index do |seals, i|
       segment = covering.select { |t| t.zone.seals == seals }
-      window = covering.select { |t| t.zone.seals.between?(seals - COVER_WINDOW + 1, seals) }
+      first = tiers[[i - COVER_WINDOW + 1, 0].max]
+      window = covering.select { |t| t.zone.seals.between?(first, seals) }
       missing = all_types.reject do |type|
         window.any? { |t| t.slots.any? { |e| e.species.monotype_types.include?(type) } }
       end

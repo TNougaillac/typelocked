@@ -1,9 +1,9 @@
 #===============================================================================
 # Sprites of the Family (#103): copies an Essentials trainer sprite for each
-# lieutenant (one per type), each Ancien and the Parrain, battle sprite
-# (Graphics/Trainers/<ID>.png) and overworld sheet
-# (Graphics/Characters/trainer_<ID>.png). A sprite drawn for a role later (a
-# recoloured one, or one given by Tom) replaces its copy: take its line out.
+# lieutenant (one per type), each Ancien and the Parrain, as its battle sprite
+# (Graphics/Trainers/<ID>.png). Their overworld sheets are 4G ones
+# (tools/art/npcs_4g.py, #201). A sprite drawn for a role later (a recoloured
+# one, or one given by Tom) replaces its copy: take its line out.
 # Usage: ruby tools/art/family_sprites.rb
 #===============================================================================
 require "fileutils"
@@ -40,7 +40,5 @@ SPRITES = {
 
 SPRITES.each do |id, source|
   FileUtils.cp(File.join(ROOT, "Graphics/Trainers/#{source}.png"), File.join(ROOT, "Graphics/Trainers/#{id}.png"))
-  FileUtils.cp(File.join(ROOT, "Graphics/Characters/trainer_#{source}.png"),
-               File.join(ROOT, "Graphics/Characters/trainer_#{id}.png"))
 end
 puts "#{SPRITES.length} sprites copiés"

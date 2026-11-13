@@ -1,9 +1,8 @@
-# Verdoyante et prairie : des arbres en fleurs.
+# Verdoyante et prairie : un arbre rond.
 Brique    = Arbres en fleurs
 Type      = decor
 Ambiances = verdoyante, prairie
 Poids     = 2
 [Map]
-ąąþ
-ąąþ
-  þ
+ąą
+ąą

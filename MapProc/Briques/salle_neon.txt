@@ -1,0 +1,7 @@
+Brique = Salle aux néons
+Type   = immeuble
+Porte  = 3,2
+[Map]
+ιιιιιιι
+ιιιιιιι
+ιιιιιιι

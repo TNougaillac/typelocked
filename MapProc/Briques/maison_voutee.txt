@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Maison voûtée
+Type   = batisse
+[Map]
+σσσσσ
+σσσσσ
+σσσσσ

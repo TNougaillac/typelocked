@@ -1,0 +1,331 @@
+{
+ "chunks": {
+  "A1": {
+   "tiles": 56,
+   "used": 17
+  },
+  "A2": {
+   "tiles": 50,
+   "used": 14
+  },
+  "A3": {
+   "tiles": 57,
+   "used": 38
+  },
+  "A4": {
+   "tiles": 48,
+   "used": 8
+  },
+  "A5": {
+   "tiles": 50,
+   "used": 10
+  },
+  "A6": {
+   "tiles": 57,
+   "used": 4
+  },
+  "A7": {
+   "tiles": 57,
+   "used": 0
+  },
+  "A8": {
+   "tiles": 21,
+   "used": 0
+  },
+  "B1": {
+   "tiles": 49,
+   "used": 0
+  },
+  "B2": {
+   "tiles": 56,
+   "used": 0
+  },
+  "B3": {
+   "tiles": 52,
+   "used": 0
+  },
+  "B4": {
+   "tiles": 52,
+   "used": 4
+  },
+  "B5": {
+   "tiles": 44,
+   "used": 30
+  },
+  "B6": {
+   "tiles": 52,
+   "used": 33
+  },
+  "B7": {
+   "tiles": 44,
+   "used": 8
+  },
+  "B8": {
+   "tiles": 13,
+   "used": 0
+  },
+  "C1": {
+   "tiles": 56,
+   "used": 44
+  },
+  "C2": {
+   "tiles": 54,
+   "used": 30
+  },
+  "C3": {
+   "tiles": 48,
+   "used": 6
+  },
+  "C4": {
+   "tiles": 48,
+   "used": 32
+  },
+  "C5": {
+   "tiles": 48,
+   "used": 26
+  },
+  "C6": {
+   "tiles": 48,
+   "used": 12
+  },
+  "C7": {
+   "tiles": 38,
+   "used": 38
+  },
+  "D1": {
+   "tiles": 36,
+   "used": 11
+  },
+  "D2": {
+   "tiles": 34,
+   "used": 9
+  },
+  "D3": {
+   "tiles": 30,
+   "used": 4
+  },
+  "D4": {
+   "tiles": 34,
+   "used": 14
+  },
+  "D5": {
+   "tiles": 38,
+   "used": 24
+  },
+  "D6": {
+   "tiles": 50,
+   "used": 26
+  },
+  "D7": {
+   "tiles": 32,
+   "used": 28
+  },
+  "E1": {
+   "tiles": 38,
+   "used": 12
+  },
+  "E2": {
+   "tiles": 37,
+   "used": 5
+  },
+  "E3": {
+   "tiles": 39,
+   "used": 0
+  },
+  "E4": {
+   "tiles": 38,
+   "used": 0
+  },
+  "E5": {
+   "tiles": 34,
+   "used": 0
+  },
+  "E6": {
+   "tiles": 48,
+   "used": 0
+  },
+  "E7": {
+   "tiles": 44,
+   "used": 0
+  },
+  "E8": {
+   "tiles": 12,
+   "used": 0
+  },
+  "F1": {
+   "tiles": 55,
+   "used": 52
+  },
+  "F2": {
+   "tiles": 46,
+   "used": 20
+  },
+  "F3": {
+   "tiles": 52,
+   "used": 41
+  },
+  "F4": {
+   "tiles": 43,
+   "used": 27
+  },
+  "F5": {
+   "tiles": 46,
+   "used": 22
+  },
+  "F6": {
+   "tiles": 55,
+   "used": 16
+  },
+  "F7": {
+   "tiles": 44,
+   "used": 6
+  },
+  "G1": {
+   "tiles": 55,
+   "used": 52
+  },
+  "G2": {
+   "tiles": 46,
+   "used": 20
+  },
+  "G3": {
+   "tiles": 52,
+   "used": 33
+  },
+  "G4": {
+   "tiles": 43,
+   "used": 7
+  },
+  "G5": {
+   "tiles": 46,
+   "used": 9
+  },
+  "G6": {
+   "tiles": 55,
+   "used": 16
+  },
+  "G7": {
+   "tiles": 44,
+   "used": 6
+  },
+  "H1": {
+   "tiles": 55,
+   "used": 28
+  },
+  "H2": {
+   "tiles": 40,
+   "used": 8
+  },
+  "H3": {
+   "tiles": 32,
+   "used": 28
+  },
+  "H4": {
+   "tiles": 43,
+   "used": 23
+  },
+  "H5": {
+   "tiles": 46,
+   "used": 20
+  },
+  "H6": {
+   "tiles": 36,
+   "used": 3
+  },
+  "H7": {
+   "tiles": 20,
+   "used": 0
+  },
+  "I1": {
+   "tiles": 55,
+   "used": 28
+  },
+  "I2": {
+   "tiles": 40,
+   "used": 8
+  },
+  "I3": {
+   "tiles": 32,
+   "used": 28
+  },
+  "I4": {
+   "tiles": 43,
+   "used": 23
+  },
+  "I5": {
+   "tiles": 46,
+   "used": 20
+  },
+  "I6": {
+   "tiles": 60,
+   "used": 0
+  },
+  "I7": {
+   "tiles": 42,
+   "used": 0
+  },
+  "I8": {
+   "tiles": 15,
+   "used": 6
+  },
+  "J1": {
+   "tiles": 18,
+   "used": 0
+  },
+  "J2": {
+   "tiles": 28,
+   "used": 9
+  },
+  "J3": {
+   "tiles": 32,
+   "used": 12
+  },
+  "J4": {
+   "tiles": 18,
+   "used": 0
+  },
+  "J5": {
+   "tiles": 28,
+   "used": 9
+  },
+  "J6": {
+   "tiles": 32,
+   "used": 12
+  },
+  "K1": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K2": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K3": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K4": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K5": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K6": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K7": {
+   "tiles": 8,
+   "used": 0
+  },
+  "K8": {
+   "tiles": 7,
+   "used": 0
+  }
+ },
+ "sheet": "SirMalo Nature",
+ "tiles": 3778,
+ "used": 1079
+}

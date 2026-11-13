@@ -1,7 +1,0 @@
-# Désert : des aiguilles de grès et des touffes sèches.
-Brique    = Aiguilles de grès
-Type      = decor
-Ambiances = sable
-[Map]
-ŗ  ş
-ŗķķş

@@ -167,8 +167,6 @@ module MapProceduralGenerator
       # Piers 3 tiles wide, at least 3 tiles of water between two of them;
       # taken: stretches along the sea kept for a pier or the terminal
       taken = []
-      terminal = lay_terminal(depth, edge, length, deck)
-      taken.push(terminal) if terminal
       piers = 0
       (edge + 1..length - edge - 4).to_a.shuffle(random: @rng).each do |a|
         break if piers >= @rng.rand(2..4)
@@ -183,42 +181,6 @@ module MapProceduralGenerator
       hub_a = %w[nord sud].include?(@place.port) ? hub[0] : hub[1]
       corners = [port_cell(hub_a, depth), port_cell(hub_a + STREET_WIDTH - 1, depth + STREET_WIDTH - 1)]
       carve_line(corners.map(&:first).min, corners.map(&:last).min, hub[0], hub[1])
-    end
-
-    # The ferry terminal on piles, entered from the top, at the end of a pier
-    # (sea to the south) or under a pier near its end (sea to the east or
-    # west); none with the sea to the north, it would face the land. Returns
-    # its stretch along the sea, nil if none.
-    def lay_terminal(depth, edge, length, deck)
-      brick = @bricks.find { |b| b.kind == TERMINAL }
-      return nil if !brick || @place.port == "nord" || depth < 9
-      bw, bh = brick.rows[0].length, brick.rows.length
-      if @place.port == "sud"
-        tip = @rng.rand(bh..depth - 3)   # depth of the pier's last planks
-        a = @rng.rand(edge + (bw / 2)..length - edge - (bw / 2) - 3)
-        pier = [a, tip]
-        span = a - (bw / 2) + 1..a + (bw / 2) + 1
-        footprint = [[a + 1 - (bw / 2), tip - 1], [a + 1 + (bw / 2), tip - bh]]
-      else
-        tip = @rng.rand((bw / 2)..depth - 3 - (bw / 2))
-        a = @rng.rand(edge + 1..length - edge - 3 - bh - 1)
-        pier = [a, tip]
-        span = a..a + 2 + bh
-        footprint = [[a + 3, tip - (bw / 2)], [a + 2 + bh, tip + (bw / 2)]]
-      end
-      (pier[1]...depth - 2).each { |d| 3.times { |k| deck.call(pier[0] + k, d) } }
-      cells = footprint.map { |fa, fd| port_cell(fa, fd) }
-      x, y = cells.map(&:first).min, cells.map(&:last).min
-      brick.rows.each_with_index do |row, dy|
-        row.each_char.with_index do |c, dx|
-          @cells[y + dy][x + dx] = c
-          @solid[y + dy][x + dx] = true
-          @water[y + dy][x + dx] = false
-          @kinds[y + dy][x + dx] = TERMINAL
-        end
-      end
-      @terminal = [x + (bw / 2), y]
-      return span
     end
 
     # The sea around an island, on its sides without the port: a few tiles
@@ -250,7 +212,7 @@ module MapProceduralGenerator
     end
 
     # The boat of a ferry terminal that leads to an island, on the water close
-    # to the terminal, with water all around it.
+    # to the terminal's door, with water all around it.
     def moor_boat
       object = @place.boat && @palette.objects[@place.boat]
       return if !object
@@ -274,9 +236,9 @@ module MapProceduralGenerator
     # placed.
     def scatter_reefs(banks, reefs, rng, lane = nil)
       placed = []
-      # The rock autotile draws nothing on a lone cell: 2x2 at least, as on
-      # the hand-made maps
-      [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 3], [2, 2]]].each do |sym, count, ws, hs|
+      # The rock autotile draws nothing on a lone cell, and its middle pieces
+      # are unused: 2x2 exactly, as on the hand-made maps
+      [[@place.bank, banks, [2, 4], [2, 3]], [@place.reef, reefs, [2, 2], [2, 2]]].each do |sym, count, ws, hs|
         next if !sym
         rng.rand(count).times do
           w, h = rng.rand(ws[0]..ws[1]), rng.rand(hs[0]..hs[1])
@@ -338,16 +300,35 @@ module MapProceduralGenerator
       end
     end
 
-    # One or two port buildings (warehouses) along the promenade, where they
-    # fit.
+    # The ferry terminal (none with the sea to the north: the world sends no
+    # boat there) right on the promenade, its door facing it, then one or two
+    # port buildings (warehouses) along the promenade, where they fit; the
+    # boat of a terminal that leads to an island moors on the sea nearest it.
     def place_port_bricks
-      along = lambda do |brick, x, y|
-        far = [x + brick.rows.map(&:length).max - 1, y + brick.rows.length - 1]
-        gap = [port_cell_d(x, y), port_cell_d(*far)].min - @port_depth - STREET_WIDTH
-        next gap >= 0 && gap <= 3
+      along = lambda do |gaps|
+        lambda do |brick, x, y|
+          far = [x + brick.rows.map(&:length).max - 1, y + brick.rows.length - 1]
+          next gaps.cover?([port_cell_d(x, y), port_cell_d(*far)].min - @port_depth - STREET_WIDTH)
+        end
+      end
+      terminal = @bricks.find { |b| b.kind == TERMINAL }
+      if terminal && @place.port != "nord" && TERMINAL_GAPS.any? { |gaps| put_brick(terminal, along.call(gaps)) }
+        @terminal = @doors.last[0, 2]
+        moor_boat if @place.ferry || @place.island
+      end
+      # A guild's headquarters on the quay (QUAY_HQS), its widest brick that
+      # fits, in the room of a warehouse; on a quay with no room, in the town
+      # (place_bricks)
+      hqs_on_quay = 0
+      QUAY_HQS.each do |kind|
+        hqs = @bricks.select { |b| b.kind == kind }.sort_by { |b| [-b.rows.map(&:length).max, b.name] }
+        @place.counts[kind]&.max.to_i.times do
+          next hqs_on_quay += 1 if hqs.any? { |b| put_brick(b, along.call(PORT_GAP)) }
+          @inland_hqs.push(kind)
+        end
       end
       return if @bricks.none? { |b| b.kind == PORT }
-      @rng.rand(1..2).times { place_brick(PORT, along) }
+      (@rng.rand(1..2) - hqs_on_quay).times { place_brick(PORT, along.call(PORT_GAP)) }
     end
   end
 end

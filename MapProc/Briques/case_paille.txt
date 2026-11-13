@@ -1,0 +1,7 @@
+Brique = Case en paille
+Type   = maison
+Porte  = 1,2
+[Map]
+ΡΡΡΡ
+ΡΡΡΡ
+ΡΡΡΡ

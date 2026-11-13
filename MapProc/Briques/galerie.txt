@@ -1,0 +1,7 @@
+Brique = Galerie au store rayé
+Type   = immeuble
+Porte  = 2,2
+[Map]
+γγγγγ
+γγγγγ
+γγγγγ

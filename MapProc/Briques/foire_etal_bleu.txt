@@ -1,0 +1,6 @@
+# Étal à auvent bleu (SirMalo Urban F3) (#320).
+Brique    = Étal bleu
+Type      = foire
+[Map]
+ҘҘҘҘ
+ҘҘҘҘ

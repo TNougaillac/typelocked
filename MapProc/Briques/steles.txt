@@ -1,9 +1,0 @@
-# Stèles et plaque gravées.
-Brique    = Stèles
-Type      = decor
-Ambiances = minérale, automne
-[Map]
-ĮĮ įį
-ĮĮ įį
-
- ĬĬ

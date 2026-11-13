@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Immeuble de bureaux
+Type   = batisse
+[Map]
+φφφφφ
+φφφφφ
+φφφφφ

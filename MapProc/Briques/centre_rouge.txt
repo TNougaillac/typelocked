@@ -1,0 +1,7 @@
+Brique = Centre Pokémon (toit rouge)
+Type   = centre
+Porte  = 2,2
+[Map]
+ΑΑΑΑΑ
+ΑΑΑΑΑ
+ΑΑΑΑΑ

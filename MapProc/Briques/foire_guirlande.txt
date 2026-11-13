@@ -1,0 +1,5 @@
+# Guirlande de fanions entre deux poteaux : on passe dessous (#299).
+Brique = Guirlande de fanions
+Type   = foire
+[Map]
+ʨ   ʩ

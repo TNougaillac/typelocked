@@ -1,0 +1,107 @@
+{
+ "chunks": {
+  "A1": {
+   "tiles": 63,
+   "used": 2
+  },
+  "A10": {
+   "tiles": 62,
+   "used": 0
+  },
+  "A11": {
+   "tiles": 62,
+   "used": 0
+  },
+  "A12": {
+   "tiles": 60,
+   "used": 1
+  },
+  "A13": {
+   "tiles": 63,
+   "used": 0
+  },
+  "A14": {
+   "tiles": 60,
+   "used": 9
+  },
+  "A15": {
+   "tiles": 59,
+   "used": 0
+  },
+  "A16": {
+   "tiles": 61,
+   "used": 0
+  },
+  "A17": {
+   "tiles": 61,
+   "used": 0
+  },
+  "A18": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A19": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A2": {
+   "tiles": 64,
+   "used": 1
+  },
+  "A20": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A21": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A22": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A23": {
+   "tiles": 61,
+   "used": 0
+  },
+  "A24": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A25": {
+   "tiles": 56,
+   "used": 0
+  },
+  "A3": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A4": {
+   "tiles": 62,
+   "used": 0
+  },
+  "A5": {
+   "tiles": 63,
+   "used": 8
+  },
+  "A6": {
+   "tiles": 62,
+   "used": 3
+  },
+  "A7": {
+   "tiles": 64,
+   "used": 29
+  },
+  "A8": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A9": {
+   "tiles": 63,
+   "used": 0
+  }
+ },
+ "sheet": "Remastered Caves",
+ "tiles": 1558,
+ "used": 53
+}

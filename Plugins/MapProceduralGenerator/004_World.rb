@@ -78,6 +78,9 @@
 #                               in FIELD_ITEMS)
 #   Recoins  = 30              (chance in % that a place has an optional nook
 #                               behind an obstacle, see NOOKS; 0 by default)
+#   Revisiter = 50             (chance in % that a nook is closed by a field
+#                               item obtained later, to come back for;
+#                               REVISIT by default)
 #   Noms     = Bourg Typelock, Ville Rubis, ...
 #                              (optional town names, in order; "Ville
 #                               générée 1"... otherwise; routes are "Route
@@ -103,7 +106,7 @@ module MapProceduralGenerator
                      :town_file, :route_file, :towns, :gyms, :route_length, :names, :no_gym,
                      :surf, :channels, :lakes, :caves, :dive, :dives, :mountains, :mountain_cave, :excess, :mountain_river,
                      :ports, :islands, :island_gyms, :names_file, :field_items, :nooks, :route_shapes, :route_width, :town_sizes, :loops, :shortcuts,
-                     :margin, :seas)
+                     :margin, :seas, :revisit)
   # kind: "ville" or "route"; x, y, w, h in squares; exits: [side, offset]
   # crossing: nil, "chenal", "lac", "mer" or "grotte" (routes); surf, dive: the town
   # where Surf, Dive is obtained; deep: a route with a dive spot; mountain: a
@@ -120,7 +123,8 @@ module MapProceduralGenerator
   # its rectangle, nil = all of it; joints: [x, y, w, h] the blocks of squares
   # where its streets meet (its corners), from its top-left; trace: its line
   # on the Town Map, in half squares from its top-left; extra: a route off
-  # the chain, "boucle" or "raccourci" (see add_extra_routes), ends: [the
+  # the chain, "boucle" or "raccourci" (see add_extra_routes), or a guild's
+  # headquarters, HQ_EXTRA (see place_world_hqs; kind "lieu"), ends: [the
   # place of its end nearer the start, the other one], tier: the index of the
   # place of the chain from which it can be walked (nil: its own index),
   # lock: the obstacle of a shortcut (a key of LOCKS)
@@ -135,8 +139,9 @@ module MapProceduralGenerator
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
   # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
   # notes: lines for the console (routes off the chain that found no room);
-  # fillers: Filler (see 013_Fillers.rb)
-  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers)
+  # fillers: Filler (see 013_Fillers.rb); hqs: { brick type => place name }
+  # of the guilds' headquarters (place_world_hqs)
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers, :hqs)
 
   TOWN_SIZE = 2
   # Times the world is laid out again when a place can't be assembled
@@ -165,7 +170,7 @@ module MapProceduralGenerator
 
   def parse_world(text, file = "monde")
     world = World.new(file, nil, 0, nil, [0, 0], nil, nil, 20, nil, nil, nil, nil, 2..4, [], [], 2, 0..0, 0..0, 0..0, 3, 0..0, 0..0, 50, 0, 0, 0..0, 0, 0, nil,
-                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"], 1..1, ["2x2"], 0..0, 0..0, 0, 0..0)
+                      FIELD_ITEMS.transform_values(&:last), 0, ["droite"], 1..1, ["2x2"], 0..0, 0..0, 0, 0..0, REVISIT)
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       content = raw.chomp.sub(/#.*\z/, "").strip
@@ -212,6 +217,7 @@ module MapProceduralGenerator
       when "plongee"  then world.dive = integer(value, fail_at)
       when "fonds"    then world.dives = range(value, fail_at)
       when "recoins"  then world.nooks = integer(value, fail_at)
+      when "revisiter" then world.revisit = integer(value, fail_at)
       else
         item = FIELD_ITEMS.keys.find { |name| name.casecmp?(key) }
         fail_at.call("clé inconnue « #{key} »") if !item
@@ -297,6 +303,8 @@ module MapProceduralGenerator
     rescue Error
       raise if attempt == WORLD_TRIES - 1
     end
+    hqs = place_world_hqs(world, built, town, route, bricks, seed, map_ids)
+    give_extra_items(built, Random.new((seed * 1000) + 960))
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }
     caves = built.flat_map do |wp, _place, _text, layout|
@@ -306,6 +314,7 @@ module MapProceduralGenerator
       rng = Random.new((seed * 1000) + 500 + wp.index)
       excess = side_excess(world, "grotte", rng)
       floors = cave_floors(wp.name.sub("Route", "Grotte"), wp.name, doors, excess, rng)
+      floors.each { |floor| floor.tileset = CAVE_STYLES[layout.ambiance] }
       warps[wp.name].concat(cave_warps(doors, floors))
       floors.map { |floor| [wp, floor.name, cave_floor_text(floor, wp.name), floor, excess] }
     end
@@ -314,9 +323,31 @@ module MapProceduralGenerator
       door = layout.doors.find { |_x, _y, brick| brick.kind == DARK_CAVE }
       next [] if !door
       floor = dark_cave_floor("#{wp.name} - grotte sombre", wp.name, door, Random.new((seed * 1000) + 600 + wp.index))
+      floor.tileset = CAVE_STYLES[layout.ambiance]
       ex, ey = floor.spots[:exits][0]
       warps[wp.name].push([door[0], door[1], floor.name, ex, ey + 1, 2])
       [[wp, floor.name, cave_floor_text(floor, wp.name), floor, nil]]
+    end
+    # The dungeons of the guilds of rooms, behind their building's door (#337)
+    caves += hqs.filter_map do |kind, name|
+      next if !HQ_ROOM_KINDS.include?(kind)
+      wp, _place, _text, layout = built.find { |p, *| p.name == name }
+      door = layout.doors.find { |_x, _y, brick| brick.kind == kind }
+      next if !door
+      floor = guild_dungeon_floor("#{name} - donjon", name, door, kind, Random.new((seed * 1000) + 650 + wp.index))
+      ex, ey = floor.spots[:entry]
+      warps[name].push([door[0], door[1], floor.name, ex, ey, 8, DOOR_GRAPHICS[door[2].rows[door[2].door[1]][door[2].door[0]]]])
+      [wp, floor.name, cave_floor_text(floor, name), floor, nil]
+    end
+    # The gyms' interiors, behind their door (#121), an island's too
+    gym_places = built.map { |wp, _place, _text, layout| [wp, layout] } + islands.map { |wp, *, layout| [wp, layout] }
+    caves += gym_places.filter_map do |wp, layout|
+      door = layout.doors.find { |_x, _y, brick| brick.kind == GYM }
+      next if !door
+      floor = gym_floor("#{wp.name} - #{GYM} 1", wp.name, door, Random.new((seed * 1000) + 670 + wp.index))
+      ex, ey = floor.spots[:entry]
+      warps[wp.name].push([door[0], door[1], floor.name, ex, ey, 8, DOOR_GRAPHICS[door[2].rows[door[2].door[1]][door[2].door[0]]]])
+      [wp, floor.name, cave_floor_text(floor, wp.name), floor, nil]
     end
     seabeds = built.filter_map do |wp, place, _text, layout|
       next if !wp.deep
@@ -331,13 +362,192 @@ module MapProceduralGenerator
       warps[island[0].name].push(ferry_warp(island[4], island[1].name, port))
     end
     interiors = place_interiors(built.map { |wp, _place, _text, layout| [wp, layout, wp.index] } +
-                                islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed)
-    interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8]) if it.door }
+                                islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed,
+                                hqs.select { |kind, _name| HQ_ROOM_KINDS.include?(kind) })
+    interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8, it.graphic]) if it.door }
     built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     fillers = world_fillers(world, built, seed, map_ids)
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes, fillers), built, caves, seabeds, islands, interiors,
-                           extra_notes(built) + notes, fillers)
+                           extra_notes(built) + notes, fillers, hqs)
+  end
+
+  # Each field item obtained outside the gyms (EXTRA_FIELD_ITEMS) whose
+  # ambiance the world has (any world when it has none): a town of the chain
+  # where a hidden inhabitant gives it (drawn apart, the rest of the world
+  # stays the same).
+  def give_extra_items(built, rng)
+    towns = built.select { |wp, *| wp.kind == "ville" && !wp.league && !wp.victory }.map(&:first)
+    EXTRA_FIELD_ITEMS.each do |item, ambiances|
+      next if towns.empty? || (ambiances && built.none? { |*, layout| ambiances.include?(layout.ambiance) })
+      (towns.sample(random: rng).items ||= []).push(item)
+    end
+  end
+
+  # Draws the guilds' headquarters of the world (WORLD_GUILDS among those of
+  # GUILD_HQS that a route allows, hq_places) and lays each as a place of its
+  # own (#334): a dead end off one of those routes, the route built again
+  # with its exit to it (build_hq). An enemy that joins (draw_hq_kinds) goes
+  # off the route nearest its enemy's. { brick type => place name }.
+  def place_world_hqs(world, built, town, route, bricks, seed, map_ids)
+    rng = Random.new((seed * 1000) + 950)
+    hqs = {}
+    kinds = GUILD_HQS.keys.select { |kind| bricks.any? { |b| b.kind == kind } && !hq_places(built, kind).empty? }
+    picks = draw_hq_kinds(kinds, rng)
+    lay = lambda do |kind, enemy|
+      near = enemy && hqs[enemy] && built.find { |wp, *| wp.name == hqs[enemy] }[0].ends[0].index
+      place = place_hq(world, built, town.counts.key?(kind) ? town : route, bricks, kind, seed, rng, map_ids, near)
+      hqs[kind] = place if place
+    end
+    picks.each { |kind, enemy| lay.call(kind, enemy) }
+    # A headquarters with no room left: another one in its stead (next to an
+    # enemy already there)
+    (kinds - picks.map(&:first)).shuffle(random: rng).each do |kind|
+      break if hqs.length >= picks.length
+      lay.call(kind, (HQ_ENEMIES[kind] || []).find { |enemy| hqs[enemy] })
+    end
+    return hqs
+  end
+
+  # The headquarters to lay, in order: [kind, nil] for one drawn, [kind,
+  # enemy] for one that joins its enemy (HQ_ENEMIES, HQ_ENEMY_CHANCE %) or
+  # is drawn after it, laid next to it.
+  # Among kinds (those whose place exists), WORLD_GUILDS at most. Plain:
+  # the CI draws it many times.
+  def draw_hq_kinds(kinds, rng, chance = HQ_ENEMY_CHANCE)
+    wanted = rng.rand(WORLD_GUILDS)
+    picks = []
+    kinds.shuffle(random: rng).each do |kind|
+      break if picks.length >= wanted
+      next if picks.any? { |k, _enemy| k == kind }
+      # Drawn after one of its enemies: next to it too
+      picks.push([kind, picks.map(&:first).find { |k| (HQ_ENEMIES[kind] || []).include?(k) }])
+      (HQ_ENEMIES[kind] || []).each do |enemy|
+        next if !kinds.include?(enemy) || picks.any? { |k, _e| k == enemy }
+        picks.push([enemy, kind]) if rng.rand(100) < chance && picks.length < WORLD_GUILDS.max
+      end
+    end
+    return picks
+  end
+
+  # Indexes in built of the routes that headquarters may branch off: plain
+  # straight routes of the chain (like the ends of the routes off it) of an
+  # ambiance it allows.
+  def hq_places(built, kind)
+    allowed = GUILD_HQS[kind]
+    return built.each_index.select do |i|
+      wp, _place, _text, layout = built[i]
+      next false if wp.kind != "route" || wp.extra || wp.mask || wp.crossing || wp.mountain || wp.victory || wp.league
+      allowed.empty? || allowed.include?(layout.ambiance)
+    end
+  end
+
+  # The name of the headquarters' place, nil if it never fits. Its routes
+  # are tried in the seed's order (near: the index of a route to try first,
+  # its enemy's), and on each its free spots (hq_spots), the smallest first.
+  def place_hq(world, built, base, bricks, kind, seed, rng, map_ids, near = nil)
+    places = hq_places(built, kind)
+    order = near ? places.sort_by { |i| [(built[i][0].index - near).abs, built[i][0].index] } : places.shuffle(random: rng)
+    order.each do |i|
+      hq_spots(world, built, built[i][0], hq_sizes(kind)).each do |spot|
+        hq = build_hq(world, built, i, base, bricks, kind, spot, seed, rng, map_ids)
+        next if !hq
+        built.push(hq)
+        return hq[0].name
+      end
+    end
+    return nil
+  end
+
+  # The sizes a headquarters' place may take, [across its route, away from
+  # it] in squares: a dungeon's for a guild of the outdoors (#335).
+  def hq_sizes(kind)
+    return HQ_ROOM_KINDS.include?(kind) ? HQ_PLACE_SIZES : HQ_DUNGEON_SIZES
+  end
+
+  # Free rectangles of those sizes (hq_sizes) on a side of that route (not
+  # its sea side): [x, y, w, h, side of the route towards it], in the order
+  # of the sizes, those that touch no other place first (see
+  # hq_neighbours), then from the top-left; inside the margin.
+  def hq_spots(world, built, parent, sizes = HQ_PLACE_SIZES)
+    taken = Array.new(world.height) { Array.new(world.width) }
+    built.each { |wp, *| wp.h.times { |dy| wp.w.times { |dx| taken[wp.y + dy][wp.x + dx] = wp } } }
+    m = world.margin
+    spots = sizes.each_with_index.flat_map do |(across, away), order|
+      DIRECTIONS.filter_map do |side, (dx, dy)|
+        next if side == parent.port
+        w, h = (dx == 0) ? [across, away] : [away, across]
+        # Its edge against the route, from a square of the route
+        (0...(dx == 0 ? parent.w : parent.h)).filter_map do |k|
+          x = (dx > 0) ? parent.x + parent.w : (dx < 0) ? parent.x - w : parent.x + k
+          y = (dy > 0) ? parent.y + parent.h : (dy < 0) ? parent.y - h : parent.y + k
+          next if x < m || y < m || x + w > world.width - m || y + h > world.height - m
+          next if (y...y + h).any? { |cy| (x...x + w).any? { |cx| taken[cy][cx] } }
+          spot = WorldPlace.new(nil, "lieu", nil, x, y, w, h)
+          crowded = built.any? { |wp, *| !wp.equal?(parent) && touching?(spot, wp) } ? 1 : 0
+          [[order, crowded], [x, y, w, h, side]]
+        end
+      end.flatten(1)
+    end
+    return spots.sort_by.with_index { |(key, _spot), i| [*key, i] }.map(&:last)
+  end
+
+  # True if the rectangles of a and b share a stretch of edge (not only a
+  # corner): MapGen links such places, unless kept apart ([NoLinks]).
+  def touching?(a, b)
+    return ((a.x + a.w == b.x || b.x + b.w == a.x) && a.y < b.y + b.h && b.y < a.y + a.h) ||
+           ((a.y + a.h == b.y || b.y + b.h == a.y) && a.x < b.x + b.w && b.x < a.x + a.w)
+  end
+
+  # The places a headquarters' place touches besides its route: kept apart
+  # on the world plan ([NoLinks]), its only way in is its exit.
+  def hq_neighbours(built, hq)
+    return built.map(&:first).select { |wp| !wp.equal?(hq) && !wp.equal?(hq.ends[0]) && touching?(hq, wp) }
+  end
+
+  # [WorldPlace, Place, MapGen plan text, Layout] of a headquarters on that
+  # spot, its route (built[i]) built again with its exit to it; nil, the
+  # route left as it was, if either can't be built. The place is drawn from
+  # the file of its brick (base) in the route's ambiance (when the file has
+  # it), with its brick, the decoration of HQ_DECOR and its border.
+  def build_hq(world, built, i, base, bricks, kind, (x, y, w, h, side), seed, rng, map_ids)
+    parent, parent_place, = built[i]
+    before = parent.exits.length
+    count = built.count { |p, *| p.extra == HQ_EXTRA }
+    name = "#{HQ_NAME} #{count + 1}"
+    wp = WorldPlace.new(HQ_SYMBOLS[count], "lieu", name, x, y, w, h, [], false)
+    wp.index = built.length
+    wp.extra = HQ_EXTRA
+    wp.ends = [parent, parent]
+    wp.tier = parent.index
+    wp.title = HQ_TITLES[kind]
+    link(world, parent, wp, side, rng)
+    place = base.dup
+    place.name = name
+    place.width, place.height = w * world.cell, h * world.cell
+    place.exits = wp.exits
+    place.map_id = map_ids[name]
+    place.counts = base.counts.select { |k, _| HQ_DECOR.include?(k) }.merge(kind => 1..1)
+    place.per_case = base.per_case & HQ_DECOR
+    wanted = HQ_AMBIANCES[kind] || built[i][3].ambiance
+    place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
+    # The smugglers' warehouse on a quay: the sea across from its exit
+    place.port = side if QUAY_HQS.include?(kind)
+    # A guild of the outdoors: the place is its dungeon, closed by gates, and
+    # its grass, the guild's wild Pokémon (#336), on each case
+    if !HQ_ROOM_KINDS.include?(kind)
+      place.gates = HQ_GATES
+      place.counts = place.counts.merge("herbes" => HQ_GRASS)
+      place.per_case |= ["herbes"]
+    end
+    text, layout = generate_world_place(place, bricks, (seed * 1000) + 400 + wp.index)
+    raise Error, "#{name} : QG « #{kind} » non posé" if layout.spots[:hqs].none? { |_x, _y, k| k == kind }
+    parent_text, parent_layout = generate_world_place(parent_place, bricks, (seed * 1000) + parent.index)
+    built[i] = [parent, parent_place, parent_text, parent_layout]
+    return [wp, place, text, layout]
+  rescue Error
+    parent.exits.slice!(before..)
+    return nil
   end
 
   # Assembles each place of the world: [WorldPlace, Place, MapGen plan text,
@@ -428,15 +638,15 @@ module MapProceduralGenerator
   # of that kind, the length and the colossal mountain left aside.
   def side_excess(world, kind, rng)
     return nil if rng.rand(100) >= world.excess
-    names = EXCESSES.select { |_name, e| e[:kind] == kind && !e[:long] && !e[:colossal] }.keys
+    names = EXCESSES.select { |_name, e| e[:kind] == kind && !e[:long] && !e[:colossal] && !e[:big] }.keys
     return names.sample(random: rng)
   end
 
   # Warp of a ferry terminal: walking into its door takes the boat, to the
-  # pier in front of the other terminal.
+  # promenade in front of the other terminal's door.
   def ferry_warp(layout, target, target_layout)
     tx, ty = target_layout.terminal
-    return [*layout.terminal, target, tx, ty - 1, 8]
+    return [*layout.terminal, target, tx, ty + 1, 2]
   end
 
   # A name for an island: « Île » and a name, or a name alone, drawn from
@@ -791,10 +1001,15 @@ module MapProceduralGenerator
     end
   end
 
-  # Places with a nook (« Recoins », in %): its obstacle drawn among those
-  # whose item was obtained in an earlier town of the chain (a dark cave on a
-  # route only).
+  # Places with a nook (« Recoins », in %). Its obstacle is opened by a field
+  # item obtained in an earlier town of the chain, or, for « Revisiter » % of
+  # them, in a later one: the player sees it and comes back (every field item
+  # is obtained in a town with a gym, so before the League). When one of the
+  # two lists is empty, the other one is used. A dark cave on a route only.
+  # The draw of a later item has its own generator, so that the world's draws
+  # stay those of a world without it.
   def choose_nooks(world, places, rng)
+    side = Random.new(rng.seed + 7)
     obtained = {}
     places.each do |p|
       (p.items || []).each { |item| obtained[item] = p.index }
@@ -803,8 +1018,10 @@ module MapProceduralGenerator
     end
     places.each do |wp|
       next if rng.rand(100) >= world.nooks
-      kinds = NOOKS.select { |kind, item| obtained[item]&.<(wp.tier || wp.index) && (kind != "sombre" || wp.kind == "route") }.keys
-      wp.nook = kinds.sample(random: rng)
+      kinds = NOOKS.select { |kind, item| obtained[item] && (kind != "sombre" || wp.kind == "route") }
+      now, later = kinds.keys.partition { |kind| obtained[kinds[kind]] < (wp.tier || wp.index) }
+      wp.nook = now.sample(random: rng)
+      wp.nook = later.sample(random: side) if later.any? && (!wp.nook || side.rand(100) < world.revisit)
     end
   end
 
@@ -865,10 +1082,15 @@ module MapProceduralGenerator
     places.each do |wp|
       next if wp.excess || rng.rand(100) >= world.excess
       names = EXCESSES.select do |_name, e|
-        e[:kind] == wp.kind && !e[:long] && (!e[:colossal] || wp.mountain)
+        e[:kind] == wp.kind && !e[:long] && (!e[:colossal] || wp.mountain) && (!e[:big] || big_town?(world, wp))
       end.keys
       wp.excess = names.sample(random: rng)
     end
+  end
+
+  # A town big enough for a square and a plan (see PlaceBuilder#choose_plan)
+  def big_town?(world, wp)
+    return !wp.port && !wp.mask && [wp.w, wp.h].min * world.cell >= PLAZA[:min_side]
   end
 
   # Surf is obtained in a town with a gym, the Surf-th one or a later one;
@@ -1106,7 +1328,7 @@ module MapProceduralGenerator
   # of a shortcut.
   def extra_notes(built)
     return built.filter_map do |wp, *|
-      next if !wp.extra
+      next if !wp.extra || wp.extra == HQ_EXTRA
       lock = wp.lock ? ", fermé par #{wp.lock} (#{LOCKS[wp.lock]})" : ""
       "#{wp.extra} : #{wp.title}, entre #{wp.ends[0].title} et #{wp.ends[1].title}#{lock}"
     end
@@ -1114,6 +1336,21 @@ module MapProceduralGenerator
 
   # MapGen world plan of the generated places. Towns can be flown to, landing
   # in front of their Pokémon Centre.
+  # True if a place takes the weather, encounters and trainers of the
+  # mountain: a mountain route, unless of the mountain's own ambiance.
+  def mountain_tables?(wp, layout)
+    return wp.mountain && layout.ambiance != MOUNTAIN_AMBIANCE
+  end
+
+  # The weather of a town or route (WEATHER), drawn at the seed: « Rain,50 »,
+  # nil for none.
+  def place_weather(wp, layout, seed)
+    table = WEATHER[mountain_tables?(wp, layout) ? MOUNTAIN_WEATHER : layout.ambiance] || WEATHER[nil]
+    roll = Random.new(seed ^ WEATHER_SALT ^ wp.symbol.ord).rand(table.sum(&:last))
+    type, = table.find { |_type, weight| (roll -= weight) < 0 }
+    return (type == :None) ? nil : "#{type},#{WEATHER_CHANCE}"
+  end
+
   def world_text(world, built, seed, caves = [], seabeds = [], islands = [], region = world.name, notes = [], fillers = [])
     text = +"# Monde généré par MapProceduralGenerator, graine #{seed}.\n"
     text << "World   = #{region}\n"
@@ -1144,6 +1381,10 @@ module MapProceduralGenerator
       line += "  vol=#{centre[0]},#{centre[1] + 1}" if centre
       line += "  masque=#{wp.mask.join('/')}" if wp.mask
       line += "  trace=#{wp.trace.map { |point| point.join(',') }.join('/')}" if wp.trace
+      weather = place_weather(wp, layout, seed)
+      line += "  meteo=#{weather}" if weather
+      flag = AMBIANCE_FLAGS[layout.ambiance]
+      line += "  drapeaux=#{flag}" if flag
       text << line << "\n"
     end
     fillers.each { |f| text << "#{f.symbol} = #{f.name}  type=decor\n" }
@@ -1154,6 +1395,8 @@ module MapProceduralGenerator
     end
     fillers.each { |f| f.h.times { |dy| f.w.times { |dx| grid[f.y + dy][f.x + dx] = f.symbol } } }
     grid.each { |row| text << row << "\n" }
+    apart = built.select { |wp, *| wp.extra == HQ_EXTRA }.flat_map { |wp, *| hq_neighbours(built, wp).map { |other| [wp.symbol, other.symbol] } }
+    text << "\n[NoLinks]\n" << apart.map { |pair| "#{pair.join(' ')}\n" }.join if !apart.empty?
     return text
   end
 end

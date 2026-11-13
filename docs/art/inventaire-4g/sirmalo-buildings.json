@@ -1,0 +1,691 @@
+{
+ "chunks": {
+  "A1": {
+   "tiles": 37,
+   "used": 37
+  },
+  "A2": {
+   "tiles": 37,
+   "used": 37
+  },
+  "A3": {
+   "tiles": 28,
+   "used": 28
+  },
+  "A4": {
+   "tiles": 30,
+   "used": 30
+  },
+  "A5": {
+   "tiles": 43,
+   "used": 43
+  },
+  "A6": {
+   "tiles": 51,
+   "used": 3
+  },
+  "A7": {
+   "tiles": 4,
+   "used": 0
+  },
+  "B1": {
+   "tiles": 54,
+   "used": 38
+  },
+  "B10": {
+   "tiles": 6,
+   "used": 6
+  },
+  "B2": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B3": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B4": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B5": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B6": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B7": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B8": {
+   "tiles": 44,
+   "used": 42
+  },
+  "B9": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C1": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C2": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C3": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C4": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C5": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C6": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C7": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C8": {
+   "tiles": 44,
+   "used": 42
+  },
+  "C9": {
+   "tiles": 44,
+   "used": 42
+  },
+  "D1": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D2": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D3": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D4": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D5": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D6": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D7": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D8": {
+   "tiles": 42,
+   "used": 40
+  },
+  "D9": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E1": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E10": {
+   "tiles": 42,
+   "used": 27
+  },
+  "E2": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E3": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E4": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E5": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E6": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E7": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E8": {
+   "tiles": 42,
+   "used": 40
+  },
+  "E9": {
+   "tiles": 42,
+   "used": 40
+  },
+  "F1": {
+   "tiles": 27,
+   "used": 27
+  },
+  "F10": {
+   "tiles": 31,
+   "used": 0
+  },
+  "F2": {
+   "tiles": 42,
+   "used": 42
+  },
+  "F3": {
+   "tiles": 43,
+   "used": 43
+  },
+  "F4": {
+   "tiles": 29,
+   "used": 29
+  },
+  "F5": {
+   "tiles": 33,
+   "used": 33
+  },
+  "F6": {
+   "tiles": 32,
+   "used": 32
+  },
+  "F7": {
+   "tiles": 40,
+   "used": 40
+  },
+  "F8": {
+   "tiles": 20,
+   "used": 17
+  },
+  "F9": {
+   "tiles": 50,
+   "used": 0
+  },
+  "G1": {
+   "tiles": 45,
+   "used": 45
+  },
+  "G10": {
+   "tiles": 13,
+   "used": 13
+  },
+  "G2": {
+   "tiles": 45,
+   "used": 45
+  },
+  "G3": {
+   "tiles": 39,
+   "used": 39
+  },
+  "G4": {
+   "tiles": 47,
+   "used": 47
+  },
+  "G5": {
+   "tiles": 40,
+   "used": 40
+  },
+  "G6": {
+   "tiles": 39,
+   "used": 21
+  },
+  "G7": {
+   "tiles": 50,
+   "used": 0
+  },
+  "G8": {
+   "tiles": 39,
+   "used": 23
+  },
+  "G9": {
+   "tiles": 25,
+   "used": 25
+  },
+  "H1": {
+   "tiles": 40,
+   "used": 32
+  },
+  "H10": {
+   "tiles": 27,
+   "used": 27
+  },
+  "H2": {
+   "tiles": 26,
+   "used": 0
+  },
+  "H3": {
+   "tiles": 41,
+   "used": 5
+  },
+  "H4": {
+   "tiles": 33,
+   "used": 33
+  },
+  "H5": {
+   "tiles": 27,
+   "used": 27
+  },
+  "H6": {
+   "tiles": 37,
+   "used": 37
+  },
+  "H7": {
+   "tiles": 41,
+   "used": 41
+  },
+  "H8": {
+   "tiles": 38,
+   "used": 38
+  },
+  "H9": {
+   "tiles": 33,
+   "used": 33
+  },
+  "I1": {
+   "tiles": 54,
+   "used": 54
+  },
+  "I10": {
+   "tiles": 15,
+   "used": 4
+  },
+  "I2": {
+   "tiles": 36,
+   "used": 32
+  },
+  "I3": {
+   "tiles": 44,
+   "used": 44
+  },
+  "I4": {
+   "tiles": 34,
+   "used": 34
+  },
+  "I5": {
+   "tiles": 32,
+   "used": 25
+  },
+  "I6": {
+   "tiles": 53,
+   "used": 13
+  },
+  "I7": {
+   "tiles": 55,
+   "used": 13
+  },
+  "I8": {
+   "tiles": 27,
+   "used": 4
+  },
+  "I9": {
+   "tiles": 24,
+   "used": 6
+  },
+  "J10": {
+   "tiles": 24,
+   "used": 24
+  },
+  "J2": {
+   "tiles": 47,
+   "used": 1
+  },
+  "J3": {
+   "tiles": 48,
+   "used": 0
+  },
+  "J4": {
+   "tiles": 62,
+   "used": 2
+  },
+  "J5": {
+   "tiles": 42,
+   "used": 16
+  },
+  "J6": {
+   "tiles": 22,
+   "used": 20
+  },
+  "J7": {
+   "tiles": 31,
+   "used": 29
+  },
+  "J8": {
+   "tiles": 45,
+   "used": 45
+  },
+  "J9": {
+   "tiles": 49,
+   "used": 27
+  },
+  "K1": {
+   "tiles": 56,
+   "used": 0
+  },
+  "K10": {
+   "tiles": 20,
+   "used": 0
+  },
+  "K2": {
+   "tiles": 24,
+   "used": 21
+  },
+  "K3": {
+   "tiles": 31,
+   "used": 31
+  },
+  "K4": {
+   "tiles": 25,
+   "used": 17
+  },
+  "K5": {
+   "tiles": 15,
+   "used": 4
+  },
+  "K6": {
+   "tiles": 30,
+   "used": 30
+  },
+  "K7": {
+   "tiles": 30,
+   "used": 30
+  },
+  "K8": {
+   "tiles": 33,
+   "used": 31
+  },
+  "K9": {
+   "tiles": 31,
+   "used": 28
+  },
+  "L1": {
+   "tiles": 47,
+   "used": 0
+  },
+  "L10": {
+   "tiles": 52,
+   "used": 52
+  },
+  "L2": {
+   "tiles": 38,
+   "used": 2
+  },
+  "L3": {
+   "tiles": 55,
+   "used": 0
+  },
+  "L4": {
+   "tiles": 50,
+   "used": 6
+  },
+  "L5": {
+   "tiles": 38,
+   "used": 38
+  },
+  "L6": {
+   "tiles": 20,
+   "used": 20
+  },
+  "L7": {
+   "tiles": 25,
+   "used": 0
+  },
+  "L8": {
+   "tiles": 31,
+   "used": 18
+  },
+  "L9": {
+   "tiles": 46,
+   "used": 46
+  },
+  "M1": {
+   "tiles": 28,
+   "used": 28
+  },
+  "M10": {
+   "tiles": 32,
+   "used": 0
+  },
+  "M2": {
+   "tiles": 32,
+   "used": 32
+  },
+  "M3": {
+   "tiles": 25,
+   "used": 6
+  },
+  "M4": {
+   "tiles": 33,
+   "used": 2
+  },
+  "M5": {
+   "tiles": 36,
+   "used": 2
+  },
+  "M6": {
+   "tiles": 42,
+   "used": 0
+  },
+  "M7": {
+   "tiles": 37,
+   "used": 0
+  },
+  "M8": {
+   "tiles": 40,
+   "used": 0
+  },
+  "M9": {
+   "tiles": 51,
+   "used": 0
+  },
+  "N1": {
+   "tiles": 42,
+   "used": 42
+  },
+  "N10": {
+   "tiles": 21,
+   "used": 21
+  },
+  "N2": {
+   "tiles": 43,
+   "used": 42
+  },
+  "N3": {
+   "tiles": 36,
+   "used": 36
+  },
+  "N4": {
+   "tiles": 24,
+   "used": 5
+  },
+  "N5": {
+   "tiles": 34,
+   "used": 2
+  },
+  "N6": {
+   "tiles": 52,
+   "used": 0
+  },
+  "N7": {
+   "tiles": 49,
+   "used": 0
+  },
+  "N8": {
+   "tiles": 30,
+   "used": 16
+  },
+  "N9": {
+   "tiles": 29,
+   "used": 20
+  },
+  "O1": {
+   "tiles": 27,
+   "used": 27
+  },
+  "O10": {
+   "tiles": 39,
+   "used": 39
+  },
+  "O2": {
+   "tiles": 27,
+   "used": 24
+  },
+  "O3": {
+   "tiles": 27,
+   "used": 26
+  },
+  "O4": {
+   "tiles": 36,
+   "used": 36
+  },
+  "O5": {
+   "tiles": 36,
+   "used": 36
+  },
+  "O6": {
+   "tiles": 35,
+   "used": 35
+  },
+  "O7": {
+   "tiles": 27,
+   "used": 26
+  },
+  "O8": {
+   "tiles": 56,
+   "used": 56
+  },
+  "O9": {
+   "tiles": 36,
+   "used": 36
+  },
+  "P1": {
+   "tiles": 33,
+   "used": 33
+  },
+  "P10": {
+   "tiles": 23,
+   "used": 23
+  },
+  "P2": {
+   "tiles": 40,
+   "used": 40
+  },
+  "P3": {
+   "tiles": 45,
+   "used": 45
+  },
+  "P4": {
+   "tiles": 34,
+   "used": 20
+  },
+  "P5": {
+   "tiles": 36,
+   "used": 3
+  },
+  "P6": {
+   "tiles": 29,
+   "used": 17
+  },
+  "P7": {
+   "tiles": 45,
+   "used": 45
+  },
+  "P8": {
+   "tiles": 40,
+   "used": 40
+  },
+  "P9": {
+   "tiles": 25,
+   "used": 25
+  },
+  "Q1": {
+   "tiles": 28,
+   "used": 28
+  },
+  "Q10": {
+   "tiles": 23,
+   "used": 23
+  },
+  "Q2": {
+   "tiles": 42,
+   "used": 42
+  },
+  "Q3": {
+   "tiles": 39,
+   "used": 12
+  },
+  "Q4": {
+   "tiles": 39,
+   "used": 0
+  },
+  "Q5": {
+   "tiles": 35,
+   "used": 8
+  },
+  "Q6": {
+   "tiles": 28,
+   "used": 28
+  },
+  "Q7": {
+   "tiles": 24,
+   "used": 24
+  },
+  "Q8": {
+   "tiles": 28,
+   "used": 28
+  },
+  "Q9": {
+   "tiles": 39,
+   "used": 39
+  },
+  "R1": {
+   "tiles": 34,
+   "used": 0
+  },
+  "R2": {
+   "tiles": 24,
+   "used": 0
+  },
+  "R3": {
+   "tiles": 19,
+   "used": 6
+  },
+  "R4": {
+   "tiles": 40,
+   "used": 40
+  },
+  "R5": {
+   "tiles": 36,
+   "used": 36
+  },
+  "R6": {
+   "tiles": 39,
+   "used": 39
+  },
+  "R7": {
+   "tiles": 1,
+   "used": 1
+  }
+ },
+ "sheet": "SirMalo Buildings",
+ "tiles": 7719,
+ "used": 4524
+}

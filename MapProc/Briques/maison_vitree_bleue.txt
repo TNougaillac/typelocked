@@ -1,0 +1,7 @@
+Brique = Maison au toit vitré bleu
+Type   = maison
+Porte  = 1,2
+[Map]
+ΟΟΟΟ
+ΟΟΟΟ
+ΟΟΟΟ

@@ -1,0 +1,6 @@
+# Rangée de distributeurs, le long d'une rue (style froid) (#320).
+Brique    = Rangée de distributeurs
+Type      = lampe
+Contre    = rue
+[Map]
+ҙҙҙ

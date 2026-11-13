@@ -1,0 +1,8 @@
+# Marais : une bande de boue.
+Brique    = Boue (bande)
+Type      = decor
+Ambiances = marais
+Poids     = 2
+[Map]
+ɓɓɓɓɓɓɓɓ
+ɓɓɓɓɓɓɓɓ

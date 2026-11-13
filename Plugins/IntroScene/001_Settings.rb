@@ -6,11 +6,16 @@ module IntroScene
   BACKGROUND = "introbg"
   PROFESSOR  = "introOak"
 
-  # Playable characters: PBS/metadata.txt player ID, menu label, picture.
+  # Playable characters (#290): PBS/metadata.txt player ID, menu label, and
+  # the charset shown as preview (its front frame, Graphics/Characters).
   CHARACTERS = [
-    { id: 1, label: "Garçon", picture: "introBoy" },
-    { id: 2, label: "Fille",  picture: "introGirl" }
+    { id: 1, label: "Ethan",  charset: "hero_boy" },
+    { id: 2, label: "Lyra",   charset: "hero_girl" },
+    { id: 3, label: "Louka",  charset: "hero_lucas" },
+    { id: 4, label: "Aurore", charset: "hero_dawn" }
   ]
+  # Zoom of the previews (frames of 64x64, the DS sprites already x2)
+  PREVIEW_ZOOM = 2
 
   # Bottom of the pictures, above the message window.
   PICTURE_BASELINE = 288

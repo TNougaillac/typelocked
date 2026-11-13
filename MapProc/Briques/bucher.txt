@@ -1,8 +1,6 @@
-# Bois coupé : un tas de bûches et des rondins.
+# Bois coupé : un tas de rondins.
 Brique    = Bûcher
 Type      = decor
 Ambiances = terre battue, chemins de terre, automne, verdoyante
 [Map]
-šžžž
-š
-š
+žžž

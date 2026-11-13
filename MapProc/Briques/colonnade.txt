@@ -1,0 +1,8 @@
+# Ruines : une rangée de colonnes de pierre.
+Brique    = Colonnade
+Type      = decor
+Ambiances = ruines
+Poids     = 3
+[Map]
+Ā  Ā  Ā
+Ā  Ā  Ā

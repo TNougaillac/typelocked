@@ -1,0 +1,6 @@
+# Panneau d'affichage, le long d'une rue (style chaud) (#320).
+Brique    = Panneau d'affichage
+Type      = lampe
+Contre    = rue
+[Map]
+җ

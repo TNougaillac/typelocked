@@ -570,3 +570,94 @@ Gender = Male
 BaseMoney = 100
 BattleBGM = Battle Champion
 VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_ELEVEURS]
+Name = Doyen des Éleveurs
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_NAGEURS]
+Name = Maître nageur
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_DUNDEES]
+Name = Grand chasseur
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_PONTES]
+Name = Gardienne des nids
+Gender = Female
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_BRACONNIERS]
+Name = Cheffe des braconniers
+Gender = Female
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_FORESTIERS]
+Name = Capitaine des gardes
+Gender = Female
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_OUVRIERS]
+Name = Contremaître
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_CONTREBANDIERS]
+Name = Capitaine
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_FORAINS]
+Name = Monsieur Loyal
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_MINEURS]
+Name = Chef de galerie
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_ORDRE]
+Name = Grand Prieur
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_ENDEUILLES]
+Name = Doyenne des Endeuillés
+Gender = Female
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader
+#-------------------------------
+[CHEF_CHROMES]
+Name = Chef de bande
+Gender = Male
+BaseMoney = 80
+BattleBGM = Battle Gym Leader
+VictoryBGM = Battle victory leader

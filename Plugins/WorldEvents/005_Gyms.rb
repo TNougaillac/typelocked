@@ -21,7 +21,7 @@ module WorldEvents
     types = leader_types(atlas[:gyms].length, species, tms, rng)
     atlas[:gyms].each_with_index do |town, i|
       map, spots = atlas[:maps].find { |_name, m| m[:building] == "arene" && m[:owner] == town }
-      layout = spots && GYM_LAYOUTS[spots[:template]]
+      layout = spots && (GYM_LAYOUTS[spots[:template]] || gym_floor_layout(spots, rng))
       next if !layout
       type = types[i]
       cap = caps[i] || caps.last
@@ -55,15 +55,95 @@ module WorldEvents
             ["Type", member], ["Name", member_name], ["BattleID", TRAINER_VERSION],
             ["Battle", lines.text("membre_combat", title)], ["EndBattle", lose])
       end
+      statues = layout[:hold] ? gym_mechanic(plans, map, spots, layout, members, type, i, lines, title, rng) : 0
       leaders.push({ gym: i + 1, map: map, town: town, type: type, trainer: trainer, name: name, team: team,
-                     sets: team_sets, tm: tm, members: members.length })
+                     sets: team_sets, tm: tm, members: members.length, statues: statues })
     end
     return leaders
+  end
+
+  # The layout of a generated gym (#121, MapProceduralGenerator.gym_floor,
+  # one room): the lieutenant at its far end, the members on its floor cells
+  # away from the entry, the lieutenant and each other, never seeing the
+  # exit nor standing by it.
+  def gym_floor_layout(spots, rng)
+    near = [spots[:entry], spots[:leader]]
+    blocked = blocked_cells(spots)
+    cells = spots[:facing].select do |x, y, _f|
+      near.all? { |nx, ny| (nx - x).abs + (ny - y).abs > GYM_MEMBER_ROOM } &&
+        (0..GYM_MEMBER_SIGHT).none? { |i| blocked.include?([x, y + i]) }
+    end
+    others = []
+    cells.shuffle(random: rng).each do |x, y, facing|
+      next if others.any? { |ox, oy, *| (ox - x).abs + (oy - y).abs <= GYM_MEMBER_ROOM }
+      others.push([x, y, facing, GYM_MEMBER_SIGHT])
+      break if others.length >= GYM_MEMBERS.max
+    end
+    return { leader: spots[:leader], blocking: [], others: others, hold: true }
+  end
+
+  # The mechanic of a generated gym (#121): barriers on the cells around the
+  # lieutenant, lifted once the room's statues are all touched (in their
+  # order for GYM_ORDERED, invisible for GYM_HIDDEN). Returns the number of
+  # statues placed (0: no mechanic, the room being too cramped).
+  def gym_mechanic(plans, map, spots, layout, members, type, index, lines, title, rng)
+    return 0 if index >= GYM_STATUE_LOCKS
+    ground = spots[:ground].to_h { |cell| [cell, true] }
+    lx, ly = layout[:leader]
+    barriers = STEPS.values.map { |dx, dy| [lx + dx, ly + dy] }.select { |cell| ground[cell] }
+    taken = [layout[:leader], *barriers, *members.map { |x, y, *| [x, y] }]
+    open = gym_reach(ground, spots[:entry], taken)
+    return 0 if barriers.none? { |bx, by| STEPS.values.any? { |dx, dy| open[[bx + dx, by + dy]] } }
+    near = [spots[:entry], layout[:leader], *members.map { |x, y, *| [x, y] }]
+    blocked = blocked_cells(spots)
+    statues = []
+    count = GYM_STATUES[[index, GYM_STATUES.length - 1].min]
+    spots[:floor].shuffle(random: rng).each do |cell|
+      break if statues.length >= count
+      next if !open[cell] || blocked.include?(cell)
+      next if (near + statues).any? { |nx, ny| (nx - cell[0]).abs + (ny - cell[1]).abs <= GYM_STATUE_ROOM }
+      # Never cutting the room: every other cell still reached
+      after = gym_reach(ground, spots[:entry], taken + statues + [cell])
+      next if after.length != open.length - statues.length - 1
+      statues.push(cell)
+    end
+    return 0 if statues.empty?
+    switch = GYM_STATUE_SWITCH + index + 1
+    ordered = GYM_ORDERED.include?(type)
+    hidden = GYM_HIDDEN.include?(type)
+    section = ordered ? "arene_barriere_ordre" : (hidden ? "arene_barriere_cachee" : "arene_barriere")
+    barriers.each_with_index do |(x, y), k|
+      add(plans, map, "NPC", "Barriere#{k + 1}", x, y, ["Graphic", GYM_BARRIERS.fetch(type, GYM_BARRIER)],
+          ["Text", lines.text(section, title)], ["Hide", "S#{switch}"])
+    end
+    statues.each_with_index do |(x, y), k|
+      add(plans, map, "NPC", "Statue#{k + 1}", x, y, *(hidden ? [] : [["Graphic", GYM_STATUE]]),
+          ["Script", "WorldEvents.gym_statue(#{k + 1}, #{statues.length}, #{switch}, #{ordered})"])
+    end
+    return statues.length
+  end
+
+  # { cell => true } of the ground cells reached from start, not through taken.
+  def gym_reach(ground, start, taken)
+    seen = { start => true }
+    queue = [start]
+    until queue.empty?
+      x, y = queue.shift
+      STEPS.each_value do |dx, dy|
+        cell = [x + dx, y + dy]
+        next if seen[cell] || !ground[cell] || taken.include?(cell)
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    return seen
   end
 
   # One blocking cell, then the others drawn among the rest.
   def gym_members(layout, rng)
     count = rng.rand(GYM_MEMBERS)
+    # A generated gym (hold): among its free cells
+    return layout[:others].shuffle(random: rng).first(count) if layout[:hold]
     blocking = layout[:blocking].shuffle(random: rng)
     rest = (blocking.drop(1) + layout[:others]).shuffle(random: rng)
     return [blocking.first] + rest.first(count - 1)
@@ -86,9 +166,13 @@ module WorldEvents
   end
 
   # [[species, level]] of that type, levels from low to high: species
-  # reachable at that level first (else the type's earliest ones).
+  # reachable at that level first (else the pool's earliest ones).
   def typed_party(species, type, size, low, high, seals, rng)
-    pool = species.values.select { |sp| sp.types.include?(type) }
+    return pool_party(species, species.values.select { |sp| sp.types.include?(type) }, size, low, high, seals, rng)
+  end
+
+  # The same among the species of pool (a guild's).
+  def pool_party(species, pool, size, low, high, seals, rng)
     reachable = final_forms(species, pool, high, seals)
     reachable = pool.min_by(3, &:min_level) if reachable.empty?
     # The most evolved first, for a lieutenant that looks like one

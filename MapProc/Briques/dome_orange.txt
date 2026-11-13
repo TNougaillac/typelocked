@@ -1,0 +1,8 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Dôme orange
+Type   = batisse
+[Map]
+ЧЧЧЧЧЧ
+ЧЧЧЧЧЧ
+ЧЧЧЧЧЧ
+ЧЧЧЧЧЧ

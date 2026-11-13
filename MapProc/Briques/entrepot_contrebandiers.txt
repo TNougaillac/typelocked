@@ -1,0 +1,10 @@
+# Entrepôt du port : le QG des Contrebandiers (#214). L'entrepôt gardé,
+# ses lanternes, ses piles de rondins et une borne d'amarrage. Posé le long
+# du quai d'un port, seulement là où la guilde est tirée.
+Brique = Entrepôt des Contrebandiers
+Type   = contrebande
+Porte  = 5,2
+[Map]
+ċċ JJJJJ ęę
+ċċ JJJJJ ęę
+ċċ JJJJJ   Ġ
