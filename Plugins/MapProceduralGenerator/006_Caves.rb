@@ -279,8 +279,27 @@ module MapProceduralGenerator
   # facing), cuts (the cells of each gate), leader (the back's far end) and
   # locks (the exit, held once the dungeon is closed).
   def guild_dungeon_floor(name, owner, door, kind, rng)
-    halls = Array.new(HQ_GATES + 1) { cave_blocks(GUILD_HALL_SHAPE, rng) }
-    cw, ch = GUILD_HALL_SHAPE[:size]
+    return halls_floor(name, owner, door, HQ_GATES, GUILD_DUNGEON_TILESETS[kind], kind, rng)
+  end
+
+  # A gym's interior behind that door of its town (#121): one room
+  # (GYM_ROOM_SHAPE, a hall of a guild's dungeon with no gate), the
+  # lieutenant at its far end from the entrance (south), drawn
+  # on the Normal gym's tileset (WorldEvents swaps it for its lieutenant's
+  # type), its exit always open (no locks).
+  def gym_floor(name, owner, door, rng)
+    floor = halls_floor(name, owner, door, 0, GYM_TILESET, GYM, rng, GYM_ROOM_SHAPE)
+    floor.spots.delete(:locks)
+    return floor
+  end
+
+  # Halls of that shape stacked from the entrance (south) to the back
+  # (north), gates + 1 of them (see guild_dungeon_floor), on that tileset,
+  # for that building. One hall (no gate): the entrance on its lowest row,
+  # the back its farthest block.
+  def halls_floor(name, owner, door, gate_count, tileset, building, rng, shape = GUILD_HALL_SHAPE)
+    halls = Array.new(gate_count + 1) { cave_blocks(shape, rng) }
+    cw, ch = shape[:size]
     step = ch + GUILD_HALL_GAP
     grid = Array.new((step * halls.length) - GUILD_HALL_GAP) { Array.new(cw, false) }
     # Hall 0 (the entrance) at the bottom
@@ -288,7 +307,7 @@ module MapProceduralGenerator
     halls.each_with_index do |hall, i|
       hall.each_with_index { |row, y| row.each_with_index { |f, x| grid[top.call(i) + y][x] = f } }
     end
-    gates = (0...HQ_GATES).map do |i|
+    gates = (0...gate_count).map do |i|
       low, high = halls[i], halls[i + 1]
       columns = (1...cw - 1).select { |x| low.any? { |row| row[x] } && high.any? { |row| row[x] } }
       raise Error, "#{name} : salles impossibles à relier" if columns.empty?
@@ -306,8 +325,14 @@ module MapProceduralGenerator
       rows = top.call(i)...(top.call(i) + ch)
       rows.flat_map { |y| (0...cw).select { |x| dist[y][x] }.map { |x| [x, y] } }.max_by { |x, y| [dist[y][x], -y, -x] }
     end
-    entrance = hall_far.call(0, gates[0])
-    leader = hall_far.call(HQ_GATES, gates[-1])
+    if gates.empty?
+      low = grid.rindex { |row| row.any? }
+      entrance = [grid[low].each_index.select { |x| grid[low][x] }.min_by { |x| [(x - (cw / 2)).abs, x] }, low]
+      leader = hall_far.call(0, entrance)
+    else
+      entrance = hall_far.call(0, gates[0])
+      leader = hall_far.call(gate_count, gates[-1])
+    end
     entry = block_cell(entrance).then { |x, y| [x, y + 1] }
     rows = cave_rows(grid)
     ground = rows.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] }.map { |x| [x, y] } }
@@ -322,7 +347,7 @@ module MapProceduralGenerator
       leader: block_cell(leader), locks: [block_cell(entrance)]
     }
     warps = [[*block_cell(entrance), owner, door[0], door[1] + 1]]
-    return CaveFloor.new(name, 0, rows, spots, warps, rng.rand(1_000_000), false, GUILD_DUNGEON_TILESETS[kind], kind, owner)
+    return CaveFloor.new(name, 0, rows, spots, warps, rng.rand(1_000_000), false, tileset, building, owner)
   end
 
   # Rock one block thick between floor (north and south, or west and east)

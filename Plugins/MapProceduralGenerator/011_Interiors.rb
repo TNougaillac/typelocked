@@ -29,7 +29,8 @@ module MapProceduralGenerator
       layout.doors.flat_map do |x, y, brick|
         next league_rooms(wp.name, [x, y]) if brick.kind == LEAGUE
         templates = INTERIORS[brick.kind]
-        next [] if !templates || NO_INTERIOR.include?(brick.kind) || dungeons[brick.kind] == wp.name
+        # A gym (#121) or a guild's dungeon: its own floor (006_Caves.rb)
+        next [] if !templates || NO_INTERIOR.include?(brick.kind) || dungeons[brick.kind] == wp.name || brick.kind == GYM
         count[brick.kind] += 1
         template, ex, ey = templates.sample(random: rng)
         graphic = DOOR_GRAPHICS[brick.rows[brick.door[1]][brick.door[0]]]

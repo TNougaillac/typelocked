@@ -116,6 +116,10 @@ module WorldEvents
     }
   }.freeze
   GYM_MEMBERS = 2..4
+  # A generated gym (#121): sight of its members, and their distance (cells)
+  # from the entry, the lieutenant and each other
+  GYM_MEMBER_SIGHT = 3
+  GYM_MEMBER_ROOM = 3
   # Trainer type of a lieutenant (gym leader for the Monotype) by the type of
   # its gym: its sprite (tools/art/family_sprites.rb).
   LEADER_TYPES = {

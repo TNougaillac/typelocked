@@ -159,6 +159,11 @@ module MapProceduralGenerator
     lines = MapGenerator.read_pbs(file)
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
     result.caves.each do |wp, name, _text, floor|
+      # A gym (#121): its town's name, the battle backdrop of the demo's gym
+      if floor.guild == GYM
+        replace_section(lines, map_ids[name], name, ["Name = #{wp.title}", position.call(wp), *GYM_METADATA])
+        next
+      end
       body = ["Name = #{floor.dark ? wp.title : wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"]
       body.push("DarkMap = true") if floor.dark
       replace_section(lines, map_ids[name], name, body)

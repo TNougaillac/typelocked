@@ -339,6 +339,16 @@ module MapProceduralGenerator
       warps[name].push([door[0], door[1], floor.name, ex, ey, 8, DOOR_GRAPHICS[door[2].rows[door[2].door[1]][door[2].door[0]]]])
       [wp, floor.name, cave_floor_text(floor, name), floor, nil]
     end
+    # The gyms' interiors, behind their door (#121), an island's too
+    gym_places = built.map { |wp, _place, _text, layout| [wp, layout] } + islands.map { |wp, *, layout| [wp, layout] }
+    caves += gym_places.filter_map do |wp, layout|
+      door = layout.doors.find { |_x, _y, brick| brick.kind == GYM }
+      next if !door
+      floor = gym_floor("#{wp.name} - #{GYM} 1", wp.name, door, Random.new((seed * 1000) + 670 + wp.index))
+      ex, ey = floor.spots[:entry]
+      warps[wp.name].push([door[0], door[1], floor.name, ex, ey, 8, DOOR_GRAPHICS[door[2].rows[door[2].door[1]][door[2].door[0]]]])
+      [wp, floor.name, cave_floor_text(floor, wp.name), floor, nil]
+    end
     seabeds = built.filter_map do |wp, place, _text, layout|
       next if !wp.deep
       name = "#{wp.name} (fonds)"

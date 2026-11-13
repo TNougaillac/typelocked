@@ -41,6 +41,11 @@ module MapProceduralGenerator
     # A guild's dungeon (« donjon », #337): its headquarters (building) and
     # place (owner), see guild_dungeon_floor.
     result.caves.each do |wp, name, _text, floor|
+      # A gym's interior (« arene », #121): its town (owner)
+      if floor.guild == GYM
+        maps[name] = map_spots(GYM, wp.title, floor.spots).merge(building: GYM, owner: floor.owner)
+        next
+      end
       if floor.guild
         maps[name] = map_spots("donjon", wp.title, floor.spots).merge(building: floor.guild, owner: floor.owner)
         next

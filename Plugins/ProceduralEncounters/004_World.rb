@@ -44,7 +44,9 @@ module ProceduralEncounters
       pool = pools[(result.hqs || {}).key(wp.name)]
       zones[wp.name] = Zone.new(wp.name, wp.tier, tier.seals, tier.levels, land_biome(wp, layout), types, tier.surf, pool)
     end
-    result.caves.each do |wp, name, *|
+    result.caves.each do |wp, name, _text, floor|
+      # A gym's interior (#121): no wild Pokémon
+      next if floor.guild == MapProceduralGenerator::GYM
       route = zones[wp.name]
       # A guild's dungeon (#337) draws from the pool of its headquarters' place
       zones[name] = Zone.new(name, wp.index, route.seals, route.levels, nil, ["Cave"], route.surf, route.pool)

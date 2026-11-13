@@ -21,7 +21,7 @@ module WorldEvents
     types = leader_types(atlas[:gyms].length, species, tms, rng)
     atlas[:gyms].each_with_index do |town, i|
       map, spots = atlas[:maps].find { |_name, m| m[:building] == "arene" && m[:owner] == town }
-      layout = spots && GYM_LAYOUTS[spots[:template]]
+      layout = spots && (GYM_LAYOUTS[spots[:template]] || gym_floor_layout(spots, rng))
       next if !layout
       type = types[i]
       cap = caps[i] || caps.last
@@ -61,9 +61,31 @@ module WorldEvents
     return leaders
   end
 
+  # The layout of a generated gym (#121, MapProceduralGenerator.gym_floor,
+  # one room): the lieutenant at its far end, the members on its floor cells
+  # away from the entry, the lieutenant and each other, never seeing the
+  # exit nor standing by it.
+  def gym_floor_layout(spots, rng)
+    near = [spots[:entry], spots[:leader]]
+    blocked = blocked_cells(spots)
+    cells = spots[:facing].select do |x, y, _f|
+      near.all? { |nx, ny| (nx - x).abs + (ny - y).abs > GYM_MEMBER_ROOM } &&
+        (0..GYM_MEMBER_SIGHT).none? { |i| blocked.include?([x, y + i]) }
+    end
+    others = []
+    cells.shuffle(random: rng).each do |x, y, facing|
+      next if others.any? { |ox, oy, *| (ox - x).abs + (oy - y).abs <= GYM_MEMBER_ROOM }
+      others.push([x, y, facing, GYM_MEMBER_SIGHT])
+      break if others.length >= GYM_MEMBERS.max
+    end
+    return { leader: spots[:leader], blocking: [], others: others, hold: true }
+  end
+
   # One blocking cell, then the others drawn among the rest.
   def gym_members(layout, rng)
     count = rng.rand(GYM_MEMBERS)
+    # A generated gym (hold): among its free cells
+    return layout[:others].shuffle(random: rng).first(count) if layout[:hold]
     blocking = layout[:blocking].shuffle(random: rng)
     rest = (blocking.drop(1) + layout[:others]).shuffle(random: rng)
     return [blocking.first] + rest.first(count - 1)
