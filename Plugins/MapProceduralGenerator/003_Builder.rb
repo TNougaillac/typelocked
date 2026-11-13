@@ -159,6 +159,7 @@ module MapProceduralGenerator
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
       hub[1] = climbing_hub_row || hub[1] if @place.mountain
       hub = port_hub(hub) if @place.port
+      hub = gate_hub if @place.gates
       if @mask
         # One square near the middle of each joint, the streets go through them
         @hubs = @place.joints.map do |jx, jy, jw, jh|
@@ -176,10 +177,13 @@ module MapProceduralGenerator
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if @place.port
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       choose_plan
+      # A dungeon has no square: its street goes straight in
+      @plan = (@place.kind == "ville") ? "clairière" : nil if @place.gates
       lay_grid if @plan == "grille" || (excess[:grid] && @plan == "canal")
       lay_plaza(hub) if @plan != "clairière"
       lay_stone_canal(hub) || lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
+      close_gates if @place.gates
       cross if @place.crossing
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)
       raise_terraces if terrace?
@@ -237,6 +241,7 @@ module MapProceduralGenerator
         nooks:     @nooks.map(&:dup),
         hill_tops: @hill_tops.map(&:dup),
         lock:      @lock&.dup,
+        gates:     @gates&.map(&:dup),
         ground:    cells_where(seen) { true }
       }
     end

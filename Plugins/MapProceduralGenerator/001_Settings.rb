@@ -298,10 +298,23 @@ module MapProceduralGenerator
   HQ_NAME = "QG généré"
   HQ_SYMBOLS = %w[♠ ♣ ♥ ♦ ★ ☆ ♪ ♫].freeze
   HQ_EXTRA = "qg"
+  # Sizes in squares, across its route then away from it
   HQ_PLACE_SIZES = [[1, 1], [2, 1], [1, 2]].freeze
+  # A guild of the outdoors (#335): its headquarters' place is its dungeon,
+  # deeper (HQ_DUNGEON_SIZES), closed by HQ_GATES gates (close_gates) at
+  # GATE_SPOTS of its depth from its exit, its street running straight in
+  # to GATE_HUB of its depth, its headquarters past the last gate. The
+  # others (HQ_ROOM_KINDS) have their dungeon inside their building (#337).
+  HQ_ROOM_KINDS = %w[contrebande chromes nageurs temple].freeze
+  HQ_DUNGEON_SIZES = [[1, 2], [2, 2]].freeze
+  HQ_GATES = 2
+  GATE_SPOTS = [0.22, 0.45].freeze
+  # (deeper from a north exit: the doors face south, the street must pass
+  # below them)
+  GATE_HUB = { "nord" => 0.8 }.tap { |h| h.default = 0.55 }.freeze
   # The bricks of its file (route or town) a headquarters' place keeps around
   # its own: the decoration (the ambiance's too)
-  HQ_DECOR = %w[prairie herbes arbre parc lampe barriere enclos remarquable decor].freeze
+  HQ_DECOR = %w[herbes arbre parc lampe barriere enclos remarquable decor].freeze
   # Name shown in game of each headquarters' place
   HQ_TITLES = { "ferme" => "Ferme des Éleveurs", "chantier" => "Chantier", "carriere" => "Carrière",
                 "contrebande" => "Entrepôts du Quai", "poste" => "Poste forestier", "forains" => "Champ de foire",

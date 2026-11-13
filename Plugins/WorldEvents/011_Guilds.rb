@@ -187,10 +187,11 @@ module WorldEvents
                            (outside[:hqs] || []).find { |_x, _y, kind| kind == guild.hq })
       next if !zone || !anchor
       # Its leader inside (a headquarters with a door), else by the street
-      # nearest it, like its members
-      map, spots = atlas[:maps].find { |_name, m| m[:kind] == "interieur" && m[:building] == guild.hq && m[:owner] == route }
+      # nearest it, like its members; in a dungeon, past its gates
+      dungeon = outside[:gates]
+      map, spots = !dungeon && atlas[:maps].find { |_name, m| m[:kind] == "interieur" && m[:building] == guild.hq && m[:owner] == route }
       x, y, facing = spots && GUILD_LEADER_SPOTS[spots[:template]]
-      cell = x ? [x, y, facing, 1] : hq_cell(outside, anchor, plans[route], rng)
+      cell = x ? [x, y, facing, 1] : hq_cell(outside, anchor, plans[route], rng, dungeon && past_gate(outside, -1))
       next if !cell
       map = route if !x
       seals = zone.seals
@@ -213,8 +214,10 @@ module WorldEvents
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_chef_combat", title)], ["EndBattle", lose],
           *lines.boxes("#{tag}_chef_victoire", title).map { |box| ["Win", box] }, *reward_lines(reward, lines),
           ["Switch", switch])
+      lock = dungeon && guild_lock(guilds, guild)
       members = guild_members(outside, anchor, guild, pool, species, zone, level, route, plans, trainers, names,
-                              [lines, tag, title], rng, rivals)
+                              [lines, tag, title], rng, rivals, lock)
+      close_exit(plans, outside, guild, route, lock, switch, lines, title) if lock
       blocks = (blockade && blockade[:id] == guild.id) ? blockade : nil
       bar_route(plans, blocks, guild, switch, lines, title) if blocks
       { id: guild.id, name: guild.name, position: guild.position, hq: route, map: map, seals: seals, level: level,
@@ -485,10 +488,12 @@ module WorldEvents
   end
 
   # A cell for a trainer by the street nearest the headquarters (anchor: its
-  # door or its middle), else anywhere by a street of the place.
-  def hq_cell(spots, anchor, taken, rng)
+  # door or its middle), else anywhere by a street of the place; only among
+  # those cells when given ({ [x, y] => true }).
+  def hq_cell(spots, anchor, taken, rng, allowed = nil)
     ax, ay, = anchor
     cells = facing_cells(spots)
+    cells = cells.select { |x, y, _facing| allowed[[x, y]] } if allowed
     near = cells.min_by(GUILD_NEAR_CELLS) { |x, y, _facing| [(x - ax).abs + (y - ay).abs, y, x] }
     return trainer_cell(spots, near, taken, rng) || trainer_cell(spots, cells, taken, rng)
   end
@@ -500,13 +505,18 @@ module WorldEvents
     return [top, caps[zone.seals] || caps.last].min
   end
 
-  # The members by the street, nearest the headquarters first.
+  # The members by the street, nearest the headquarters first. In a
+  # dungeon (lock: its switch), one in the corridor of each gate first,
+  # facing the exit and gone once beaten (the first one closes the exit),
+  # the others past the first gate.
   def guild_members(spots, anchor, guild, pool, species, zone, level, route, plans, trainers, names, (lines, tag, title), rng,
-                    rivals = {})
+                    rivals = {}, lock = nil)
     sizes = PARTY_SIZES[[zone.seals, PARTY_SIZES.length - 1].min]
     members = []
-    rng.rand(GUILD_MEMBERS).times do
-      cell = hq_cell(spots, anchor, plans[route], rng)
+    gates = lock ? spots[:gates].map { |x, y| [x, y, FACE_EXIT[spots[:exits][0][0]], GUILD_GATE_SIGHT] } : []
+    inside = lock && past_gate(spots, 0)
+    [rng.rand(GUILD_MEMBERS), gates.length].max.times do |i|
+      cell = gates[i] || hq_cell(spots, anchor, plans[route], rng, inside)
       break if !cell
       type = guild.member_types.sample(random: rng)
       name = trainer_name(type, names, rng)
@@ -517,11 +527,42 @@ module WorldEvents
       trainers.push(team_section(type, name, lose, team))
       x, y, facing, sight = cell
       label = guild_label(plans[route], guild)
+      gate = (i < gates.length) ? [["Hide", "A"], *((i == 0) ? [["Switch", lock]] : [])] : []
       add(plans, route, "Trainer", label, x, y, ["Facing", facing], ["Sight", sight], ["Type", type],
           ["Name", name], ["BattleID", TRAINER_VERSION], ["Battle", lines.text("#{tag}_membre_combat", title)],
-          ["EndBattle", lose], *rage_lines(rivals, guild, spots, cell, lines, title))
+          ["EndBattle", lose], *gate, *rage_lines(rivals, guild, spots, cell, lines, title))
       members.push({ type: type, name: name, team: team, label: label })
     end
     return members
+  end
+
+  #-----------------------------------------------------------------------------
+  # Dungeons (#335)
+  #-----------------------------------------------------------------------------
+  FACE_EXIT = { "nord" => "haut", "sud" => "bas", "ouest" => "gauche", "est" => "droite" }.freeze
+
+  # The game switch that closes a guild's dungeon: its rank in guildes.txt
+  # after GUILD_LOCK_SWITCH.
+  def guild_lock(guilds, guild)
+    return GUILD_LOCK_SWITCH + guilds.index(guild) + 1
+  end
+
+  # The ground of a dungeon past that gate (an index of spots[:gates], -1:
+  # the last one): { [x, y] => true }, the cells not reached from its exit
+  # through that gate's corridor.
+  def past_gate(spots, gate)
+    ground = (spots[:ground] || []).to_h { |cell| [cell, true] }
+    near = walk_cells(ground, spots[:exits][0][1, 2], [spots[:gates][gate]])
+    return ground.reject { |cell, _| near[cell] }
+  end
+
+  # The exit of a dungeon closed once its first member is beaten (lock on)
+  # until its leader is (switch on): an unseen NPC on each cell of its inner
+  # row, saying [guilde_sortie] when the player walks into it.
+  def close_exit(plans, spots, guild, route, lock, switch, lines, title)
+    gate_cells([spots[:exits][0]]).each_with_index do |(x, y), i|
+      add(plans, route, "Npc", "Sortie#{guild.id.capitalize}#{i + 1}", x, y, ["Trigger", "contact"],
+          ["Show", "S#{lock}"], ["Hide", "S#{switch}"], *lines.boxes("guilde_sortie", title).map { |box| ["Text", box] })
+    end
   end
 end

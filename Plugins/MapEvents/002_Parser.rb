@@ -41,7 +41,9 @@
 #   Reward = pbAddPokemon(:EEVEE, 5)   = one script line run on a win;
 #   Rage = 71,6                 Rage = once game switch 71 is on, it sees 6
 #   RageBattle = Traître !      cells ahead and says the RageBattle texts
-#                               instead of Battle)
+#   Hide = A                    instead of Battle; Hide = gone once the
+#                               condition holds, A = once beaten, like an
+#                               NPC's)
 #   [Copy N]                   (a copy of event 2 of map 24, as it is there:
 #   Pos = 7,2                   pages, graphics, commands; it keeps its ID when
 #   From = 24,2                 free, for the events that name it, such as a
@@ -89,7 +91,7 @@ module MapEvents
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
     npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide Show] + MOVE_KEYS,
-    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle] + MOVE_KEYS + TRAINER_COMMENTS,
+    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle Hide] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]
   }

@@ -32,7 +32,8 @@ module MapProceduralGenerator
     # route too (ROUTE_TERRACE_CHANCE): not a mountain, no water or cave
     # across it, no deep water, no shortcut, no flood.
     def terrace?
-      return false if @plain || @terrace.nil? || !@place.levels || @place.mountain || excess[:flat]
+      # Never in a guild's dungeon: its gates already cut it across
+      return false if @plain || @terrace.nil? || !@place.levels || @place.mountain || excess[:flat] || @place.gates
       chance = TERRACE_CHANCE
       if @place.kind == "route"
         return false if @place.crossing || @place.dive || @place.lock || excess[:flood]

@@ -469,6 +469,38 @@ def check_hqs(path, seed, result, bricks)
     CI.error(path, nil, "#{where} : relié à #{linked.map(&:name).join(', ')}") if !linked.empty?
     CI.error(path, nil, "#{where} : ne touche pas sa route") if !touch.call(wp, parent)
     CI.error(path, nil, "#{where} : QG non dessiné entier") if !hq_drawn?(layout.rows, bricks.select { |b| b.kind == kind })
+    check_dungeon(where, path, kind, layout)
+  end
+end
+
+# A guild of the outdoors has its dungeon (#335): HQ_GATES gates, each
+# corridor the only way on (its cell cut, the headquarters is no longer
+# reached from the exit), the headquarters past the last one.
+def check_dungeon(where, path, kind, layout)
+  gates = layout.spots[:gates]
+  return CI.error(path, nil, "#{where} : barrières dans un QG de salle") if M::HQ_ROOM_KINDS.include?(kind) && gates
+  return if M::HQ_ROOM_KINDS.include?(kind)
+  return CI.error(path, nil, "#{where} : #{gates&.length.to_i} barrières au lieu de #{M::HQ_GATES}") if gates&.length != M::HQ_GATES
+  ground = layout.spots[:ground].to_h { |cell| [cell, true] }
+  walk = lambda do |cut|
+    seen = { layout.spots[:exits][0][1, 2] => true }
+    queue = seen.keys
+    until queue.empty?
+      x, y = queue.shift
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].each do |dx, dy|
+        cell = [x + dx, y + dy]
+        next if seen[cell] || !ground[cell] || cut.include?(cell)
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    seen
+  end
+  hx, hy, = layout.spots[:doors].find { |_x, _y, k| k == kind } || layout.spots[:hqs].find { |_x, _y, k| k == kind }
+  near = ->(seen) { seen.keys.any? { |x, y| (x - hx).abs + (y - hy).abs <= 2 } }
+  CI.error(path, nil, "#{where} : QG hors d'atteinte") if !near.call(walk.call([]))
+  gates.each_with_index do |gate, i|
+    CI.error(path, nil, "#{where} : barrière #{i + 1} contournable") if near.call(walk.call([gate]))
   end
 end
 

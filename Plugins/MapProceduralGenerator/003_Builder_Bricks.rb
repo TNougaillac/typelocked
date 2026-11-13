@@ -66,7 +66,9 @@ module MapProceduralGenerator
         error("impossible de placer le QG « #{kind} » hors du quai") if QUAY_HQS.include?(kind)
         # « pack »: the boosted bricks, the big ones first
         next place_big(kind) if optional_at.call(i) && excess[:pack] && boosted.call(kind) == 0
-        next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
+        # A dungeon's headquarters past its gates
+        spot = (kind == MONUMENT) ? monument_spot : (@gates && GUILD_HQS.key?(kind)) ? method(:past_gates?) : nil
+        next if place_brick(kind, spot)
         # The rocks on a route's mesas go where they fit, or not at all
         next if HIGHLAND.include?(kind) && @mesas
         # A patch of grass drawn big shrinks until it fits

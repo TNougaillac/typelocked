@@ -124,6 +124,8 @@ module MapEvents
     trainer = Compiler.convert_to_trainer_event(event, checker)
     add_rewards(trainer, entry)
     add_rage(trainer, entry, checker) if entry.value("Rage")
+    # Gone once its condition holds (A: once beaten, a guild's gate opens)
+    trainer.pages.push(hidden_page(entry.value("Hide"))) if entry.value("Hide")
     return trainer
   end
 
@@ -132,7 +134,7 @@ module MapEvents
   # longer sight comes from the event's name (005_Rage.rb).
   def add_rage(trainer, entry, checker)
     switch = entry.value("Rage").split(",")[0].to_i
-    fields = entry.fields.reject { |key, _value| %w[Battle Rage RageBattle].include?(key) }
+    fields = entry.fields.reject { |key, _value| %w[Battle Rage RageBattle Hide].include?(key) }
     fields += entry.fields.filter_map { |key, value| ["Battle", value] if key == "RageBattle" }
     rage = build_event(Entry.new(:trainer, entry.label, entry.x, entry.y, fields, entry.lineno), trainer.id, checker)
     pages = []
