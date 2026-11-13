@@ -519,7 +519,8 @@ module MapProceduralGenerator
     place.map_id = map_ids[name]
     place.counts = base.counts.select { |k, _| HQ_DECOR.include?(k) }.merge(kind => 1..1)
     place.per_case = base.per_case & HQ_DECOR
-    place.ambiance = built[i][3].ambiance if base.ambiances.any? { |a| a.name == built[i][3].ambiance }
+    wanted = HQ_AMBIANCES[kind] || built[i][3].ambiance
+    place.ambiance = wanted if base.ambiances.any? { |a| a.name == wanted }
     # The smugglers' warehouse on a quay: the sea across from its exit
     place.port = side if QUAY_HQS.include?(kind)
     # A guild of the outdoors: the place is its dungeon, closed by gates, and

@@ -76,7 +76,7 @@ Pool     = SQUIRTLE, WARTORTLE, BLASTOISE, TURTWIG, GROTLE, TORTERRA, TORKOAL, T
 [BRACONNIERS]
 Nom      = Braconniers
 Position = affiliée
-Biomes   = forêt sombre
+Biomes   = verdoyante, automne, forêt sombre
 QG       = braconniers
 Membres  = POKEMANIAC, CAMPER
 Chef     = CHEF_BRACONNIERS

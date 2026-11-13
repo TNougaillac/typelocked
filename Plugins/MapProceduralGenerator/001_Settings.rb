@@ -275,7 +275,11 @@ module MapProceduralGenerator
                 "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [],
                 "nageurs" => %w[plage], "pontes" => %w[plage],
                 "dundees" => %w[marais], "chromes" => [], "temple" => %w[ruines],
-                "braconniers" => ["forêt sombre"], "cimetiere" => ["cimetière"] }.freeze
+                "braconniers" => ["verdoyante", "automne", "forêt sombre"], "cimetiere" => ["cimetière"] }.freeze
+  # A headquarters' place drawn in this ambiance whatever its route's (#338):
+  # the Poachers' camp, a dark wood off a route of the woods (the dark
+  # forest is too rare a route to wait for)
+  HQ_AMBIANCES = { "braconniers" => "forêt sombre" }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
