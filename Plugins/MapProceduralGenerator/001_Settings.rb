@@ -308,6 +308,8 @@ module MapProceduralGenerator
   HQ_ROOM_KINDS = %w[contrebande chromes nageurs temple].freeze
   HQ_DUNGEON_SIZES = [[1, 2], [2, 2]].freeze
   HQ_GATES = 2
+  # Tall grass of a dungeon, per case: the guild's wild Pokémon (#336)
+  HQ_GRASS = 1..2
   GATE_SPOTS = [0.22, 0.45].freeze
   # (deeper from a north exit: the doors face south, the street must pass
   # below them)

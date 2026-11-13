@@ -466,6 +466,28 @@ end
 # level of the strongest trainer of the Tronçon (under the cap), with
 # GUILD_LEADER_PARTY_SIZES Pokémon of its pool; 2 to 4 members by the street,
 # their Pokémon from the pool too.
+# The encounters of each guild's dungeon (#336): a zone of its own, drawn
+# from the guild's pool with nothing added for the types or the families, at
+# the levels of its route, the same with the same seed.
+def check_dungeon_encounters(result, zones, lines, generated, seed, roster)
+  (result.hqs || {}).each do |kind, name|
+    zone = zones.find { |z| z.name == name }
+    raise MapEvents::Error, "#{name} : pas de zone de rencontres" if !zone
+    raise MapEvents::Error, "#{name} : rencontres hors du pool de la guilde #{kind}" if zone.pool != POOLS[kind]
+    tables = generated.tables.select { |t| t.zone.name == name }
+    # The dungeon of a guild of the outdoors is in its grass (a room's, #337)
+    raise MapEvents::Error, "#{name} : aucune rencontre dans les herbes du donjon" if !M::HQ_ROOM_KINDS.include?(kind) && tables.none? { |t| t.type == "Land" && !t.slots.empty? }
+    tables.each do |table|
+      outside = table.slots.reject { |e| zone.pool.include?(e.species.id) }
+      raise MapEvents::Error, "#{name} : #{outside.map { |e| e.species.id }.join(', ')} hors du pool" if !outside.empty?
+      raise MapEvents::Error, "#{name} : Pokémon ajouté pour les types ou les familles" if table.slots.any? { |e| e.role == :cover }
+      raise MapEvents::Error, "#{name} : type dominant tiré" if !table.dominant.empty?
+    end
+  end
+  again, = E.world_encounters(result, roster, E::CAPS, seed, POOLS)
+  raise MapEvents::Error, "la même graine donne d'autres rencontres" if again != lines
+end
+
 def check_guilds(result, atlas, zones, plans, drawn, bricks)
   available = M::GUILD_HQS.keys.count { |kind| bricks.any? { |b| b.kind == kind } && !M.hq_places(result.places, kind).empty? }
   hqs = atlas[:hqs]
@@ -826,6 +848,7 @@ rescue W::Error => e
   CI.error(gfile, gline, e.message)
   CI.finish("Événements des mondes")
 end
+POOLS = W.guild_pools(GUILDS)
 # One guild for each headquarters of MapProc (GUILD_HQS), and its leader
 # has a cell in each template of its interior
 GUILDS.each do |guild|
@@ -1046,8 +1069,13 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     where = "#{File.basename(path)} (graine #{seed})"
     result = M.generate_world(world, town, route, bricks, seed)
     atlas = M.world_atlas(result)
-    zones = E.world_zones(result, E::CAPS)
-    _lines, generated = E.world_encounters(result, roster, E::CAPS, seed)
+    zones = E.world_zones(result, E::CAPS, POOLS)
+    lines, generated = E.world_encounters(result, roster, E::CAPS, seed, POOLS)
+    begin
+      check_dungeon_encounters(result, zones, lines, generated, seed, roster)
+    rescue MapEvents::Error => e
+      CI.error(path, nil, "#{where} : #{e.message}")
+    end
     args = { zones: zones, encounters: generated, species: roster, tms: tms, caps: E::CAPS, dialogues: DIALOGUES, dex: DEX,
              guilds: GUILDS }
     DRAWN.clear
