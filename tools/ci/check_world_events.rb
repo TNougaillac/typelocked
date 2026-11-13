@@ -619,18 +619,22 @@ end
 # their own; no other member does; by an ally's headquarters, a member
 # gives an item of GUILD_BONUS_ITEMS under each present enemy's switch.
 # Returns the enemy pairs of the world.
-def check_rivalries(result, atlas, plans, drawn, items)
+def check_rivalries(world, result, atlas, plans, drawn, items)
   hqs = atlas[:hqs]
-  index = result.places.to_h { |wp, *| [wp.name, wp.index] }
+  # A headquarters lies where its place branches off the chain
+  index = result.places.to_h { |wp, *| [wp.name, W.chain_index(wp)] }
   pairs = 0
   hqs.each do |kind, place|
     (M::HQ_ENEMIES[kind] || []).each do |enemy|
       next if !hqs[enemy] || kind > enemy
       pairs += 1
       gap = (index[place] - index[hqs[enemy]]).abs
-      nearest = [[kind, hqs[enemy]], [enemy, place]].map do |k, other|
-        M.hq_places(result.places, k).map { |i| (result.places[i][0].index - index[other]).abs }.min
-      end.min
+      # The one laid later goes off the nearest route with room left beside
+      # it (a free spot now was free when it was laid)
+      order = result.places.to_h { |wp, *| [wp.name, wp.index] }
+      later, other = (order[place] > order[hqs[enemy]]) ? [kind, hqs[enemy]] : [enemy, place]
+      routes = M.hq_places(result.places, later).select { |i| !M.hq_spots(world, result.places, result.places[i][0]).empty? }
+      nearest = [routes.map { |i| (result.places[i][0].index - index[other]).abs }.min || gap, gap].min
       raise MapEvents::Error, "QG ennemis #{kind} et #{enemy} à #{gap} lieux l'un de l'autre (#{nearest} possible)" if gap > nearest + 1
     end
   end
@@ -727,7 +731,7 @@ def check_blockades(result, atlas, zones, plans, drawn)
     raise MapEvents::Error, "#{where} : position #{guild.position}" if !W::GUILD_BLOCKING.include?(guild.position)
     raise MapEvents::Error, "#{where} : pas une route de la chaîne" if wp.kind != "route" || wp.extra
     raise MapEvents::Error, "#{where} : #{zones[c[:route]].seals} sceau(x)" if zones[c[:route]].seals < W::GUILD_BLOCK_SEALS
-    raise MapEvents::Error, "#{where} : le barrage ne ferme pas la route" if !W.blockade_holds?(atlas[:maps][c[:route]], c[:cells], guild.hq)
+    raise MapEvents::Error, "#{where} : le barrage ne ferme pas la route" if !W.blockade_holds?(atlas[:maps][c[:route]], c[:cells], c[:anchor])
   end
   blocking.each do |g|
     blocks = g[:blocks]
@@ -1039,7 +1043,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       freed += check_liberations(result, atlas, plans, events[:guilds])
       settled += check_showdowns(atlas, plans, events[:guilds], events[:trainers])
-      enemy_pairs += check_rivalries(result, atlas, plans, events[:guilds], items)
+      enemy_pairs += check_rivalries(world, result, atlas, plans, events[:guilds], items)
       blocked, possible = check_blockades(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds])
       blockades += blocked
       blockable += possible

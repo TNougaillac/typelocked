@@ -2,9 +2,9 @@
 # WorldEvents - Guilds
 # The guilds of MapProc/Lore/guildes.txt (spec #181): read and checked (an
 # error names the file and the line), then, for each guild whose
-# headquarters MapProceduralGenerator drew in the world (WORLD_GUILDS), its
-# leader inside (by the street when its headquarters has no door) and 2 to 4
-# members outside, their teams drawn from its pool at the level of the
+# headquarters MapProceduralGenerator drew in the world (WORLD_GUILDS, a
+# place of its own off a route), its leader inside (by the street when its
+# headquarters has no door) and 2 to 4 members outside, their teams drawn from its pool at the level of the
 # Tronçon. Its leader beaten, the guild turns its switch on and rewards the
 # player by its position (guild_reward, #186); an affiliated guild beaten
 # frees the nearest town from the Family (guild_liberations, #187); in some
@@ -143,18 +143,18 @@ module WorldEvents
   #-----------------------------------------------------------------------------
   # { route name => [Guild] }: the guilds of the world (a headquarters in
   # atlas[:hqs]) whose members walk each route: those of its ambiance, and,
-  # for a guild without biomes (its headquarters in a town), the routes next
-  # to its headquarters' place.
+  # for a guild without biomes, the route its headquarters' place branches
+  # off.
   def guild_routes(result, atlas, guilds)
     hqs = atlas[:hqs] || {}
     present = guilds.select { |guild| hqs[guild.hq] }
-    index = result.places.to_h { |wp, *| [wp.name, wp.index] }
+    index = result.places.to_h { |wp, *| [wp.name, chain_index(wp)] }
     routes = {}
     result.places.sort_by { |wp, *| wp.index }.each do |wp, _place, _text, layout|
       next if wp.kind != "route" || wp.victory
       list = present.select do |guild|
         next guild.biomes.include?(layout.ambiance) if !guild.biomes.empty?
-        (index[hqs[guild.hq]] - wp.index).abs == 1
+        index[hqs[guild.hq]] == wp.index
       end
       routes[wp.name] = list if !list.empty?
     end
@@ -340,38 +340,37 @@ module WorldEvents
   end
 
   # Every blockade the world allows: a guild of GUILD_BLOCKING whose
-  # headquarters is on a route of the chain (no crossing, cave, loop or
-  # shortcut by it nor around it) reached with GUILD_BLOCK_SEALS seals or
-  # more, and whose members, across the inner row of its exit onward, cut
-  # the way to it while its headquarters is still reached from the way in.
+  # headquarters' place branches off a route of the chain (no crossing,
+  # cave, other branch, loop or shortcut by it nor around it) reached with
+  # GUILD_BLOCK_SEALS seals or more, and whose members, across the inner row
+  # of that route's exit onward, cut the way while the exit to the
+  # headquarters (anchor) is still reached from the way in.
   def blockade_candidates(result, atlas, guilds, zones)
     seals = zones.to_h { |zone| [zone.name, zone.seals] }
-    extras = result.places.map(&:first).select(&:extra)
+    extras = result.places.map(&:first).select { |wp| wp.extra && wp.extra != MapProceduralGenerator::HQ_EXTRA }
     return guilds.filter_map do |guild|
-      name = (atlas[:hqs] || {})[guild.hq]
-      wp, = result.places.find { |w, *| w.name == name }
-      next if !wp || !GUILD_BLOCKING.include?(guild.position) || wp.kind != "route" || (seals[name] || 0) < GUILD_BLOCK_SEALS
-      next if wp.extra || wp.crossing || wp.cave || wp.victory || wp.league || wp.exits.length != 2
+      hq, = result.places.find { |w, *| w.name == (atlas[:hqs] || {})[guild.hq] }
+      wp = hq&.ends&.first
+      next if !wp || !GUILD_BLOCKING.include?(guild.position) || wp.kind != "route" || (seals[wp.name] || 0) < GUILD_BLOCK_SEALS
+      next if wp.extra || wp.crossing || wp.cave || wp.victory || wp.league || wp.exits.length != 3
       next if extras.any? { |e| e.ends[0].index < wp.index && e.ends[1].index > wp.index }
-      spots = atlas[:maps][name]
+      spots = atlas[:maps][wp.name]
       cells = gate_cells([spots[:exits][1]])
-      next if !blockade_holds?(spots, cells, guild.hq)
-      { id: guild.id, route: name, cells: cells, facing: INWARD[spots[:exits][1][0]] }
+      anchor = spots[:exits][2][1, 2]
+      next if !blockade_holds?(spots, cells, anchor)
+      { id: guild.id, route: wp.name, cells: cells, facing: INWARD[spots[:exits][1][0]], anchor: anchor }
     end
   end
 
   # True if these cells (on the ground) cut the way from the exit in to the
-  # exit onward, and the headquarters (its door, else its middle) is still
-  # reached from the way in, and the exit onward once they are gone.
-  def blockade_holds?(spots, cells, kind)
+  # exit onward, and the anchor (the exit to the headquarters' place) is
+  # still reached from the way in, and the exit onward once they are gone.
+  def blockade_holds?(spots, cells, anchor)
     ground = (spots[:ground] || []).to_h { |cell| [cell, true] }
     from, onward = spots[:exits].first(2).map { |_side, x, y| [x, y] }
     return false if !cells.all? { |cell| ground[cell] } || !ground[from] || !ground[onward]
     return false if walk_cells(ground, from, cells)[onward] || !walk_cells(ground, from, [])[onward]
-    reached = walk_cells(ground, from, cells)
-    hx, hy, = spots[:doors].find { |_x, _y, k| k == kind } || (spots[:hqs] || []).find { |_x, _y, k| k == kind }
-    return false if !hx
-    return reached.keys.any? { |x, y| (x - hx).abs + (y - hy).abs <= 2 }
+    return walk_cells(ground, from, cells).key?(anchor)
   end
 
   INWARD = { "nord" => "bas", "sud" => "haut", "ouest" => "droite", "est" => "gauche" }.freeze
