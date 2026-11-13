@@ -311,6 +311,16 @@ module MapProceduralGenerator
   # Tall grass of a dungeon, per case: the guild's wild Pokémon (#336)
   HQ_GRASS = 1..2
   GATE_SPOTS = [0.22, 0.45].freeze
+  # The dungeon of a guild of rooms (#337): one map behind its building's
+  # door, grown like a cave (006_Caves.rb) in HQ_GATES + 1 halls stacked from
+  # the entrance (south) to the leader (north), each of GUILD_HALL_SHAPE (see
+  # CAVE_SHAPES), apart by GUILD_HALL_GAP rows of rock blocks crossed by one
+  # corridor a block wide (its gate). Its walls are drawn by the painter of
+  # its tileset (GUILD_DUNGEON_TILESETS, double walls: tools/art/
+  # guild_dungeons_4g.py), the exit shown by that tileset's tile 47.
+  GUILD_HALL_SHAPE = { size: [14, 6], rooms: 2..3, radius: 1.2..2.4, loops: 0..1, width: 1..1 }.freeze
+  GUILD_HALL_GAP = 2
+  GUILD_DUNGEON_TILESETS = { "contrebande" => 33, "chromes" => 34, "nageurs" => 35, "temple" => 36 }.freeze
   # (deeper from a north exit: the doors face south, the street must pass
   # below them)
   GATE_HUB = { "nord" => 0.8 }.tap { |h| h.default = 0.55 }.freeze

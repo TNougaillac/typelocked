@@ -37,8 +37,14 @@ module MapProceduralGenerator
                         owner: it.owner, exits: it.exit ? [[*it.exit, it.owner]] : [], door: it.door&.dup,
                         arrival: it.arrival.dup, role: it.role, onward: it.onward&.first(3) }
     end
-    # A cave floor: exits ([x, y, route]), ladders, floor cells, its far end
+    # A cave floor: exits ([x, y, route]), ladders, floor cells, its far end.
+    # A guild's dungeon (« donjon », #337): its headquarters (building) and
+    # place (owner), see guild_dungeon_floor.
     result.caves.each do |wp, name, _text, floor|
+      if floor.guild
+        maps[name] = map_spots("donjon", wp.title, floor.spots).merge(building: floor.guild, owner: floor.owner)
+        next
+      end
       maps[name] = map_spots("grotte", floor.dark ? wp.title : wp.cave_title || name, floor.spots).merge(level: floor.level)
       maps[name][:dark] = true if floor.dark
     end

@@ -20,15 +20,16 @@ module MapProceduralGenerator
   module_function
 
   # The interiors behind the doors of these places ([WorldPlace, Layout, salt]),
-  # each place drawing from its own seed.
-  def place_interiors(places, seed)
+  # each place drawing from its own seed. dungeons: { headquarters => place }
+  # whose door leads to its guild's dungeon instead (#337).
+  def place_interiors(places, seed, dungeons = {})
     return places.flat_map do |wp, layout, salt|
       rng = Random.new((seed * 1000) + 300 + salt)
       count = Hash.new(0)
       layout.doors.flat_map do |x, y, brick|
         next league_rooms(wp.name, [x, y]) if brick.kind == LEAGUE
         templates = INTERIORS[brick.kind]
-        next [] if !templates || NO_INTERIOR.include?(brick.kind)
+        next [] if !templates || NO_INTERIOR.include?(brick.kind) || dungeons[brick.kind] == wp.name
         count[brick.kind] += 1
         template, ex, ey = templates.sample(random: rng)
         graphic = DOOR_GRAPHICS[brick.rows[brick.door[1]][brick.door[0]]]

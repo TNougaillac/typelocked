@@ -470,7 +470,56 @@ def check_hqs(path, seed, result, bricks)
     CI.error(path, nil, "#{where} : ne touche pas sa route") if !touch.call(wp, parent)
     CI.error(path, nil, "#{where} : QG non dessiné entier") if !hq_drawn?(layout.rows, bricks.select { |b| b.kind == kind })
     check_dungeon(where, path, kind, layout)
+    if M::HQ_ROOM_KINDS.include?(kind) && result.caves.none? { |_w, _n, _t, floor| floor.guild == kind }
+      CI.error(path, nil, "#{where} : pas de donjon derrière la porte")
+    end
   end
+end
+
+# A guild of rooms' dungeon (#337), behind its building's door: its
+# tileset, one piece drawn by the painter with double walls, its exit to
+# the door and back; HQ_GATES gates, each crossed only by its corridor
+# (its cells cut, the leader is no longer reached from the entry), its
+# guard's cell and the one he looks at on the floor; the exit held by the
+# lock.
+def check_guild_dungeon(path, where, wp, floor, result, map_names)
+  CI.error(path, nil, "#{where} : tileset #{floor.tileset.inspect}") if floor.tileset != M::GUILD_DUNGEON_TILESETS[floor.guild]
+  CI.error(path, nil, "#{where} : QG #{floor.guild} sur #{wp.name}") if result.hqs[floor.guild] != wp.name || floor.owner != wp.name
+  begin
+    check_cave(where, floor, map_names, GUILD_DUNGEON_TILESET)
+  rescue M::Error => e
+    return CI.error(path, nil, e.message)
+  end
+  layout = result.places.find { |p, *| p.equal?(wp) }[3]
+  door = layout.doors.find { |_x, _y, brick| brick.kind == floor.guild }
+  ex, ey = floor.spots[:exits][0]
+  if !door || floor.warps.map { |w| w[0, 5] } != [[ex, ey, wp.name, door[0], door[1] + 1]]
+    CI.error(path, nil, "#{where} : sortie mal reliée à la porte du QG")
+  end
+  spots = floor.spots
+  ground = spots[:ground].to_h { |cell| [cell, true] }
+  walk = lambda do |cut|
+    seen = { spots[:entry] => true }
+    queue = seen.keys
+    until queue.empty?
+      x, y = queue.shift
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].each do |dx, dy|
+        cell = [x + dx, y + dy]
+        next if seen[cell] || !ground[cell] || cut.include?(cell)
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    seen
+  end
+  CI.error(path, nil, "#{where} : #{spots[:gates].length} goulets au lieu de #{M::HQ_GATES}") if spots[:gates].length != M::HQ_GATES
+  CI.error(path, nil, "#{where} : chef hors d'atteinte") if !walk.call([])[spots[:leader]]
+  spots[:gates].each_with_index do |(x, y), i|
+    CI.error(path, nil, "#{where} : goulet #{i + 1} contournable") if walk.call(spots[:cuts][i])[spots[:leader]]
+    front = [x + 1, y] if spots[:gate_facing][i] == "droite"
+    CI.error(path, nil, "#{where} : garde du goulet #{i + 1} hors du sol") if !ground[[x, y]] || !front || !ground[front]
+  end
+  CI.error(path, nil, "#{where} : sortie non gardée") if spots[:locks] != [[ex, ey]]
 end
 
 # A guild of the outdoors has its dungeon (#335): HQ_GATES gates, each
@@ -509,10 +558,12 @@ CaveTileset = Struct.new(:snap_to_large_grid, :double_walls, :floor_patch_under_
   def has_decoration?(_deco) = false
 end
 CAVE_TILESET = CaveTileset.new(false, false, true)
+# A guild's dungeon (#337): double walls ([33] to [36] of PBS/dungeon_tilesets.txt)
+GUILD_DUNGEON_TILESET = CaveTileset.new(false, true, true)
 
 # Raises if a cave floor is not one piece of 2x2 blocks, if a warp is not on
 # its floor, or if Essentials' painter can't draw its walls (or eats floor).
-def check_cave(name, floor, map_names)
+def check_cave(name, floor, map_names, tileset = CAVE_TILESET)
   rows = floor.rows
   fail = ->(msg) { raise M::Error, "#{name} : #{msg}" }
   cells = rows.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] }.map { |x| [x, y] } }
@@ -537,7 +588,7 @@ def check_cave(name, floor, map_names)
     fail.call("sortie #{x},#{y} hors du sol") if !rows[y][x] || !rows[y + 1][x]
     fail.call("sortie vers « #{target} », carte inconnue") if !map_names.include?(target)
   end
-  dungeon = M::CaveDungeon.new(rows, CAVE_TILESET, Object.new, floor.seed)   # parameters: decorations only
+  dungeon = M::CaveDungeon.new(rows, tileset, Object.new, floor.seed)   # parameters: decorations only
   dungeon.instance_exec do
     Random.srand(@rng_seed)
     width, height = @usable_width - (@buffer_x * 2), @usable_height - (@buffer_y * 2)
@@ -887,6 +938,7 @@ worlds.each do |path|
     map_names = result.places.map { |wp, *| wp.name } + result.caves.map { |_wp, name, *| name }
     result.caves.each do |wp, name, text, floor|
       MapGenerator.check_tiles(MapGenerator.parse(text, name), tilesets[floor.tileset || M::CAVE_TILESET])
+      next check_guild_dungeon(path, "#{name} (graine #{seed})", wp, floor, result, map_names) if floor.guild
       # Its style is its route's ambiance's (CAVE_STYLES)
       ambiance = result.places.find { |p, *| p.equal?(wp) }[3].ambiance
       CI.error(path, nil, "#{name} (graine #{seed}) : tileset #{floor.tileset.inspect} pour l'ambiance #{ambiance}") if floor.tileset != M::CAVE_STYLES[ambiance]

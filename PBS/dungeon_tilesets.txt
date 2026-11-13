@@ -39,3 +39,27 @@ Tile = 41,void_decoration
 Tile = 42,floor
 Tile = 0,walls
 FloorPatchUnderWalls = true
+#-------------------------------
+[33]   # Donjon 4G entrepot
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[34]   # Donjon 4G repaire
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[35]   # Donjon 4G club
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
+#-------------------------------
+[36]   # Donjon 4G temple
+Tile = 40,void
+Tile = 42,floor
+Tile = 0,walls
+DoubleWalls = true
