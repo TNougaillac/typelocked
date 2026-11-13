@@ -464,6 +464,8 @@ def check_hqs(path, seed, result, bricks)
     CI.error(path, nil, "#{where} : branché sur #{parent.name}, pas une route simple de la chaîne") if !plain || wp.tier != parent.index
     allowed = M::GUILD_HQS[kind]
     CI.error(path, nil, "#{where} : route en ambiance #{parent_layout.ambiance}") if !allowed.empty? && !allowed.include?(parent_layout.ambiance)
+    own = M::HQ_AMBIANCES[kind]
+    CI.error(path, nil, "#{where} : lieu en ambiance #{layout.ambiance}, pas #{own}") if own && layout.ambiance != own
     others = result.places.map(&:first).reject { |w| w.equal?(wp) || w.equal?(parent) }.select { |w| touch.call(wp, w) }
     linked = others.reject { |w| apart.include?([wp.symbol, w.symbol].sort) }
     CI.error(path, nil, "#{where} : relié à #{linked.map(&:name).join(', ')}") if !linked.empty?
@@ -727,6 +729,7 @@ places.each do |path|
   M::GUILD_HQS.each do |kind, hq_ambiances|
     next if !place.counts.key?(kind)
     quay = M::QUAY_HQS.include?(kind)
+    hq_ambiances = [M::HQ_AMBIANCES[kind]] if M::HQ_AMBIANCES[kind]
     (hq_ambiances.empty? ? [place.ambiances.first.name] : hq_ambiances).each do |ambiance|
       (1..3).each do |seed|
         themed = place.dup.tap { |p| p.ambiance = ambiance; p.counts = place.counts.merge(kind => 1..1) }
