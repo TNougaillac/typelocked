@@ -31,7 +31,7 @@ module WorldEvents
       if wp.kind == "route"
         squares = wp.mask ? wp.mask.join.count("1") : wp.w * wp.h
         count = squares.times.sum { rng.rand(ROUTE_TRAINERS) }
-        types = TRAINER_TYPES[wp.mountain ? "montagne" : layout.ambiance] || TRAINER_TYPES[nil]
+        types = TRAINER_TYPES[MapProceduralGenerator.mountain_tables?(wp, layout) ? "montagne" : layout.ambiance] || TRAINER_TYPES[nil]
         draw.call(wp.name, facing_cells(spots), types, count, COUSIN_CHANCE)
       elsif wp.name != atlas[:start]
         # No Cousin in the first town: the player has no Pokémon yet

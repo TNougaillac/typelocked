@@ -1,0 +1,9 @@
+# Haute montagne : un pierrier, des blocs et des cailloux gris éboulés.
+Brique    = Pierrier
+Type      = decor
+Ambiances = haute montagne
+Poids     = 2
+[Map]
+ ,x j
+,jx,x
+x, ,

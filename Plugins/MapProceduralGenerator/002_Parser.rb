@@ -392,7 +392,9 @@ module MapProceduralGenerator
 
   # Draws an ambiance by weight; nil if the place has none.
   def draw_ambiance(place, rng)
-    pool = place.ambiances.select { |a| !a.coastal || coastal?(place) }
+    pool = place.ambiances.select do |a|
+      (!a.coastal || coastal?(place)) && (a.name != MOUNTAIN_AMBIANCE || place.mountain)
+    end
     return nil if pool.empty?
     roll = rng.rand(pool.sum(&:weight))
     return pool.find { |a| (roll -= a.weight) < 0 }.name
