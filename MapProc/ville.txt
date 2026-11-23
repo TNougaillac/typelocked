@@ -18,7 +18,7 @@ Eau     = ~
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
 # EauBordee : l'eau 4G (lac HGSS) dessine sa rive du bas, pas de
-# rangée « Rive » dessous (Rive reste le rebord des niveaux)
+# rangée « Rive » dessous
 EauBordee = oui
 # Ville portuaire : la mer d'un côté sans sortie, un quai en bois, des pontons,
 # une gare maritime sur pilotis au bout de l'un d'eux (port au sud, à l'est ou
@@ -84,6 +84,9 @@ Sol   = T50
 ; = T151
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
+# Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=ŀĿĳĲPʘ L2 @.
 é = T4973 3x3 halo=4x4@1,1/0,3,12
 è = T5000 3x3 halo=4x4@0,1/0,3,15
 î = T4040 2x2
@@ -106,6 +109,9 @@ Sol   = T162
 ; = T175
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
+# Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲPʘ L2 @.
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
 î = T4080 2x2
@@ -138,8 +144,10 @@ Rue   = T274
 arbre = 0..1 par case
 lac   = 0
 decor = 1..2 par case
-# La roche grise remplace la brune (montagnes, rochers, corniches)
-^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
+# La roche grise remplace la brune (terrasses, montagnes)
+¬ = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=ŀĿĳĲPʘ L2 @.
+^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=e L2 @.
 
 
 [Ambiance terre battue]
@@ -150,6 +158,9 @@ Sol   = T106
 ; = T181
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
+# Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=ŀĿĳĲPʘ L2 @.
 é = T5101 3x3 halo=4x4@1,1/0,3,12
 è = T5128 3x3 halo=4x4@0,1/0,3,15
 î = T4120 2x2
@@ -233,10 +244,11 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 
 [Terrains]
 # Terrasse : le dessus garde le sol (« - » : rien par-dessus), un rebord fin au nord
-# ({rive}), une falaise de roche sur les côtés et au sud.
-¬ = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=ŀĿĳĲłPʘ L2 @.
-ł = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=ŀĿĳĲPʘ L2 @.
-^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.   # montagne (dessus praticable)
+# dessiné sur la case au-dessus (oN..), une falaise de roche aux coins arrondis
+# sur les côtés et au sud (falaises HGSS de SirMalo, tools/art/outside_4g.py).
+¬ = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=ŀĿĳĲPʘ L2 @.
+^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=e L2 @.   # montagne (dessus praticable)
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
 [Objects]

@@ -21,7 +21,7 @@ Eau     = ~
 # (bout gauche, milieu, bout droit).
 Rive    = !'?
 # EauBordee : l'eau 4G (lac HGSS) dessine sa rive du bas, pas de
-# rangée « Rive » dessous (Rive reste le rebord des niveaux)
+# rangée « Rive » dessous
 EauBordee = oui
 Profond = %
 # Des rochers et des bancs de sable dans l'eau qui traverse une route.
@@ -77,6 +77,13 @@ Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T418
 ; = T151
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
+# Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
+& = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=kKmMEFGHquvwnzPʘ L2 @.
+k = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=KmMEFGHquvwnzPʘ L2 @z
+K = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=mMEFGHquvwnzPʘ L2 @z
+m = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=MEFGHquvwnzPʘ L2 @z
+M = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=EFGHquvwnzPʘ L2 @z
 é = T4973 3x3 halo=4x4@1,1/0,3,12
 è = T5000 3x3 halo=4x4@0,1/0,3,15
 î = T4040 2x2
@@ -98,6 +105,13 @@ Rue   = T162
 ; = T175
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
+# Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
+& = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=kKmMEFGHquvwnzPʘ L2 @.
+k = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=KmMEFGHquvwnzPʘ L2 @z
+K = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=mMEFGHquvwnzPʘ L2 @z
+m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=MEFGHquvwnzPʘ L2 @z
+M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnzPʘ L2 @z
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
 î = T4080 2x2
@@ -131,43 +145,43 @@ arbre = 0..1 par case
 parc  = 0
 lac   = 0
 decor = 2..4 par case
-# La roche grise remplace la brune (montagnes, rochers, corniches)
-¬ = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
-^ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=e L2 @.
-ŕ = T873 N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 L3 @~
-& = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=kKmMEFGHquvwnzPʘ
-k = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=KmMEFGHquvwnzPʘ L2 @z
-K = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=mMEFGHquvwnzPʘ
-m = - N=T865 S=T881 W=T872 E=T874 NW=T864 NE=T866 SW=T880 SE=T882 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=MEFGHquvwnzPʘ L2 @z
-M = - N=T868 S=T884 W=T875 E=T877 NW=T867 NE=T869 SW=T883 SE=T885 iNW=T897 iNE=T896 iSW=T889 iSE=T888 with=EFGHquvwnzPʘ
-z = T873
-E = T873 T777
-F = T873 T778
-G = T873 T769
-H = T873 T770
+# La roche grise remplace la brune (niveaux, montagnes, rochers, entrées de grotte)
+¬ = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
+& = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=kKmMEFGHquvwnzPʘ L2 @.
+k = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=KmMEFGHquvwnzPʘ L2 @z
+K = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=mMEFGHquvwnzPʘ L2 @z
+m = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=MEFGHquvwnzPʘ L2 @z
+M = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=EFGHquvwnzPʘ L2 @z
+^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=e L2 @.
+ŕ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 L3 @~
+z = T5985
+E = T5985 T777
+F = T5985 T778
+G = T5985 T769
+H = T5985 T770
 n = T148
-q = T873 T895
-u = T873 T911
-v = T873 T919
-w = T873 T927
-ø = T873 T895
-ö = T873 T911
-õ = T873 T919
-ó = T873 T927
-1 = T867
-2 = T870
-3 = T869
-4 = T875
-5 = T878
-6 = T877
-7 = T883
-8 = T886
-9 = T885
+q = T5985 T895
+u = T5985 T911
+v = T5985 T919
+w = T5985 T927
+ø = T5985 T895
+ö = T5985 T911
+õ = T5985 T919
+ó = T5985 T927
+1 = {sol} T6032
+2 = {sol} T6033
+3 = {sol} T6034
+4 = {sol} T6040
+5 = {sol} T6041
+6 = {sol} T6042
+7 = {sol} T6048
+8 = {sol} T6049
+9 = {sol} T6050
 R = T864 3x3
 o = {sol} T895
-< = {sol} T890
-- = {sol} T908
-> = {sol} T894
+< = {sol} T6056
+- = {sol} T6057
+> = {sol} T6058
 
 
 [Ambiance terre battue]
@@ -179,6 +193,13 @@ Rue   = T106
 ; = T181
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
+# Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
+& = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=kKmMEFGHquvwnzPʘ L2 @.
+k = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=KmMEFGHquvwnzPʘ L2 @z
+K = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=mMEFGHquvwnzPʘ L2 @z
+m = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=MEFGHquvwnzPʘ L2 @z
+M = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=EFGHquvwnzPʘ L2 @z
 é = T5101 3x3 halo=4x4@1,1/0,3,12
 è = T5128 3x3 halo=4x4@0,1/0,3,15
 î = T4120 2x2
@@ -232,15 +253,15 @@ x = {sol} T919          # cailloux gris
 µ = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
 £ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 o = {sol} T815          # caillou (comble les trous du mur de rochers)
-1 = T787             # rocher de l'entrée de grotte
-2 = T790
-3 = T789
-4 = T795
-5 = T798
-6 = T797
-7 = T803
-8 = T806
-9 = T805
+1 = {sol} T6008            # entrée de grotte (SirMalo, 3x3)
+2 = {sol} T6009
+3 = {sol} T6010
+4 = {sol} T6016
+5 = {sol} T6017
+6 = {sol} T6018
+7 = {sol} T6024
+8 = {sol} T6025
+9 = {sol} T6026
 e = {sol} T777          # escalier taillé dans une montagne (gauche, droite)
 f = {sol} T778
 g = {sol} T769          # escalier dans le rebord nord du niveau 1
@@ -249,19 +270,19 @@ E = {sol} T777          # escaliers du niveau 2
 F = {sol} T778
 G = {sol} T769
 H = {sol} T770
-z = T793                # dessus d'une montagne (sous les bords des niveaux 3 et 5)
+z = T5945               # dessus d'une montagne (sous les bords des niveaux 3 et 5)
 n = {sol} T147          # hautes herbes sur un niveau de montagne
 q = {sol} T815          # rochers et cailloux sur un niveau de montagne
 u = {sol} T831
 v = {sol} T839
 w = {sol} T847
-ø = T793 T815           # rochers sur la roche (dessus des montagnes au-delà d'une route, 013_Fillers.rb)
-ö = T793 T831
-õ = T793 T839
-ó = T793 T847
-< = {sol} T810          # corniche (on la saute vers le sud)
-- = {sol} T828
-> = {sol} T814
+ø = T5945 T815          # rochers sur la roche (dessus des montagnes au-delà d'une route, 013_Fillers.rb)
+ö = T5945 T831
+õ = T5945 T839
+ó = T5945 T847
+< = {sol} T6056         # corniche (on la saute vers le sud)
+- = {sol} T6057
+> = {sol} T6058
 
 # Relief : une case de falaise sur la carte (son sol ; le niveau dessine la
 # falaise sur la couche 3) et, sur la couche 3, un escalier ou un arbre de
@@ -281,21 +302,22 @@ w = {sol} T847
 ļ = {sol} T4233|T4234|T4235   # buissons tropicaux
 
 [Terrains]
-# Les niveaux sont des plateaux, comme sur les routes des jeux : leur dessus
-# garde le sol de l'ambiance (« - » : rien par-dessus), leur bord nord est un rebord fin
-# ({rive} : la rive de l'ambiance, que l'on ne franchit pas vers le nord), leurs
-# côtés et leur bord sud une falaise de roche. Les niveaux impairs ont les bords
-# du niveau 1, les pairs ceux du niveau 2 ; chaque niveau rejoint ceux du
-# dessus (with=), pour que seul le plus haut dessine son bord.
-¬ = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=efgh&kKmMEFGHquvwnzPʘ L2 @.   # niveau 1 (dessus praticable)
+# Les niveaux sont des plateaux, comme sur les routes des jeux (falaises HGSS
+# de SirMalo, tools/art/outside_4g.py) : leur dessus garde le sol de
+# l'ambiance (« - » : rien par-dessus), leur bord nord est un rebord fin,
+# dessiné sur la case au-dessus (oN.. : on ne le franchit pas, sa rangée N
+# ne se quitte pas vers le nord), leurs côtés et leur bord sud une falaise de
+# roche aux coins arrondis. Chaque niveau rejoint ceux du dessus (with=),
+# pour que seul le plus haut dessine son bord.
+¬ = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=efgh&kKmMEFGHquvwnzPʘ L2 @.   # niveau 1 (dessus praticable)
 # Massif de roche (briques « montagne », recoins) : son dessus est de la roche.
-^ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=e L2 @.
-ŕ = T793 N=T785 S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 L3 @~   # roche sur la mer (routes marines)
-& = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=kKmMEFGHquvwnzPʘ L2 @.   # niveau 2
-k = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=KmMEFGHquvwnzPʘ L2 @.   # niveau 3
-K = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=mMEFGHquvwnzPʘ L2 @.   # niveau 4
-m = - N={rive} S=T801 W=T792 E=T794 NW=T784 NE=T786 SW=T800 SE=T802 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=MEFGHquvwnzPʘ L2 @.   # niveau 5
-M = - N={rive} S=T804 W=T795 E=T797 NW=T787 NE=T789 SW=T803 SE=T805 iNW=T817 iNE=T816 iSW=T809 iSE=T808 with=EFGHquvwnzPʘ L2 @.   # niveau 6
+^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=e L2 @.
+ŕ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 L3 @~   # roche sur la mer (routes marines)
+& = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=kKmMEFGHquvwnzPʘ L2 @.   # niveau 2
+k = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=KmMEFGHquvwnzPʘ L2 @z   # niveau 3
+K = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=mMEFGHquvwnzPʘ L2 @z   # niveau 4
+m = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=MEFGHquvwnzPʘ L2 @z   # niveau 5
+M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=EFGHquvwnzPʘ L2 @z   # niveau 6
 
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin
