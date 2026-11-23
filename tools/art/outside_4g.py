@@ -257,6 +257,20 @@ PROPS = {
     "v": ("U", 5, 1, 30, 2, 4, 0, 0, 2, 4, "block"),     # statue on its pedestal (statue de la Famille)
 }
 
+# Paved streets of other styles (MapProc's « Rue » variants, drawn per town
+# and per district): name => (sheet, column, full patch x, y (4x4 tiles), its
+# middle tile x, y, patch with a hole x, y). Edges and corners from the full
+# patch, inner corners from the quarters of the hole, laid over the grass.
+STREETS = {
+    "bleue": ("U", 1, 0, 5, 1, 6, 4, 5),
+    "violette": ("U", 1, 4, 28, 5, 29, 0, 28),
+}
+# Role => (from the full patch, x, y) or (from the hole, x, y), in the order
+# of a MapGen [Terrains] line
+STREET_ROLES = [("", 0, 0, None), ("N", 1, 0, "o"), ("S", 1, 3, "o"), ("W", 0, 1, "o"), ("E", 3, 1, "o"),
+                ("NW", 0, 0, "o"), ("NE", 3, 0, "o"), ("SW", 0, 3, "o"), ("SE", 3, 3, "o"),
+                ("iNW", 2, 2, "h"), ("iNE", 1, 2, "h"), ("iSW", 2, 1, "h"), ("iSE", 1, 1, "h")]
+
 
 def building_passages(tile, inside, door):
     """Passages of a building tile ("=<n>" or a tile to copy, see
@@ -492,13 +506,25 @@ def build(folder):
                     empty.append(ty * w + tx)
         props.append((sym, first, empty))
         first += h * 8
+    streets = {}   # name => the tile of each role
+    for name, (sheet, col, ox, oy, cx, cy, hx, hy) in STREETS.items():
+        streets[name] = []
+        for i, (_role, dx, dy, part) in enumerate(STREET_ROLES):
+            src = (cx, cy) if part is None else (ox + dx, oy + dy) if part == "o" else (hx + dx, hy + dy)
+            tile = Image.new("RGBA", (TILE, TILE))
+            tile.paste(grass)
+            tile.alpha_composite(sheet_tile(sheets, (sheet, col) + src))
+            tiles[first + i] = tile
+            copies[first + i] = -1
+            streets[name].append(first + i)
+        first += 16
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend)
+    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend, streets)
 
 
 def cliff_line(first):
@@ -522,7 +548,7 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend) = build(sys.argv[1])
+    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend, streets) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
@@ -556,6 +582,9 @@ def main():
         if (w, h) != (bw, bh):
             line += f" halo={w}x{h}@{bx},{by}" + ("/" + ",".join(map(str, empty)) if empty else "")
         print(f"objet : {line}")
+    for name, ids in streets.items():
+        roles = " ".join(f"{role}=T{i}" if role else f"T{i}" for (role, *_r), i in zip(STREET_ROLES, ids))
+        print(f"rue ({name}) : Rue = {roles}")
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
 
 
