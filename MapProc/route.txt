@@ -73,17 +73,17 @@ Poids = 1
 Sol   = T50
 Rue   = T4176 N=T4177 S=T4178 W=T4179 E=T4180 NW=T4181 NE=T4182 SW=T4183 SE=T4184 iNW=T4185 iNE=T4186 iSW=T4187 iSE=T4188
 " = T143                # hautes herbes sur la prairie
-: = T151 T7             # herbes très hautes, leur pied sur la prairie
+: = {sol} T7             # herbes très hautes sur la prairie
 ; = T151
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
-¬ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
-& = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=kKmMEFGHquvwnzPʘ L2 @.
-k = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=KmMEFGHquvwnzPʘ L2 @z
-K = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=mMEFGHquvwnzPʘ L2 @z
-m = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=MEFGHquvwnzPʘ L2 @z
-M = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=EFGHquvwnzPʘ L2 @z
+¬ = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T5793 W=T5784 E=T5787 NW=T5776 NE=T5779 SW=T5792 SE=T5795 iSW=T5801 iSE=T5800 oN=T5769 oNW=T5768 oNE=T5771 oiNW=T5805 oiNE=T5806 with=EFGHquvwnʼʽˀzPʘ L2 @z
 é = T4973 3x3 halo=4x4@1,1/0,3,12
 è = T5000 3x3 halo=4x4@0,1/0,3,15
 î = T4040 2x2
@@ -101,17 +101,17 @@ Poids = 1
 Sol   = T162
 Rue   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = T175 T7             # herbes très hautes, leur pied sur le sable
+: = {sol} T7             # herbes très hautes sur le sable
 ; = T175
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
-¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
-& = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=kKmMEFGHquvwnzPʘ L2 @.
-k = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=KmMEFGHquvwnzPʘ L2 @z
-K = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=mMEFGHquvwnzPʘ L2 @z
-m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=MEFGHquvwnzPʘ L2 @z
-M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnzPʘ L2 @z
+¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnʼʽˀzPʘ L2 @z
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
 î = T4080 2x2
@@ -130,7 +130,7 @@ Poids = 1
 Sol   = T218
 Rue   = T218
 " = T133                # hautes herbes sur le gravier
-: = T189 T7             # herbes très hautes, leur pied sur le gravier
+: = {sol} T7             # herbes très hautes sur le gravier
 ; = T189
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
@@ -146,13 +146,13 @@ parc  = 0
 lac   = 0
 decor = 2..4 par case
 # La roche grise remplace la brune (niveaux, montagnes, rochers, entrées de grotte)
-¬ = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
-& = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=kKmMEFGHquvwnzPʘ L2 @.
-k = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=KmMEFGHquvwnzPʘ L2 @z
-K = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=mMEFGHquvwnzPʘ L2 @z
-m = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=MEFGHquvwnzPʘ L2 @z
-M = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=EFGHquvwnzPʘ L2 @z
-^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=e L2 @.
+¬ = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=EFGHquvwnʼʽˀzPʘ L2 @z
+^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=eɛ L2 @.
 ŕ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 L3 @~
 z = T5985
 E = T5985 T777
@@ -189,17 +189,17 @@ Poids = 1
 Sol   = T106
 Rue   = T106
 " = T125                # hautes herbes sur la terre
-: = T181 T7             # herbes très hautes, leur pied sur la terre
+: = {sol} T7             # herbes très hautes sur la terre
 ; = T181
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
 # Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
-¬ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=efgh&kKmMEFGHquvwnzPʘ L2 @.
-& = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=kKmMEFGHquvwnzPʘ L2 @.
-k = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=KmMEFGHquvwnzPʘ L2 @z
-K = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=mMEFGHquvwnzPʘ L2 @z
-m = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=MEFGHquvwnzPʘ L2 @z
-M = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=EFGHquvwnzPʘ L2 @z
+¬ = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T5873 W=T5864 E=T5867 NW=T5856 NE=T5859 SW=T5872 SE=T5875 iSW=T5881 iSE=T5880 oN=T5849 oNW=T5848 oNE=T5851 oiNW=T5885 oiNE=T5886 with=EFGHquvwnʼʽˀzPʘ L2 @z
 é = T5101 3x3 halo=4x4@1,1/0,3,12
 è = T5128 3x3 halo=4x4@0,1/0,3,15
 î = T4120 2x2
@@ -227,6 +227,53 @@ Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 i
 arbre = 0..1 par case
 decor = 2..4 par case
 
+# Neige (#204) : sol enneigé, sapins enneigés, falaises et massifs sous la
+# neige (SirMalo) ; neige profonde (on n'y court pas) et glace (on y glisse)
+# en plaques réservées à cette ambiance. Pas de lac : la glace en tient lieu.
+[Ambiance neige]
+Poids = 1
+Sol   = T14632|T14632|T14632|T14633|T14634|T14635
+Rue   = T14632
+" = T14636               # hautes herbes sur la neige
+: = {sol} T7             # herbes très hautes sur la neige
+; = T14637
+n = T14636
+ǩ = T14640|T14641|T14642|T14643   # neige profonde
+ǫ = T14644|T14645|T14646|T14647   # glace
+t = T14712 2x2 forest=T14760
+é = T14657 3x3 halo=4x4@1,1/0,3,12
+è = T14661 3x3 halo=4x4@1,1/0,3,12
+ê = T14680 1x3
+ë = T14684 1x2
+¬ = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=EFGHquvwnʼʽˀzPʘ L2 @z
+^ = T14865 N=T14857 S=T14873 W=T14864 E=T14867 NW=T14856 NE=T14859 SW=T14872 SE=T14875 iSW=T14881 iSE=T14880 oN=T14849 oNW=T14848 oNE=T14851 oiNW=T14885 oiNE=T14886 with=eɛ L2 @.
+ŕ = T14865 N=T14857 S=T14873 W=T14864 E=T14867 NW=T14856 NE=T14859 SW=T14872 SE=T14875 iSW=T14881 iSE=T14880 oN=T14849 oNW=T14848 oNE=T14851 oiNW=T14885 oiNE=T14886 L3 @~
+z = T14865
+ø = T14865 T895
+ö = T14865 T911
+õ = T14865 T919
+ó = T14865 T927
+1 = {sol} T14888
+2 = {sol} T14889
+3 = {sol} T14890
+4 = {sol} T14896
+5 = {sol} T14897
+6 = {sol} T14898
+7 = {sol} T14904
+8 = {sol} T14905
+9 = {sol} T14906
+à = {sol} T4165
+Rive  = T14632 T14632 T14632
+arbre = 1..2 par case
+parc  = 0
+lac   = 0
+decor = 2..3 par case
+
 # Palette MapGen (tileset Outside).
 [Legend]
 à = {sol} T475          # buisson
@@ -245,7 +292,11 @@ x = {sol} T919          # cailloux gris
 ' = T849
 ? = T849
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
-: = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
+ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
+ˌ = {sol} T14913        # rangée du bas (pied des brins)
+ˑ = {sol} T14914        # tache d'une seule rangée
+: = {sol} T7            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
+˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
@@ -264,6 +315,7 @@ o = {sol} T815          # caillou (comble les trous du mur de rochers)
 9 = {sol} T6026
 e = {sol} T777          # escalier taillé dans une montagne (gauche, droite)
 f = {sol} T778
+ɛ = {sol} T778          # moitié droite de l'escalier d'un massif (« eɛ »)
 g = {sol} T769          # escalier dans le rebord nord du niveau 1
 h = {sol} T770
 E = {sol} T777          # escaliers du niveau 2
@@ -272,6 +324,9 @@ G = {sol} T769
 H = {sol} T770
 z = T5945               # dessus d'une montagne (sous les bords des niveaux 3 et 5)
 n = {sol} T147          # hautes herbes sur un niveau de montagne
+ʼ = {sol} T14912        # bords d'une tache de hautes herbes sur un niveau (haut, bas, seule)
+ʽ = {sol} T14913
+ˀ = {sol} T14914
 q = {sol} T815          # rochers et cailloux sur un niveau de montagne
 u = {sol} T831
 v = {sol} T839
@@ -290,6 +345,11 @@ w = {sol} T847
 ɸ = {sol}
 ʘ = -
 
+# Neige profonde et glace : leurs tuiles sont données par l'ambiance neige
+# (briques réservées à cette ambiance), le sol ailleurs.
+ǩ = {sol}
+ǫ = {sol}
+
 # Décor 4G de SirMalo (tools/art/outside_4g.py, docs/CREDITS.md)
 ā = {sol} T8680|T8681  # poteries
 ē = {sol} T8688        # panier de légumes
@@ -307,15 +367,15 @@ w = {sol} T847
 # ne se quitte pas vers le nord), leurs côtés et leur bord sud une falaise de
 # roche aux coins arrondis. Chaque niveau rejoint ceux du dessus (with=),
 # pour que seul le plus haut dessine son bord.
-¬ = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=efgh&kKmMEFGHquvwnzPʘ L2 @.   # niveau 1 (dessus praticable)
+¬ = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.   # niveau 1 (dessus praticable)
 # Massif de roche (briques « montagne », recoins) : son dessus est de la roche.
-^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=e L2 @.
+^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=eɛ L2 @.
 ŕ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 L3 @~   # roche sur la mer (routes marines)
-& = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=kKmMEFGHquvwnzPʘ L2 @.   # niveau 2
-k = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=KmMEFGHquvwnzPʘ L2 @z   # niveau 3
-K = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=mMEFGHquvwnzPʘ L2 @z   # niveau 4
-m = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=MEFGHquvwnzPʘ L2 @z   # niveau 5
-M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=EFGHquvwnzPʘ L2 @z   # niveau 6
+& = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.   # niveau 2
+k = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z   # niveau 3
+K = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=mMEFGHquvwnʼʽˀzPʘ L2 @z   # niveau 4
+m = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=MEFGHquvwnʼʽˀzPʘ L2 @z   # niveau 5
+M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=EFGHquvwnʼʽˀzPʘ L2 @z   # niveau 6
 
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin

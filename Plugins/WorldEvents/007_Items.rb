@@ -67,7 +67,7 @@ module WorldEvents
   end
 
   # The loot of each nook, at the seals it opens with: a pocket or an islet
-  # on its map, a dark cave at its far end.
+  # on its map, a dark cave at its far end; and of each hill top.
   def nook_slots(result, atlas, zones)
     opened = field_item_seals(atlas)
     slots = []
@@ -79,6 +79,8 @@ module WorldEvents
         next if kind == "sombre"
         slots.push(nook_slot(zones, wp.name, [x, y], kind, opened))
       end
+      # The top of a hill: a loot for whoever climbs it
+      (spots[:hill_tops] || []).each { |cell| slots.push(nook_slot(zones, wp.name, cell, nil, opened)) }
     end
     result.caves.each do |wp, name, *|
       spots = atlas[:maps][name]

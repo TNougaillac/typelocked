@@ -63,6 +63,13 @@ module MapProceduralGenerator
   # inventory, those of GRASS_KINDS as tall grass
   WALK_KINDS = %w[herbes prairie].freeze
   GRASS_KINDS = %w[herbes].freeze
+  # Tall grass symbols and their rows at the edge of a patch: its top row
+  # (the blades' tips), its bottom row (their foot) and a lone row; used
+  # where [Legend] has them.
+  GRASS_EDGES = { '"' => "ˈˌˑ", "n" => "ʼʽˀ" }.freeze
+  # Very tall grass: its top row keeps its symbol (the tips), the rows below
+  # take this one (their foot is the row of « ; » below the patch)
+  VERY_TALL = { ":" => "˸" }.freeze
   # Brick types of the nooks, drawn by the builder: a pocket of ground in the
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
@@ -126,6 +133,7 @@ module MapProceduralGenerator
       @exits = []
       @dead_ends = []
       @nooks = []
+      @hill_tops = []
     end
 
     def build
@@ -177,6 +185,7 @@ module MapProceduralGenerator
       cover_ground
       rows = Array.new(@h) { |y| Array.new(@w) { |x| symbol_at(x, y) }.join }
       draw_banks(rows) if @place.banks && !@place.edged_water
+      edge_grass(rows)
       return Layout.new(rows, @doors, @exits, @deep || [], @terminal, inventory, @place.ambiance, level_rows)
     end
 
@@ -190,6 +199,8 @@ module MapProceduralGenerator
     #   nooks: [x, y, obstacle (a key of NOOKS), ox, oy]: the loot cell and
     #   the obstacle's cell (a pocket); for an islet the loot only; for a dark
     #   cave its entrance (the loot is in the cave).
+    #   hill_tops: the cell on top of each hill, away from its stair (a loot
+    #   to climb for).
     def inventory
       starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
       seen = Array.new(@h) { Array.new(@w, false) }
@@ -204,6 +215,7 @@ module MapProceduralGenerator
         grass:     cells_where(seen) { |x, y| GRASS_KINDS.include?(@kinds[y][x]) },
         dead_ends: @dead_ends.select { |x, y| seen[y][x] },
         nooks:     @nooks.map(&:dup),
+        hill_tops: @hill_tops.map(&:dup),
         lock:      @lock&.dup,
         ground:    cells_where(seen) { true }
       }
@@ -247,6 +259,24 @@ module MapProceduralGenerator
       zone = @zone&.[](y)&.[](x) ? TRANSITION[:ground] : nil
       return @cells[y][x] || zone || @place.street if @street[y][x]
       return @cells[y][x] || zone || @place.ground
+    end
+
+    # The top and bottom rows of each patch of tall grass (GRASS_EDGES): its
+    # tiles are drawn half a row low in the sheet, the tips of its top row
+    # and the foot of its bottom row would be missing.
+    def edge_grass(rows)
+      edges = GRASS_EDGES.select { |_c, v| v.each_char.all? { |e| @palette.legend[e] } }
+      grass = ->(x, y) { y >= 0 && y < @h && GRASS_EDGES.key?(rows[y][x]) }
+      changed = rows.each_with_index.map do |row, y|
+        row.each_char.with_index.map do |c, x|
+          next VERY_TALL[c] if VERY_TALL.key?(c) && @palette.legend[VERY_TALL[c]] && y > 0 && rows[y - 1][x] == c
+          next c if !edges.key?(c)
+          north, south = grass.call(x, y - 1), grass.call(x, y + 1)
+          next c if north && south
+          edges[c][north ? 1 : (south ? 0 : 2)]
+        end.join
+      end
+      rows.replace(changed)
     end
 
     # What the place's excess (« Demesure ») changes, {} if none.

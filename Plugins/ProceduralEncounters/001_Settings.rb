@@ -16,14 +16,17 @@ module ProceduralEncounters
   # Tiles that trigger encounters in the Outside tileset (as stored by MapGen:
   # 384 + n for T<n>, 48 * slot for an autotile): tall grass T6, the same on
   # sand, dirt, gravel, mountain rock and meadow (T124, T125, T133, T147, T148,
-  # T143) and very tall grass T7, water A1 (deep water included).
-  GRASS_TILES = [6, 7, 124, 125, 133, 143, 147, 148].map { |n| 384 + n }.freeze
+  # T143), snow (T14636, Outside 4G), the edges of a patch (T14912 to
+  # T14914) and very tall grass T7 and T14915, water A1 (deep water
+  # included).
+  GRASS_TILES = [6, 7, 124, 125, 133, 143, 147, 148, 14636, 14912, 14913, 14914, 14915].map { |n| 384 + n }.freeze
   WATER_TILES = [48].freeze
 
   # Ambiance of a route (MapProc, [Ambiance] of route.txt) => land biome,
   # « herbe » otherwise.
   AMBIANCE_BIOMES = { "prairie" => "prairie", "sable" => "sable", "terre battue" => "terre",
-                      "minérale" => "minéral", "automne" => "automne", "forêt tropicale" => "tropical" }.freeze
+                      "minérale" => "minéral", "automne" => "automne", "forêt tropicale" => "tropical",
+                      "neige" => "neige" }.freeze
 
   # Biome => type => weight (0 or absent = never there). A Pokémon takes the
   # best weight among its own types.
@@ -44,6 +47,8 @@ module ProceduralEncounters
                     POISON: 1, PSYCHIC: 1 },
     "tropical" => { GRASS: 3, BUG: 3, POISON: 3, DRAGON: 2, FLYING: 2, FAIRY: 1, ELECTRIC: 1,
                     FIGHTING: 1, NORMAL: 1 },
+    "neige"    => { ICE: 8, WATER: 2, STEEL: 1, NORMAL: 1, PSYCHIC: 1, GHOST: 1, FAIRY: 1,
+                    FLYING: 1, GROUND: 1 },
     "montagne" => { ROCK: 3, GROUND: 3, FIGHTING: 3, FLYING: 2, STEEL: 2, DRAGON: 2, ICE: 2,
                     FIRE: 1, NORMAL: 1 },
     "ville"    => { NORMAL: 3, POISON: 2, ELECTRIC: 2, STEEL: 2, PSYCHIC: 2, DARK: 2, FAIRY: 2,

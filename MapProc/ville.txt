@@ -87,7 +87,7 @@ decor = 0..1 par case
 Poids = 1
 Sol   = T50
 " = T143                # hautes herbes sur la prairie
-: = T151 T7             # herbes très hautes, leur pied sur la prairie
+: = {sol} T7             # herbes très hautes sur la prairie
 ; = T151
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
@@ -112,7 +112,7 @@ decor = 0..1 par case
 Poids = 1
 Sol   = T162
 " = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = T175 T7             # herbes très hautes, leur pied sur le sable
+: = {sol} T7             # herbes très hautes sur le sable
 ; = T175
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
@@ -136,7 +136,7 @@ decor = 1..2 par case
 Poids = 1
 Sol   = T218
 " = T133                # hautes herbes sur le gravier
-: = T189 T7             # herbes très hautes, leur pied sur le gravier
+: = {sol} T7             # herbes très hautes sur le gravier
 ; = T189
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
@@ -154,14 +154,14 @@ decor = 1..2 par case
 # La roche grise remplace la brune (terrasses, montagnes)
 ¬ = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=ŀĿĳĲłPʘ L2 @.
 ł = - N=T6059 S=T5913 W=T5904 E=T5907 NW=T5896 NE=T5899 SW=T5912 SE=T5915 iSW=T5921 iSE=T5920 oN=T5889 oNW=T5888 oNE=T5891 oiNW=T5925 oiNE=T5926 with=ŀĿĳĲPʘ L2 @.
-^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=e L2 @.
+^ = T5985 N=T5977 S=T5993 W=T5984 E=T5987 NW=T5976 NE=T5979 SW=T5992 SE=T5995 iSW=T6001 iSE=T6000 oN=T5969 oNW=T5968 oNE=T5971 oiNW=T6005 oiNE=T6006 with=eɛ L2 @.
 
 
 [Ambiance terre battue]
 Poids = 1
 Sol   = T106
 " = T125                # hautes herbes sur la terre
-: = T181 T7             # herbes très hautes, leur pied sur la terre
+: = {sol} T7             # herbes très hautes sur la terre
 ; = T181
 # Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
@@ -189,6 +189,34 @@ Rue   = T9976 N=T9977 S=T9978 W=T9979 E=T9980 NW=T9981 NE=T9982 SW=T9983 SE=T998
 arbre = 0..1 par case
 decor = 1..1 par case
 
+# Neige (#204) : sol enneigé, sapins et falaises sous la neige, plaques de
+# neige profonde et de glace (briques réservées).
+[Ambiance neige]
+Poids = 1
+Sol   = T14632|T14632|T14632|T14633|T14634|T14635
+" = T14636               # hautes herbes sur la neige
+: = {sol} T7             # herbes très hautes sur la neige
+; = T14637
+ǩ = T14640|T14641|T14642|T14643   # neige profonde
+ǫ = T14644|T14645|T14646|T14647   # glace
+# Sapins enneigés, cyprès et arbrisseaux sur la neige
+t = T14712 2x2 forest=T14760
+é = T14657 3x3 halo=4x4@1,1/0,3,12
+è = T14661 3x3 halo=4x4@1,1/0,3,12
+ê = T14680 1x3
+ë = T14684 1x2
+à = {sol} T4165
+# Falaises des terrasses et montagnes sous la neige
+¬ = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=ŀĿĳĲPʘ L2 @.
+^ = T14865 N=T14857 S=T14873 W=T14864 E=T14867 NW=T14856 NE=T14859 SW=T14872 SE=T14875 iSW=T14881 iSE=T14880 oN=T14849 oNW=T14848 oNE=T14851 oiNW=T14885 oiNE=T14886 with=eɛ L2 @.
+Rive  = T14632 T14632 T14632
+Rue   = T274
+arbre = 0..2 par case
+parc  = 0
+lac   = 0
+decor = 1..2 par case
+
 # Palette MapGen partagée par toutes les briques (tileset Outside).
 [Legend]
 à = {sol} T475          # buisson
@@ -206,11 +234,16 @@ x = {sol} T919          # cailloux gris
 ' = T849
 ? = T849
 " = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
-: = T15 T7              # herbes très hautes (on n'y court pas), sur leur pied
+ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
+ˌ = {sol} T14913        # rangée du bas (pied des brins)
+ˑ = {sol} T14914        # tache d'une seule rangée
+: = {sol} T7            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
+˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau des lacs
-e = {sol} T777          # escalier taillé dans une montagne
+e = {sol} T777          # escalier taillé dans une montagne (« eɛ » : gauche, droite)
+ɛ = {sol} T778
 ŀ = {sol} T777          # escalier dans la falaise d'une terrasse (gauche, droite)
 Ŀ = {sol} T778
 ĳ = {sol} T769          # escalier dans le rebord nord d'une terrasse
@@ -227,6 +260,11 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ɸ = {sol}
 ʘ = -
 
+# Neige profonde et glace : leurs tuiles sont données par l'ambiance neige
+# (briques réservées à cette ambiance), le sol ailleurs.
+ǩ = {sol}
+ǫ = {sol}
+
 # Décor 4G de SirMalo (tools/art/outside_4g.py, docs/CREDITS.md)
 ā = {sol} T8680|T8681  # poteries
 ē = {sol} T8688        # panier de légumes
@@ -242,7 +280,7 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 # sur les côtés et au sud (falaises HGSS de SirMalo, tools/art/outside_4g.py).
 ¬ = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=ŀĿĳĲłPʘ L2 @.
 ł = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5761 iSE=T5760 oN=T5729 oNW=T5728 oNE=T5731 oiNW=T5765 oiNE=T5766 with=ŀĿĳĲPʘ L2 @.
-^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=e L2 @.   # montagne (dessus praticable)
+^ = T5945 N=T5937 S=T5953 W=T5944 E=T5947 NW=T5936 NE=T5939 SW=T5952 SE=T5955 iSW=T5961 iSE=T5960 oN=T5929 oNW=T5928 oNE=T5931 oiNW=T5965 oiNE=T5966 with=eɛ L2 @.   # montagne (dessus praticable)
 | = T1214 N=T1206 S=T1214 W=T1213 E=T1215 NW=T1205 NE=T1207 SW=T1213 SE=T1215 L3 @~   # ponton en bois sur l'eau (son rebord sud est la rangée ( _ ) en dessous)
 
 [Objects]

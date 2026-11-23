@@ -82,6 +82,7 @@ module WorldEvents
     "terre battue"    => %i[CAMPER PICNICKER YOUNGSTER LASS],
     "automne"         => %i[PAINTER LADY AROMALADY BIRDKEEPER],
     "forêt tropicale" => %i[BUGCATCHER AROMALADY POKEMONRANGER_F PICNICKER],
+    "neige"           => %i[HIKER CRUSHGIRL CAMPER PICNICKER],
     "montagne"        => %i[HIKER CRUSHGIRL CAMPER],
     "grotte"          => %i[HIKER POKEMANIAC RUINMANIAC CAMPER]
   }.freeze
