@@ -1,8 +1,0 @@
-# Deux totems reliés par une toile.
-Brique    = Portique de totems
-Type      = decor
-Ambiances = forêt tropicale, sable
-[Map]
-ĻĻĻĻĻĻ
-ĻĻĻĻĻĻ
-ĻĻĻĻĻĻ

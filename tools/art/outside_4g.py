@@ -39,7 +39,7 @@ from PIL import Image
 SOURCE = "Graphics/Tilesets/Outside.png"
 TARGET = "Graphics/Tilesets/Outside 4G.png"
 TILESET_ID = 24
-SHEETS = {"N": "NatureRMXP.png", "B": "BuildingsRMXP.png"}
+SHEETS = {"N": "NatureRMXP.png", "B": "BuildingsRMXP.png", "U": "UrbanRMXP.png"}
 PINK = (240, 91, 161, 255)
 MAGENTA = (255, 0, 255, 255)   # see-through of the Buildings sheet
 UNUSED = {(255, 245, 104, 255), (255, 255, 255, 255)}
@@ -178,6 +178,72 @@ GYM_BLOCK = (0, 1, 7, 5)
 GYM_DOOR = (3, 4)
 
 
+# Decor objects (#200), in place of the Emerald and KingTapir ones (MapProc's
+# symbols and blocks kept): symbol => (sheet, column, x, y, width, height of
+# the drawing, block x, y, width, height in it, passages). Passages: block
+# (every tile of the block), tall (its bottom row; the rows above are walked
+# under), tree (the middle of its bottom row), walk (none). The rest of the
+# drawing is its halo, as for the buildings. Grass under a Nature drawing
+# becomes see-through and its shades the sheets' translucent shadow.
+# Single tiles of the decor laid on the ground ([Legend], blocked): symbol =>
+# the variants drawn at random, [(sheet, column, x, y)]
+LEGEND_PROPS = {
+    "ā": [("U", 5, 5, 29), ("U", 5, 7, 29)],                     # pots (poteries)
+    "ē": [("U", 5, 2, 29)],                                      # basket of greens (caisses)
+    "ī": [("U", 5, 6, 29)],                                      # basket of flowers (jardinière)
+    "ū": [("U", 5, 1, 29), ("U", 5, 4, 29)],                     # baskets of flowers (pots de fleurs)
+    "ő": [("N", 3, 4, 27), ("N", 3, 1, 27)],                     # grey rocks (rochers moussus)
+    "ű": [("N", 3, 5, 34)],                                      # white rock
+    "ŵ": [("N", 3, 0, 27), ("N", 3, 2, 34)],                     # brown rocks (rochers rouges)
+}
+PROPS = {
+    "ļ": ("N", 3, 1, 16, 1, 2, 0, 1, 1, 1, "block"),     # bush
+    "ń": ("U", 5, 7, 26, 1, 2, 0, 0, 1, 2, "tall"),      # notice board (caisses empilées)
+    "ď": ("N", 3, 0, 12, 3, 3, 1, 0, 1, 2, "block"),     # flower box
+    "ž": ("N", 3, 0, 10, 4, 1, 0, 0, 3, 1, "block"),     # logs
+    "ą": ("N", 3, 0, 36, 4, 4, 2, 2, 2, 2, "tall"),      # round tree
+    "ð": ("N", 3, 0, 44, 4, 4, 2, 2, 2, 2, "tall"),      # bushy tree
+    "œ": ("U", 5, 1, 23, 5, 5, 2, 3, 2, 2, "tall"),      # parasol and table
+    "ß": ("U", 5, 1, 23, 5, 5, 2, 3, 2, 2, "tall"),
+    "ÿ": ("U", 5, 1, 23, 5, 5, 2, 3, 2, 2, "tall"),
+    "ă": ("N", 3, 3, 29, 2, 2, 0, 0, 2, 2, "block"),     # big brown rock
+    "ĕ": ("N", 3, 6, 33, 2, 2, 0, 0, 2, 2, "block"),     # big red rock
+    "ņ": ("U", 5, 1, 23, 5, 5, 1, 2, 3, 3, "tree"),      # parasol and table (parasol de plage)
+    "ǚ": ("N", 3, 0, 36, 4, 4, 1, 1, 3, 3, "tree"),      # round tree
+    "ǜ": ("U", 4, 1, 35, 4, 5, 2, 3, 2, 2, "tall"),      # fir
+    "ȁ": ("N", 3, 0, 44, 4, 4, 2, 1, 2, 3, "tall"),      # bushy tree
+    "Ā": ("U", 4, 2, 11, 2, 4, 0, 1, 1, 2, "tall"),      # stone pillar (statue)
+    "Ă": ("U", 4, 4, 16, 1, 3, 0, 1, 1, 2, "tall"),      # street lamp
+    "Ć": ("U", 5, 1, 13, 5, 4, 1, 1, 3, 3, "block"),     # sandpit (parterre)
+    "ć": ("U", 4, 0, 32, 2, 3, 0, 0, 2, 3, "block"),     # fountain
+    "Ĉ": ("U", 4, 0, 23, 2, 3, 0, 0, 1, 3, "tall"),      # red lamp (poteau)
+    "Ċ": ("U", 4, 3, 26, 4, 3, 0, 0, 3, 2, "block"),     # hedge in its box (haie basse)
+    "ċ": ("U", 4, 0, 15, 2, 4, 0, 1, 2, 3, "tall"),      # lantern
+    "ĵ": ("U", 4, 0, 15, 2, 4, 0, 1, 2, 3, "tall"),
+    "Č": ("U", 4, 1, 35, 4, 5, 1, 0, 3, 5, "tree"),      # fir (arbre de Galar)
+    "č": ("N", 3, 0, 44, 4, 4, 2, 1, 2, 3, "tall"),      # bushy tree
+    "Đ": ("U", 4, 3, 3, 4, 5, 1, 2, 3, 3, "tall"),       # billboard
+    "İ": ("U", 4, 3, 3, 4, 5, 1, 2, 3, 3, "tall"),
+    "đ": ("U", 4, 4, 9, 1, 2, 0, 0, 1, 2, "tall"),       # post box
+    "Ē": ("U", 4, 0, 6, 3, 5, 1, 1, 1, 3, "tall"),       # pole with a sign (distributeur)
+    "Ĕ": ("U", 4, 7, 8, 1, 3, 0, 1, 1, 2, "tall"),       # orange machine (gachas)
+    "Ė": ("U", 5, 6, 17, 1, 3, 0, 1, 1, 2, "tall"),      # drinks machines
+    "ė": ("U", 5, 7, 17, 1, 3, 0, 1, 1, 2, "tall"),
+    "Ę": ("U", 4, 5, 1, 2, 2, 0, 0, 2, 2, "tall"),       # machine and screen (panneaux)
+    "ĝ": ("U", 4, 5, 1, 2, 2, 0, 0, 2, 2, "tall"),
+    "Ğ": ("U", 5, 6, 17, 2, 3, 0, 1, 2, 2, "tall"),
+    "ę": ("U", 5, 1, 7, 2, 3, 0, 0, 2, 2, "block"),      # logs
+    "Ě": ("U", 5, 3, 7, 3, 3, 1, 0, 2, 2, "block"),
+    "ğ": ("U", 3, 4, 29, 1, 2, 0, 1, 1, 1, "block"),     # orange bollard (cône)
+    "Ġ": ("U", 3, 5, 29, 1, 2, 0, 1, 1, 1, "block"),     # white bollard (caisse plate)
+    "ġ": ("U", 5, 7, 26, 1, 2, 0, 0, 1, 2, "tall"),      # notice board (caisse haute)
+    "Ĥ": ("U", 5, 1, 17, 3, 2, 0, 1, 2, 1, "block"),     # bench
+    "ĥ": ("U", 5, 1, 17, 3, 2, 0, 1, 3, 1, "block"),     # bench (and its shadow)
+    "Ĵ": ("U", 4, 0, 3, 3, 2, 1, 0, 1, 2, "tall"),       # bus stop sign
+    "Ņ": ("U", 5, 1, 17, 3, 2, 0, 0, 2, 2, "block"),     # bench
+}
+
+
 def building_passages(tile, inside, door):
     """Passages of a building tile ("=<n>" or a tile to copy, see
     tools/art/tileset_tables.rb)."""
@@ -186,6 +252,24 @@ def building_passages(tile, inside, door):
     if all(c[3] == 0 or c == SHADOW for c in tile.get_flattened_data()):
         return "=0"
     return TALL
+
+
+def prop_passages(tile, kind, tx, ty, bx, by, bw, bh):
+    """Passages of a decor object's tile (see PROPS)."""
+    if not (bx <= tx < bx + bw and by <= ty < by + bh):
+        return building_passages(tile, False, False)
+    bottom = ty == by + bh - 1
+    if kind == "block" or (kind == "tall" and bottom) or (kind == "tree" and bottom and tx == bx + bw // 2):
+        return "=15"
+    return -1 if kind == "walk" or not tile.getbbox() else TALL
+
+
+def unground(tile):
+    """A Nature drawing off its grass: the grass see-through, its shades the
+    translucent shadow."""
+    tile = tile.copy()
+    tile.putdata([(0, 0, 0, 0) if c in GRASS else SHADOW if c in SHADOWS else c for c in tile.get_flattened_data()])
+    return tile
 
 
 def cliff_passages(row, col, tile):
@@ -368,13 +452,37 @@ def build(folder):
                             empty.append(ty * w + tx)
                 gyms[style][gym_type] = (first, empty)
                 first += h * 8
+    props = []   # (symbol, first tile of the drawing, empty cells)
+    legend = {}   # symbol => its tiles
+    for sym, variants in LEGEND_PROPS.items():
+        legend[sym] = []
+        for i, (sheet, col, x, y) in enumerate(variants):
+            tile = sheet_tile(sheets, (sheet, col, x, y))
+            tiles[first + i] = unground(tile) if sheet == "N" else tile
+            copies[first + i] = "=15"
+            legend[sym].append(first + i)
+        first += 8
+    for sym, (sheet, col, x, y, w, h, bx, by, bw, bh, kind) in PROPS.items():
+        empty = []
+        for ty in range(h):
+            for tx in range(w):
+                dest = first + ty * 8 + tx
+                tile = sheet_tile(sheets, (sheet, col, x + tx, y + ty))
+                tile = unground(tile) if sheet == "N" else tile
+                tiles[dest] = tile
+                copies[dest] = prop_passages(tile, kind, tx, ty, bx, by, bw, bh)
+                inside = bx <= tx < bx + bw and by <= ty < by + bh
+                if not inside and not tile.getbbox():
+                    empty.append(ty * w + tx)
+        props.append((sym, first, empty))
+        first += h * 8
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
     for dest, tile in tiles.items():
         out.paste((0, 0, 0, 0), box(dest))
         out.paste(tile, box(dest)[:2])
-    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms)
+    return out, placed, forests, copies, count, (cliffs, caves, extra, blocker, buildings, gyms, props, legend)
 
 
 def cliff_line(first):
@@ -398,7 +506,7 @@ def object_line(sym, first, empty):
 
 
 def main():
-    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms) = build(sys.argv[1])
+    out, placed, forests, copies, count, (cliffs, caves, ledge, blocker, buildings, gyms, props, legend) = build(sys.argv[1])
     out.save(TARGET)
     subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(TILESET_ID), str(count),
                     json.dumps({str(k): v for k, v in copies.items()})], check=True)
@@ -424,6 +532,14 @@ def main():
         print(f"arène ({style}) : {sym} = T{first + by * 8 + bx} {bw}x{bh} halo={w}x{h}@{bx},{by}"
               f"{'/' + ','.join(map(str, empty)) if empty else ''}   (porte {GYM_DOOR[0]},{GYM_DOOR[1]})")
         print(f"  {style}: {{ " + ", ".join(f"{t}: {f}" for t, (f, _e) in gyms[style].items()) + " }")
+    for sym, ids in legend.items():
+        print(f"objet : {sym} = {{sol}} " + "|".join(f"T{i}" for i in ids))
+    for sym, first, empty in props:
+        _sheet, _col, _x, _y, w, h, bx, by, bw, bh, _kind = PROPS[sym]
+        line = f"{sym} = T{first + by * 8 + bx} {bw}x{bh}"
+        if (w, h) != (bw, bh):
+            line += f" halo={w}x{h}@{bx},{by}" + ("/" + ",".join(map(str, empty)) if empty else "")
+        print(f"objet : {line}")
     print(f"corniche : < = T{ledge} - = T{ledge + 1} > = T{ledge + 2} ; bord nord sous le rebord : T{blocker}")
 
 
