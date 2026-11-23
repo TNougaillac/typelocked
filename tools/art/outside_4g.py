@@ -783,6 +783,8 @@ def build(folder):
     first += 6 * 8
     snow["volcano"] = build_volcano(sheets, tiles, copies, first, snow["edges"])
     first = snow["volcano"]["end"]
+    snow["farm"] = build_farm(sheets, tiles, copies, first)
+    first = snow["farm"]["end"]
     count = first - first_new
     out = Image.new("RGBA", (old.width, old.height + (count // 8) * TILE), (0, 0, 0, 0))
     out.paste(old, (0, 0))
@@ -940,6 +942,7 @@ def main():
         roles = MARSH_GRASS_ROLES if name == "herbe" else STREET_ROLES
         print(f"[marais] {name} = " + " ".join(f"{role}=T{i}" if role else f"T{i}" for (role, *_r), i in zip(roles, ids)))
     print_volcano(snow["volcano"])
+    print_farm(snow["farm"])
 
 
 # Marsh (#205): SirMalo's patches of the Nature sheet, column 1: mud
@@ -1159,6 +1162,45 @@ def build_volcano(sheets, tiles, copies, first, edges):
     v["cave"] = first
     v["end"] = first + 3 * 8
     return v
+
+
+# The farm of the Breeders' HQ (#212): drawing (sheet, column, x, y, width,
+# height), block x, y, width, height in it, passages (see PROPS). A
+# vegetable patch (SirMalo's crops), a wooden fence, a trough.
+FARM = {
+    "potager": (("N", 1, 2, 47, 3, 3), (0, 0, 3, 3), "block"),
+    "barriere": (("U", 3, 0, 11, 3, 2), (0, 1, 3, 1), "tall"),
+    "abreuvoir": (("N", 3, 0, 10, 2, 1), (0, 0, 2, 1), "block"),
+}
+
+
+def build_farm(sheets, tiles, copies, first):
+    """The farm's objects from `first`, one row of 8 per 3 rows of drawings
+    side by side. Returns symbol => (first tile, size, block), and "end"."""
+    farm = {}
+    x = 0
+    for name, ((sheet, col, sx, sy, w, h), (bx, by, bw, bh), kind) in FARM.items():
+        for ty in range(h):
+            for tx in range(w):
+                dest = first + ty * 8 + x + tx
+                tile = sheet_tile(sheets, (sheet, col, sx + tx, sy + ty))
+                tile = unground(tile) if sheet == "N" else tile
+                tiles[dest] = tile
+                copies[dest] = prop_passages(tile, kind, tx, ty, bx, by, bw, bh)
+        farm[name] = (first + x, (w, h), (bx, by, bw, bh))
+        x += w
+    farm["end"] = first + 3 * 8
+    return farm
+
+
+def print_farm(farm):
+    """The palette lines of the farm (route.txt)."""
+    for name in FARM:
+        top, (w, h), (bx, by, bw, bh) = farm[name]
+        line = f"T{top + by * 8 + bx} {bw}x{bh}"
+        if (w, h) != (bw, bh):
+            line += f" halo={w}x{h}@{bx},{by}"
+        print(f"[ferme] {name} = {line}")
 
 
 def print_volcano(v):

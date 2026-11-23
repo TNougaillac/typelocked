@@ -59,6 +59,9 @@ grotte = 0
 # Temple : un temple en ruine où l'on entre (QG de l'Ordre du Pacte), posé
 # seulement par l'ambiance « ruines ».
 temple = 0
+# Ferme : le QG des Éleveurs (grange, potager, barrières, auges), posée
+# seulement là où la guilde est tirée (quantité donnée par les guildes, #182).
+ferme = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
 decor  = 0
@@ -628,6 +631,10 @@ V = T6201 5x4 halo=6x6@1,1/5           # maison orange (refuge)
 Ċ = T9296 3x2 halo=4x3@0,0 # haie en bac
 ċ = T9328 2x3 halo=2x4@0,1/1 # lanterne
 Ε = T10689 5x4 halo=7x8@1,3   # temple en ruine (ruines ; « maison en rondins » des villes)
+Η = T10793 4x3 halo=6x6@1,2/0,1,2,3,5,11,17,24,30   # grange (chaumière à cheminée, ferme des Éleveurs)
+ŧ = T15280 3x3        # potager (ferme)
+Ŧ = T15291 3x1 halo=3x2@0,1   # barrière en bois (ferme)
+ŋ = T15286 2x1        # auge (ferme)
 σ = T13265 5x3 halo=7x8@1,4/0,1,5,6,13,20   # ruine voûtée (ruines)
 τ = T13321 6x3 halo=8x7@1,3   # ruine au toit fleuri (ruines)
 Č = T9385 3x5 halo=4x5@1,0/0,4,16 # grand sapin
