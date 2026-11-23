@@ -495,6 +495,7 @@ W::CENTRE_EVENTS.each do |template, events|
   CI.error(settings, nil, "CENTRE_EVENTS : l'infirmière de la carte #{template} ne pose pas de question")
 end
 CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
+CI.error(settings, nil, "PACT_INCENSE : objet #{W::PACT_INCENSE} absent de items.txt") if !items.include?(W::PACT_INCENSE.to_s)
 CI.error(settings, nil, "MAP_ITEM : objet #{W::MAP_ITEM} absent de items.txt") if !items.include?(W::MAP_ITEM.to_s)
 [W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, W::NURSE_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
   CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
@@ -525,7 +526,18 @@ def check_weather(result, seed, args, events)
   end
 end
 
+# Pact Incenses: as many as the seed draws (when the world has enough nooks
+# and gifts), only in nooks or given by an inhabitant.
+def check_pact(seed, events)
+  pact = events[:items].select { |item| item[:item] == W::PACT_INCENSE }
+  wrong = pact.reject { |item| %w[recoin don].include?(item[:source]) }
+  raise MapEvents::Error, "Encens du Pacte hors des recoins et des dons (#{wrong.map { |i| i[:map] }.join(", ")})" if !wrong.empty?
+  drawn = Random.new((seed * 1000) + 790).rand(W::PACT_INCENSES)
+  raise MapEvents::Error, "#{pact.length} Encens du Pacte au lieu de #{drawn}" if pact.length > drawn
+end
+
 count = 0
+pact_total = 0
 Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -566,6 +578,8 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_habitants(result, atlas, plans)
       check_items(atlas, zones.to_h { |z| [z.name, z] }, plans, events[:items])
       check_weather(result, seed, args, events)
+      check_pact(seed, events)
+      pact_total += events[:items].count { |item| item[:item] == W::PACT_INCENSE }
     rescue MapEvents::Error => e
       CI.error(path, nil, "#{where} : #{e.message}")
     end
@@ -575,5 +589,5 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
   end
 end
 
-puts "#{count} mondes, graines #{WORLD_SEEDS}"
+puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte"
 CI.finish("Événements des mondes")
