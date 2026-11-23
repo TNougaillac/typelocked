@@ -348,16 +348,20 @@ module MapProceduralGenerator
       return @exits.any? { |_side, ex, ey| (ex..ex + STREET_WIDTH - 1).cover?(x) && (ey..ey + STREET_WIDTH - 1).cover?(y) }
     end
 
-    # Fills the border with copies of the border object; leftovers stay
-    # ground, but off the squares of a mask they take « Comble », so that no
-    # way leads there.
+    # Fills the border with copies of the border object, first on a grid of
+    # its size (the trees of a forest line up, see MapGenerator's forest
+    # objects), then wherever one still fits; leftovers stay ground, but off
+    # the squares of a mask they take « Comble », so that no way leads there.
     def plant_border
       return if !@place.border
       bw, bh = border_size
-      @h.times do |y|
-        @w.times do |x|
-          next if !(0...bh).all? { |dy| (0...bw).all? { |dx| free_border?(x + dx, y + dy) } }
-          bh.times { |dy| bw.times { |dx| @cells[y + dy][x + dx] = @place.border } }
+      [true, false].each do |grid|
+        @h.times do |y|
+          @w.times do |x|
+            next if grid && (x % bw != 0 || y % bh != 0)
+            next if !(0...bh).all? { |dy| (0...bw).all? { |dx| free_border?(x + dx, y + dy) } }
+            bh.times { |dy| bw.times { |dx| @cells[y + dy][x + dx] = @place.border } }
+          end
         end
       end
       return if !@mask || !@place.filler
