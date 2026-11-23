@@ -255,6 +255,9 @@ module WorldEvents
   # Move Relearners (a Heart Scale per move): one in a town reached with at
   # most each number of seals (the first one before the 2nd seal).
   RELEARNERS = [1, 4, 7].freeze
+  # The Family's usurer (FamilyDebt plugin): in each town but the first, by
+  # a street, placed after everyone else.
+  USURER_GRAPHIC = "trainer_COUSIN_M"
   RELEARNER_GRAPHIC = "NPC 13"
   # Policemen (#122): POLICE_CHANCE % of the inhabitants of the streets wear
   # this uniform and say the lines of [policier]; no one else wears it.

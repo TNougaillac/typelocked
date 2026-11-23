@@ -542,7 +542,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.16.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
+**Statut :** v1.17.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -781,6 +781,17 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
+## F20. Dette envers la Famille (FamilyDebt)
+**Statut :** v1.0.0, écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. Dépend de LevelCap (`Requires`) ; les usuriers sont posés par WorldEvents.
+**Dossier :** `Plugins/FamilyDebt/`
+
+### Règles
+- **Usurier :** un Cousin de la Famille dans chaque ville sauf la première, au bord d'une rue (WorldEvents, `010_Usurers.rb`, posé après tous les autres événements). Lui parler appelle `FamilyDebt.usurer`.
+- **Emprunt :** une dette à la fois. 3 montants : `LOANS` (1 000, 3 000, 6 000) × (1 + sceaux du joueur). Le taux est tiré à l'emprunt : 2 à 8 % (`INTEREST`) ajoutés à la dette **à chaque combat de dresseur gagné**. Un taux haut et beaucoup de dresseurs rendent parfois la dette impossible à rembourser.
+- **Remboursement :** chez n'importe quel usurier, tout l'argent du joueur jusqu'au montant dû (remboursement partiel possible).
+- **Échéance :** avant le prochain sceau. Un sceau gagné avec une dette = en retard.
+- **Recouvreurs :** en retard, en entrant sur une route (carte extérieure avec rencontres sauvages), `COLLECTOR_CHANCE` (35 %) qu'un Cousin arrête le joueur après `COLLECTOR_STEPS` (3) pas, une fois par visite. Son équipe : 2 à 3 Pokémon de la route au plafond de niveau (LevelCap, ou le meilleur niveau de l'équipe s'il est plus haut) + 2. Pas de K.O. : battu, il efface `COLLECTOR_CUT` (30 %) de la dette ; vainqueur, il prend tout l'argent du joueur (compté sur la dette). Les combats contre lui n'ajoutent pas d'intérêts.
 ## F19. Textes en français (FrenchTexts)
 **Version cible :** Essentials v21.1. **Statut :** écrit, non testé (#113).
 
@@ -795,6 +806,23 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Fichiers
 | Fichier | Rôle |
 |---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Montants, intérêts, chance et équipe des recouvreurs. |
+| `002_Data.rb` | `$family_debt` (montant, taux, sceaux à l'emprunt) dans la sauvegarde, retard, remboursement, intérêts. |
+| `003_Usurer.rb` | Dialogue de l'usurier : emprunter ou rembourser. |
+| `004_Interest.rb` | Intérêts à chaque combat de dresseur gagné. |
+| `005_Collectors.rb` | Recouvreurs sur les routes en cas de retard. |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`TrainerBattle.start_core`, handlers `:on_enter_map` et `:on_player_step_taken`, règle de combat `canLose`.
+
+### À vérifier au premier lancement
+- Parler à l'usurier d'une deuxième ville : 3 montants, emprunter crédite l'argent ; battre un dresseur fait monter la dette.
+- Gagner un sceau sans rembourser, puis aller sur une route : un Cousin arrête parfois le joueur après 3 pas ; le battre baisse la dette de 30 %, perdre vide le porte-monnaie sans retour au Centre.
+- Rembourser tout : l'usurier propose à nouveau un emprunt.
+
+### Limites connues
+- Les recouvreurs n'ont pas d'événement sur la carte : ils surgissent (message puis combat).
 | `Plugins/FrenchTexts/001_Battle.rb` | Message d'efficacité ×4. |
 | `Plugins/FrenchTexts/002_Language.rb` | Déclare le français comme seule langue. |
 | `Text_french_core/*.txt` | Textes traduits, au format « Text_<langue>_core » d'Essentials (ligne anglaise, puis ligne française). Généré. |
@@ -927,5 +955,6 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
+| 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |
 | 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
