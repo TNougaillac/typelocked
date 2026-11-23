@@ -8,7 +8,7 @@ module Nuzlocke
   def force_nickname(pkmn)
     species = pkmn.speciesName
     loop do
-      name = yield(_INTL("Surnom de {1} ? (obligatoire)", species)).to_s.strip
+      name = yield(_INTL("Surnom de {1} ?", species)).to_s.strip
       if !name.empty? && name.downcase != species.downcase
         pkmn.name = name
         return

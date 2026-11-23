@@ -1,0 +1,1292 @@
+# French texts (SPECIES_CATEGORIES). Each English line is followed by its translation.
+[SPECIES_CATEGORIES]
+Abundance
+Fertilité
+Acorn
+Gland
+Alloy
+Alliage
+Alpha
+Alpha
+Angler
+Poisson
+Ant Pit
+Piégeur
+Anteater
+Tamanoir
+Antenna
+Antenne
+Apple Core
+Nid Pomme
+Apple Nectar
+Jus Pomme
+Apple Wing
+Ailes Pomme
+Aqua Mouse
+Aquasouris
+Aqua Rabbit
+Aqualapin
+Arm Thrust
+Cogneur
+Armor
+Armure
+Armor Bird
+Armoiseau
+Arrow Quill
+Plumeflèche
+Artificial
+Artificiel
+Astral Body
+Cosmique
+Atrocious
+Terrifiant
+Attaching
+Crampon
+Aura
+Aura
+Aurora
+Aurore
+Automaton
+Golem Ancien
+Avianoid
+Similoiseau
+Axe Jaw
+Hachomenton
+Baby
+Poupon
+Bagworm
+Ver Caché
+Ball
+Balle
+Ball Roll
+Roule Boule
+Ball Whale
+Baleinboule
+Balloon
+Bouboule
+Barnacle
+Bernacle
+Barrier
+Bloqueur
+Bash Buffalo
+Coup d'Bœuf
+Bat
+Chovsouris
+Battery
+Batterie
+Beak
+Bec-Oiseau
+Beat
+Percussions
+Beaver
+Castor
+Beckon
+Appel
+Bee Fly
+Bombyle
+Beehive
+Ruche
+Bell
+Clochette
+Big Boss
+Big Boss
+Big Eater
+Goinfre
+Big Horn
+Maxi Corne
+Big Jaw
+Mâchoire
+Big Rock
+Mégalithe
+Big Voice
+Grosse Voix
+Big-Hearted
+Magnanime
+Bird
+Oiseau
+Bite
+Morsure
+Bivalve
+Bivalve
+Black Tea
+Thé Noir
+Blade
+Lame
+Blade Quill
+Plum'acérée
+Blast
+Explosion
+Blast Turtle
+Tortue Boum
+Blaze
+Ardent
+Blazing
+Enflammé
+Blimp
+Ballon
+Blocking
+Barrage
+Bloom Sickle
+Fauch'Fleur
+Blossom
+Floraison
+Bolt Strike
+Foudroyeur
+Bone Keeper
+Gard'Os
+Bone Vulture
+Vostour
+Bonsai
+Bonsaï
+Bounce
+Rebond
+Boundary
+Frontière
+Bouquet
+Bouquet
+Boxing
+Boxeur
+Bright
+Ravi
+Bronze
+Bronze
+Bronze Bell
+Clochebronze
+Brutal
+Brutal
+Brutal Star
+Cruel
+Bubble Frog
+Crapobulle
+Bubble Jet
+Bulleur
+Bud
+Bourgeon
+Bug Catcher
+Chopinsecte
+Bugle Beak
+Bec Clairon
+Bulb
+Racine
+Bulk Up
+Gonflette
+Butterfly
+Papillon
+Cactus
+Cactus
+Calm
+Calme
+Candle
+Chandelle
+Cannon
+Canon
+Carefree
+Insouciant
+Caretaker
+Baby-sitter
+Caring
+Soigneur
+Cat Ferret
+Chat Furet
+Catty
+Chafouin
+Cavalry
+Chevalier
+Cave
+Caverne
+Cavern
+Grotte
+Cell
+Cellule
+Centipede
+Chilopode
+Cerebral
+Cerveau
+Cheeky
+Joufflu
+Cheering
+Acclameur
+Cherry
+Cerise
+Chick
+Poussin
+Chill
+Gelé
+Chimp
+Chimpanzé
+Chinchilla
+Chinchilla
+Clamping
+Carabe
+Clap
+Clap Clap
+Classy Cat
+Chadeville
+Clay Doll
+Poupargile
+Clear Wing
+Translaile
+Coal
+Charbon
+Cobra
+Cobra
+Coconut
+Fruitpalme
+Cocoon
+Cocon
+Coffin
+Cercueil
+Collective
+Assemblage
+Color Swap
+Multicolor
+Colossal
+Prodigieux
+Colt
+Poulain
+Comedian
+Comédien
+Compass
+Boussole
+Compressed
+Surpression
+Constraint
+SelfContrôle
+Continent
+Continent
+Copperderm
+Pachycuivre
+Coral
+Corail
+Cotton Bird
+Oiseaucoton
+Cotton Bloom
+Chef-Coton
+Cotton Candy
+Confiserie
+Cotton Puff
+Boule Coton
+Cottonweed
+Pissenlit
+Courting
+Cupidon
+Cream
+Crème
+Cricket
+Criquet
+Cruel
+Implacable
+Crystallizing
+Cristal
+Curlipede
+Coconplopode
+Cyclone
+Tornade
+DNA
+ADN
+Dancing
+Danse
+Dark
+Sombre
+Darkness
+Obscurité
+Daunting
+Patibulaire
+Deceiver
+Trompeur
+Deep Black
+Noir Idéal
+Deep Sea
+Abysse
+Delivery
+Livraison
+Desert Croc
+Croco Sable
+Despot
+Tyran
+Destruction
+Annihilation
+Devious
+Scélérat
+Diapered
+Couche
+Digging
+Fouisseur
+Disaster
+Désastre
+Discharge
+Décharge
+Discipline
+Entraînement
+Disguise
+Fantômasque
+Diving
+Plongeon
+Dog
+Chien
+Donkey
+Âne
+Dopey
+Crétin
+Draft Horse
+Cheval Trait
+Dragon
+Dragon
+Dragon Orb
+Boule Dragon
+Drawn Sword
+Battô
+Dream Eater
+Mangerêve
+Drill
+Perceur
+Drowsing
+Rêveur
+Drummer
+Batteur
+Duck
+Canard
+Eaglet
+Aiglon
+Egg
+Œuf
+Elder Tree
+Vieillarbre
+EleFish
+Électrophore
+EleSpider
+Araclectrik
+EleSquirrel
+Écurélec
+Electric
+Électrique
+Electrified
+Étincélec
+Electron
+Électron
+Emanation
+Émanation
+Ember
+Braise
+Embrace
+Étreinte
+Emotion
+Émotion
+Emperor
+Empereur
+Endurance
+Endurant
+Eon
+Éon
+Eruption
+Éruption
+Evolution
+Évolutif
+Eyeball
+Boule Œil
+Face
+Face
+Fairy
+Fée
+Fang Scorpion
+Scorpicroc
+Fang Snake
+Serpacroc
+Feeling
+Sentiment
+Fire Cat
+Chat Feu
+Fire Horse
+Cheval Feu
+Fire Mouse
+Souris Feu
+Fire Pig
+Cochon Feu
+Firefly
+Luciole
+Fireworks
+Artificier
+First Bird
+Oisancien
+Fish
+Poisson
+Five Star
+5 Étoiles
+Fixation
+Dévisageur
+Flailing
+Gigoteur
+Flame
+Flamme
+Flash
+Flash
+Float Whale
+Cachabouée
+Floating
+Flottaison
+Flower
+Fleur
+Flowering
+Chef-Fleur
+Fly Scorpion
+Scorpivol
+Flycatcher
+Carnivore
+Forbidden
+Interdit
+Forest
+Forêt
+Formation
+Escadron
+Formidable
+Dignitaire
+Fossil
+Fossile
+Fox
+Renard
+Fragrance
+Parfum
+Freeze
+Glaciaire
+Freezing
+Congelé
+Fresh Snow
+Poudreuse
+Frog
+Grenouille
+Frost Moth
+Mite Givre
+Frost Tree
+Arbregelé
+Fruit
+Fruit
+Garden
+Jardin
+Gas
+Gaz
+Gear
+Engrenage
+Generator
+Générateur
+Genetic
+Génétique
+Geyser
+Drainage
+Gigantic
+Giga
+Gleam Eyes
+Brillœil
+Gloomdweller
+Ombrefuge
+Glowing
+Luminaire
+Gnash Teeth
+Grincedent
+Goldfish
+Poisson
+Grass Monkey
+Singe Herbe
+Grass Quill
+Plumefeuille
+Grass Snake
+Serpenterbe
+Grassland
+Plaine Verte
+Gratitude
+Gratitude
+Greedy
+Goulu
+Gripper
+Mainpince
+Grove
+Bosquet
+Grudge
+Rancune
+Gulp
+Avaltouron
+Guts
+Tenace
+Hairy Bug
+Insectopic
+Handstand
+Poirier
+Happiness
+Bonheur
+Hard Scale
+Blindé
+Hard Shell
+Carapadure
+Head Butt
+Coud'Boule
+Hearing
+Audition
+Heavyweight
+Poids Lourd
+Heel
+Vil Catcheur
+Herb
+Herbe
+Hermit Crab
+Symbiose
+Hex Nut
+Écrou
+Hibernator
+Hibernant
+High Temp
+Brûlant
+Hippo
+Hippo
+Hoodlum
+Gang
+Hostile
+Violent
+Howitzer
+Blaster
+Human Shape
+Humanoïde
+Humming
+Virevolteur
+Hypnosis
+Hypnose
+Ice Break
+Brise Glace
+Ice Chunk
+Glaçon
+Iceberg
+Iceberg
+Icy Snow
+Grêle
+Illuminating
+Luminescent
+Illusion Fox
+Polymorfox
+Imitation
+Imitation
+Insect
+Vermine
+Intertwining
+Attachant
+Intimidation
+Intimidation
+Irate
+Rude
+Iron
+Fer
+Iron Ant
+Fourmi Dure
+Iron Armor
+Armurfer
+Iron Ball
+Boulefer
+Iron Claw
+Pincefer
+Iron Leg
+Pattefer
+Iron Snake
+Serpenfer
+Iron Will
+Cœur de Fer
+Jellyfish
+Mollusque
+Jet
+Jet
+Jewel
+Joyau
+Jolly
+Jovial
+Jubilee
+Célébration
+Judo
+Judo
+Jujitsu
+Jujitsu
+Junkivore
+Bizarrovore
+Karate
+Karaté
+Key Ring
+Trousseau
+Kicking
+Latteur
+King
+Roi
+Kiss
+Bisou
+Kite
+Cervolant
+Kitten
+Chaton
+Knowledge
+Savoir
+Lamp
+Lampe
+Land Shark
+Terrequin
+Land Snake
+Serpent
+Land Spirit
+Tutélaire
+Larva
+Larve
+Launch
+Décollage
+Lava
+Lave
+Lava Dome
+Caldeira
+Lazy
+Fainéant
+Leaf
+Feuille
+Leaf-Wrapped
+Capefeuille
+Legendary
+Légendaire
+Licking
+Lécheur
+Life
+Existence
+Light
+Lumière
+Lightning
+Orage
+Lingering
+Âme Errante
+Lion Cub
+Lionceau
+Lissome
+Gracile
+Little Bear
+Mini Ours
+Live Coal
+Charbon
+Lizard
+Lézard
+Loitering
+Patrouille
+Lonely
+Solitaire
+Long Body
+Allongé
+Long Leg
+Long-Patte
+Long Neck
+Long-Cou
+Long Nose
+Long-Nez
+Long Tail
+Longqueue
+Longevity
+Longévité
+Lookout
+Vigilant
+Loud Noise
+Bruit Sourd
+Loyal Dog
+Chien Fidèle
+Lunar
+Lunaire
+Luring
+Invitation
+Mach
+Supersonic
+Magical
+Magique
+Magnet
+Magnétique
+Magnet Area
+Aimant
+Manipulate
+Magouilleur
+Mantis
+Mante
+Mantle
+Manteau
+Marionette
+Marionnette
+Martial Arts
+Art Martial
+Meditate
+Méditation
+Mega Fire Pig
+Grochon Feu
+Megapede
+Mégaplopode
+Megaton
+Titanesque
+Melody
+Mélodie
+Meringue
+Mousseline
+Meteor
+Météore
+Meteorite
+Météorite
+Milk Cow
+Vachalait
+Mime
+Mime
+Mischief
+Chenapan
+Mitosis
+Divisé
+Mock Kelp
+Simulalgue
+Mold
+Pourri
+Mole
+Taupe
+Moone
+Halo Lunaire
+Moonlight
+Lune
+Moth
+Phalène
+Mount
+Monture
+Mouse
+Souris
+Mud Fish
+Poissonboue
+Multiplying
+Multiplié
+Muscular
+Costaud
+Mushroom
+Champignon
+Music Note
+Note Musique
+Mysterious
+Mystérieux
+Mystic
+Mystique
+Nebula
+Nébuleuse
+Neon
+Néon
+New Species
+Nouveau
+Ninja
+Ninja
+Numb
+Engourdi
+Nurturing
+Précepteur
+Ogre Darner
+Libellogre
+Ogre Scorpion
+Scorpogre
+Old Shrimp
+Crustage
+Order
+Équilibre
+Ore
+Minerai
+Overturning
+Révolution
+Owl
+Hibou
+Painter
+Peintre
+Paleozoic
+Paléozoïque
+Parasite
+Parasite
+Parent
+Maternel
+Patient
+Patient
+Penguin
+Pingouin
+Perfume
+Fragrance
+Pig
+Cochon
+Pig Monkey
+Porsinge
+Pincer
+Pince
+Pitch-Black
+Noirtotal
+Placid
+Nonchalant
+Plasma
+Plasma
+Plate
+Blindage
+Playful
+Garnement
+Playhouse
+Maisonjouet
+Plump Mouse
+Souridodue
+Poison Bag
+Sac Poison
+Poison Bee
+Guêpoison
+Poison Gas
+Gaz Mortel
+Poison Moth
+Papipoison
+Poison Pin
+Vénépic
+Polka Dot
+Point Polka
+Pond Skater
+Maresurfeur
+Poodle
+Caniche
+Pop Star
+Starlette
+Posy Picker
+Tressefleur
+Predator
+Rapace
+Prim
+Guindé
+Prism
+Prisme
+Protostar
+Proto-Étoile
+Prototurtle
+Tortantique
+Proud
+Fier
+Psi
+Psy
+Pumpkin
+Citrouille
+Punching
+Puncheur
+Punk
+Punk
+Puppet
+Poupée
+Puppy
+Chiot
+Rabbit
+Lapin
+Radiator
+Calorifère
+Radome
+Radôme
+Rainbow
+Arcenciel
+Rampart
+Muraille
+Raven
+Corbeau
+Regal
+Majestueux
+Rendezvous
+Rendezvous
+Renegade
+Renégat
+Requiem
+Requiem
+Restraint
+Retenue
+Revolving
+Rotation
+River Crab
+Doux Crabe
+Rock
+Roche
+Rock Head
+Tête de Roc
+Rock Inn
+Lithicole
+Rock Peak
+Pic Rocheux
+Rock Skin
+Peaupierre
+Rock Snake
+Serpenroc
+Rogue
+Crapule
+Rogue Monkey
+Vilain Singe
+Roly-Poly
+Roulenboule
+Royal
+Royal
+Royal Heir
+Prince
+Royal Sword
+Noble Lame
+Ruffian
+Brute
+Rush
+Fonceur
+Rushing
+Fonceur
+Sage
+Grand Sage
+Sand Castle
+Châtod'Sable
+Sand Heap
+Pâtéd'Sable
+Sand Snake
+Serpensable
+Savage
+Féroce
+Scale
+Lépidécaille
+Scaly
+Écailles
+Scarecrow
+Épouvantail
+Scarf
+Écharpe
+Scatterdust
+Exhalécaille
+Scorching
+Fournaise
+Scorpion
+Scorpion
+Scout
+Espion
+Scratch Cat
+Chadégout
+Screech
+Strident
+Scuffle
+Bagarreur
+Sea Basin
+Bassinmarin
+Sea Creeper
+Varech
+Sea Cucumber
+Holothurie
+Sea Drifter
+Dérivenmer
+Sea Lily
+Lis d'Eau
+Sea Lion
+Otarie
+Sea Otter
+Loutre
+Sea Slug
+Aqualimace
+Sea Urchin
+Oursin
+Sea Weasel
+Aquabelette
+Seafaring
+Voyagenmer
+Seagull
+Mouette
+Season
+Saison
+Secret Agent
+Agent Secret
+Seed
+Graine
+Serene
+Serein
+Seven Spot
+Sept Points
+Sewing
+Couture
+Shadow
+Ombre
+Sharp Blade
+Coupant
+Sharp Claw
+Grifacérée
+Shed
+Exuvie
+Shedding
+Mue
+Sheep
+Mouton
+Shell Out
+Exuviateur
+Shellfish
+Carapace
+Shield
+Bouclier
+Sickle Grass
+Fauch'Herbe
+Silent
+Silencieux
+Single Bloom
+Uniflore
+Single Horn
+Unicorne
+Skewer
+Transperceur
+Skunk
+Moufette
+Sky High
+Cieux
+Sky Squirrel
+Pteromys
+Slacker
+Flâneur
+Sleeping
+Pionceur
+Sludge
+Dégueu
+Small Fry
+Minipoisson
+Snail
+Escargot
+Snake
+Serpent
+Snapping
+Mordillage
+Snow Hat
+Capuche
+Snow Land
+Enneigement
+Snowstorm
+Congère
+Soft Tissue
+Mollusque
+Soloist
+Soliste
+Sound Wave
+Ondes
+South Sea
+Mer du Sud
+Spark
+Étincelle
+Spatial
+Espace
+Spike Ball
+Balle Pic
+Spikes
+Piquant
+Spiny Armor
+Épinarmure
+Spiny Nut
+Bogue
+Spiral
+Spirale
+Spirit
+Âme
+Spitfire
+Crache-Feu
+Spot Panda
+Panda Tache
+Spray
+Jet d'Eau
+Stag Beetle
+Scarabée
+Stakeout
+Filature
+Star Shape
+Étoile
+Starling
+Étourneau
+Stealth
+Furtif
+Steam
+Vapeur
+Stomach
+Estomac
+Stone Home
+Lapidicole
+Striker
+Buteur
+String Spit
+Crache Fil
+Strong Arm
+Biscoteaux
+Stump
+Souche
+Subterrene
+Souterrain
+Sun
+Soleil
+Sunne
+Halo Solaire
+Superpower
+Colosse
+Swallow
+Hirondelle
+Swift Horse
+Cheval Vif
+Swine
+Porc
+Swollen
+Enflé
+Sword
+Glaive
+Sword Blade
+Tranchant
+Symbol
+Symbolique
+Synthetic
+Multigénome
+Tadpole
+Têtard
+Tantrum
+Caprice
+Teamwork
+Coopération
+Temporal
+Temps
+Tender
+Tendre
+Thorn
+Épine
+Thorn Monkey
+Singépine
+Thorn Pod
+Boule Épine
+Thorn Seed
+Graine Épine
+Thunder
+Foudre
+Thunderbolt
+Foudrélec
+Thunderclap
+Vif Éclair
+Tiger Cat
+Chatigre
+Time Travel
+Temporel
+Tiny Bee
+Miniabeille
+Tiny Bird
+Minoiseau
+Tiny Leaf
+Minifeuille
+Tiny Mouse
+Minisouris
+Tiny Pigeon
+Tipigeon
+Tiny Raccoon
+Petit Raton
+Tiny Robin
+Rougegorge
+Tiny Swallow
+Minirondel
+Tiny Turtle
+Minitortue
+Torch
+Torche
+Toxic Lizard
+Toxilézard
+Toxic Mouth
+Toxique
+Trainee
+Apprenti
+Transform
+Morphing
+Transport
+Transport
+Trap
+Piège
+Trash Bag
+Sac Poubelle
+Trash Heap
+Dépotoir
+Tricky Fox
+Sombrenard
+Triple Bird
+Trioiseau
+Tundra
+Toundra
+Turn Tail
+Cavaleur
+Turtle
+Tortue
+Tusk
+Crocs
+Twin Bird
+Duoiseau
+Twin Tusk
+Deudéfenses
+Two-Handed
+Bimane
+Two-Sided
+Volt Face
+Valiant
+Vaillant
+Vast White
+Blanc Réel
+Verdant
+Verdoyant
+Vibration
+Vibration
+Victory
+Victoire
+Viking
+Viking
+Vine
+Vigne
+Virtual
+Virtuel
+Volcano
+Volcan
+Warrior
+Valeureux
+Water Bird
+Oiseaudo
+Water Bubble
+Aquabulle
+Water Fish
+Poisson
+Water Gun
+Lance à Eau
+Water Lizard
+Lézard'Eau
+Water Weed
+Aquaplante
+Weather
+Climat
+Weed
+Racine
+Whiskers
+Barbillon
+Whisper
+Chuchoteur
+White Bird
+Cygne
+Wicked
+Malveillant
+Wild Bull
+Buffle
+Wild Duck
+Canard Fou
+Wild Horse
+Cheval Rétif
+Wild Monkey
+Turbusinge
+Wild Pigeon
+Sauvapigeon
+Willpower
+Volonté
+Wily
+Malin
+Wind Chime
+Carillon
+Windveiled
+Vole Vent
+Wing Fish
+Poisson Ailé
+Wish
+Souhait
+Wolf
+Loup
+Wood Gecko
+Bois Gecko
+Woodpecker
+Pivert
+Wool
+Laine
+Woolly Crab
+Crabe Velu
+Worm
+Ver
+Wrestling
+Catcheur
+Wushu
+Kung-fu
+Young Fowl
+Poulet
+Zen Charm
+Daruma

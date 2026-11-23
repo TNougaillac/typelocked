@@ -26,7 +26,7 @@
 | `001_Settings.rb` | `ZONE_GROUPS`, `DUPLICATE_BY_FAMILY`, `SHINY_CONSUMES_FREE_ZONE`, `GRAVEYARD_NAME`, `GRAVEYARD_BACKGROUND`, `SAVE_ON_DEFEAT`. |
 | `002_Data.rb` | Données de sauvegarde (`$nuzlocke`), zones utilisées, boîtes cimetière. |
 | `003_Encounters.rb` | Zones, doublons, shiny, blocage des Poké Balls. |
-| `004_Nicknames.rb` | Surnoms obligatoires. |
+| `004_Nicknames.rb` | Surnoms obligatoires (« Surnom de … ? »). |
 | `005_Permadeath.rb` | Mort, cimetière (fond, panneau du mort), verrou des PV, équipe K.O., sauvegarde à la défaite. |
 | `006_Setup.rb` | Fenêtre de choix du début de partie, inscrite auprès de NewGameSetup. |
 | `007_Storage.rb` | Verrous du PC sur les Pokémon morts. |
@@ -107,7 +107,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Caméra aux bords : une carte voisine qui ne couvre qu'une partie de la vue laisse encore voir du noir à côté d'elle (coins). En longeant un bord, la caméra peut sauter quand la carte voisine sort de la vue. Le décor n'est pas prolongé (cartes de remplissage à venir, #119).
 
 ## F04. Mode Monotype
-**Statut :** v1.7.0, écrit, **non testé**.
+**Statut :** v1.8.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -122,6 +122,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - **Arènes et Ligue :** avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, s'il n'y a aucun Pokémon du type dans l'équipe (par exemple un seul Pokémon qui a perdu le type en évoluant), le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
+- **Pokémon du type dans la zone :** en entrant sur une carte qui a des rencontres sauvages, une petite fenêtre en haut à droite affiche « Type X : N Pokémon ici » (ou « aucun Pokémon ici ») : le nombre d'espèces capturables avec le type, toutes rencontres confondues (herbes, grotte, surf, pêche). Rien sur une carte sans rencontres, ni sur une zone déjà utilisée au Nuzlocke (sa capture est faite). `SHOW_ZONE_COUNT = false` la retire.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -132,6 +133,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 | `003_Setup.rb` | Fenêtres du début de partie (type puis starter), inscrites auprès de NewGameSetup. |
 | `004_Capture.rb` | Blocage des captures. |
 | `005_Party.rb` | Combats d'arène et de Ligue, dons au PC, Pokémon inutilisables, verrous du PC. |
+| `007_ZoneCount.rb` | Fenêtre du nombre d'espèces du type à l'entrée d'une carte. |
 | `006_Roster.rb` | `ROSTER` : les 806 Pokémon du jeu, copie de `docs/roster/pokedex.csv` (vérifiée par la CI, qui vérifie aussi qu'il y a au moins 3 starters possibles par type). |
 
 ### Intégration
@@ -140,12 +142,13 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Labo du professeur (carte 4) : les 3 Poké Balls de la démo appellent `Monotype.starter_ball(i)` dans une condition « Script » ; si le joueur prend le Pokémon, elles gardent leurs effets (interrupteur 3, variable 7 = 1, 2 ou 3 selon la Poké Ball, interrupteur local A). Pour un autre lieu, recopier ces 3 événements.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
-`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
+`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle`, `:on_player_step_taken` et `:on_map_or_spriteset_change` (fenêtre de la zone, sous-classe de `LocationWindow`).
 
 ### À vérifier au premier lancement
 - La liste des 18 types tient à l'écran (la fenêtre défile normalement).
 - Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
 - Au labo, chaque Poké Ball propose un starter différent du type, et le Pokémon pris arrive dans l'équipe ; refuser laisse la Poké Ball en place.
+- En entrant sur une route, la fenêtre « Type X : N Pokémon ici » glisse en haut à droite puis remonte ; rien en ville sans eau ni dans un intérieur. Au Nuzlocke, après la première rencontre d'une route, en ressortir puis y revenir : plus de fenêtre.
 
 ### Limites connues
 - L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène ni à la Ligue).
@@ -185,7 +188,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Les PV affichés du boss et ses PV après capture (doivent revenir à la normale).
 
 ## F06. Placeur d'événements (MapEvents)
-**Statut :** v1.5.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
+**Statut :** v1.6.0, écrit, **non testé en jeu** (conversion testée hors jeu avec le compilateur réel d'Essentials).
 **Version cible :** Essentials v21.1. Plugin séparé de MapGen (aucune dépendance obligatoire).
 **Dossier :** `Plugins/MapEvents/`, plans dans `MapEvents/*.txt` (exemple : `MapEvents/exemple.txt`, sur la carte de `MapGen/exemple.txt`).
 
@@ -195,7 +198,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - **`[Npc A]` (PNJ ou pancarte) :** `Graphic` (sans graphisme = pancarte), `Facing` (`haut`, `bas`, `gauche`, `droite`), puis des `Text` (une boîte de message chacun) et des `Script` (une ligne de script chacun, ex. `pbPokemonMart([:POKEBALL, :POTION])`), exécutés dans l'ordre du fichier.
 - **Déplacements (PNJ et dresseurs) :** `Move = fixe` (par défaut), `vers_joueur` (s'approche du joueur) ou `ronde`. `Route = droite*3, attendre 60, gauche*3, regard_bas` est un trajet répété en boucle (pas : `haut`, `bas`, `gauche`, `droite`, `*n` pour répéter, `regard_<direction>`, `attendre <images>`) ; il implique `Move = ronde`, doit revenir à `Pos` et rester dans la carte (vérifié). `Speed` et `Frequency` de 1 à 6 comme dans l'éditeur, `Through = oui` pour traverser les autres. Pas de déplacement aléatoire (un PNJ ne peut pas être tenu dans une zone).
 - **`[Trainer B]` (dresseur) :** `Type`, `Name`, `Battle` obligatoires ; `Sight` (portée de vue, 3 par défaut) ; `Graphic` (sinon celui du type de dresseur) ; `Facing`. Les autres clés sont les commentaires de dresseur d'Essentials : `EndBattle`, `BattleID`, `DoubleBattle` / `Continue` (`oui`/`non`), `Backdrop`, `EndIfSwitch`, `VanishIfSwitch`, `Outcome`, `RegSpeech`. Plusieurs `Battle` = revanches. L'équipe est celle de `PBS/trainers.txt`.
-- **Champion d'arène :** un `[Trainer]` avec, après une victoire, `Win` (texte, codes de message acceptés comme `\me[Badge get]`), `Badge = n` (badge 1 à 8), `Gift = TM39` (objet donné), `Switch = n` (interrupteur activé). Le Monotype le reconnaît par son type `LEADER_…`.
+- **Champion d'arène :** un `[Trainer]` avec, après une victoire, `Win` (texte, codes de message acceptés comme `\me[Badge get]`), `Badge = n` (badge 1 à 8), `Gift = TM39` (objet donné), `Script = …` (ligne de script lancée après le `Gift`, plusieurs possibles), `Switch = n` (interrupteur activé). Le Monotype le reconnaît par son type `LEADER_…`.
 - **`Trigger` et `Hide` (PNJ) :** `Trigger = contact` déclenche le PNJ quand le joueur marche dessus ou le heurte (`action` par défaut). `Hide = V7>=1` le fait disparaître dès que la condition est vraie (une page vide qui se traverse prend le relais) : `A` à `D` (interrupteur local), `S25` (interrupteur 25 activé), `V7>=1` (variable 7 au moins à 1).
 - **`When`, `Wait`, `Gift` et `Once` (PNJ) :** `When = S4` (ou `V7>=1`) : le PNJ ne dit ses `Text`, ne lance ses `Script` et ne donne ses `Gift` qu'une fois la condition vraie, et dit ses `Wait` avant (une page de plus avant la sienne). `Gift = MACHETE` donne l'objet (`pbReceiveItem`), dans l'ordre du fichier avec les textes. `Once = Bonne route !` : le PNJ ne le fait qu'une fois (interrupteur local A), puis dit ses `Once` ; obligatoire avec un `Gift`, et incompatible avec `Hide = A`. Le nombre de sceaux passe par l'interrupteur du lieutenant (`S4` à `S11`).
 - **`[Copy N]` :** `From = 24,2` copie l'événement 2 de la carte 24 tel quel (pages, graphismes, commandes) sur `Pos`. Il garde son numéro s'il est libre, pour les événements qui le nomment (l'infirmière et sa machine de soin) : les copies sont placées avant les autres événements. `Graphic = …` remplace son apparence, sur toutes ses pages et dans ses déplacements (#114). `Confirm = script` est placé au début de la première réponse de son premier choix : si le script renvoie faux, l'événement s'arrête.
@@ -560,7 +563,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Cousins de la Famille :** un dresseur de route sur quatre est un Cousin ou une Cousine (`COUSIN_CHANCE`, types `COUSIN_M` et `COUSIN_F` ajoutés à `trainer_types.txt`, graphismes de la Team Rocket copiés), et chaque ville en a 0 ou 1 (`TOWN_COUSINS`), sauf la ville de départ. Leurs textes parlent de la Famille.
 - **Équipes :** tirées parmi les Pokémon sauvages de la zone (hautes herbes ou grotte, sinon l'eau, sinon la zone d'avant), au niveau le plus haut de la zone, moins 0 à 2 (`PARTY_LEVEL_SPREAD`), donc jamais au-dessus du plafond. Taille selon les sceaux gagnés avant (`PARTY_SIZES` : 1 à 2 au départ, 5 à 6 avec 8 sceaux). Écrites dans `PBS/trainers.txt` avec la version 100 (`TRAINER_VERSION`) : un nouveau monde remplace celles du précédent, et elles partent avec le monde supprimé. Les dresseurs faits main (autres versions) restent. Exportées dans `MapProc/Export/<monde>_<graine>_dresseurs.txt`.
 - **Lieutenants (champions d'arène) :** chaque arène du monde (îles comprises) a son lieutenant, au fond de l'arène (`GYM_LAYOUTS`). Son type favori est tiré avec la graine, jamais deux fois le même, parmi les types qui ont des Pokémon dans le roster et une CT utile. Son type de dresseur est celui de son type favori (`LEADER_TYPES` : `LIEUTENANT_FIRE`, `LIEUTENANT_WATER`... « Lieutenant » en jeu), donc son sprite aussi ; la règle d'arène du Monotype (F04) s'applique. Équipe de son type : 2 Pokémon au 1er sceau, 6 au 8e (`LEADER_PARTY_SIZES`), les plus évolués d'abord, le plus fort au plafond de niveau du tronçon, les autres jusqu'à 3 niveaux en dessous (`LEADER_LEVEL_SPREAD`).
-- **Sceau et CT :** battu, il remet sa chevalière (le badge `i`, interrupteur `3 + i`, « Gym 1 » à « Gym 8 » de la démo) puis une CT aléatoire de son type, jamais la même que celle d'un autre lieutenant. Une CT « utile » : puissance 70 ou plus (`TM_MIN_POWER`), 50 ou plus pour les 3 premiers lieutenants (`EARLY_GYMS`, `EARLY_TM_MIN_POWER`), ou une attaque de statut de la liste `TM_STATUS` (Danse-Lames, Toxik, Abri, Feu Follet...).
+- **Sceau et butin :** battu, il remet sa chevalière (le badge `i`, interrupteur `3 + i`, « Gym 1 » à « Gym 8 » de la démo) puis propose 3 récompenses, le joueur en garde une seule (`WorldEvents.seal_loot`, pas d'annulation, confirmation) : sa CT (aléatoire de son type, jamais la même que celle d'un autre lieutenant), un objet tenu et un lot d'objets. L'objet tenu et le lot sont tirés avec la graine (mêmes choix pour tous au défi du jour) dans le palier du sceau (`SEAL_LOOT_TIERS` : sceaux 1-2, 3-5, 6-8) : `SEAL_HELD_ITEMS` (de la Vive Griffe aux objets Choix et à l'Orbe Vie ; `BOOSTER` = l'objet du type imposé du joueur, Charbon pour Feu…) et `SEAL_PACKS` (Super Potions et Super Balls au début, Guérisons et Rappels Max à la fin). Une CT « utile » : puissance 70 ou plus (`TM_MIN_POWER`), 50 ou plus pour les 3 premiers lieutenants (`EARLY_GYMS`, `EARLY_TM_MIN_POWER`), ou une attaque de statut de la liste `TM_STATUS` (Danse-Lames, Toxik, Abri, Feu Follet...).
 - **Membres d'arène :** 2 à 4 membres de la Famille (Cousins, `GYM_MEMBERS`) par arène, de son type, 2 à 4 niveaux sous le lieutenant (`MEMBER_LEVEL_GAP`). L'un d'eux est toujours posé de façon à ce que sa vue couvre le chemin vers le lieutenant (places `blocking` de `GYM_LAYOUTS`) : il ne bloque pas le passage, il force le combat quand le joueur passe devant lui, comme dans les jeux officiels.
 - **Plafond de niveau :** les lieutenants sont tirés avec les plafonds de LevelCap (`ProceduralEncounters.level_caps`), donc le plafond avant le sceau `i` est toujours le niveau du Pokémon le plus fort du lieutenant `i`. LevelCap ne lit pas les équipes générées.
 - **Ligue :** dans les salles de la Ligue de l'inventaire (`LEAGUE_ROOMS`), dans l'ordre : les quatre Anciens, le Parrain, puis Arceus, au milieu de la salle (`LEAGUE_LAYOUTS`). La porte vers la salle suivante reste fermée (un événement devant elle renvoie le joueur d'un pas, `LEAGUE_DOOR_TEXT`) tant que la salle n'est pas gagnée : chaque victoire allume l'interrupteur `LEAGUE_SWITCH + n` (59 à 64). Les victoires restent acquises : un Ancien battu ne se rebat pas après une défaite plus haut.
@@ -623,7 +626,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 ### Intégration
 - Rien à faire : actif dès que MapProc génère un monde.
-- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` et `MART_STOCK` nomment des événements et des objets qui existent, que chaque route a ses dresseurs, que chaque dresseur a son équipe (taille selon les sceaux, espèces connues, niveau au plus au plafond, un seul par type et nom), que les plus forts dresseurs d'un tronçon ne sont jamais plus faibles que ceux du tronçon d'avant, que la vue d'un dresseur n'atteint ni sortie ni porte, que chaque arène a son lieutenant (types tous différents, équipe de son type, plus fort au plafond, CT utile de son type et jamais deux fois la même) et 2 à 4 membres de son type, qu'on ne peut pas atteindre le lieutenant à pied sans passer dans la vue d'un membre, que les types de dresseur existent avec leurs graphismes et leur genre, que les attaques de `TM_STATUS` et `SET_STATUS` et les objets de `SET_ITEMS` existent, que chaque Pokémon des lieutenants et de la Ligue a un set de 1 à 4 attaques qu'il peut connaître (niveau, CT ou reproduction sous le plafond de puissance), une attaque du type du dresseur s'il en apprend une par niveau, un talent caché seulement s'il en a un et un objet qui existe, que la Ligue a ses quatre Anciens (types différents), son Parrain et Arceus dans l'ordre des salles, chaque porte fermée par l'interrupteur de sa salle, des niveaux croissants au-dessus du dernier lieutenant, le Parrain au plafond, que chaque recoin a son butin, que chaque objet de terrain est donné dans sa ville après son sceau, qu'il y a `HEART_SCALES` Écailles Cœur, un Maître des Capacités avant le 2e sceau, que chaque don est unique et que les dons atteignent `GIFT_SHARE` %, que les objets des tables et les graphismes existent, que `dialogues.txt` se lit (avec le fichier et la ligne de l'erreur sinon), qu'aucune réplique n'est redite avant que sa section soit épuisée, que chaque ville (sauf la première) a ses habitants et chaque maison 1 à 2, que les cases de `HOUSE_SPOTS` sont libres et ne coupent aucun passage, et que la même graine redonne les mêmes événements.
+- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` et `MART_STOCK` nomment des événements et des objets qui existent, que chaque route a ses dresseurs, que chaque dresseur a son équipe (taille selon les sceaux, espèces connues, niveau au plus au plafond, un seul par type et nom), que les plus forts dresseurs d'un tronçon ne sont jamais plus faibles que ceux du tronçon d'avant, que la vue d'un dresseur n'atteint ni sortie ni porte, que chaque arène a son lieutenant (types tous différents, équipe de son type, plus fort au plafond, CT utile de son type et jamais deux fois la même, objet tenu et lot du butin dans le palier de son sceau) et 2 à 4 membres de son type, qu'on ne peut pas atteindre le lieutenant à pied sans passer dans la vue d'un membre, que les types de dresseur existent avec leurs graphismes et leur genre, que les attaques de `TM_STATUS` et `SET_STATUS` et les objets de `SET_ITEMS` existent, que chaque Pokémon des lieutenants et de la Ligue a un set de 1 à 4 attaques qu'il peut connaître (niveau, CT ou reproduction sous le plafond de puissance), une attaque du type du dresseur s'il en apprend une par niveau, un talent caché seulement s'il en a un et un objet qui existe, que la Ligue a ses quatre Anciens (types différents), son Parrain et Arceus dans l'ordre des salles, chaque porte fermée par l'interrupteur de sa salle, des niveaux croissants au-dessus du dernier lieutenant, le Parrain au plafond, que chaque recoin a son butin, que chaque objet de terrain est donné dans sa ville après son sceau, qu'il y a `HEART_SCALES` Écailles Cœur, un Maître des Capacités avant le 2e sceau, que chaque don est unique et que les dons atteignent `GIFT_SHARE` %, que les objets des tables et les graphismes existent, que `dialogues.txt` se lit (avec le fichier et la ligne de l'erreur sinon), qu'aucune réplique n'est redite avant que sa section soit épuisée, que chaque ville (sauf la première) a ses habitants et chaque maison 1 à 2, que les cases de `HOUSE_SPOTS` sont libres et ne coupent aucun passage, et que la même graine redonne les mêmes événements.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `MapProceduralGenerator.generate_world`, `generate_world_maps`, `remove_world_now` et `delete_exports` (après ProceduralEncounters, d'où le `Requires`) ; `Compiler.compile_trainers` ; `TrainerBattle.start_core` (combat double en simple avec un seul Pokémon en état).
@@ -633,7 +636,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Sans labo : le professeur dehors propose la liste des trois starters.
 - Les dresseurs repèrent le joueur et combattent avec l'équipe tirée ; les Cousins et Cousines ont le graphisme de la Team Rocket. Recompiler les PBS (Ctrl au lancement) la première fois, pour les nouveaux types de dresseur.
 - Au Centre : l'infirmière soigne avec l'animation de la machine ; le PC s'ouvre. À la boutique : le vendeur accueille au nom de la Famille et vend le stock du tronçon.
-- À l'arène : le membre posé sur le chemin repère le joueur et force le combat ; le lieutenant se bat avec la règle d'arène du Monotype, remet sa chevalière (badge dans la carte dresseur) puis la CT ; lui reparler ne redonne rien.
+- À l'arène : le membre posé sur le chemin repère le joueur et force le combat ; le lieutenant se bat avec la règle d'arène du Monotype, remet sa chevalière (badge dans la carte dresseur) puis propose ses 3 récompenses (CT, objet tenu, lot), une seule à garder ; lui reparler ne redonne rien.
 - Habitants : ils parlent avec le nom du joueur à la place de `{joueur}` ; dans les maisons, ils ne bloquent pas le passage.
 - Sets : dans le combat d'un lieutenant ou de la Ligue, les Pokémon ont les attaques, l'objet et le talent du `_dresseurs.txt` exporté.
 - Ligue : la porte d'une salle renvoie en arrière avant la victoire, puis s'ouvre ; les Anciens et le Parrain combattent avec la règle d'arène du Monotype ; Arceus se bat en boss (pas de fuite), puis disparaît et ouvre le Panthéon.
@@ -789,6 +792,16 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Remboursement :** chez n'importe quel usurier, tout l'argent du joueur jusqu'au montant dû (remboursement partiel possible).
 - **Échéance :** avant le prochain sceau. Un sceau gagné avec une dette = en retard.
 - **Recouvreurs :** en retard, en entrant sur une route (carte extérieure avec rencontres sauvages), `COLLECTOR_CHANCE` (35 %) qu'un Cousin arrête le joueur après `COLLECTOR_STEPS` (3) pas, une fois par visite. Son équipe : 2 à 3 Pokémon de la route au plafond de niveau (LevelCap, ou le meilleur niveau de l'équipe s'il est plus haut) + 2. Pas de K.O. : battu, il efface `COLLECTOR_CUT` (30 %) de la dette ; vainqueur, il prend tout l'argent du joueur (compté sur la dette). Les combats contre lui n'ajoutent pas d'intérêts.
+## F19. Textes en français (FrenchTexts)
+**Version cible :** Essentials v21.1. **Statut :** écrit, non testé (#113).
+
+### Règles
+- **Langue unique :** le jeu est en français. `Settings::LANGUAGES` ne contient que « Français », donc Essentials charge `Data/messages_french_core.dat` au lancement sans demander de langue.
+- **Données :** noms, catégories et entrées du Pokédex des 898 espèces, noms des formes, noms et descriptions des attaques, talents et objets, classes de dresseurs. CT/DT/CS deviennent CT01, DT01, CS01.
+- **Textes des scripts :** menus, combat, Sac, PC, Pokédex, Résumé, options, boutique, Safari, Deluxe Battle Kit et Modular UI (1 987 textes traduits à la main).
+- **Efficacité ×4 :** une attaque au moins quatre fois efficace affiche « C'est hyper efficace ! » (« C'est hyper efficace sur … ! » quand elle touche plusieurs cibles) au lieu de « super efficace ».
+- **Surnom (Nuzlocke) :** la question devient « Surnom de … ? » ; le surnom reste obligatoire.
+- **Noms en combat :** « Rattata ennemi », « Rattata sauvage », « Rattata allié » (sans article, pour éviter « de le »).
 
 ### Fichiers
 | Fichier | Rôle |
@@ -810,6 +823,30 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 ### Limites connues
 - Les recouvreurs n'ont pas d'événement sur la carte : ils surgissent (message puis combat).
+| `Plugins/FrenchTexts/001_Battle.rb` | Message d'efficacité ×4. |
+| `Plugins/FrenchTexts/002_Language.rb` | Déclare le français comme seule langue. |
+| `Text_french_core/*.txt` | Textes traduits, au format « Text_<langue>_core » d'Essentials (ligne anglaise, puis ligne française). Généré. |
+| `Data/messages_french_core.dat` | Fichier compilé lu par le jeu. Généré. |
+| `tools/translate/manual/*.txt` | Traductions écrites à la main (textes des scripts, formes, classes de dresseurs, corrections). |
+| `tools/translate/build_texts.rb` | Construit `Text_french_core/` depuis les PBS, les tables CSV de PokeAPI et les fichiers `manual/`. |
+| `tools/translate/compile_texts.rb` | Compile `Text_french_core/` en `Data/messages_french_core.dat`. |
+| `tools/ci/check_translations.rb` | CI : codes conservés ({1}, \\c[1], sauts de ligne) et fichier compilé à jour. |
+| `Plugins/Nuzlocke/004_Nicknames.rb` | Question du surnom sans « (obligatoire) ». |
+
+### Mettre à jour les textes
+1. Modifier une traduction : éditer `tools/translate/manual/<SECTION>.txt` (ou directement `Text_french_core/`, puis reporter le changement dans `manual/` pour qu'il survive à la prochaine génération).
+2. `ruby tools/translate/build_texts.rb <dossier des CSV PokeAPI>` (CSV de github.com/PokeAPI/pokeapi, `data/v2/csv`), utile seulement si les PBS changent.
+3. `ruby tools/translate/compile_texts.rb`. En jeu, le menu Debug « Compile Translated Text » donne le même fichier.
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+- `Battle::Move#pbEffectivenessMessage` (alias `__french_pbEffectivenessMessage`). Le plugin se charge avant le Deluxe Battle Kit (ordre alphabétique des dossiers), qui aliase à son tour la méthode pour ses déclencheurs.
+- `Settings::LANGUAGES` redéfini (`remove_const`), lu par `Game.initialize` et l'écran de chargement.
+
+### Limites connues
+- Restent en anglais : textes du menu Debug et des éditeurs, mini-jeux, Zone de Combat, Cadeau Mystère, téléphone, lettres, rubans, et les textes des cartes de démo d'Essentials.
+- Textes construits par interpolation Ruby (`_INTL("#{...}")`) : non traduisibles par fichier.
+- Descriptions issues de PokeAPI : la plus récente qui tient dans la place de la version anglaise, sinon la plus courte ; à vérifier dans les fenêtres du Résumé et du Sac. 20 descriptions d'objets (lettres, objets de démo) restent en anglais.
+- Les Pokédex des formes régionales reprennent l'entrée de l'espèce de base en anglais (PokeAPI ne les sépare pas).
 
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
@@ -917,4 +954,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
 | 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |
+| 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
