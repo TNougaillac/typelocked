@@ -6,6 +6,7 @@
 # maps, after the maps and their encounters. The plans and the trainers go
 # next to the world's export (MapProc/Export/<world>_<seed>_evenements.txt,
 # _dresseurs.txt), to read them or run them again from the MapEvents folder.
+# Each gym is then painted in its lieutenant's type (010_GymExteriors.rb).
 # When the world is deleted, its trainers go too.
 #===============================================================================
 module WorldEvents
@@ -22,6 +23,7 @@ module WorldEvents
     events = world_events(result, seed, zones: zones, encounters: generated, species: species, tms: game_tms, caps: caps,
                                         type: type)
     write_trainers(events[:trainers])
+    paint_gyms(events[:leaders])
     events[:plans].each_value do |text|
       plan = MapEvents.parse(text, File.basename(export))
       _map_id, notes = MapEvents.generate(plan)
