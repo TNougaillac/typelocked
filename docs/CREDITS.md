@@ -12,3 +12,4 @@ Ressources de fans utilisées par TypeLocked (projet privé, non commercial).
 | Remastered Kanto Johto Map Pack (v1.7) | AenaonDogsky (pack) et les auteurs qu'il crédite (Earthescape/Orbitender, Flurmimon…) | Tileset Cave 4G des grottes générées (`tools/art/caves_4g.py`) : roche, murs, sol, sable, échelle (`Caves.png`, #198) ; fond marin Underwater 4G, sable et roche teintés (`tools/art/seabed_4g.py`, #203) |
 | [Ekat's Tiny Interiors](https://eeveeexpo.com/resources/625) | Ekat, Heartlessdragoon (palettes RSE) | Pas encore utilisé (intérieurs, #46) |
 | Mew's Gen 4 Interior Tiles | Mew (crédit demandé par l'auteur ; à vérifier sur la page du pack) | Sols du tileset Interior 4G des intérieurs générés (`tools/art/interiors_4g.py`, #194) |
+| Images de météo | TypeLocked (dessinées par `tools/art/weather_4g.py`, sans ressource externe) | Pluie, orage, neige, blizzard, tempête de sable et brouillard au style DS (`Graphics/Weather`, #202) |
