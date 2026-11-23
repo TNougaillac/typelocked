@@ -1,0 +1,10 @@
+# Repaire des Chromés : le QG des motards (#221). Le garage où l'on entre et
+# ses bidons orange. Posé seulement là où la guilde est tirée.
+Brique = Repaire des Chromés
+Type   = chromes
+Porte  = 1,3
+[Map]
+KKKKğ ğ
+KKKK
+KKKK ğ
+KKKK

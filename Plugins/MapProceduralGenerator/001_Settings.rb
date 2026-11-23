@@ -175,6 +175,8 @@ module MapProceduralGenerator
     "pontes"   => [[6, 6, 8]],
     # The Dundees' hunting camp (#220): a hut
     "dundees"  => [[8, 3, 9]],
+    # The Chromed's den (#221): the garage, a house
+    "chromes"  => [[6, 6, 8]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     # The Showmen's fair (#217): the game hall, a building's
     "forains"  => [[12, 6, 10]],
@@ -192,7 +194,7 @@ module MapProceduralGenerator
                 "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
                 "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [],
                 "nageurs" => %w[plage], "pontes" => %w[plage],
-                "dundees" => %w[marais] }.freeze
+                "dundees" => %w[marais], "chromes" => [] }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
