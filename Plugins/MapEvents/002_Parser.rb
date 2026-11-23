@@ -36,6 +36,7 @@
 #   Badge = 1                   Outcome, RegSpeech; several Battle = rematches.
 #   Win = \me[Badge get]Badge !  Gym leader: Badge = n gives badge n (1-8),
 #   Gift = TM39                 Win = text after a win, Gift = item given,
+#   Script = pbFoo              Script = script line run after the Gift,
 #   Switch = 25                 Switch = game switch turned on)
 #   [Copy N]                   (a copy of event 2 of map 24, as it is there:
 #   Pos = 7,2                   pages, graphics, commands; it keeps its ID when
@@ -84,7 +85,7 @@ module MapEvents
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
     npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide] + MOVE_KEYS,
-    trainer: %w[Pos Graphic Facing Sight Badge Win Gift Switch] + MOVE_KEYS + TRAINER_COMMENTS,
+    trainer: %w[Pos Graphic Facing Sight Badge Win Gift Script Switch] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]
   }

@@ -7,6 +7,27 @@ module WorldEvents
 
   # The professor: greets the player, then opens the lab's Poké Balls (lab) or
   # offers the three starters in a list.
+  # After a seal: the lieutenant's three rewards, the player keeps one (no
+  # cancel). tm: an item or nil; held: an item, BOOSTER = the item of the
+  # player's type; pack: [[item, quantity]].
+  def seal_loot(tm, held, pack)
+    held = TYPE_BOOSTERS.fetch(Monotype.data.type, :EXPERTBELT) if held == :BOOSTER
+    options = []
+    if tm && GameData::Item.exists?(tm)
+      item = GameData::Item.get(tm)
+      options.push([_INTL("CT : {1}", GameData::Move.get(item.move).name), [[tm, 1]]])
+    end
+    options.push([_INTL("Objet tenu : {1}", GameData::Item.get(held).name), [[held, 1]]])
+    pack_name = pack.map { |id, qty| "#{qty} #{qty > 1 ? GameData::Item.get(id).name_plural : GameData::Item.get(id).name}" }
+    options.push([_INTL("Lot : {1}", pack_name.join(", ")), pack])
+    loop do
+      index = pbMessage(_INTL("Choisis ta récompense."), options.map(&:first), 0)
+      next if !pbConfirmMessage(_INTL("Prendre « {1} » ? Les autres seront perdues.", options[index][0]))
+      options[index][1].each { |id, qty| pbReceiveItem(id, qty) }
+      return
+    end
+  end
+
   def professor(lab)
     return say("professeur_apres") if Monotype.data.starter_given
     say("professeur_intro") if !$game_switches[CHOOSING_STARTER_SWITCH]

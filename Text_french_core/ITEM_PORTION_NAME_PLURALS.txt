@@ -1,0 +1,196 @@
+# French texts (ITEM_PORTION_NAME_PLURALS). Each English line is followed by its translation.
+[ITEM_PORTION_NAME_PLURALS]
+Relic Copper coins
+Vieux Sou
+Relic Gold coins
+Vieux Ducat
+Relic Silver coins
+Vieil Écu
+bags of Bright Powder
+Poudre Claire
+bags of Damp Mulch
+Fertihumides
+bags of Gooey Mulch
+Fertiglus
+bags of Growth Mulch
+Fertipousses
+bags of Metal Powder
+Poudre Métal
+bags of Pewter Crunchies
+Crok'Argentas
+bags of Quick Powder
+Poudre Vite
+bags of Sacred Ash
+Cendre Sacrée
+bags of Soft Sand
+Sable Doux
+bags of Stable Mulch
+Fertistables
+bags of Stardust
+Poussière Étoile
+blobs of Black Sludge
+Boue Noire
+bottles of Calcium
+Calciums
+bottles of Carbos
+Carbones
+bottles of Fresh Water
+Eau Fraîche
+bottles of HP Up
+PV Plus
+bottles of Iron
+Fers
+bottles of Moomoo Milk
+Lait Meumeu
+bottles of PP Max
+PP Max
+bottles of PP Up
+PP Plus
+bottles of Protein
+Protéines
+bottles of Soda Pop
+Soda Cool
+bottles of Throat Spray
+Spray Gorge
+bottles of Zinc
+Zincs
+cans of Lemonade
+Limonades
+clumps of Luminous Moss
+Lichen Lumineux
+clusters of Max Mushrooms
+Maxi Champi
+combs of Max Honey
+Maxi Miel
+cups of Berry Juice
+Jus de Baie
+dollops of Whipped Dream
+Chantibonbons
+doses of Energy Powder
+Poudrénergies
+doses of Heal Powder
+Poudre Soin
+jars of Full Incense
+Encens Plein
+jars of Honey
+Miels
+jars of Lax Incense
+Encens Doux
+jars of Luck Incense
+Encens Veine
+jars of Odd Incense
+Encens Bizarre
+jars of Pink Nectar
+Nectar Rose
+jars of Pure Incense
+Encens Pur
+jars of Purple Nectar
+Nectar Mauve
+jars of Red Nectar
+Nectar Rouge
+jars of Rock Incense
+Encens Roc
+jars of Rose Incense
+Encens Fleur
+jars of Sea Incense
+Encens Mer
+jars of Wave Incense
+Encens Vague
+jars of Yellow Nectar
+Nectar Jaune
+lumps of Light Clay
+Lumargiles
+pairs of Black Glasses
+Lunettes Noires
+pairs of Choice Specs
+Lunettes Choix
+pairs of Heavy-Duty Boots
+Grosses Bottes
+pairs of Safety Goggles
+Lunettes Filtre
+pairs of Wise Glasses
+Lunettes Sages
+pieces of Air Mail
+Lettre Avion
+pieces of Bloom Mail
+Lett. Pétale
+pieces of Brick Mail
+Lettre Brik
+pieces of Bubble Mail
+Lettre Mer
+pieces of Charcoal
+Charbons
+pieces of Flame Mail
+Lettre Feu
+pieces of Grass Mail
+Lettre Herbe
+pieces of Heart Mail
+Lettre Coeur
+pieces of Mosaic Mail
+Lettremosaïks
+pieces of Never-Melt Ice
+Glace Éternelle
+pieces of Snow Mail
+Lettre Neige
+pieces of Space Mail
+Lettre Cosmo
+pieces of Steel Mail
+Lettre Acier
+pieces of Tunnel Mail
+Lettre Mine
+piles of Shoal Salt
+Sel Tréfonds
+piles of Silver Powder
+Poudre Argentée
+scraps of Reaper Cloth
+Tissu Fauche
+servings of Leftovers
+Restes
+sets of Protective Pads
+Pare-Effets
+sets of Reins of Unity
+Rênes de l'Unité
+sprigs of Adamant Mint
+Aromate Rigide
+sprigs of Bold Mint
+Aromate Assuré
+sprigs of Brave Mint
+Aromate Brave
+sprigs of Calm Mint
+Aromate Calme
+sprigs of Careful Mint
+Aromate Prudent
+sprigs of Gentle Mint
+Aromate Gentil
+sprigs of Hasty Mint
+Aromate Pressé
+sprigs of Impish Mint
+Aromate Malin
+sprigs of Jolly Mint
+Aromate Jovial
+sprigs of Lax Mint
+Aromate Lâche
+sprigs of Lonely Mint
+Aromate Solo
+sprigs of Mild Mint
+Aromate Doux
+sprigs of Modest Mint
+Aromate Modeste
+sprigs of Naive Mint
+Aromate Naïf
+sprigs of Naughty Mint
+Aromate Mauvais
+sprigs of Quiet Mint
+Aromate Discret
+sprigs of Rash Mint
+Aromate Foufou
+sprigs of Relaxed Mint
+Aromate Relax
+sprigs of Sassy Mint
+Aromate Malpoli
+sprigs of Serious Mint
+Aromate Sérieux
+sprigs of Timid Mint
+Aromate Timide
+vouchers for Room Service
+Chariot Distordu
