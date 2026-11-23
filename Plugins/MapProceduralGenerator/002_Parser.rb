@@ -41,6 +41,9 @@
 #                               on the ground below the water, left end,
 #                               middle and right end; an [Ambiance] may give
 #                               its own tiles: « Rive = T832 T833 T834 »)
+#   EauBordee = oui            (optional: the water autotile draws its own
+#                               bottom bank, « Rive » is not drawn below it;
+#                               it still gives the rim of the levels, {rive})
 #   Rebord  = (_)              (with Ponton: [Legend] symbols of water with the
 #                               south lip of a pier drawn on it, left, middle
 #                               and right: the row below the last planks)
@@ -99,7 +102,7 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock, :plan, :sea_rock)
+                     :mask, :joints, :filler, :lock, :plan, :sea_rock, :edged_water)
   # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
@@ -110,6 +113,7 @@ module MapProceduralGenerator
   # ferry: its ferry terminal leads to an island (set by the world); nook:
   # the obstacle of its optional nook, a key of NOOKS (set by the world);
   # banks: « Rive », the 3 symbols of the bank below the water;
+  # edged_water: « EauBordee », the water draws its own bottom bank;
   # fixed_counts: quantities set by the world (plateau, islands), which the
   # ambiance doesn't change
   # ground, street: tile text of the ground and street symbols; banks: tiles
@@ -138,7 +142,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false, nil, nil, nil, false, nil, nil, nil, false)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false, nil, nil, nil, false, nil, nil, nil, false, false)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -194,6 +198,7 @@ module MapProceduralGenerator
         place.width, place.height = $1.to_i, $2.to_i
       when "sol"     then place.ground = symbol(value, fail_at)
       when "rue"     then place.street = symbol(value, fail_at)
+      when "eaubordee" then place.edged_water = (value == "oui")
       when "bordure" then place.border = symbol(value, fail_at)
       when "comble"  then place.filler = symbol(value, fail_at)
       when "sorties"

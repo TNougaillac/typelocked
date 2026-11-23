@@ -212,22 +212,36 @@ module MapProceduralGenerator
     #---------------------------------------------------------------------------
     # Lakes (« lac » in [Briques])
     #---------------------------------------------------------------------------
-    # A brick of water in a rough oval, made for this spot of the map.
+    # A brick of water made for this spot of the map: one to three rough
+    # ovals (LAKE_SHAPE), each new one centred on the rim of one before it,
+    # so that the lake stays in one piece; its empty rows and columns cut.
     # A giant lake (excess) that doesn't fit is retried smaller (shrink).
     def lake_brick(shrink = 0)
-      w, h = @rng.rand(6..11), @rng.rand(5..8)
+      w, h = @rng.rand(LAKE_SHAPE[:width]), @rng.rand(LAKE_SHAPE[:height])
+      first = @rng.rand(LAKE_SHAPE[:first])
       if excess[:giant_lake]
         bw, bh = border_size
         w = @rng.rand(12..[12, @w - (2 * bw) - 4].max.clamp(12, 22)) * (5 - shrink) / 5
         h = @rng.rand(9..[9, @h - (2 * bh) - 4].max.clamp(9, 16)) * (5 - shrink) / 5
+        first = 0.5
+      end
+      ovals = [[w / 2.0, h / 2.0, w * first, h * first]]
+      (@rng.rand(LAKE_SHAPE[:ovals]) - 1).times do
+        cx, cy, rx, ry = ovals[@rng.rand(ovals.length)]
+        angle = @rng.rand * 2 * Math::PI
+        ovals.push([cx + (rx * Math.cos(angle)), cy + (ry * Math.sin(angle)),
+                    w * @rng.rand(LAKE_SHAPE[:more]), h * @rng.rand(LAKE_SHAPE[:more])])
       end
       rows = Array.new(h) do |y|
         Array.new(w) do |x|
-          dx = (x + 0.5 - (w / 2.0)) / (w / 2.0)
-          dy = (y + 0.5 - (h / 2.0)) / (h / 2.0)
-          ((dx * dx) + (dy * dy) <= 1.0 + (@rng.rand * 0.25)) ? @place.water : " "
+          wet = ovals.any? { |cx, cy, rx, ry| (((x + 0.5 - cx) / rx)**2) + (((y + 0.5 - cy) / ry)**2) <= 1.0 + (@rng.rand * 0.25) }
+          wet ? @place.water : " "
         end.join
       end
+      rows.reject! { |row| row.strip.empty? }
+      left = rows.map { |row| row.index(/\S/) }.min
+      right = rows.map { |row| row.rindex(/\S/) }.max
+      rows.map! { |row| row[left..right] }
       return Brick.new(LAKE, "Lac", LAKE, nil, 1, false, rows)
     end
 
