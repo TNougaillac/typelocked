@@ -453,11 +453,11 @@ module MapProceduralGenerator
       brick_halo(brick).each { |dx, dy| @halo[y + dy][x + dx] += step if inside?(x + dx, y + dy) }
     end
 
-    # No roof over another brick or another roof.
+    # No roof over another brick or another roof, nor off the map.
     def halo_free?(brick, x, y)
       return brick_halo(brick).none? do |dx, dy|
         cx, cy = x + dx, y + dy
-        inside?(cx, cy) && (@halo[cy][cx] > 0 || (@kinds[cy][cx] && !@border[cy][cx]))
+        !inside?(cx, cy) || @halo[cy][cx] > 0 || (@kinds[cy][cx] && !@border[cy][cx])
       end
     end
 

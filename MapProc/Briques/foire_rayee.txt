@@ -1,6 +1,4 @@
-Brique = Stand rayé
+Brique = Stand au store bleu
 Type   = foire
 [Map]
-sss
-sss
-[.]
+sssss

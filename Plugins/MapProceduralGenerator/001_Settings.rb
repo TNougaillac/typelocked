@@ -207,7 +207,8 @@ module MapProceduralGenerator
     "β" => "Door_Olivine01", "ζ" => "Door_Olivine01", "κ" => "Door_Olivine01",
     "R" => "Door_Goldenrod01", "Ζ" => "Door_Goldenrod01", "Η" => "Door_Goldenrod01",
     "Κ" => "Door_Goldenrod01", "Φ" => "Door_Goldenrod01", "ι" => "Door_Goldenrod01",
-    "Ι" => "Door_Newbark01", "Σ" => "Door_Newbark01", "Τ" => "Door_Newbark01"
+    "Ι" => "Door_Newbark01", "Σ" => "Door_Newbark01", "Τ" => "Door_Newbark01",
+    "L" => "Door_Goldenrod01", "J" => "Door_Newbark01"
   }.freeze
 
   # The end of every world's chain, after its last town: the Victory Road (a

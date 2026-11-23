@@ -210,10 +210,6 @@ x = {sol} T919          # cailloux gris
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
 * = {sol} A5            # massif de fleurs
 ~ = {sol} A1            # eau des lacs
-[ = {sol} T1016         # pieds du stand rayé
-] = {sol} T1018
-{ = {sol} T1019         # pieds du stand jaune
-} = {sol} T1021
 e = {sol} T777          # escalier taillé dans une montagne
 ŀ = {sol} T777          # escalier dans la falaise d'une terrasse (gauche, droite)
 Ŀ = {sol} T778
@@ -361,17 +357,18 @@ o = T6529 4x4 halo=6x6@1,1/0,1,4,5,11,17,24,30   # maison rouge en bois (petite 
 Ш = T14144 4x3 halo=5x5@0,1/4,9   # maison verte au toit plat
 Щ = T14192 4x3 halo=5x6@0,2/4,9,14   # maison vert et jaune
 Э = T14248 5x3 halo=6x7@0,3/5,11,17   # immeuble jaune
-s = T1000 3x2        # stand rayé
-y = T1003 3x2        # stand jaune
+s = T14512 5x1 halo=5x4@0,2   # stand au store bleu (SirMalo)
+y = T14544 5x1 halo=5x4@0,2   # stand au store rose (SirMalo)
 t = T5248 2x2 forest=T5296         # arbre
 f = T1125 3x3 @q     # fontaine ronde, au milieu de la place, sur ses pavés (les rues la longent : with=f)
 v = T9928 2x4        # statue de la Famille (monument d'une ville, statue HGSS de SirMalo)
 l = T9200 1x2 halo=1x3@0,1 # lampadaire
 p = T8696 1x1          # jardinière (une par case, posée sur le sol)
 F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)
-J = T3344 4x4        # entrepôt du port
+J = T14465 5x3 halo=7x7@1,3/5,6,13,20   # entrepôt du port (SirMalo)
 b = T1096 5x3 L3 @~  # bateau amarré, sur l'eau
-L = T3088 8x5        # labo du Professeur (posé par le monde dans la ville de départ)
+L = T14321 7x4 halo=8x10@1,5/0,1,2,7,40,48,56,64,72   # labo du Professeur (SirMalo ; posé par le monde dans la ville de départ)
+Ї = T14400 1x4 halo=1x10@0,5/0   # labo du Professeur, partie droite
 I = T10384 8x5 halo=8x10@0,4   # bâtiment de la Ligue (SirMalo ; posé par le monde sur le plateau)
 ļ = T8744 1x1 halo=1x2@0,1 # buisson
 ń = T8752 1x2          # panneau d'affichage
