@@ -460,7 +460,7 @@ module MapProceduralGenerator
   # of that kind, the length and the colossal mountain left aside.
   def side_excess(world, kind, rng)
     return nil if rng.rand(100) >= world.excess
-    names = EXCESSES.select { |_name, e| e[:kind] == kind && !e[:long] && !e[:colossal] }.keys
+    names = EXCESSES.select { |_name, e| e[:kind] == kind && !e[:long] && !e[:colossal] && !e[:big] }.keys
     return names.sample(random: rng)
   end
 
@@ -897,10 +897,15 @@ module MapProceduralGenerator
     places.each do |wp|
       next if wp.excess || rng.rand(100) >= world.excess
       names = EXCESSES.select do |_name, e|
-        e[:kind] == wp.kind && !e[:long] && (!e[:colossal] || wp.mountain)
+        e[:kind] == wp.kind && !e[:long] && (!e[:colossal] || wp.mountain) && (!e[:big] || big_town?(world, wp))
       end.keys
       wp.excess = names.sample(random: rng)
     end
+  end
+
+  # A town big enough for a square and a plan (see PlaceBuilder#choose_plan)
+  def big_town?(world, wp)
+    return !wp.port && !wp.mask && [wp.w, wp.h].min * world.cell >= PLAZA[:min_side]
   end
 
   # Surf is obtained in a town with a gym, the Surf-th one or a later one;

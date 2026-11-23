@@ -132,6 +132,7 @@ module MapProceduralGenerator
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
+  RIDGE = "crete"     # file of the ridges drawn by the builder (type « montagne »)
   SIDES = %w[nord sud est ouest]
 
   module_function

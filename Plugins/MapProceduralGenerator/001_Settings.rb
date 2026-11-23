@@ -91,6 +91,10 @@ module MapProceduralGenerator
   BAND_MIN = 3
   MOUNTAIN_CLIMB = 0.7
   FACE_WAVE = 2
+  # A mountain river comes down the levels by cascades: it springs on the
+  # highest band it can go down from, SPRING_GAP rows below its north rim
+  # (no river above).
+  SPRING_GAP = 3
   MOUNTAIN_GRASS = 1..3
   # A raised band stops short of a side of the map that often (%), at least
   # SIDE_GAP tiles from its streets; peaks (one level above the ground
@@ -113,17 +117,65 @@ module MapProceduralGenerator
   # with TERRACE_SALT; drawn again (TERRACE_TRIES in all), then built flat,
   # when its bricks don't fit.
   TERRACE_CHANCE = 65
+  # The same for a plain route (see PlaceBuilder#terrace?): plateaus and
+  # canyons along the way, the streets climbing them by stairs; faces and
+  # depth: as TERRACE_FACES and TERRACE_DEPTH, a route being narrower;
+  # mesas: per square, on a route that can't climb by bands (east-west, L, U),
+  # mesa_width by mesa_height tiles, each one with chain more boxes joined to
+  # it (a ridge). A mesa's stair: on its south face, a path from the street
+  # of MESA_STAIR_REACH steps at most, around the mesa if need be.
+  ROUTE_TERRACE_CHANCE = 60
+  ROUTE_TERRACE = { faces: 1..3, depth: 5, mesas: 0.3..0.7, mesa_width: 6..12, mesa_height: 4..9, chain: 0..3 }.freeze
+  # The smallest mesa (width, height in tiles): a smaller piece of a level is
+  # lowered, its cliff would have no top behind it.
+  MESA_MIN = [4, 3].freeze
+  # Rounds of thicken at most (its fills and cuts could chase each other).
+  THICKEN_ROUNDS = 200
+  MESA_STAIR_REACH = 40
   TERRACE_TRIES = 4
-  TERRACE_PEAKS = 0.5..1.0
+  TERRACE_PEAKS = 1.0..2.0
   TERRACE_FACES = 2..4
   TERRACE_DEPTH = 7
   TERRACE_SALT = 0x7E44
+  PLOT_SALT = 0x9107
+  # A place that can't hold what it must (a required brick, a guild's
+  # headquarters) is laid out again, up to PLACE_RETRIES times, each try
+  # with the seed moved by PLACE_RETRY_STEP (its map, ambiance and plan text
+  # keep the place's seed).
+  PLACE_RETRIES = 8
+  PLACE_RETRY_STEP = 104_729
+  # A town's terraces, drawn as a map designer would: climbing from band to
+  # band that often (climb, up to 4 levels, see « Relief »), their sides cut that
+  # often (%), slanting in a column every few rows going down, their faces
+  # wandering up to face_wave rows between the streets.
+  # A ledge per building: a town's house stands on a plot one level up that
+  # often (%), where the ground around it is free, its path going down by
+  # stairs.
+  PLOT_CHANCE = 50
+  TOWN_TERRACE = { trim: 90, taper: 1..3, face_wave: 3, climb: 0.9 }.freeze
   MOUNTAIN_PEAKS = 0.5..1.5
   # Lakes (« lac » in [Briques]): drawn for their spot, one to three
   # overlapping ovals (round, long, bean or L-shaped ponds) in a box of that
   # size; the ovals added after the first are that much smaller (share of
   # the box, per side).
   LAKE_SHAPE = { width: 4..14, height: 4..10, ovals: 1..3, first: 0.35..0.5, more: 0.2..0.4 }.freeze
+  # Patches of grass (« herbes », « prairie », the parks of « parc » in
+  # [Briques]): that often (%)
+  # drawn for the spot like the lakes, of the symbol of the brick drawn,
+  # instead of that brick; width and height of their box, a quarter smaller
+  # each time it doesn't fit (as big as the place allows).
+  GRASS_SHAPE = {
+    "herbes"  => { chance: 100, width: 12..26, height: 7..14, ovals: 3..6, first: 0.3..0.4, more: 0.2..0.35 },
+    "prairie" => { chance: 100, width: 16..30, height: 9..16, ovals: 3..6, first: 0.3..0.4, more: 0.2..0.35 },
+    "parc"    => { chance: 100, width: 6..12, height: 4..8, ovals: 2..3, first: 0.35..0.45, more: 0.25..0.4 }
+  }.freeze
+  # Ridges (« montagne » in [Briques]): that often (%) drawn for the spot, a
+  # massif on a grid of 2x2 blocks, width by height blocks,
+  # instead of a brick of the files; a stair on its south face when it fits.
+  RIDGE_SHAPE = { chance: 70, width: 5..10, height: 2..4 }.freeze
+  # How often a side of a massif narrows by a block, row after row (%, from
+  # its top row to its foot): its foot ends rounded.
+  BOWL_BEND = 30..80
   # Hills (« colline » in [Briques]): drawn for the spot like the lakes, a
   # stair on their south face. In a town, only that often (%) when drawn.
   HILL_TOWN_CHANCE = 20
@@ -217,9 +269,29 @@ module MapProceduralGenerator
   # brick type => [models in a place of one square (20x20 tiles), more models
   # for each other square]. A village has 2 house models, a big town more.
   MODELS = { "maison" => [2, 0.6], "immeuble" => [1, 0.4], "batisse" => [1, 0.4] }.freeze
+  # Styles of houses: a place builds all its houses (« maison ») in one of
+  # them, so that their roofs and walls go together. weight: how often it is
+  # drawn, more in some ambiances; houses: the names of their bricks.
+  HOUSE_STYLES = {
+    "rustique" => { weight: 1, ambiances: { "chemins de terre" => 3, "automne" => 3, "marais" => 4, "terre battue" => 2, "neige" => 2 },
+                    houses: ["Case en paille", "Chalet rouge", "Chaumière", "Chaumière à cheminée", "Maison aux bardeaux",
+                             "Maison en bois", "Maison ocre", "Maison en rondins"] },
+    "chaud"    => { weight: 2, ambiances: { "sable" => 3, "volcan" => 4, "plage" => 3, "terre battue" => 2 },
+                    houses: ["Maison bordeaux à cheminée", "Maison orange à balustrade", "Maison crème", "Maison orange",
+                             "Maison orange à escalier", "Maison rouge à auvent", "Maison au toit rouge", "Maison verte à cheminée",
+                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge"] },
+    "froid"    => { weight: 2, ambiances: { "neige" => 3, "minérale" => 3, "verdoyante" => 2, "prairie" => 2 },
+                    houses: ["Garage", "Maison à auvent vert", "Maison bleue à cheminée", "Maison et jardin", "Maison mauve",
+                             "Maison au toit de mousse", "Maison au pignon bleu", "Petite maison à toit plat", "Maison turquoise à annexe",
+                             "Haute maison turquoise", "Maison violette", "Grande maison aux tuiles violettes", "Maison au toit vitré",
+                             "Maison au toit vitré bleu", "Petite maison verte"] }
+  }.freeze
+  HOUSE_STYLE_SALT = 5381
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
-  LAST_KINDS = %w[batisse special].freeze
+  LAST_KINDS = %w[batisse special barriere].freeze
+  # Fences (« barriere » in [Briques]): along a street, all along it.
+  FENCE = "barriere"
   EXTRA_SALT = 7951
   # Doors that lead elsewhere than an interior (caves, ferry, stairs)
   NO_INTERIOR = %w[grotte gare montagne colline].freeze
@@ -353,8 +425,16 @@ module MapProceduralGenerator
   # flood: water all over the free ground, the streets kept dry; carpet: that
   # symbol all over the free ground (over_street: over the streets too, not
   # the exits); ambiance: that [Ambiance] of the place file (its ground and
-  # streets), if the file has it. Seabeds: reach: how far the floor opens from
-  # the deep water (4..9 otherwise); weed: far more and bigger spots of seaweed.
+  # streets), if the file has it; trim: those types kept to their fewest;
+  # plans: the town's plan drawn among those (TOWN_PLANS, the next one when a
+  # plan can't be laid); grid: the streets of a « grille » along its canal
+  # too (many bridges); river: the width of its canal (CANAL otherwise);
+  # pave: the town's street over the free ground that far from a street
+  # (sidewalks); big: only in towns big enough for a square, not a port nor
+  # with a mask; pack: the boosted bricks laid from the biggest of their
+  # type (PACK_JITTER), the ones not laid yet first; flat: no terraces; without: those bricks (by name)
+  # left out. Seabeds: reach: how far the floor opens from the deep water
+  # (4..9 otherwise); weed: far more and bigger spots of seaweed.
   EXCESSES = {
     "forêt profonde"     => { kind: "route", boost: { "arbre" => 4 }, fill: "arbre", dense: true },
     "mer d'herbes"       => { kind: "route", boost: { "herbes" => 4, "prairie" => 3 }, fill: "herbes", dense: true, carpet: '"', over_street: true },
@@ -365,11 +445,18 @@ module MapProceduralGenerator
     "ville-jardin"       => { kind: "ville", boost: { "parc" => 3, "arbre" => 3 }, fill: "arbre", carpet: "*", ambiance: "chemins de terre" },
     "cité lacustre"      => { kind: "ville", boost: { "lac" => 2 }, giant_lake: true, flood: true },
     "grande foire"       => { kind: "ville", boost: { "foire" => 4, "lampe" => 2 }, fill: "foire" },
+    "métropole"          => { kind: "ville", boost: { "immeuble" => 4, "batisse" => 2, "special" => 2, "lampe" => 2 },
+                              trim: %w[maison arbre parc], plans: %w[canal grille], grid: true, river: 6..8, pave: 2, pack: true,
+                              flat: true, big: true,
+                              without: ["Abri en bois", "Cabane en rondins", "Cabanon", "Abri au toit fleuri", "Longère"] },
     "grotte immense"     => { kind: "grotte" },
     "dédale"             => { kind: "grotte" },
     "abysse"             => { kind: "fonds", reach: 10..16 },
     "forêt d'algues"     => { kind: "fonds", weed: true }
   }.freeze
+  # Excess « pack »: how much a brick's size is shuffled (times 1 to
+  # 1 + PACK_JITTER) when the biggest ones go first
+  PACK_JITTER = 0.6
   # The kinds of the places of the chain (the others are off it)
   CHAIN_KINDS = %w[ville route].freeze
 

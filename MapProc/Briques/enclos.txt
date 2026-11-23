@@ -1,0 +1,10 @@
+# Enclos : un pré fermé de barrières en bois, comme les enclos des fermes et
+# des villages des jeux (inspirations).
+Brique    = Enclos en bois
+Type      = enclos
+Ambiances = verdoyante, prairie, chemins de terre
+[Map]
+ȹȹȹȹ
+ȹȹȹȹ
+ȹȹȹȹ
+ȹȹȹȹ
