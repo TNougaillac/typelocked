@@ -167,6 +167,8 @@ module MapProceduralGenerator
     "temple"   => [[58, 7, 8]],
     # The Breeders' farm (#212): the Day Care
     "ferme"    => [[27, 4, 8]],
+    # The Rangers' post (#215): a cabin
+    "poste"    => [[8, 3, 9]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
     "arene"    => [[10, 6, 15]],
     "port"     => [[27, 4, 8]],
@@ -179,7 +181,8 @@ module MapProceduralGenerator
   # in (none: any). Its quantity is 0 in [Briques]: the guilds' draw sets it
   # (#182).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
-                "carriere" => ["minérale", "haute montagne"], "contrebande" => [] }.freeze
+                "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
+                "poste" => ["verdoyante", "automne", "forêt sombre"] }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
