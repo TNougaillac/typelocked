@@ -89,12 +89,26 @@ La personne que le Pacte a désignée pour cette génération. Les PNJ l'appelle
 _Avoid_ : Élu, Lié
 
 **Type imposé** :
-Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans toutes les parties, et le joueur est le seul dresseur de la région à en avoir un.
+Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans le mode principal du jeu, et le joueur est le seul dresseur de la région à en avoir un.
 _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 
 **Starter** :
 Le premier Pokémon du joueur, choisi parmi trois Pokémon de son type imposé.
 _Avoid_ : Pokémon de départ
+
+## L'exploration
+
+**Objet de terrain** :
+Un objet qui permet de franchir un obstacle de la région (un arbre à couper, un rocher à briser, l'eau à traverser…). Il remplace les capsules techniques des jeux d'origine : aucun Pokémon n'a besoin de connaître une capacité pour passer.
+_Avoid_ : CS, capsule secrète
+
+**Don du Pacte** :
+Le pouvoir que le Pacte donne au joueur sur son type imposé. Il lui permet de franchir un obstacle propre à ce type (le Feu fait fondre la glace, le Spectre traverse un mur hanté…), et chaque type a le sien.
+_Avoid_ : capacité de type, pouvoir du type
+
+**Recoin** :
+Un petit lieu facultatif fermé par un obstacle, avec quelque chose qui vaut le détour. Certains s'ouvrent au premier passage, d'autres demandent de revenir plus tard avec le bon objet de terrain.
+_Avoid_ : zone secrète, bonus
 
 ## Multijoueur
 
