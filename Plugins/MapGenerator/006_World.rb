@@ -24,7 +24,8 @@
 #                                   by row, the others left out of the Town
 #                                   Map; trace=1,1/3,1/3,4 = the line of a
 #                                   route on the Town Map, in half squares
-#                                   from the top-left of its rectangle)
+#                                   from the top-left of its rectangle;
+#                                   meteo=Rain,50 = the map's Weather)
 #   [World]
 #   ..1..                      (one char per Town Map square, "." = nothing;
 #   AAB..                       each place is one solid rectangle, places that
@@ -41,7 +42,7 @@ module MapGenerator
   # title: name shown in game (map metadata, Town Map), nil = the map's name;
   # mask: rows of "1" (square covered) and "0", nil = the whole rectangle;
   # trace: [[x, y]...] the route's line on the Town Map, in half squares
-  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id, :title, :mask, :trace) do
+  Place = Struct.new(:symbol, :name, :fly, :kind, :x, :y, :width, :height, :map_id, :title, :mask, :trace, :weather) do
     def display_name
       return title || name
     end
@@ -87,7 +88,7 @@ module MapGenerator
         fail_at.call("attendu « symbole = nom de la carte [vol=x,y] »") unless content =~ /\A(\S)\s*=\s*(.+)\z/
         symbol, rest = $1, $2
         fail_at.call("« #{WORLD_EMPTY} » est réservé aux cases vides") if symbol == WORLD_EMPTY
-        fly = kind = title = mask = trace = nil
+        fly = kind = title = mask = trace = weather = nil
         # Options from the end; a value may hold spaces (nom=Port Lucca)
         while rest =~ /\A(.+?)\s+(\w+)=(\S+(?:\s+[^\s=]+)*)\z/
           rest, key, value = $1, $2, $3
@@ -106,13 +107,17 @@ module MapGenerator
           when "trace"
             fail_at.call("attendu « trace=x,y/x,y... »") unless value =~ %r{\A\d+,\d+(/\d+,\d+)+\z}
             trace = value.split("/").map { |point| point.split(",").map(&:to_i) }
-          else fail_at.call("option « #{key} » inconnue (vol, type, nom, masque, trace)")
+          when "meteo"
+            fail_at.call("attendu « meteo=Rain,50 »") unless value =~ /\A\w+,\d+\z/
+            weather = value
+          else fail_at.call("option « #{key} » inconnue (vol, type, nom, masque, trace, meteo)")
           end
         end
         plan.places[symbol] = Place.new(symbol, rest.strip, fly, kind)
         plan.places[symbol].title = title
         plan.places[symbol].mask = mask
         plan.places[symbol].trace = trace
+        plan.places[symbol].weather = weather
       when :nolinks
         fail_at.call("attendu deux symboles, par exemple « A B »") unless content =~ /\A(\S)\s+(\S)\z/
         plan.no_links.push([$1, $2].sort)
@@ -291,8 +296,8 @@ module MapGenerator
     return kept
   end
 
-  # Sets Name, Outdoor, ShowArea, MapPosition and MapSize in each place's
-  # section, other keys are kept.
+  # Sets Name, Outdoor, ShowArea, MapPosition, MapSize and Weather in each
+  # place's section, other keys are kept.
   def update_map_metadata(lines, plan)
     plan.places.each_value do |place|
       x = plan.origin[0] + place.x
@@ -303,7 +308,8 @@ module MapGenerator
         "Outdoor"     => "true",
         "ShowArea"    => shown ? "true" : nil,
         "MapPosition" => shown ? "#{plan.region},#{x},#{y}" : nil,
-        "MapSize"     => (shown && place.width * place.height > 1) ? "#{place.width},#{place.mask&.join || ('1' * (place.width * place.height))}" : nil
+        "MapSize"     => (shown && place.width * place.height > 1) ? "#{place.width},#{place.mask&.join || ('1' * (place.width * place.height))}" : nil,
+        "Weather"     => place.weather
       }
       start = lines.index { |l| l =~ /\A\[0*#{place.map_id}\]/ }
       if !start
