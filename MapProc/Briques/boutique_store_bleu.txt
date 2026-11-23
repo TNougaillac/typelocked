@@ -1,0 +1,7 @@
+Brique = Boutique au store bleu
+Type   = immeuble
+Porte  = 1,2
+[Map]
+ΨΨΨΨ
+ΨΨΨΨ
+ΨΨΨΨ

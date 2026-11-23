@@ -1,0 +1,7 @@
+Brique = Bâtiment à bassin
+Type   = immeuble
+Porte  = 2,2
+[Map]
+εεεεε
+εεεεε
+εεεεε

@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Maison verte au toit plat
+Type   = batisse
+[Map]
+ШШШШ
+ШШШШ
+ШШШШ

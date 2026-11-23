@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Jardinerie
+Type   = batisse
+[Map]
+ФФФФФ
+ФФФФФ
+ФФФФФ

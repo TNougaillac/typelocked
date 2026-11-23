@@ -1,0 +1,6 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Abri en bois
+Type   = batisse
+[Map]
+ψψψψ
+ψψψψ

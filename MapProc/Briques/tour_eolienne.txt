@@ -1,0 +1,9 @@
+Brique = Tour à éolienne
+Type   = immeuble
+Porte  = 3,4
+[Map]
+ααααααα
+ααααααα
+ααααααα
+ααααααα
+ααααααα

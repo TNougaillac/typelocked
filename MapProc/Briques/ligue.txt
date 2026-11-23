@@ -3,7 +3,7 @@
 # Ligue (entrée, Anciens, Parrain, Arceus, Panthéon).
 Brique = Ligue
 Type   = ligue
-Porte  = 4,4
+Porte  = 3,4
 [Map]
 IIIIIIII
 IIIIIIII

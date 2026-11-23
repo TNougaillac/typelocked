@@ -1,0 +1,7 @@
+Brique = Maison orange à escalier
+Type   = maison
+Porte  = 1,2
+[Map]
+ΣΣΣΣ
+ΣΣΣΣ
+ΣΣΣΣ

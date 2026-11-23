@@ -1,0 +1,7 @@
+Brique = Salle de jeux violette
+Type   = immeuble
+Porte  = 3,2
+[Map]
+δδδδδδδ
+δδδδδδδ
+δδδδδδδ

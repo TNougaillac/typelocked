@@ -1,0 +1,7 @@
+Brique = Boutique aux néons
+Type   = immeuble
+Porte  = 1,2
+[Map]
+κκκκ
+κκκκ
+κκκκ

@@ -1,0 +1,7 @@
+Brique = Club de combat
+Type   = immeuble
+Porte  = 3,2
+[Map]
+λλλλλλλ
+λλλλλλλ
+λλλλλλλ

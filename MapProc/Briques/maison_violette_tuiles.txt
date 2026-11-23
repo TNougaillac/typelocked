@@ -1,0 +1,7 @@
+Brique = Grande maison aux tuiles violettes
+Type   = maison
+Porte  = 3,2
+[Map]
+ΔΔΔΔΔΔΔ
+ΔΔΔΔΔΔΔ
+ΔΔΔΔΔΔΔ

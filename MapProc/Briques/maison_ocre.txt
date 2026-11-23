@@ -1,0 +1,7 @@
+Brique = Maison ocre
+Type   = maison
+Porte  = 1,2
+[Map]
+ΦΦΦΦ
+ΦΦΦΦ
+ΦΦΦΦ

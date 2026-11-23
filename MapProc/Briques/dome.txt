@@ -1,10 +1,7 @@
-Brique = Grand dôme orange
+Brique = Dôme crème
 Type   = special
-Porte  = 3,5
+Porte  = 2,2
 [Map]
-RRRRRRR
-RRRRRRR
-RRRRRRR
-RRRRRRR
-RRRRRRR
-RRRRRRR
+RRRRR
+RRRRR
+RRRRR
