@@ -2,6 +2,6 @@
 Brique    = Parterre octogonal
 Type      = foire
 [Map]
- ĆĆĆ
-ĀĆĆĆĀ
-ĀĆĆĆĀ
+   ĆĆĆ
+Ā  ĆĆĆ  Ā
+Ā  ĆĆĆ  Ā

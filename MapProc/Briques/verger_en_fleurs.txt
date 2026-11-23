@@ -3,5 +3,5 @@ Brique    = Verger en fleurs
 Type      = decor
 Ambiances = verdoyante, prairie
 [Map]
-ðð ąą
-ðð ąą
+ðð  ąą
+ðð  ąą

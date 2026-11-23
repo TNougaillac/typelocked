@@ -348,6 +348,38 @@ parc  = 0
 lac   = 0
 decor = 1..3 par case
 
+# Plage (#207) : seulement au bord de la mer (ville portuaire, île, route
+# marine). Sable clair, parasols, criques d'eau entre les rochers, bancs de
+# sable ; arbres et falaises du sable. Briques réservées (« Ambiances = plage »).
+[Ambiance plage]
+Poids = 3
+Mer   = oui
+Sol   = T162
+Rue   = T162
+" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
+: = {sol} T7             # herbes très hautes sur le sable
+; = T175
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T5440 2x2 forest=T5488
+# Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+& = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=kKmMEFGHquvwnʼʽˀzPʘ L2 @.
+k = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=KmMEFGHquvwnʼʽˀzPʘ L2 @z
+K = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=mMEFGHquvwnʼʽˀzPʘ L2 @z
+m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=MEFGHquvwnʼʽˀzPʘ L2 @z
+M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnʼʽˀzPʘ L2 @z
+é = T5037 3x3 halo=4x4@1,1/0,3,12
+è = T5064 3x3 halo=4x4@0,1/0,3,15
+î = T4080 2x2
+û = T4082 3x1
+à = {sol} T4085
+ê = T5060 1x3
+ë = T5088 1x2
+Rive  = T833 T833 T833
+arbre = 0..1 par case
+parc  = 0
+decor = 2..3 par case
+
 [Legend]
 à = {sol} T475          # buisson
 ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)

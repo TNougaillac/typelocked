@@ -1,9 +1,11 @@
-# Rondins, caisses et un cône.
+# Rondins, caisses et un cône, chaque dessin entier (rien sous le haut
+# d'une borne ni sous le bas des rondins).
 Brique    = Chantier
 Type      = decor
 Ambiances = terre battue, chemins de terre
 Poids     = 2
 [Map]
-ęę  ġ
-ęęĚĚġĠ
-  ĚĚğ
+ęę   ġ Ġ
+ęę   ġ
+   ĚĚ  ğ
+   ĚĚ

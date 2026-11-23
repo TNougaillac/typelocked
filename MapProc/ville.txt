@@ -261,6 +261,34 @@ parc  = 0
 lac   = 0
 decor = 1..2 par case
 
+# Plage (#207) : seulement au bord de la mer (ville portuaire, île, route
+# marine). Sable clair, parasols, criques d'eau entre les rochers, bancs de
+# sable ; arbres et falaises du sable. Briques réservées (« Ambiances = plage »).
+[Ambiance plage]
+Poids = 3
+Mer   = oui
+Sol   = T162
+" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
+: = {sol} T7             # herbes très hautes sur le sable
+; = T175
+# Arbres, haies et buissons redessinés sur ce sol (ombres sans vert)
+t = T5440 2x2 forest=T5488
+# Falaises des terrasses sur ce sol (l'herbe de leurs bords en devient transparente)
+¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲłPʘ L2 @.
+ł = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=ŀĿĳĲPʘ L2 @.
+é = T5037 3x3 halo=4x4@1,1/0,3,12
+è = T5064 3x3 halo=4x4@0,1/0,3,15
+î = T4080 2x2
+û = T4082 3x1
+à = {sol} T4085
+ê = T5060 1x3
+ë = T5088 1x2
+Rive  = T833 T833 T833
+Rue   = T274
+arbre = 0..1 par case
+parc  = 0..1 par case
+decor = 1..2 par case
+
 [Legend]
 à = {sol} T475          # buisson
 q = T274                # pavé sous la fontaine de la place (le centre de « Rue »)
@@ -297,6 +325,8 @@ _ = {sol} A1 T1222
 ) = {sol} A1 T1223
 % = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
 $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
+£ = {sol} A1 A4         # idem (symbole des routes, briques partagées : crique)
+µ = {sol} A1 A6         # rocher dans l'eau, idem (symbole des routes)
 
 # Relief : une case de falaise sur la carte (son sol ; le niveau dessine la
 # falaise sur la couche 3) et, sur la couche 3, un escalier ou un arbre de
