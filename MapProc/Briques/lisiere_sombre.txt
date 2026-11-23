@@ -1,0 +1,8 @@
+# Forêt sombre : une lisière, une longue rangée d'arbres serrés.
+Brique    = Lisière sombre
+Type      = decor
+Ambiances = forêt sombre
+Poids     = 2
+[Map]
+tttttttt
+tttttttt

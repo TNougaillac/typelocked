@@ -380,6 +380,21 @@ arbre = 0..1 par case
 parc  = 0
 decor = 2..3 par case
 
+# Forêt sombre (#208) : comme la Forêt Vestigion et le Bois aux Chênes, de
+# grands arbres serrés, des clairières de hautes herbes, peu de lumière (la
+# teinte de la carte, drapeau DarkForest de map_metadata). Briques réservées
+# (« Ambiances = forêt sombre »).
+[Ambiance forêt sombre]
+Poids = 1
+Sol   = T1|T1|T1|T2|T3
+Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
+arbre = 1..1 par case
+herbes = 1..2 par case
+parc  = 0
+lac   = 0
+corniche = 0
+decor = 0..1 par case
+
 [Legend]
 à = {sol} T475          # buisson
 ò = {sol} T484          # cime de l'arbre rond (au-dessus de è)

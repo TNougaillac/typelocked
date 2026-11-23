@@ -1,0 +1,10 @@
+# Forêt sombre : deux grands pins sombres, assez écartés pour que leurs
+# dessins ne se recouvrent pas.
+Brique    = Pins sombres
+Type      = decor
+Ambiances = forêt sombre
+Poids     = 2
+[Map]
+ééé ééé
+ééé ééé
+ééé ééé

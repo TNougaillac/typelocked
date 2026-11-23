@@ -163,6 +163,30 @@ def check_object_halos(plan, name)
       end
     end
   end
+  check_forest_canopies(plan, name, owner)
+end
+
+# A forest's canopy (2 rows above its top trees, a column of leaves on each
+# side, MapGenerator's draw_forest) never covers another object or its drawing.
+def check_forest_canopies(plan, name, owner)
+  rows = plan.rows
+  at = ->(x, y) { y >= 0 && x >= 0 ? rows[y]&.[](x) : nil }
+  rows.each_with_index do |row, y|
+    row.each_char.with_index do |c, x|
+      next if !plan.objects[c]&.forest
+      cells = []
+      cells.push([x, y - 1], [x, y - 2]) if at.call(x, y - 1) != c
+      cells.push([x - 1, y]) if at.call(x - 1, y) != c
+      cells.push([x + 1, y]) if at.call(x + 1, y) != c
+      cells.each do |cx, cy|
+        other = at.call(cx, cy)
+        next if !other || (other != c && !plan.objects[other] && !owner[[cx, cy]])
+        next if other == c
+        raise MapGenerator::Error, "#{name} : la cime de la forêt « #{c} » colonne #{x + 1}, ligne #{y + 1} recouvre un autre objet " \
+                                   "(colonne #{cx + 1}, ligne #{cy + 1})"
+      end
+    end
+  end
 end
 
 def check_spill(plan, name)
@@ -554,6 +578,12 @@ end
 M::WEATHER.each_value do |table|
   table.each { |type, _| CI.error(File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb"), nil, "WEATHER : météo #{type} inconnue") if !WEATHERS.include?(type.to_s) }
 end
+# Map flags of the ambiances (a tone each, a known ambiance)
+settings = File.join(ROOT, "Plugins/MapProceduralGenerator/001_Settings.rb")
+M::AMBIANCE_FLAGS.each do |ambiance, flag|
+  CI.error(settings, nil, "AMBIANCE_FLAGS : #{flag} sans teinte (TONE_FLAGS)") if !M::TONE_FLAGS.key?(flag)
+  CI.error(settings, nil, "AMBIANCE_FLAGS : ambiance « #{ambiance} » inconnue") if !ambiance_names.include?(ambiance)
+end
 worlds.each do |path|
   world = M.parse_world(CI.read_text(path), File.basename(path))
   town, route = [world.town_file, world.route_file].map do |name|
@@ -571,6 +601,12 @@ worlds.each do |path|
     # Each weather written exists, and the same seed draws the same ones
     weathers = plan.places.values.map(&:weather)
     weathers.compact.each { |w| CI.error(path, nil, "graine #{seed} : météo #{w} inconnue") if !WEATHERS.include?(w[/\A\w+/]) }
+    # Each map flag written is that of its place's ambiance
+    result.places.each do |wp, _place, _text, layout|
+      written = plan.places[wp.symbol]&.flags
+      wanted = M::AMBIANCE_FLAGS[layout.ambiance]
+      CI.error(path, nil, "graine #{seed} : #{wp.name} drapeaux=#{written.inspect} au lieu de #{wanted.inspect}") if written != wanted
+    end
     if seed == WORLD_SEEDS.first
       again = MapGenerator.parse_world(M.generate_world(world, town, route, bricks, seed, {}, name_table).text, "#{File.basename(path)} (graine #{seed})")
       CI.error(path, nil, "graine #{seed} : météo différente pour la même graine") if again.places.values.map(&:weather) != weathers

@@ -1155,6 +1155,8 @@ module MapProceduralGenerator
       line += "  trace=#{wp.trace.map { |point| point.join(',') }.join('/')}" if wp.trace
       weather = place_weather(wp, layout, seed)
       line += "  meteo=#{weather}" if weather
+      flag = AMBIANCE_FLAGS[layout.ambiance]
+      line += "  drapeaux=#{flag}" if flag
       text << line << "\n"
     end
     fillers.each { |f| text << "#{f.symbol} = #{f.name}  type=decor\n" }
