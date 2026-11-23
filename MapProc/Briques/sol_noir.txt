@@ -1,0 +1,10 @@
+# Volcan : une plaque de sol noir (basalte refroidi, on y marche).
+Brique    = Sol noir
+Type      = decor
+Ambiances = volcan
+Poids     = 4
+[Map]
+ ɱɱɱɱ
+ɱɱɱɱɱɱ
+ɱɱɱɱɱɱ
+ ɱɱɱɱ

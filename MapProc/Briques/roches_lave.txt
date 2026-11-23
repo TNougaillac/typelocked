@@ -1,0 +1,11 @@
+# Volcan : des roches de lave sur une plaque de sol noir (on les contourne).
+Brique    = Roches de lave
+Type      = decor
+Ambiances = volcan
+Poids     = 3
+[Map]
+ ɱɱɱɱɱ
+ɱɱɯɱɱɱɱ
+ɱɱɱɱɯɯɱ
+ɱɯɱɱɱɱɱ
+ ɱɱɱɱɱ

@@ -1,0 +1,10 @@
+# Volcan : une mare de lave, on n'y passe pas (jamais sur un chemin).
+Brique    = Mare de lave
+Type      = decor
+Ambiances = volcan
+Poids     = 3
+[Map]
+ ɫɫɫɫ
+ɫɫɫɫɫɫ
+ɫɫɫɫɫɫ
+ ɫɫɫɫ
