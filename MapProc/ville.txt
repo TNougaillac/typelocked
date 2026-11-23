@@ -259,8 +259,8 @@ $ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 ç = T563 3x7         # arbre tropical
 î = T669 2x2         # haie carrée
 û = T685 3x1         # haie
-a = T836 2x4         # flèche rocheuse brune (désert)
-i = T916 2x4         # flèche rocheuse grise (minéral)
+a = T9880 2x2        # gros rocher brun (désert)
+i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
 C = T6064 5x5 halo=6x6@0,0/5,11        # Centre Pokémon (SirMalo, HGSS)
 M = T6112 4x4 halo=5x5@0,0/4          # Boutique (bleue)
 N = T6152 4x4 halo=5x5@0,0/4          # Boutique (violette)
@@ -289,7 +289,7 @@ s = T1000 3x2        # stand rayé
 y = T1003 3x2        # stand jaune
 t = T5248 2x2 forest=T5296         # arbre
 f = T1125 3x3 @q     # fontaine ronde, au milieu de la place, sur ses pavés (les rues la longent : with=f)
-v = T1014 2x4        # statue de la Famille (monument d'une ville)
+v = T9928 2x4        # statue de la Famille (monument d'une ville, statue HGSS de SirMalo)
 l = T9200 1x2 halo=1x3@0,1 # lampadaire
 p = T8696 1x1          # jardinière (une par case, posée sur le sol)
 F = T3304 5x5 L3 @~  # gare maritime, sur l'eau (on y entre par le haut, depuis le ponton)

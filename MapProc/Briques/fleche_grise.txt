@@ -3,7 +3,5 @@ Brique    = Flèche rocheuse grise
 Type      = decor
 Ambiances = minérale
 [Map]
-ii
-ii
-ii
-iix
+iii
+iiix

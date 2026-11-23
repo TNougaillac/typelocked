@@ -1,9 +1,7 @@
-# Désert : une flèche de roche brune, des cailloux à son pied.
-Brique    = Flèche rocheuse brune
+# Désert : un gros rocher brun, des cailloux à son pied.
+Brique    = Gros rocher brun
 Type      = decor
 Ambiances = sable
 [Map]
-aa
-aa
 aa
 aad
