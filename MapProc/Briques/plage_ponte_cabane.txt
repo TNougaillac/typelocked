@@ -1,0 +1,10 @@
+# Plage de ponte : le QG des Gardiens des pontes (#219), la cabane de garde
+# seule (ville sans place pour l'enclos).
+Brique    = Cabane des Gardiens des pontes
+Type      = pontes
+Ambiances = plage
+Porte     = 1,2
+[Map]
+ΘΘΘ
+ΘΘΘ
+ΘΘΘ
