@@ -1,8 +1,7 @@
-Brique = Bâtiment Card orange
+Brique = Maison orange
 Type   = special
-Porte  = 2,3
+Porte  = 1,2
 [Map]
-ZZZZ
-ZZZZ
-ZZZZ
-ZZZZ
+ZZZZZ
+ZZZZZ
+ZZZZZ
