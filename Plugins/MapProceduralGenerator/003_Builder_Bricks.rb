@@ -156,7 +156,6 @@ module MapProceduralGenerator
     # Free tiles that can be walked to from the exits and doors.
     def reachable_ground
       starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
-      starts.push([@terminal[0], @terminal[1] - 1]) if @terminal
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each do |start|
         next if seen[start[1]][start[0]]

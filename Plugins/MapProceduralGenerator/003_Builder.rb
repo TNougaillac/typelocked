@@ -27,7 +27,7 @@ module MapProceduralGenerator
   # rows: MapGen [Map] rows; doors: [x, y, brick] (door cells); exits:
   # [side, x, y] (first street cell on the map edge)
   # deep: cells of deep water, where the player can dive; terminal: [x, y] of
-  # the ferry terminal's door (its top middle cell, entered from the pier);
+  # the ferry terminal's door (on the quay, entered from the promenade below);
   # spots: the place's inventory (see PlaceBuilder#inventory); levels: the
   # [Layer3] rows of the raised levels (nil without), see level_rows
   Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance, :levels)
@@ -50,7 +50,10 @@ module MapProceduralGenerator
   PORT = "port"   # type of the port buildings, only put along the quay
   MONUMENT = "monument"   # a town's monument, by its square
   DECOR = "decor"         # pure decoration of an ambiance, after the other required bricks
-  TERMINAL = "gare"   # type of the ferry terminal, on piles at the end of a pier
+  TERMINAL = "gare"   # type of the ferry terminal, on the quay
+  # Rows between the terminal and the promenade: the closest that fits
+  TERMINAL_GAPS = [0..3, 4..8].freeze
+  PORT_GAP = 0..3     # rows between a port building and the promenade
   # Sea depth of a port town, at most PORT_SHARE of the map across
   PORT_DEPTH = 9..11
   PORT_SHARE = 0.28
@@ -144,7 +147,6 @@ module MapProceduralGenerator
       @water = Array.new(@h) { Array.new(@w, false) }
       lay_port(hub) if @place.port
       lay_shore if @place.island
-      moor_boat if @terminal && (@place.ferry || @place.island)
       scatter_reefs(ISLAND_BANKS, ISLAND_REEFS, @rng) if @place.island
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if @place.port
       @rng.rand(@place.spurs).times { carve_spur(hub) }
@@ -190,7 +192,6 @@ module MapProceduralGenerator
     #   cave its entrance (the loot is in the cave).
     def inventory
       starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
-      starts.push([@terminal[0], @terminal[1] - 1]) if @terminal
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each { |start| walk_foot(start, seen) if !seen[start[1]][start[0]] }
       on_street = ->(x, y) { inside?(x, y) && @street[y][x] && !@stairs_at&.key?([x, y]) }
@@ -394,13 +395,10 @@ module MapProceduralGenerator
       error("l'île n'a pas de gare maritime") if @place.island && !@terminal
       start = if !@exits.empty?
                 @exits[0][1, 2]
-              elsif @terminal
-                [@terminal[0], @terminal[1] - 1]
               else
                 [@doors[0][0], @doors[0][1] + 1]
               end
       seen = walk(start)
-      error("la gare maritime est inaccessible") if @terminal && !seen[@terminal[1] - 1][@terminal[0]]
       @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
       @doors.each do |dx, dy, brick|
         error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]
