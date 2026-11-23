@@ -164,9 +164,13 @@ module ProceduralEncounters
       cover == true || (cover == :surf && t.zone.surf)
     end
     gaps = []
-    covering.map { |t| t.zone.seals }.uniq.sort.each do |seals|
+    # The window counts tronçons, not seals: a port and its island may both
+    # have a gym, two seals at once with no tronçon between them
+    tiers = covering.map { |t| t.zone.seals }.uniq.sort
+    tiers.each_with_index do |seals, i|
       segment = covering.select { |t| t.zone.seals == seals }
-      window = covering.select { |t| t.zone.seals.between?(seals - COVER_WINDOW + 1, seals) }
+      first = tiers[[i - COVER_WINDOW + 1, 0].max]
+      window = covering.select { |t| t.zone.seals.between?(first, seals) }
       missing = all_types.reject do |type|
         window.any? { |t| t.slots.any? { |e| e.species.monotype_types.include?(type) } }
       end

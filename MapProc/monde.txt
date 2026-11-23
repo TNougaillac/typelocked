@@ -102,7 +102,7 @@ Vol      = 6
 Recoins  = 30
 # Démesure : chance (en %) qu'un lieu soit hors norme : forêt profonde, mer
 # d'herbes, chaos rocheux, lac géant, montagne colossale, route interminable,
-# ville-jardin, cité lacustre, grande foire ; et hors de la chaîne, une île
+# ville-jardin, cité lacustre, grande foire, métropole ; et hors de la chaîne, une île
 # (comme une ville ou une route), une grotte (grotte immense, dédale) ou des
 # fonds (abysse, forêt d'algues).
-Demesure = 25
+Demesure = 75
