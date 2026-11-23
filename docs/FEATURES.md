@@ -26,7 +26,7 @@
 | `001_Settings.rb` | `ZONE_GROUPS`, `DUPLICATE_BY_FAMILY`, `SHINY_CONSUMES_FREE_ZONE`, `GRAVEYARD_NAME`, `GRAVEYARD_BACKGROUND`, `SAVE_ON_DEFEAT`. |
 | `002_Data.rb` | Données de sauvegarde (`$nuzlocke`), zones utilisées, boîtes cimetière. |
 | `003_Encounters.rb` | Zones, doublons, shiny, blocage des Poké Balls. |
-| `004_Nicknames.rb` | Surnoms obligatoires. |
+| `004_Nicknames.rb` | Surnoms obligatoires (« Surnom de … ? »). |
 | `005_Permadeath.rb` | Mort, cimetière (fond, panneau du mort), verrou des PV, équipe K.O., sauvegarde à la défaite. |
 | `006_Setup.rb` | Fenêtre de choix du début de partie, inscrite auprès de NewGameSetup. |
 | `007_Storage.rb` | Verrous du PC sur les Pokémon morts. |
@@ -107,7 +107,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Caméra aux bords : une carte voisine qui ne couvre qu'une partie de la vue laisse encore voir du noir à côté d'elle (coins). En longeant un bord, la caméra peut sauter quand la carte voisine sort de la vue. Le décor n'est pas prolongé (cartes de remplissage à venir, #119).
 
 ## F04. Mode Monotype
-**Statut :** v1.7.0, écrit, **non testé**.
+**Statut :** v1.8.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/Monotype/`
 
@@ -122,6 +122,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - **Arènes et Ligue :** avant le combat contre un dresseur d'arène, un champion, un membre du Conseil 4 ou le Maître, s'il n'y a aucun Pokémon du type dans l'équipe (par exemple un seul Pokémon qui a perdu le type en évoluant), le message « Seuls les Pokémon de type X peuvent combattre dans les arènes et à la Ligue » s'affiche à la place du combat, et le dresseur n'est pas battu.
 - **CT et capacités :** aucune restriction de type, seulement celles des Pokémon.
 - **Avec le Nuzlocke :** cumulable. Une rencontre hors du type ne consomme pas la zone.
+- **Pokémon du type dans la zone :** en entrant sur une carte qui a des rencontres sauvages, une petite fenêtre en haut à droite affiche « Type X : N Pokémon ici » (ou « aucun Pokémon ici ») : le nombre d'espèces capturables avec le type, toutes rencontres confondues (herbes, grotte, surf, pêche). Rien sur une carte sans rencontres, ni sur une zone déjà utilisée au Nuzlocke (sa capture est faite). `SHOW_ZONE_COUNT = false` la retire.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -132,6 +133,7 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 | `003_Setup.rb` | Fenêtres du début de partie (type puis starter), inscrites auprès de NewGameSetup. |
 | `004_Capture.rb` | Blocage des captures. |
 | `005_Party.rb` | Combats d'arène et de Ligue, dons au PC, Pokémon inutilisables, verrous du PC. |
+| `007_ZoneCount.rb` | Fenêtre du nombre d'espèces du type à l'entrée d'une carte. |
 | `006_Roster.rb` | `ROSTER` : les 806 Pokémon du jeu, copie de `docs/roster/pokedex.csv` (vérifiée par la CI, qui vérifie aussi qu'il y a au moins 3 starters possibles par type). |
 
 ### Intégration
@@ -140,12 +142,13 @@ Alias de `Game_Map#display_x=` et `display_y=` (caméra aux bords) et de `MapFac
 - Labo du professeur (carte 4) : les 3 Poké Balls de la démo appellent `Monotype.starter_ball(i)` dans une condition « Script » ; si le joueur prend le Pokémon, elles gardent leurs effets (interrupteur 3, variable 7 = 1, 2 ou 3 selon la Poké Ball, interrupteur local A). Pour un autre lieu, recopier ces 3 événements.
 
 ### Points d'accroche Essentials (alias/prepend, aucun script de base modifié)
-`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle` et `:on_player_step_taken`.
+`pbThrowPokeBall` (sur `Battle` et `SafariBattle`), `ItemHandlers.triggerCanUseInBattle`, `Battle::Scene#pbToggleBallInfo` (menu des Poké Balls de l'Enhanced Battle UI), `TrainerBattle.start_core`, `pbStorePokemon` global (dons), `PokemonStorageScreen#pbWithdraw/pbPlace/pbSwap`, handlers `:on_end_battle`, `:on_player_step_taken` et `:on_map_or_spriteset_change` (fenêtre de la zone, sous-classe de `LocationWindow`).
 
 ### À vérifier au premier lancement
 - La liste des 18 types tient à l'écran (la fenêtre défile normalement).
 - Les fenêtres de choix apparaissent au premier pas dans la chambre, après l'intro.
 - Au labo, chaque Poké Ball propose un starter différent du type, et le Pokémon pris arrive dans l'équipe ; refuser laisse la Poké Ball en place.
+- En entrant sur une route, la fenêtre « Type X : N Pokémon ici » glisse en haut à droite puis remonte ; rien en ville sans eau ni dans un intérieur. Au Nuzlocke, après la première rencontre d'une route, en ressortir puis y revenir : plus de fenêtre.
 
 ### Limites connues
 - L'équipe ne peut pas être vide : un Pokémon inutilisable qui est seul dans l'équipe y reste (il ne peut pas combattre dans une arène ni à la Ligue).
@@ -778,6 +781,45 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
+## F19. Textes en français (FrenchTexts)
+**Version cible :** Essentials v21.1. **Statut :** écrit, non testé (#113).
+
+### Règles
+- **Langue unique :** le jeu est en français. `Settings::LANGUAGES` ne contient que « Français », donc Essentials charge `Data/messages_french_core.dat` au lancement sans demander de langue.
+- **Données :** noms, catégories et entrées du Pokédex des 898 espèces, noms des formes, noms et descriptions des attaques, talents et objets, classes de dresseurs. CT/DT/CS deviennent CT01, DT01, CS01.
+- **Textes des scripts :** menus, combat, Sac, PC, Pokédex, Résumé, options, boutique, Safari, Deluxe Battle Kit et Modular UI (1 987 textes traduits à la main).
+- **Efficacité ×4 :** une attaque au moins quatre fois efficace affiche « C'est hyper efficace ! » (« C'est hyper efficace sur … ! » quand elle touche plusieurs cibles) au lieu de « super efficace ».
+- **Surnom (Nuzlocke) :** la question devient « Surnom de … ? » ; le surnom reste obligatoire.
+- **Noms en combat :** « Rattata ennemi », « Rattata sauvage », « Rattata allié » (sans article, pour éviter « de le »).
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `Plugins/FrenchTexts/001_Battle.rb` | Message d'efficacité ×4. |
+| `Plugins/FrenchTexts/002_Language.rb` | Déclare le français comme seule langue. |
+| `Text_french_core/*.txt` | Textes traduits, au format « Text_<langue>_core » d'Essentials (ligne anglaise, puis ligne française). Généré. |
+| `Data/messages_french_core.dat` | Fichier compilé lu par le jeu. Généré. |
+| `tools/translate/manual/*.txt` | Traductions écrites à la main (textes des scripts, formes, classes de dresseurs, corrections). |
+| `tools/translate/build_texts.rb` | Construit `Text_french_core/` depuis les PBS, les tables CSV de PokeAPI et les fichiers `manual/`. |
+| `tools/translate/compile_texts.rb` | Compile `Text_french_core/` en `Data/messages_french_core.dat`. |
+| `tools/ci/check_translations.rb` | CI : codes conservés ({1}, \\c[1], sauts de ligne) et fichier compilé à jour. |
+| `Plugins/Nuzlocke/004_Nicknames.rb` | Question du surnom sans « (obligatoire) ». |
+
+### Mettre à jour les textes
+1. Modifier une traduction : éditer `tools/translate/manual/<SECTION>.txt` (ou directement `Text_french_core/`, puis reporter le changement dans `manual/` pour qu'il survive à la prochaine génération).
+2. `ruby tools/translate/build_texts.rb <dossier des CSV PokeAPI>` (CSV de github.com/PokeAPI/pokeapi, `data/v2/csv`), utile seulement si les PBS changent.
+3. `ruby tools/translate/compile_texts.rb`. En jeu, le menu Debug « Compile Translated Text » donne le même fichier.
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+- `Battle::Move#pbEffectivenessMessage` (alias `__french_pbEffectivenessMessage`). Le plugin se charge avant le Deluxe Battle Kit (ordre alphabétique des dossiers), qui aliase à son tour la méthode pour ses déclencheurs.
+- `Settings::LANGUAGES` redéfini (`remove_const`), lu par `Game.initialize` et l'écran de chargement.
+
+### Limites connues
+- Restent en anglais : textes du menu Debug et des éditeurs, mini-jeux, Zone de Combat, Cadeau Mystère, téléphone, lettres, rubans, et les textes des cartes de démo d'Essentials.
+- Textes construits par interpolation Ruby (`_INTL("#{...}")`) : non traduisibles par fichier.
+- Descriptions issues de PokeAPI : la plus récente qui tient dans la place de la version anglaise, sinon la plus courte ; à vérifier dans les fenêtres du Résumé et du Sac. 20 descriptions d'objets (lettres, objets de démo) restent en anglais.
+- Les Pokédex des formes régionales reprennent l'entrée de l'espèce de base en anglais (PokeAPI ne les sépare pas).
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -884,4 +926,6 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
 | 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
