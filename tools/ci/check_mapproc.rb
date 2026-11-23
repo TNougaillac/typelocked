@@ -229,7 +229,7 @@ end
 CaveTileset = Struct.new(:snap_to_large_grid, :double_walls, :floor_patch_under_walls) do
   def has_decoration?(_deco) = false
 end
-CAVE_TILESET = CaveTileset.new(false, true, true)
+CAVE_TILESET = CaveTileset.new(false, false, true)
 
 # Raises if a cave floor is not one piece of 2x2 blocks, if a warp is not on
 # its floor, or if Essentials' painter can't draw its walls (or eats floor).
