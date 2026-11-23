@@ -1,5 +1,5 @@
 Name       = MapProceduralGenerator
-Version    = 0.69.0
+Version    = 0.70.0
 Essentials = 21.1
 Requires   = MapGenerator
 Credits    = TypeLocked

@@ -550,7 +550,10 @@ places.each do |path|
     (hq_ambiances.empty? ? [place.ambiances.first.name] : hq_ambiances).each do |ambiance|
       (1..3).each do |seed|
         themed = place.dup.tap { |p| p.ambiance = ambiance; p.counts = place.counts.merge(kind => 1..1) }
-        themed.port = (%w[est ouest sud] - place.exits.map(&:first)).first if quay
+        # By the sea: a headquarters on a quay, or in a coastal ambiance
+        by_sea = quay || place.ambiances.find { |a| a.name == ambiance }&.coastal
+        themed.port = (%w[est ouest sud] - place.exits.map(&:first)).first if by_sea && place.pier
+        themed.crossing = "mer" if by_sea && !place.pier
         plan, _text, layout = M.generate_place(themed, bricks, seed)
         name = "#{File.basename(path)} (QG #{kind}, ambiance #{ambiance}, graine #{seed})"
         MapGenerator.check_tiles(plan, tilesets[plan.tileset_id])
