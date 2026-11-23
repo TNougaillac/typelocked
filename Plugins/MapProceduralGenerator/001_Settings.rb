@@ -166,6 +166,10 @@ module MapProceduralGenerator
     "special"  => [[30, 5, 9], [11, 7, 10]],
     "labo"     => [[4, 6, 13]]
   }.freeze
+  # Tileset of an interior copied from a template on that tileset (#194):
+  # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
+  # floors redrawn by tools/art/interiors_4g.py.
+  INTERIOR_TILESETS = { 3 => 26 }.freeze
   # The professor's lab (brick type), only in the first town of a world. When
   # it doesn't fit, the town is drawn without it and the professor waits
   # outside (see the inventory).
