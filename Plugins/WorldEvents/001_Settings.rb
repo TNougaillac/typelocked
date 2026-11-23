@@ -182,6 +182,22 @@ module WorldEvents
                     GROUND: :SOFTSAND, FLYING: :SHARPBEAK, PSYCHIC: :TWISTEDSPOON, BUG: :SILVERPOWDER,
                     ROCK: :HARDSTONE, GHOST: :SPELLTAG, DRAGON: :DRAGONFANG, DARK: :BLACKGLASSES,
                     STEEL: :METALCOAT, FAIRY: :PIXIEPLATE }.freeze
+  # Loot of a seal: the lieutenant offers three rewards, the player keeps one:
+  # his TM, a held item and a pack of items, drawn with the seed from the
+  # lines of the seal's tier (SEAL_LOOT_TIERS, 1st to 8th seal). BOOSTER: the
+  # item of the player's type (TYPE_BOOSTERS), known only in game.
+  SEAL_LOOT_TIERS = [0, 0, 1, 1, 1, 2, 2, 2].freeze
+  SEAL_HELD_ITEMS = [
+    %i[BOOSTER QUICKCLAW SCOPELENS KINGSROCK BRIGHTPOWDER],
+    %i[BOOSTER LEFTOVERS FOCUSSASH SHELLBELL MUSCLEBAND WISEGLASSES EVIOLITE ROCKYHELMET],
+    %i[LIFEORB CHOICEBAND CHOICESPECS CHOICESCARF ASSAULTVEST EXPERTBELT WEAKNESSPOLICY]
+  ].freeze
+  SEAL_PACKS = [
+    [[[:SUPERPOTION, 4], [:GREATBALL, 5]], [[:REVIVE, 2], [:FULLHEAL, 3]], [[:SUPERPOTION, 3], [:REVIVE, 1], [:GREATBALL, 3]]],
+    [[[:HYPERPOTION, 4], [:ULTRABALL, 5]], [[:REVIVE, 3], [:HYPERPOTION, 2]], [[:RARECANDY, 1], [:ULTRABALL, 5]]],
+    [[[:FULLRESTORE, 3], [:MAXREVIVE, 1]], [[:MAXPOTION, 4], [:REVIVE, 3]], [[:RARECANDY, 2], [:ULTRABALL, 10]]]
+  ].freeze
+
   # Nature by the better attack stat of the species.
   SET_NATURES = { physical: :ADAMANT, special: :MODEST }.freeze
   # IVs (all six) of the lieutenants by gym (1st to 8th), of the League.
@@ -244,6 +260,9 @@ module WorldEvents
   # same town), placed after everyone else.
   CASINOS = 1..2
   CROUPIER_GRAPHIC = "trainer_COUSIN_F"
+  # The Family's usurer (FamilyDebt plugin): in each town but the first, by
+  # a street, placed after everyone else.
+  USURER_GRAPHIC = "trainer_COUSIN_M"
   RELEARNER_GRAPHIC = "NPC 13"
   # Policemen (#122): POLICE_CHANCE % of the inhabitants of the streets wear
   # this uniform and say the lines of [policier]; no one else wears it.

@@ -95,10 +95,16 @@ def check_gyms(atlas, plans, leaders, tms)
     raise MapEvents::Error, "#{map} : sceau #{leader.value('Badge')} au lieu de #{i + 1}" if leader.value("Badge").to_i != i + 1
     drawn = leaders.find { |l| l[:map] == map }
     raise MapEvents::Error, "#{map} : niveau #{tops[leaders.index(drawn)]} au lieu du plafond #{E::CAPS[i]}" if tops[leaders.index(drawn)] != E::CAPS[i]
-    tm = tms.find { |item, *| item.to_s == leader.value("Gift") }
+    loot = leader.value("Script").to_s
+    loot_tm, held, pack = loot[/\AWorldEvents\.seal_loot\((.*)\)\z/, 1]&.then { |args| eval("[#{args}]") }
+    raise MapEvents::Error, "#{map} : butin du sceau absent (#{loot})" if !held || !pack
+    tm = tms.find { |item, *| item == loot_tm }
     if !tm || !W.useful_tms(tms, drawn[:type], drawn[:gym] - 1).include?(tm)
-      raise MapEvents::Error, "#{map} : CT #{leader.value('Gift')} absente ou inutile pour le type #{drawn[:type]}"
+      raise MapEvents::Error, "#{map} : CT #{loot_tm} absente ou inutile pour le type #{drawn[:type]}"
     end
+    tier = W::SEAL_LOOT_TIERS[[i, W::SEAL_LOOT_TIERS.length - 1].min]
+    raise MapEvents::Error, "#{map} : objet tenu #{held} hors du palier #{tier}" if !W::SEAL_HELD_ITEMS[tier].include?(held)
+    raise MapEvents::Error, "#{map} : lot #{pack.inspect} hors du palier #{tier}" if !W::SEAL_PACKS[tier].include?(pack)
     members = events.select { |e| e.kind == :trainer && e.label.start_with?("Membre") }
     raise MapEvents::Error, "#{map} : #{members.length} membres" if !W::GYM_MEMBERS.include?(members.length)
     grid = PASSABLE[spots[:template]]
@@ -288,6 +294,9 @@ def check_items(atlas, zones, plans, items)
   raise MapEvents::Error, "aucun casino de la Famille" if casinos.empty?
   raise MapEvents::Error, "#{casinos.length} casinos au lieu de #{W::CASINOS}" if !W::CASINOS.cover?(casinos.length)
   raise MapEvents::Error, "casino dans la ville de départ #{atlas[:start]}" if casinos.include?(atlas[:start])
+  usurers = plans.select { |_name, plan| plan.events.any? { |e| e.label == "Usurier" } }.keys
+  raise MapEvents::Error, "aucun usurier de la Famille" if usurers.empty?
+  raise MapEvents::Error, "usurier dans la ville de départ #{atlas[:start]}" if usurers.include?(atlas[:start])
   plans.each do |name, plan|
     plan.events.each do |e|
       next if e.kind != :npc || !e.value("Gift") || e.value("Once")
@@ -464,6 +473,12 @@ W::SET_STATUS.each { |move| CI.error(settings, nil, "SET_STATUS : capacité #{mo
   CI.error(settings, nil, "SET_ITEMS/TYPE_BOOSTERS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
 end
 CI.error(settings, nil, "SET_ITEMS : pas de ligne à 0 sceau") if !W::SET_ITEMS[0]
+(W::SEAL_HELD_ITEMS.flatten - [:BOOSTER] + W::SEAL_PACKS.flatten(2).map(&:first)).uniq.each do |item|
+  CI.error(settings, nil, "SEAL_HELD_ITEMS/SEAL_PACKS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
+end
+if W::SEAL_LOOT_TIERS.max >= [W::SEAL_HELD_ITEMS.length, W::SEAL_PACKS.length].min
+  CI.error(settings, nil, "SEAL_LOOT_TIERS : palier sans ligne dans SEAL_HELD_ITEMS ou SEAL_PACKS")
+end
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 W::TM_POWER_OVERRIDES.each_key { |move| CI.error(settings, nil, "TM_POWER_OVERRIDES : capacité #{move} absente de moves.txt") if !moves[move] }
 W::WEATHER_ITEMS.values.flatten.uniq.each do |item|

@@ -1,0 +1,506 @@
+# French texts (ABILITY_DESCRIPTIONS). Each English line is followed by its translation.
+[ABILITY_DESCRIPTIONS]
+Adjusts power according to a foe's defenses.
+Ajuste la puissance selon l'ennemi.
+All status problems heal when it switches out.
+Le Pokémon soigne ses altérations de statut en quittant le combat.
+All the Pokémon's moves become the Normal type.
+Toutes les capacités sont de type Normal.
+Alters weather to remove Flying-type's weaknesses.
+Altère les conditions météo pour annuler les faiblesses du type Vol.
+Anticipates an ally's attack and dodges it.
+Le Pokémon anticipe et évite les attaques de ses alliés.
+Blocks a physical hit, but the ice head breaks.
+Le glaçon sur sa tête encaisse les attaques physiques à la place du Pokémon, mais sa destruction modifie son apparence. Le glaçon se reforme quand il neige.
+Blocks the added effects of attacks taken.
+Annule les effets cumulés d'une attaque ennemie.
+Boosts Attack after knocking out any Pokémon.
+Monte l'Attaque quand il met un ennemi K.O.
+Boosts Attack if there is a status problem.
+Augmente l'Attaque s'il y a un problème de statut.
+Boosts Attack when entering a battle.
+Augmente l'Attaque du Pokémon quand il entre au combat.
+Boosts Attack when hit by a Grass-type move.
+Neutralise les attaques Plante et augmente l'Attaque.
+Boosts Attack, but allows only one move to be used.
+Augmente l'Attaque, mais empêche d'utiliser toute autre capacité que celle utilisée en premier par le Pokémon.
+Boosts Defense when entering a battle.
+Augmente la Défense du Pokémon quand il entre au combat.
+Boosts Defense when hit by an attack.
+Augmente la Défense du Pokémon lorsqu'il subit une attaque.
+Boosts Sp. Atk each time a Pokémon faints.
+Augmente l'Attaque Spéciale du Pokémon lorsqu'un autre Pokémon est mis K.O.
+Boosts Speed drastically if hit by a Fire or Water move.
+Lorsque le Pokémon est touché par des capacités de type Eau ou Feu, sa Vitesse augmente énormément.
+Boosts Speed if there is a status problem.
+Augmente la Vitesse du Pokémon en cas d'altération de statut.
+Boosts certain moves' power in a sandstorm.
+Renforce des capacités en cas de tempête de sable.
+Boosts its best stat each time it deals a KO.
+Augmente la stat la plus élevée du Pokémon quand il met K.O. un autre Pokémon.
+Boosts move power when the Pokémon moves last.
+Booste les capacités s'il attaque en dernier.
+Boosts the Attack stat, but lowers accuracy.
+Améliore l'Attaque du Pokémon, mais diminue la Précision.
+Boosts the Defense stat on Grassy Terrain.
+Augmente la Défense du Pokémon si un champ herbu est actif.
+Boosts the Pokémon's Speed in a sandstorm.
+Augmente la Vitesse lors des tempêtes de sable.
+Boosts the Pokémon's Speed in rain.
+Augmente la Vitesse du Pokémon s'il pleut.
+Boosts the Pokémon's Speed in sunshine.
+Augmente la Vitesse du Pokémon s'il y a du soleil.
+Boosts the Pokémon's Speed stat in a hailstorm.
+Augmente la Vitesse du Pokémon quand il neige.
+Boosts the Pokémon's evasion in a sandstorm.
+Augmente l'Esquive du Pokémon lors des tempêtes de sable.
+Boosts the accuracy of its allies and itself.
+Augmente la Précision du Pokémon et de ses alliés.
+Boosts the likelihood of added effects appearing.
+Augmente les chances d'infliger des effets additionnels.
+Boosts the power of biting moves.
+Grâce à une puissante mâchoire, les morsures sont plus fortes.
+Boosts the power of punching moves.
+Augmente la puissance des capacités coups de poing.
+Both Pokémon faint 3 turns after taking a contact hit.
+Lorsque le Pokémon est directement touché par une attaque, l'assaillant et lui tomberont K.O. dans trois tours, à moins qu'ils ne soient remplacés entre temps.
+Bounces back stat-lowering effects.
+Le Pokémon renvoie les effets réducteurs de stats qu'il reçoit.
+Castform transforms with the weather.
+Morphéo change de forme selon le climat.
+Catches prey via Surf or Dive, spits it out when hit.
+Quand le Pokémon utilise Surf ou Plongée, il revient avec une proie. Lorsqu'il subit des dégâts par la suite, il attaque en recrachant sa proie.
+Changes between Blade and Shield Forme with attacks.
+Change de forme selon la façon dont le Pokémon se bat.
+Changes between Full Belly and Hangry Mode each turn.
+À la fin de chaque tour, le Pokémon alterne entre ses formes Mode Rassasié et Mode Affamé.
+Changes the Pokémon's shape when HP is halved.
+Quand le Pokémon perd la moitié de ses PV, il se transforme.
+Changes the Pokémon's type to the foe's move.
+Le Pokémon adopte le type de la capacité ennemie.
+Changes the weather to nullify Fire-type moves.
+Altère les conditions météo et rend inefficaces les attaques Feu.
+Changes the weather to nullify Water-type moves.
+Altère les conditions météo et rend inefficaces les attaques Eau.
+Changes type depending on the terrain.
+Le Pokémon adopte le même type que le terrain lorsqu'un champ est actif.
+Changes type to match the held Plate.
+Modifie le type en fonction de la Plaque tenue.
+Changes with other Cells if HP becomes half or less.
+Lorsque le Pokémon perd la moitié de ses PV, ses Cellules se rassemblent pour l'encourager, ce qui lui permet de prendre sa Forme Parfaite.
+Combines Unnerve and Chilling Neigh Abilities.
+Les talents Tension de Sylveroy et Blanche Ruade de Blizzeval sont cumulés.
+Combines Unnerve and Grim Neigh Abilities.
+Les talents Tension de Sylveroy et Blanche Ruade de Blizzeval sont cumulés.
+Comes out disguised as the Pokémon in back.
+Prend l'apparence du dernier Pokémon de l'équipe.
+Contact may poison or cause paralysis or sleep.
+Peut paralyser, empoisonner, endormir au contact.
+Contact with it lowers the attacker's Speed stat.
+Diminue la Vitesse de l'attaquant qui le touche.
+Contact with it lowers the attacker's Speed.
+Baisse la Vitesse de l'attaquant lorsque le Pokémon subit une attaque directe.
+Contact with the Pokémon may burn the attacker.
+Peut brûler l'attaquant s'il y a contact.
+Contact with the Pokémon may cause infatuation.
+Séduit parfois l'ennemi au contact.
+Contact with the Pokémon may cause paralysis.
+Un contact avec le Pokémon peut paralyser.
+Contact with the Pokémon may poison the attacker.
+Peut empoisonner l'ennemi s'il y a contact.
+Contact with this Pokémon spreads this Ability.
+Momifie le talent de l'ennemi qui le touche.
+Copies the Ability of a defeated ally.
+Le Pokémon acquiert le talent d'un allié mis K.O.
+Cowardly switches out if its HP becomes half or less.
+Le Pokémon perd confiance quand ses PV tombent à la moitié et s'enfuit dans sa Poké Ball.
+Creates a sandstorm when hit by an attack.
+Le Pokémon déclenche une tempête de sable quand il subit une attaque.
+Damages an attacker that lands the finishing hit.
+Le Pokémon inflige à l'adversaire l'ayant mis K.O. des dégâts égaux au nombre de PV qu'il lui restait avant le coup de grâce.
+Damages attackers using any draining move.
+Blesse l'attaquant qui draine l'énergie du Pokémon.
+Damages the attacker landing the finishing hit.
+Blesse l'attaquant qui porte le coup de grâce.
+Deals doubles damage to a target's replacement.
+Lorsque le Pokémon attaque une cible qui vient d'entrer sur le terrain en remplacement d'un autre Pokémon, les dégâts infligés sont doublés.
+Deals more damage to a foe of the same gender.
+Devient plus fort si l'ennemi est du même sexe.
+Defeating a foe lets it become Ash-Greninja.
+En battant un ennemi, ce Pokémon renforce ses liens avec son Dresseur, ce qui augmente son Attaque, son Attaque Spéciale et sa Vitesse.
+Determines what moves a foe has.
+Découvre la capacité ennemie la plus puissante.
+Doubles Speed on Electric Terrain.
+La Vitesse du Pokémon est doublée sur un champ électrifié.
+Doubles the Pokémon's weight.
+Double le poids du Pokémon.
+Draws in all Electric-type moves to up Sp. Attack.
+Attire et neutralise les attaques Électrik et monte l'Atq. Spé.
+Draws in all Water-type moves to up Sp. Attack.
+Attire et neutralise les attaques Eau, et monte l'Attaque Spéciale.
+Eliminates the effects of weather.
+Annule tous les effets de la météo.
+Enables a sure getaway from wild Pokémon.
+Permet de fuir n'importe quel Pokémon sauvage.
+Enables moves to hit Ghost-type Pokémon.
+Les cap. Normal touchent les Pokémon Spectre.
+Enables the Pokémon to move first occasionally.
+Permet parfois au Pokémon d'agir en premier.
+Encourages the early use of a held Berry.
+Permet d'utiliser plus rapidement une Baie tenue.
+Ensures attacks by or against the Pokémon land.
+Les capacités du Pokémon et de l'ennemi touchent à coup sûr.
+Flying-type moves gain priority when its HP is full.
+Les attaques de type Vol sont prioritaires.
+Forms a powerful school while it has a lot of HP.
+Le Pokémon se rassemble avec ses congénères quand ses PV sont élevés. Plus ses PV baissent, plus le banc s'amenuise.
+Gives full immunity to all Ground-type moves.
+Immunise contre toutes les capacités de type Sol.
+Gives full immunity to all sound-based moves.
+Protège le Pokémon de toutes les capacités sonores.
+Gives priority to a healing move.
+Rend les capacités de soin prioritaires.
+Gives priority to a status move.
+Rend les capacités de statut prioritaires.
+Halves the Pokémon's weight.
+Divise par deux le poids du Pokémon.
+Halves the damage from physical moves.
+Divise les dégâts des attaques physiques par deux.
+Halves the damage taken from special moves.
+Le Pokémon est protégé par des écailles de glace. Les dégâts qu'il subit par des capacités spéciales sont divisés par deux.
+Heals status problems if it is raining.
+Soigne les problèmes de statut s'il pleut.
+Heightens the critical-hit ratios of moves.
+Augmente la fréquence des coups critiques.
+Ignores any stat changes in the Pokémon.
+Ignore les changements de stats de l'ennemi.
+In sunshine, Sp. Atk is boosted but HP decreases.
+Augmente l'Attaque Spéciale mais baisse les PV au soleil.
+Increases the frequency of multi-strike moves.
+Augmente la fréquence des attaques multiples.
+Inflicts damage to the Pokémon on contact.
+Blesse l'attaquant au moindre contact.
+Inflicts damage to the foe on contact.
+Blesse l'attaquant au moindre contact.
+It can poison Steel- and Poison-type targets.
+Permet d'empoisonner les Pokémon de type Acier ou Poison.
+It cannot be knocked out with one hit.
+Protège des capacités mettant K.O. en un coup.
+It changes type to that of the move it's about to use.
+Le Pokémon prend le type de la capacité qu'il utilise.
+It powers up Fire-type moves if it's hit by one.
+Booste capacités Feu si touché par attaques Feu.
+It transforms itself into the Pokémon it is facing.
+Le Pokémon prend l'apparence du Pokémon adverse.
+It's always drowsing, and attacks without waking.
+Le Pokémon rêve en permanence et ne se réveille jamais. Il est capable d'attaquer normalement tout en dormant.
+Its Speed stat is gradually boosted.
+La Vitesse du Pokémon augmente à chaque tour.
+Its attacks are critical hits when it is poisoned.
+Lorsque le Pokémon attaque un adversaire empoisonné, le coup est forcément critique.
+Its shell breaks if its HP becomes half or less.
+Lorsque le Pokémon perd la moitié de ses PV, son enveloppe se brise et il adopte une posture offensive.
+Its shroud protects it from an attack just once.
+Le déguisement qui recouvre le corps du Pokémon est capable de le protéger d'une attaque.
+Its sound-based moves become Water-type.
+Toutes les attaques sonores du Pokémon prennent le type Eau.
+Its type matches the memory disc it holds.
+Change le type du Pokémon en fonction de la ROM équipée.
+Just being next to the Pokémon powers up moves.
+Augmente la puissance des capacités des Pokémon qui se trouvent à proximité.
+Lowers stats when HP becomes half or less.
+Baisse les stats quand les PV tombent à la moitié.
+Lowers the foe's Attack stat.
+Baisse l'Attaque ennemie.
+Makes foes unable to use priority attacks.
+L'adversaire est abasourdi par le Pokémon et ne peut pas le viser avec une capacité prioritaire.
+Makes stat changes have an opposite effect.
+Inverse les variations de stats.
+Makes status-changing moves more likely to miss.
+Le Pokémon résiste mieux aux capacités de statut.
+Makes the foe nervous and unable to eat Berries.
+Fait stresser l'adversaire, ce qui l'empêche de manger des Baies.
+Maxes Attack after taking a critical hit.
+Monte l'Attaque au max après avoir reçu un coup critique.
+May create another Berry after one is used.
+Permet de réutiliser une même Baie plusieurs fois.
+May disable a move used on the Pokémon.
+Peut empêcher l'ennemi de réutiliser une attaque.
+May heal an ally's status conditions.
+Guérit parfois le statut des alliés alentour.
+May poison targets when a Pokémon makes contact.
+Peut empoisonner l'ennemi par simple contact.
+Moves can be used regardless of Abilities.
+Les talents adverses ne bloquent pas ses capacités.
+Negates all moves that force switching out.
+Annule les capacités ou objets qui font changer de Pokémon.
+Normal-type moves become Electric-type and powered.
+Les capacités de type Normal deviennent de type Électrik. Leur puissance augmente légèrement.
+Normal-type moves become Fairy-type and powered up.
+Les capacités de type Normal deviennent de type Fée.
+Normal-type moves become Flying-type and power up.
+Les capacités de type Normal deviennent de type Vol.
+Normal-type moves become Ice-type and powered up.
+Les capacités de type Normal deviennent de type Glace.
+Nullifies the effects of all other Abilities.
+Si un Pokémon avec Gaz Inhibiteur est sur le terrain, les effets des talents de tous les autres Pokémon sont annulés.
+On entering battle, clears effects of Reflect, etc.
+Quand le Pokémon entre au combat, les effets de Mur Lumière, Protection et Voile Aurore disparaissent pour les alliés comme pour les ennemis.
+Only super-effective moves will hit.
+Seules capacités “super efficaces” l'atteignent.
+Parent and child each attacks.
+Attaque en famille.
+Passes a burn, poison, or paralysis to the foe.
+Transmet brûlure, paralysie ou poison au Pokémon qui l'a infligé.
+Passes its held item to an ally that has used theirs.
+Permet aux alliés d'utiliser l'objet porté par ce Pokémon.
+Passes through the foe's barrier and strikes.
+Traverse les barrières de l'ennemi pour attaquer.
+Physical attacks lower Defense and raise Speed.
+Un coup physique baisse la Défense, monte la Vitesse.
+Pokémon can't attack on consecutive turns.
+Le Pokémon ne frappe qu'un tour sur deux.
+Powers up "not very effective" moves.
+Améliore les capacités “pas très efficaces”.
+Powers up Bug-type moves in a pinch.
+Booste les capacités Insecte en cas de besoin.
+Powers up Dragon-type moves.
+Augmente la puissance des attaques de type Dragon.
+Powers up Electric-type moves.
+Augmente la puissance des attaques de type Électrik.
+Powers up Fire-type moves in a pinch.
+Booste les capacités Feu en cas de besoin.
+Powers up Grass-type moves in a pinch.
+Booste les capacités Plante en cas de besoin.
+Powers up Steel-type moves.
+Augmente la puissance des attaques de type Acier.
+Powers up Water-type moves in a pinch.
+Booste les capacités Eau en cas de besoin.
+Powers up ally Pokémon's Steel-type moves.
+Augmente la puissance des attaques de type Acier du Pokémon et de ses alliés.
+Powers up ally Pokémon's special moves.
+Augmente la puissance des capacités spéciales des alliés.
+Powers up aura and pulse moves.
+Augmente la puissance de certaines capacités de type aura.
+Powers up each Pokémon's Dark-type moves.
+Renforce les attaques de type Ténèbres de tous les Pokémon.
+Powers up each Pokémon's Fairy-type moves.
+Renforce les attaques de type Fée de tous les Pokémon.
+Powers up moves if they become critical hits.
+Augmente la puissance des coups critiques.
+Powers up moves of the same type.
+Augmente la puissance des capacités de même type.
+Powers up moves that are super-effective.
+Augmente encore plus la puissance des attaques super efficaces.
+Powers up moves that have recoil damage.
+Booste les capacités ayant des dégâts de contrecoups.
+Powers up moves that make direct contact.
+Augmente la puissance des attaques directes du Pokémon.
+Powers up own sound moves. Resists other sound moves.
+Augmente la puissance des capacités basées sur le son. Le Pokémon ne subit que la moitié des dégâts quand il est touché par ce genre de capacités.
+Powers up party Pokémon when it is sunny.
+Rend les Pokémon de l'équipe plus puissants au soleil.
+Powers up physical attacks when poisoned.
+Booste les attaques physiques si le Pokémon est empoisonné.
+Powers up special attacks when burned.
+Booste les attaques spéciales si le Pokémon est brûlé.
+Powers up the Pokémon's weaker moves.
+Augmente la puissance des capacités les plus faibles.
+Prevents Steel-type Pokémon from escaping.
+Empêche les Pokémon Acier de fuir.
+Prevents it from becoming infatuated.
+Empêche le Pokémon de tomber amoureux.
+Prevents itself and allies from falling asleep.
+Le Pokémon et ses alliés ne peuvent pas s'endormir.
+Prevents other Pokémon from lowering Attack stat.
+Empêche la réduction de l'Attaque.
+Prevents other Pokémon from lowering accuracy.
+Les yeux perçants du Pokémon empêchent sa Précision de baisser.
+Prevents other Pokémon from lowering its stats.
+Empêche les stats du Pokémon de baisser à cause d'une capacité ou d'un talent.
+Prevents problems with status in sunny weather.
+Empêche les problèmes de statut au soleil.
+Prevents the Pokémon from becoming confused.
+Empêche la confusion.
+Prevents the Pokémon from becoming frozen.
+Protège le Pokémon contre le gel.
+Prevents the Pokémon from falling asleep.
+Empêche le Pokémon de s'endormir.
+Prevents the Pokémon from getting a burn.
+Le voile qui recouvre le Pokémon le protège des brûlures.
+Prevents the Pokémon from getting poisoned.
+Empêche le Pokémon d'être empoisonné.
+Prevents the foe from escaping.
+Empêche le Pokémon ennemi de quitter le combat.
+Prevents the foe from fleeing.
+Empêche l'adversaire de quitter le terrain.
+Prevents the use of self-destructing moves.
+Empêche les combattants de s'autodétruire.
+Protects Grass-type allies from stat/status effects.
+Empêche les alliés de type Plante de subir des diminutions de stats.
+Protects against attacks that limit move choices.
+Protège le Pokémon et ses alliés des effets limitant le libre arbitre.
+Protects from Defense-lowering attacks.
+Protège des effets qui baissent la Défense.
+Protects the Pokémon and its allies from poisoning.
+Protège le Pokémon et ses alliés contre toutes les altérations de statut liées à l'empoisonnement.
+Protects the Pokémon from damage from weather.
+Protège du sable, de la grêle ou de la poudre.
+Protects the Pokémon from item theft.
+Fait s'agripper à l'objet pour en empêcher le vol.
+Protects the Pokémon from recoil damage.
+Protège le Pokémon des dégâts de contrecoups.
+Protects the Pokémon from some ball and bomb moves.
+Protège de certaines capacités projetant des bombes, balles...
+Raises Attack when hit by a Dark-type move.
+Monte l'Attaque si une attaque Ténèbres le touche.
+Raises Speed each time the Pokémon flinches.
+Augmente la Vitesse du Pokémon quand il a peur.
+Raises Speed if a held item is used.
+Augmente la Vit. si l'objet tenu est utilisé ou perdu.
+Raises Speed if hit by an Electric-type move.
+Augmente la Vitesse si touché par une capacité Électrik.
+Raises evasion if the Pokémon is confused.
+Augmente l'Esquive du Pokémon s'il est confus.
+Raises evasion in a hailstorm.
+Augmente l'Esquive du Pokémon quand il neige.
+Raises one stat and lowers another.
+Monte une stat tout en en baissant une autre.
+Raises the Pokémon's Attack stat.
+Augmente l'Attaque du Pokémon.
+Raises the likelihood of meeting wild Pokémon.
+Augmente les rencontres avec Pokémon sauvages.
+Reduces HP if it is hot. Water restores HP.
+Perd des PV à la chaleur. L'eau les restaure.
+Reduces a sleeping foe's HP.
+Inflige des dégâts aux ennemis endormis.
+Reduces damage done to allies.
+Diminue les dégâts subis par les alliés.
+Reduces damage from super-effective attacks.
+Diminue la puissance des attaques super efficaces subies.
+Reduces damage when HP is full.
+Reçoit moins de dégâts si les PV sont au maximum.
+Reflects status-changing moves.
+Renvoie les attaques de statut.
+Removes added effects to increase move damage.
+Frappe plus fort mais annule les effets cumulés.
+Removes all allies' stat changes on joining battle.
+Quand il entre au combat, le Pokémon répand une substance qui annule les changements de stats de ses alliés.
+Repeats another Pokémon's dance move immediately.
+Si n'importe quel Pokémon utilise une capacité dansante, ce Pokémon peut se mettre aussi à danser.
+Resists contact damage but weaker to Fire-type.
+Divise par deux les dégâts des attaques directes subies par le Pokémon, mais double les dégâts des capacités de type Feu.
+Resists damage while its HP is full.
+Le Pokémon subit moins de dégâts quand ses PV sont au maximum.
+Restores HP as well when the Pokémon eats a Berry.
+Rend des PV lorsque le Pokémon consomme une Baie.
+Restores HP if hit by a Water-type move.
+Récupère des PV si touché par une capacité Eau.
+Restores HP if hit by an Electric-type move.
+Récupère des PV si touché par une capacité Électrik.
+Restores HP if the Pokémon is poisoned.
+Restaure des PV si le Pokémon est empoisonné.
+Restores a little HP when withdrawn from battle.
+Restaure un peu de PV si le Pokémon est retiré du combat.
+Retrieves the first thrown Poké Ball if it failed.
+Si le Pokémon ne tient aucun objet, il ramassera la Poké Ball lors du premier lancer raté du combat.
+Reverses "Aura" Abilities to weaken affected moves.
+Inverse l'effet des auras en baissant leur puissance.
+Ripens Berries and doubles their effect.
+Le Pokémon fait mûrir la Baie qu'il tient et double ainsi son effet.
+Scatters Speed-lowering cotton fluff when hit.
+Quand le Pokémon est touché par une attaque, il dissémine des aigrettes qui diminuent la Vitesse de tout le monde, sauf la sienne.
+Senses a foe's dangerous moves.
+Prévoit les capacités ennemies dangereuses.
+Sharply boosts Sp. Atk when a stat is lowered.
+Monte l'Attaque quand les stats baissent.
+Sharply ups Defense when hit by a Water-type move.
+Augmente beaucoup la Défense du Pokémon quand il subit une capacité de type Eau.
+Some move types scare it and boost its Speed.
+Sa peur de certains types augmente sa Vitesse.
+Steals an item when hit by another Pokémon.
+Vole l'objet de l'attaquant si son attaque touche.
+Steals the held item of a Pokémon it hits.
+Les capacités volent aussi l'objet tenu par la cible.
+Swaps Abilities with contact-making Pokémon.
+Lorsque le Pokémon est directement touché par une attaque, il échange son talent avec celui de l'assaillant.
+Switches out if its HP becomes half or less.
+Le Pokémon évite les situations inutilement dangereuses. Quand ses PV tombent à la moitié, il se réfugie dans sa Poké Ball.
+Temporarily halves Attack and Speed.
+Divise temporairement Vitesse et Attaque par 2.
+The Pokémon awakens quickly from sleep.
+Le Pokémon se réveille plus rapidement.
+The Pokémon can check a foe's held item.
+Permet de connaître l'objet tenu par l'ennemi.
+The Pokémon can't use any held items.
+Le Pokémon ne peut utiliser aucun objet tenu.
+The Pokémon copies a foe's Ability.
+Imite le talent de l'ennemi.
+The Pokémon gradually regains HP in a hailstorm.
+Régénère peu à peu les PV du Pokémon quand il neige.
+The Pokémon gradually regains HP in rain.
+Le Pokémon récupère progressivement des PV lorsqu'il pleut.
+The Pokémon is prone to wild stat changes.
+Le Pokémon est sujet à des variations de stats.
+The Pokémon is protected against critical hits.
+Le Pokémon est protégé des coups critiques par sa carapace.
+The Pokémon is protected from flinching.
+Empêche le Pokémon d'avoir peur.
+The Pokémon is protected from paralysis.
+Protège le Pokémon de la paralysie.
+The Pokémon makes it rain if it appears in battle.
+Le Pokémon invoque la pluie quand il entre au combat.
+The Pokémon may gather Honey from somewhere.
+Le Pokémon peut parfois trouver du Miel après un combat.
+The Pokémon may heal its own status problems.
+Le Pokémon soigne parfois ses altérations de statut en muant.
+The Pokémon may pick up items.
+Permet parfois au Pokémon de ramasser des objets.
+The Pokémon moves after all other Pokémon do.
+Le Pokémon utilise toujours sa capacité en dernier.
+The Pokémon only takes damage from attacks.
+Seules les attaques peuvent blesser le Pokémon.
+The Pokémon raises the foe's PP usage.
+Force l'ennemi à dépenser plus de PP.
+The Pokémon summons a hailstorm in battle.
+Le Pokémon invoque la neige quand il entre au combat.
+The Pokémon summons a sandstorm in battle.
+Le Pokémon invoque une tempête de sable.
+The Pokémon's accuracy is boosted.
+Augmente la précision du Pokémon.
+The Pokémon's contact moves ignore protections.
+Si le Pokémon utilise une attaque directe, celle-ci pourra toucher la cible même si elle se protège.
+The stench may cause the target to flinch.
+La puanteur peut effrayer l'adversaire.
+This Pokémon's moves cannot be redirected.
+Permet d'ignorer l'effet des capacités ou des talents qui attirent les capacités.
+Turns the ground into Electric Terrain.
+Le Pokémon crée un champ électrifié au moment où il entre au combat.
+Turns the ground into Grassy Terrain.
+Le Pokémon crée un champ herbu au moment où il entre au combat.
+Turns the ground into Misty Terrain.
+Le Pokémon crée un champ brumeux au moment où il entre au combat.
+Turns the ground into Psychic Terrain.
+Le Pokémon crée un champ psychique au moment où il entre au combat.
+Turns the sunlight harsh if it is in battle.
+Le Pokémon invoque le soleil quand il entre au combat.
+Ups Defense if there is a status problem.
+Augmente la Défense s'il y a un problème de statut.
+Ups Sp. Atk if a hit makes its HP half or less.
+Augmente l'Attaque Spéciale du Pokémon lorsqu'il tombe à la moitié de ses PV à cause d'une attaque.
+Ups Sp. Atk if another Pokémon has Plus or Minus.
+Augmente l'Atq. Spé. si un autre Pokémon a Minus ou Plus.
+Ups resistance to Fire- and Ice-type moves.
+Augmente la résistance aux capacités Feu et Glace.
+Uses moves without making contact with the target.
+Le Pokémon est capable d'utiliser toutes ses capacités sans entrer en contact direct avec sa cible.
+Weakens incoming Fire-type moves and prevents burns.
+Réduit les dégâts des capacités de type Feu subies par le Pokémon. Il est également immunisé contre les brûlures.
+Weakens the power of Fire-type moves.
+Réduit la puissance des capacités de type Feu.
+When its stats are lowered its Attack increases.
+Augmente beaucoup l'Attaque du Pokémon quand ses stats baissent.
+When knocking out a target, raises Attack.
+Quand le Pokémon met un ennemi K.O., il émet un hennissement glaçant, ce qui augmente son Attaque.
+When knocking out a target, raises Sp. Atk.
+Quand le Pokémon met un ennemi K.O., il émet un hennissement terrifiant qui augmente son Attaque Spéciale.

@@ -1,0 +1,3976 @@
+# French texts (SCRIPT_TEXTS). Each English line is followed by its translation.
+[SCRIPT_TEXTS]
+"Pokémon Essentials" was created by:
+« Pokémon Essentials » a été créé par :
+"RPG Maker XP" by:
+« RPG Maker XP » par :
+"The Egg Watch"
+« Suivi de l'Œuf »
+"mkxp-z" by:
+« mkxp-z » par :
+"{1}" v.{2} by:
+« {1} » v.{2} par :
+$ {1}
+{1} $
+${1}
+{1} $
+...
+...
+... .... .....
+... .... .....
+... \wt[10]... \wt[10]... \wt[10]... \wt[10]Nope! There's no response.
+... \wt[10]... \wt[10]... \wt[10]... \wt[10]Rien ! Aucune réaction.
+1, 2, and... ... ... Ta-da!
+1, 2, et... ... ... Tadaa !
+1, 2, and...\wt[16] ...\wt[16] ...\wt[16] Ta-da!
+1, 2, et...\wt[16] ...\wt[16] ...\wt[16] Tadaa !
+????.? kg
+????.? kg
+????.? m
+????.? m
+????? Pokémon
+Pokémon ?????
+A Pokémon could be in this tree. Maybe a Pokémon could shake it.
+Un Pokémon se cache peut-être dans cet arbre. Un Pokémon pourrait le secouer.
+A Pokémon could be in this tree. Would you like to use Headbutt?
+Un Pokémon se cache peut-être dans cet arbre. Voulez-vous utiliser Coup d'Boule ?
+A Pokémon switching into this spot will recover its HP.
+Un Pokémon qui entre à cet emplacement récupérera ses PV.
+A bell chimed!
+Une cloche sonne !
+A critical hit on {1}!
+Coup critique sur {1} !
+A critical hit!
+Coup critique !
+A deluge of ions showers the battlefield!
+Un déluge d'ions s'abat sur le terrain !
+A heavy rain began to fall!
+Une pluie battante s'abat soudainement !
+A little quick tempered.
+Un peu colérique.
+A mysterious Pokémon Egg received from {1}.
+Un mystérieux Œuf de Pokémon reçu de {1}.
+A mysterious Pokémon Egg.
+Un mystérieux Œuf de Pokémon.
+A rainbow appeared in the sky on {1}'s side!
+Un arc-en-ciel apparaît dans le ciel du côté de {1} !
+A sandstorm brewed!
+Une tempête de sable se prépare !
+A sandstorm is raging.
+Une tempête de sable fait rage.
+A sea of fire enveloped {1}!
+Une mer de feu enveloppe {1} !
+A shadow sky appeared!
+Un ciel obscur apparaît !
+A soothing aroma wafted through the area!
+Un parfum apaisant se répand dans les environs !
+A sticky web has been laid out beneath {1}'s feet!
+Une toile gluante se déploie sous {1} !
+A substitute with {1} HP stands in for the Pokémon.
+Un clone de {1} PV remplace le Pokémon.
+A swamp enveloped {1}!
+Un marécage enveloppe {1} !
+A to Z
+De A à Z
+A wall of water is crashing down with a mighty roar.
+Un mur d'eau s'abat dans un rugissement puissant.
+A {1} was planted here.
+Une {1} a été plantée ici.
+ABLE
+APTE
+ACCURACY
+PRÉCISION
+ACTION: Cancel Fly
+ACTION : Annuler le Vol
+ACTION: Fly
+ACTION : Vol
+Aargh! Almost had it!
+Argh ! Presque !
+Abil.
+Talent
+Acc
+Préc
+Accessed the Hall of Fame.
+Accès au Panthéon.
+Accessed {1}'s PC.
+Accès au PC de {1}.
+Accuracy
+Précision
+Accuracy boosted by the held {1}.
+Précision augmentée par l'objet {1}.
+Accuracy boosted by the {1} ability.
+Précision augmentée par le talent {1}.
+Accuracy lowered by the held {1}.
+Précision réduite par l'objet {1}.
+Accuracy lowered by the {1} ability.
+Précision réduite par le talent {1}.
+Adamant
+Rigide
+Add another Pokémon?
+Ajouter un autre Pokémon ?
+Add new trainer ({1}, {2})?
+Ajouter le Dresseur ({1}, {2}) ?
+Add new trainer ({1}, {2}, ID {3})?
+Ajouter le Dresseur ({1}, {2}, ID {3}) ?
+Add new trainer variant {1} (of {2}) for {3} {4}?
+Ajouter la variante {1} (sur {2}) du Dresseur {3} {4} ?
+Add to your party
+Ajouter à l'équipe
+Adjust the volume of sound effects.
+Règle le volume des effets sonores.
+Adjust the volume of the background music.
+Règle le volume de la musique.
+Affiliated with Game Freak
+Affilié à Game Freak
+After the unfortunate defeat, you scurry back home.
+Après cette défaite, vous rentrez chez vous en hâte.
+After the unfortunate defeat, you scurry back to a Pokémon Center.
+Après cette défaite, vous retournez en hâte au Centre Pokémon.
+Alert to sounds.
+À l'écoute des sons.
+All Allies
+Tous les alliés
+All Battlers
+Tous les combattants
+All Flying-type weaknesses are suppressed.
+Toutes les faiblesses du type Vol sont supprimées.
+All Foes
+Tous les ennemis
+All Near Foes
+Tous les ennemis proches
+All Near Others
+Tous les autres proches
+All Pokémon on the field swap their Defense and Sp. Defense stats.
+Tous les Pokémon sur le terrain échangent leur Défense et leur Déf. Spé.
+All Pokémon on the field take less damage from Electric moves.
+Tous les Pokémon sur le terrain subissent moins de dégâts des capacités Électrik.
+All Pokémon on the field take less damage from Fire moves.
+Tous les Pokémon sur le terrain subissent moins de dégâts des capacités Feu.
+All Pokémon that hear the song will faint in three turns!
+Tous les Pokémon qui entendent le chant seront K.O. dans trois tours !
+All Pokémon were roused by the tune!
+La mélodie réveille tous les Pokémon !
+All moves deal less damage to Pokémon on this side.
+Toutes les capacités infligent moins de dégâts aux Pokémon de ce camp.
+All saved data could not be deleted.
+Les données n'ont pas pu être toutes supprimées.
+All stat changes were eliminated!
+Tous les changements de stats sont annulés !
+Also involved were:
+Avec la participation de :
+Always Female
+Toujours femelle
+Always Male
+Toujours mâle
+Amorphous
+Amorphe
+An Egg can't battle!
+Un Œuf ne peut pas se battre !
+An egg can't be an active Pokémon.
+Un Œuf ne peut pas être un Pokémon actif.
+An electric current is running across the battlefield.
+Un courant électrique parcourt le terrain.
+An electric current runs across the battlefield!
+Un courant électrique parcourt le terrain !
+An item in the Bag can be registered to this key for instant use.
+Un objet du Sac peut être associé à cette touche pour être utilisé directement.
+An {1} was planted here.
+Une {1} a été plantée ici.
+And have 1 {1} on the house!
+Et voici 1 {1} en prime !
+And have {1} {2} on the house!
+Et voici {1} {2} en prime !
+Announcer: You're out of Safari Balls! Game over!
+Annonceur : Vous n'avez plus de Safari Balls ! C'est terminé !
+Apr.
+Avr.
+April
+Avril
+Aqua Ring restored {1}'s HP!
+Anneau Hydro restaure les PV de {1} !
+Are you sure you want to quit the game?
+Voulez-vous vraiment quitter le jeu ?
+Are you sure you want to save now and overwrite the other save file?
+Voulez-vous vraiment sauvegarder et écraser l'autre partie ?
+Area unknown
+Zone inconnue
+Argument {1} expected a variable after it but didn't have one.
+L'argument {1} attend une variable après lui, mais n'en a pas.
+Atk
+Atq
+Attack
+Attaque
+Attacks Pokémon on this side always trigger effects.
+Les attaques des Pokémon de ce camp déclenchent toujours leurs effets.
+Attacks of Pokémon on this side bypass protections.
+Les attaques des Pokémon de ce camp ignorent les protections.
+Attacks of Pokémon on this side deal increased damage.
+Les attaques des Pokémon de ce camp infligent plus de dégâts.
+Attempted to set {1} as Pokémon status
+Tentative de définir {1} comme statut du Pokémon
+Aug.
+Août
+August
+Août
+Automatic
+Automatique
+Autumn
+Automne
+Aww! It appeared to be caught!
+Raah ! Ça y était presque !
+BANNED
+INTERDIT
+Backyard
+Jardin
+Badges
+Sceaux
+Badges:
+Sceaux :
+Badly Poisoned
+Gravement empoisonné
+Bag
+Sac
+Bait
+Appât
+Balls: {1}
+Balls : {1}
+Based on "mkxp" by Ancurio et al.
+D'après « mkxp » d'Ancurio et al.
+Bashful
+Pudique
+Basic
+Simple
+Battle Effects
+Animations
+Battle Items
+Objets de combat
+Battle Points:<<n>><ar>{1}</ar>
+Points Combat :<<n>><ar>{1}</ar>
+Battle Style
+Style de combat
+Battle rule "{1}" does not exist.
+La règle de combat « {1} » n'existe pas.
+Battler index {1} already exists
+L'index de combattant {1} existe déjà
+Beach
+Plage
+Begin mining mini-game.
+Lancer le mini-jeu de fouille.
+Berries
+Baies
+Big Brother
+Grand Frère
+Bill
+Léo
+Bipedal
+Bipède
+Bipedal with tail
+Bipède avec queue
+Black
+Noir
+Blue
+Bleu
+Bold
+Assuré
+Boost PP of which move?
+Augmenter les PP de quelle capacité ?
+Boosts the Defense of the Pokémon by 50%. Blizzard always hits.
+Augmente la Défense du Pokémon de 50 %. Blizzard touche toujours.
+Boosts the Sp. Defense stat of the Pokémon by 50%.
+Augmente la Déf. Spé. du Pokémon de 50 %.
+Both Pokémon will faint in three turns because of {1}'s {2}!
+Les deux Pokémon seront K.O. dans trois tours à cause de {2} de {1} !
+Both Pokémon will faint in three turns!
+Les deux Pokémon seront K.O. dans trois tours !
+Both Sides
+Les deux camps
+Bound
+Ligoté
+Box name?
+Nom de la Boîte ?
+Box {1}
+Boîte {1}
+Brave
+Brave
+Brown
+Marron
+Bug
+Insectoïde
+Burn
+Brûlure
+But a repellent's effect still lingers from earlier.
+Mais l'effet du répulsif précédent agit encore.
+But it does not have enough HP left to make a substitute!
+Mais il n'a pas assez de PV pour créer un clone !
+But it failed because of {1}'s {2}!
+Mais cela échoue à cause de {2} de {1} !
+But it failed to affect {1} because of its {2}!
+Mais ça n'affecte pas {1} grâce à {2} !
+But it failed to affect {1}!
+Mais ça n'affecte pas {1} !
+But it failed to spit up a thing!
+Mais il n'a rien à cracher !
+But it failed to swallow a thing!
+Mais il n'a rien à avaler !
+But it failed!
+Mais cela échoue !
+But it had no effect!
+Mais ça n'a aucun effet !
+But it's not where this item can be used!
+Mais cet objet ne peut pas être utilisé ici !
+But nothing happened!
+Mais rien ne se passe !
+But the uproar kept {1} awake!
+Mais le brouhaha empêche {1} de dormir !
+But there is no room left in the PC!
+Mais il n'y a plus de place dans le PC !
+But there was no PP left for the move!
+Mais la capacité n'a plus de PP !
+But there was no target...
+Mais il n'y a pas de cible...
+But your Bag is full...
+Mais votre Sac est plein...
+But {1} can't use it the way it is now!
+Mais {1} ne peut pas l'utiliser sous cette forme !
+But {1} can't use the move!
+Mais {1} ne peut pas utiliser cette capacité !
+But {1} couldn't sleep!
+Mais {1} ne peut pas s'endormir !
+Bye-bye, {1}!
+Au revoir, {1} !
+C: Use
+C : Utiliser
+CATEGORY
+CATÉGORIE
+CLOSE BAG
+FERMER LE SAC
+CONFIRM
+VALIDER
+Call
+Appeler
+Calm
+Calme
+Can't catch any more...
+Impossible d'en attraper plus...
+Can't deposit from box...
+Impossible de déposer depuis la Boîte...
+Can't deposit the last Pokémon!
+Impossible de déposer le dernier Pokémon !
+Can't find the map 'Map{1:03d}' in the Data folder. The game will resume at the player's position.
+La carte 'Map{1:03d}' est introuvable dans le dossier Data. Le jeu reprend à la position du joueur.
+Can't find trainer ({1}, {2}, ID {3})
+Dresseur introuvable ({1}, {2}, ID {3})
+Can't have battles larger than 2v2 where both sides have multiple trainers
+Impossible d'avoir des combats de plus de 2 contre 2 où chaque camp a plusieurs Dresseurs
+Can't store the {1}.
+Impossible de ranger {1}.
+Can't use in battle
+Inutilisable en combat
+Can't use in field
+Inutilisable hors combat
+Can't use that here.
+Impossible d'utiliser ça ici.
+Can't withdraw from party...
+Impossible de retirer depuis l'équipe...
+Capable of taking hits.
+Encaisse bien les coups.
+Capture {1}?
+Capturer {1} ?
+Careful
+Prudent
+Cave
+Grotte
+Change Ability
+Changer de talent
+Change form
+Changer de forme
+Change quantity
+Changer la quantité
+Charging Turn
+Tour de charge
+Check Moves
+Voir les capacités
+Check party
+Voir l'équipe
+Checks
+Damier
+Cheer
+Encourager
+Choose Pokémon and confirm.
+Choisissez les Pokémon et validez.
+Choose Pokémon or cancel.
+Choisissez un Pokémon ou annulez.
+Choose a Pokémon in your party to send to your Boxes.
+Choisissez un Pokémon de l'équipe à envoyer dans les Boîtes.
+Choose how you want to enter text.
+Choisissez comment saisir du texte.
+Choose new quantity of {1} (max. {2}).
+Nouvelle quantité de {1} (max. {2}).
+Choose the appearance of dialogue boxes.
+Choisissez l'apparence des boîtes de dialogue.
+Choose the appearance of menu boxes.
+Choisissez l'apparence des menus.
+Choose the outcome of this battle.
+Choisissez l'issue de ce combat.
+Choose the size of the game window.
+Choisissez la taille de la fenêtre du jeu.
+Choose the speed at which text appears.
+Choisissez la vitesse d'affichage du texte.
+Choose whether Pokémon sprites should be animated.
+Choisissez si les sprites des Pokémon sont animés.
+Choose whether caught Pokémon are sent to your Boxes when your party is full.
+Choisissez si les Pokémon attrapés vont dans les Boîtes quand l'équipe est pleine.
+Choose whether you can give a nickname to a Pokémon when you obtain it.
+Choisissez si vous pouvez donner un surnom à un Pokémon quand vous l'obtenez.
+Choose whether you can switch Pokémon when an opponent's Pokémon faints.
+Choisissez si vous pouvez changer de Pokémon quand celui de l'adversaire est K.O.
+Choose whether you wish to see move animations in battle.
+Choisissez si les animations des capacités s'affichent en combat.
+Choose your movement speed. Hold Back while moving to move at the other speed.
+Choisissez votre vitesse de déplacement. Maintenez Retour en marchant pour changer de vitesse.
+City
+Ville
+Close
+Fermer
+Close bag.
+Fermer le Sac.
+Close storage.
+Fermer la réserve.
+Close the screen.
+Fermer l'écran.
+Coins were scattered everywhere!
+Des pièces sont éparpillées partout !
+Coins:<<n>><ar>{1}</ar>
+Jetons :<<n>><ar>{1}</ar>
+Color
+Couleur
+Confusion
+Confusion
+Congratulations from {1}!
+Félicitations de la part de {1} !
+Congratulations! Your {1} evolved into {2}!
+Félicitations ! Votre {1} a évolué en {2} !
+Congratulations, {1}!
+Félicitations, {1} !
+Contest
+Concours
+Continue
+Continuer
+Continue Box operations?
+Continuer à gérer les Boîtes ?
+Couldn't find 2 deposited Pokémon.
+Impossible de trouver 2 Pokémon déposés.
+Couldn't generate the egg.
+Impossible de générer l'Œuf.
+Couldn't lower either side's size any further, battle isn't possible
+Impossible de réduire davantage la taille des camps, le combat n'est pas possible
+Couldn't re-store deleted item in Bag somehow
+Impossible de remettre l'objet supprimé dans le Sac
+Couldn't return unused item to Bag somehow.
+Impossible de remettre l'objet inutilisé dans le Sac.
+Crafty Shield protected {1}!
+Vigilance protège {1} !
+Crag
+Falaise
+Crit. Hit
+Critique
+Croagunk
+Cradopaud
+Cursor
+Curseur
+Damage Gate
+Seuil de dégâts
+Damage the Pokémon takes from its poison worsens every turn.
+Les dégâts du poison s'aggravent à chaque tour.
+Day-Care Couple
+Couple de la Pension
+Debug
+Débogage
+Dec.
+Déc.
+December
+Décembre
+Def
+Déf
+Default Movement
+Déplacement
+Defeat your opponent before time runs out!
+Battez votre adversaire avant la fin du temps imparti !
+Defense
+Défense
+Defense Cheer 1
+Encouragement défensif 1
+Defense Cheer 2
+Encouragement défensif 2
+Defense Cheer 3
+Encouragement défensif 3
+Delete all saved data?
+Supprimer toutes les données sauvegardées ?
+Delete the saved data anyway?
+Supprimer quand même les données ?
+Deleting all data. Don't turn off the power.
+Suppression des données. N'éteignez pas.
+Deposit Item
+Déposer un objet
+Deposit Pokémon
+Déposer des Pokémon
+Deposit in which Box?
+Déposer dans quelle Boîte ?
+Deposited {1} {2}.
+Vous déposez {1} {2}.
+Deselect
+Désélectionner
+Desert
+Désert
+Dex No.
+N° Pokédex
+Distortion
+Distorsion
+Ditto
+Métamorph
+Do come again!
+Revenez quand vous voulez !
+Do what with an item?
+Que faire avec un objet ?
+Do what with the mail?
+Que faire de la lettre ?
+Do you want to change {1}'s Ability?
+Voulez-vous changer le talent de {1} ?
+Do you want to delete the save file and start anew?
+Voulez-vous supprimer la sauvegarde et recommencer ?
+Do you want to teach {1} to a Pokémon?
+Voulez-vous apprendre {1} à un Pokémon ?
+Do you want to teach {1} to {2}?
+Voulez-vous apprendre {1} à {2} ?
+Docile
+Docile
+Don't give
+Non
+Dragon
+Draconique
+Drowsy
+Somnolent
+Dynamax
+Dynamax
+EIGHTH
+HUITIÈME
+ELEVENTH
+ONZIÈME
+Each turn, {1} leeches {2} HP from the Pokémon.
+À chaque tour, {1} draine {2} PV du Pokémon.
+Each turn, {1} lowers the Pokémon's Speed.
+À chaque tour, {1} baisse la Vitesse du Pokémon.
+Eff
+Eff.
+Effect chance boosted by the {1} ability.
+Chances d'effet augmentées par le talent {1}.
+Egg hatched.
+Œuf éclos.
+Egg received.
+Œuf reçu.
+Eggs can't be taught any moves.
+Les Œufs ne peuvent apprendre aucune capacité.
+Eggs can't hold items.
+Les Œufs ne peuvent pas tenir d'objet.
+Eggs can't hold mail.
+Les Œufs ne peuvent pas tenir de lettre.
+Electric
+Électrique
+Electric fan
+Ventilateur
+Electricity's power was weakened!
+La puissance des capacités Électrik diminue !
+Embargo's effect prevents the item's use on {1}!
+Embargo empêche d'utiliser l'objet sur {1} !
+Encounter type {1} does not exist
+Le type de rencontre {1} n'existe pas
+Enter text using the keyboard.<<n>>Press Enter to confirm.
+Tapez le texte au clavier.<<n>>Appuyez sur Entrée pour valider.
+Enter text using the keyboard. Press<<n>>Enter to confirm, or Esc to cancel.
+Tapez le texte au clavier. Appuyez sur<<n>>Entrée pour valider, ou Échap pour annuler.
+Enter {1}'s name.
+Entrez le nom de {1}.
+Entry
+Inscrire
+Erratic
+Erratique
+Error: def pbGetOwnerIndexFromBattlerIndex gives invalid owner index ({1} for battle type {2}v{3}, trainers {4}v{5})
+Erreur : def pbGetOwnerIndexFromBattlerIndex donne un index de propriétaire invalide ({1} pour un combat {2} contre {3}, Dresseurs {4} contre {5})
+Eva
+Esq
+Evasion
+Esquive
+Everyone is caught up in the happy atmosphere!
+Tout le monde est gagné par la bonne humeur !
+Exit
+Quitter
+Exit from the Box?
+Quitter la Boîte ?
+Exit from the map?
+Quitter la carte ?
+Exp. Points
+Points Exp.
+Expected a level (1..{1}) but {2} is not a number or not a valid level.
+Niveau attendu (1..{1}), mais {2} n'est pas un nombre ou un niveau valide.
+Expected a trainer name but '{1}' is not a valid name.
+Nom de Dresseur attendu, mais '{1}' n'est pas un nom valide.
+Expected a trainer version number (0 or higher) but {1} is not a number or not a valid value.
+Numéro de version de Dresseur attendu (0 ou plus), mais {1} n'est pas un nombre ou une valeur valide.
+FIFTH
+CINQUIÈME
+FIRST
+PREMIER
+FOURTH
+QUATRIÈME
+Fairy
+Féerique
+Fast
+Rapide
+Feb.
+Févr.
+February
+Février
+Female 25 Percent
+Femelle 25 %
+Female 50 Percent
+Femelle 50 %
+Female 75 Percent
+Femelle 75 %
+Female One Eighth
+Femelle un huitième
+Female Seven Eighths
+Femelle sept huitièmes
+Fertilize
+Fertiliser
+Field
+Terrestre
+Field {1} is not a positive integer
+Le champ {1} n'est pas un entier positif
+Finned
+Nageoires
+Fire type moves deal 50% more damage. Halves Water move damage.
+Les capacités Feu font 50 % de dégâts en plus. Dégâts des capacités Eau divisés par deux.
+Fire type moves deal 50% more damage. Negates Water type moves.
+Les capacités Feu font 50 % de dégâts en plus. Les capacités Eau échouent.
+Fire's power was weakened!
+La puissance des capacités Feu diminue !
+Flash is already being used.
+Flash est déjà utilisé.
+Fluctuating
+Fluctuante
+Flying
+Aérien
+Foe
+Ennemi
+Foe Side
+Camp ennemi
+For {1}, the {2} was too bitter!
+{2} est trop amère pour {1} !
+For {1}, the {2} was too dry!
+{2} est trop sèche pour {1} !
+For {1}, the {2} was too sour!
+{2} est trop acide pour {1} !
+For {1}, the {2} was too spicy!
+{2} est trop épicée pour {1} !
+For {1}, the {2} was too sweet!
+{2} est trop sucrée pour {1} !
+Forest
+Forêt
+Forest grass
+Herbe de forêt
+Forget Move
+Oublier une capacité
+Friday
+Vendredi
+Frozen
+Gel
+Full
+Plein
+Fully heals a Pokémon switching into this spot.
+Soigne entièrement un Pokémon qui entre à cet emplacement.
+Fuse with which Pokémon?
+Fusionner avec quel Pokémon ?
+Future Attack
+Attaque future
+Gah! It was so close, too!
+Mince ! C'était si près du but !
+Genderless
+Asexué
+Gentle
+Gentil
+Give
+Donner
+Give Nicknames
+Surnoms
+Give item
+Donner un objet
+Give to which Pokémon?
+Donner à quel Pokémon ?
+Give up on learning {1}?
+Renoncer à apprendre {1} ?
+Give up trying to teach a new move to {1}?
+Renoncer à apprendre une nouvelle capacité à {1} ?
+Go back to the previous menu.
+Revenir au menu précédent.
+Go for it, {1}!
+Vas-y, {1} !
+Go! {1} and {2}!
+{1} et {2} ! Go !
+Go! {1}!
+{1} ! Go !
+Go! {1}, {2} and {3}!
+{1}, {2} et {3} ! Go !
+Good endurance.
+Très endurant.
+Good job, {1}! Come back!
+Bien joué, {1} ! Reviens !
+Good perseverance.
+Très tenace.
+Gotcha! {1} was caught!
+Et hop ! {1} est attrapé !
+Grass
+Végétal
+Grass grew to cover the battlefield!
+De l'herbe se met à pousser sur le terrain !
+Grass is covering the battlefield!
+De l'herbe recouvre le terrain !
+Grass is covering the battlefield.
+De l'herbe recouvre le terrain.
+Grassland
+Prairie
+Grassy
+Herbu
+Graveyard
+Cimetière
+Gravity intensified!
+La gravité s'intensifie !
+Gravity returned to normal!
+La gravité redevient normale !
+Gray
+Gris
+Green
+Vert
+Grounded Pokémon can't fall asleep. Boosts Electric moves.
+Les Pokémon au sol ne peuvent pas s'endormir. Renforce les capacités Électrik.
+Grounded Pokémon immune to priority. Boosts Psychic moves.
+Les Pokémon au sol sont immunisés contre la priorité. Renforce les capacités Psy.
+Grounded Pokémon immune to statuses. Weakens Dragon moves.
+Les Pokémon au sol sont immunisés contre les statuts. Affaiblit les capacités Dragon.
+Grounded Pokémon may recover HP each turn. Boosts Grass moves.
+Les Pokémon au sol peuvent récupérer des PV à chaque tour. Renforce les capacités Plante.
+Grounded Pokémon on this side are poisoned upon entry.
+Les Pokémon au sol de ce camp sont empoisonnés en entrant.
+Grounded Pokémon on this side lose HP upon entry.
+Les Pokémon au sol de ce camp perdent des PV en entrant.
+Grounds all Pokémon. Prevents midair actions. Increases accuracy.
+Cloue tous les Pokémon au sol. Empêche les actions aériennes. Augmente la précision.
+HM moves can't be forgotten now.
+Impossible d'oublier une CS pour l'instant.
+HP
+PV
+HP greater than total HP
+PV supérieurs aux PV max
+HP less than 0
+PV inférieurs à 0
+Had a fateful encounter at Lv. {1}.
+Rencontre fatidique au N. {1}.
+Haha...you'll never make it out alive!
+Haha... tu n'en sortiras pas vivant !
+Hail
+Grêle
+Hail is falling.
+Il grêle.
+Hailstorm
+Tempête de grêle
+Hall of Fame
+Panthéon
+Hall of Fame No.
+Panthéon N°
+Hardy
+Hardi
+Harsh Sun
+Soleil intense
+Hasty
+Pressé
+Hates to lose.
+Déteste perdre.
+Head
+Tête
+Head and arms
+Tête et bras
+Head and base
+Tête et base
+Head and legs
+Tête et jambes
+Healing boosted by the {1} ability.
+Soins augmentés par le talent {1}.
+Heart
+Cœur
+Heart Gauge
+Jauge Cœur
+Heaviest
+Plus lourd
+Heavy Rain
+Pluie battante
+Height
+Taille
+Highly curious.
+Très curieux.
+Highly persistent.
+Très persévérant.
+Hit 1 time!
+Touché 1 fois !
+Hit {1} times!
+Touché {1} fois !
+How many do you want to deposit?
+Combien voulez-vous en déposer ?
+How many do you want to withdraw?
+Combien voulez-vous en retirer ?
+How many {1} do you want to use?
+Combien de {1} voulez-vous utiliser ?
+How many {1} would you like to sell?
+Combien de {1} voulez-vous vendre ?
+Huh?
+Hein ?
+Huh? The {1}'s responding!
+Hein ? {1} réagit !
+Huh? {1} stopped evolving!
+Hein ? {1} a arrêté d'évoluer !
+Humanlike
+Humanoïde
+I am not letting you escape!
+Je ne te laisserai pas t'échapper !
+I can pay ${1}.<<n>>Would that be OK?
+Je peux vous en donner {1} $.<<n>>Ça vous va ?
+I don't care if this whole cave collapses down on the both of us...haha!
+Peu importe si toute la grotte s'effondre sur nous deux... haha !
+I'm here to buy
+Acheter
+I'm here to sell
+Vendre
+ID No.
+N° ID
+ID No. {1}
+N° ID {1}
+ID No.<r>{1}
+N° ID<r>{1}
+INELIGIBLE
+INAPTE
+INFO
+INFOS
+Ice
+Glace
+If the mail is removed, its message will be lost. OK?
+Si vous retirez la lettre, son message sera perdu. D'accord ?
+If you save now, the other file's adventure, including items and Pokémon, will be entirely lost.
+Si vous sauvegardez maintenant, l'aventure de l'autre partie, objets et Pokémon compris, sera entièrement perdue.
+Impetuous and silly.
+Impétueux et bête.
+Impish
+Malin
+Infatuation
+Attirance
+Insectoid
+Insectoïde
+Inspired by work by Flameguru
+D'après le travail de Flameguru
+Inst
+Inst.
+Invalid pocket: {1}
+Poche invalide : {1}
+Invalid quoted field (in: {1})
+Champ entre guillemets invalide (dans : {1})
+Invalid value {1} given
+Valeur invalide : {1}
+Is it OK to throw away {1} {2}?
+Voulez-vous vraiment jeter {1} {2} ?
+Is there anything else I can do for you?
+Puis-je faire autre chose pour vous ?
+It appears to move occasionally. It may be close to hatching.
+Il bouge de temps en temps. Il va peut-être bientôt éclore.
+It can't be used when you have someone with you.
+Impossible de l'utiliser quand quelqu'un vous accompagne.
+It cannot be fused with an Egg.
+Il ne peut pas fusionner avec un Œuf.
+It cannot be fused with itself.
+Il ne peut pas fusionner avec lui-même.
+It cannot be fused with that Pokémon.
+Il ne peut pas fusionner avec ce Pokémon.
+It cannot be fused with that fainted Pokémon.
+Il ne peut pas fusionner avec ce Pokémon K.O.
+It created a bizarre area in which Pokémon's held items lose their effects!
+Une zone étrange apparaît, où les objets tenus perdent leurs effets !
+It created a bizarre area in which the Defense and Sp. Def stats are swapped!
+Une zone étrange apparaît, où la Défense et la Déf. Spé. sont échangées !
+It doesn't affect {1} because of its {2}.
+Ça n'affecte pas {1} grâce à {2}.
+It doesn't affect {1}...
+Ça n'affecte pas {1}...
+It had no effect.
+Ça n'a aucun effet.
+It hurt itself in its confusion!
+Il se blesse dans sa confusion !
+It is raining heavily.
+Il pleut à verse.
+It is raining.
+Il pleut.
+It looks like this Egg will take a long time to hatch.
+On dirait que cet Œuf va mettre longtemps à éclore.
+It might affect {1}'s stats. Are you sure you want to use it?
+Cela peut modifier les stats de {1}. Voulez-vous vraiment l'utiliser ?
+It reduced the PP of {1}'s {2} by {3}!
+Les PP de {2} de {1} baissent de {3} !
+It started to hail!
+Il commence à grêler !
+It started to rain!
+Il commence à pleuvoir !
+It won't have any effect.
+Ça n'aura aucun effet.
+It's a big boulder, but a Pokémon may be able to push it aside.
+C'est un gros rocher, mais un Pokémon pourrait le pousser.
+It's a big boulder, but you may be able to push it aside with a hidden move.
+C'est un gros rocher, mais vous pourriez le pousser avec la bonne capacité.
+It's a large waterfall. Would you like to use Waterfall?
+C'est une grande cascade. Voulez-vous utiliser Cascade ?
+It's a one-hit KO!
+K.O. en un coup !
+It's a rugged rock, but a Pokémon may be able to smash it.
+C'est un rocher fissuré, mais un Pokémon pourrait le briser.
+It's impossible to aim without being focused!
+Impossible de viser sans concentration !
+It's no good! It's impossible to aim at a Pokémon that's not in sight!
+Impossible ! On ne peut pas viser un Pokémon hors de vue !
+It's no good! It's impossible to aim when there are two Pokémon!
+Impossible ! On ne peut pas viser quand il y a deux Pokémon !
+It's no good! It's impossible to aim when there is more than one Pokémon!
+Impossible ! On ne peut pas viser quand il y a plus d'un Pokémon !
+It's not very effective on {1}...
+Ce n'est pas très efficace sur {1}...
+It's not very effective...
+Ce n'est pas très efficace...
+It's soft, earthy soil.
+C'est une terre meuble et fertile.
+It's soft, loamy soil. Want to plant a berry?
+C'est une terre meuble et fertile. Voulez-vous planter une Baie ?
+It's super effective on {1}!
+C'est super efficace sur {1} !
+It's super effective!
+C'est super efficace !
+It's teatime! Everyone dug in to their Berries!
+C'est l'heure du thé ! Tout le monde mange sa Baie !
+Item
+Objet
+Item Storage
+Stockage d'objets
+Items can't be used here.
+Les objets ne peuvent pas être utilisés ici.
+Items can't be used in this battle.
+Les objets ne peuvent pas être utilisés dans ce combat.
+Items cannot be used on or by the Pokémon.
+Aucun objet ne peut être utilisé sur ou par le Pokémon.
+Its disguise served it as a decoy!
+Son déguisement lui a servi de leurre !
+Jan.
+Janv.
+January
+Janvier
+Johto Pokédex
+Pokédex de Johto
+Jolly
+Jovial
+Jul.
+Juil.
+July
+Juillet
+Jump
+Aller à
+Jump to which Box?
+Aller à quelle Boîte ?
+Jun.
+Juin
+June
+Juin
+Just a little more! Hang in there, {1}!
+Encore un effort ! Tiens bon, {1} !
+Kanto Pokédex
+Pokédex de Kanto
+Key Items
+Objets rares
+Keyboard
+Clavier
+Kimono Girl
+Kimono
+LEARNED
+APPRISE
+Landed a Pokémon!
+Un Pokémon est pêché !
+Language
+Langue
+Launch
+Lancer
+Lawn mower
+Tondeuse
+Lax
+Lâche
+League champion!<<n>>Congratulations!
+Maître de la Ligue !<<n>>Félicitations !
+Left: {1}
+Reste : {1}
+Legend 1
+Légende 1
+Legend 2
+Légende 2
+Let's enjoy cycling!
+En avant, à vélo !
+Light bulb
+Ampoule
+Light is filtering down from above. A Pokémon may be able to surface here.
+La lumière filtre d'en haut. Un Pokémon pourrait remonter à la surface ici.
+Light is filtering down from above. Would you like to use Dive?
+La lumière filtre d'en haut. Voulez-vous utiliser Plongée ?
+Lightest
+Plus léger
+Likes to fight.
+Aime se battre.
+Likes to relax.
+Aime se détendre.
+Likes to run.
+Aime courir.
+Likes to thrash about.
+Aime se débattre.
+Log off
+Déconnexion
+Lonely
+Solo
+Long
+Long
+Loves to eat.
+Adore manger.
+Lv. {1}
+N. {1}
+MOVES
+CAPACITÉS
+Machine
+Machine
+Magic Room wore off, and held items' effects returned to normal!
+Zone Magique prend fin : les objets tenus retrouvent leurs effets !
+Magnitude {1}!
+Magnitude {1} !
+Mail
+Lettres
+Mail was transferred from the Mailbox.
+La lettre a été transférée depuis la boîte aux lettres.
+Mailbox
+Boîte aux lettres
+Make Mystery Gift
+Créer un Cadeau Mystère
+Manual
+Manuel
+Map {1} was not found.
+La carte {1} est introuvable.
+Mar.
+Mars
+March
+Mars
+Mark
+Marquer
+Mark your Pokémon.
+Marquez vos Pokémon.
+Mark {1}
+Marquer {1}
+Max. HP<r>+{1}<<n>>Attack<r>+{2}<<n>>Defense<r>+{3}<<n>>Sp. Atk<r>+{4}<<n>>Sp. Def<r>+{5}<<n>>Speed<r>+{6}
+PV max<r>+{1}<<n>>Attaque<r>+{2}<<n>>Défense<r>+{3}<<n>>Atq. Spé.<r>+{4}<<n>>Déf. Spé.<r>+{5}<<n>>Vitesse<r>+{6}
+Max. HP<r>{1}<<n>>Attack<r>{2}<<n>>Defense<r>{3}<<n>>Sp. Atk<r>{4}<<n>>Sp. Def<r>{5}<<n>>Speed<r>{6}
+PV max<r>{1}<<n>>Attaque<r>{2}<<n>>Défense<r>{3}<<n>>Atq. Spé.<r>{4}<<n>>Déf. Spé.<r>{5}<<n>>Vitesse<r>{6}
+May
+Mai
+Medicine
+Soins
+Medium
+Moyenne
+Mega Ring
+Méga-Anneau
+Mega {1}
+Méga-{1}
+Menu Frame
+Cadre des menus
+Met at Lv. {1}.
+Rencontré au N. {1}.
+Microwave oven
+Four à micro-ondes
+Mid
+Moy.
+Mild
+Doux
+Mineral
+Minéral
+Mischievous.
+Farceur.
+Mist is swirling about the battlefield.
+La brume se répand sur le terrain.
+Mist swirled about the battlefield!
+La brume se répand sur le terrain !
+Mist swirls about the battlefield!
+La brume se répand sur le terrain !
+Misty
+Brumeux
+Modest
+Modeste
+Monday
+Lundi
+Money
+Argent
+Money:<<n>><ar>{1}</ar>
+Argent :<<n>><ar>{1} $</ar>
+Money:<<n>><r>{1}
+Argent :<<n>><r>{1} $
+Monster
+Monstre
+Mountain
+Montagne
+Move
+Déplacer
+Move Disabled
+Capacité bloquée
+Move Pokémon stored in Boxes to your party.
+Mettre des Pokémon des Boîtes dans l'équipe.
+Move to Bag
+Mettre dans le Sac
+Move to where?
+Déplacer où ?
+Move {1} to where?
+Déplacer {1} où ?
+Moving water
+Eau courante
+Multi Body
+Multicorps
+Multi Winged
+Multiailé
+Multiped
+Multipède
+Music Volume
+Volume musique
+My Game by:
+Un jeu de :
+My {1} will never give up!
+Mon {1} n'abandonnera jamais !
+Mysterious strong winds are protecting Flying-type Pokémon!
+Un vent mystérieux protège les Pokémon de type Vol !
+NINTH
+NEUVIÈME
+NOT ABLE
+PAS APTE
+NOT ENTERED
+NON INSCRIT
+Naive
+Naïf
+Name<r>{1}
+Nom<r>{1}
+National Pokédex
+Pokédex National
+Naughty
+Mauvais
+Near Ally
+Allié proche
+Near Foe
+Ennemi proche
+Near Other
+Autre proche
+Neither Pokémon can run away!
+Aucun des deux Pokémon ne peut fuir !
+Neutralizing gas filled the area!
+Un gaz inhibiteur envahit les lieux !
+New Game
+Nouvelle partie
+Nickname
+Surnom
+No
+Non
+No Ability
+Sans talent
+No Entry
+Ne pas inscrire
+No Pokémon at index {1} in party.
+Aucun Pokémon à l'index {1} de l'équipe.
+No Pokémon found in Day Care to choose from.
+Aucun Pokémon à choisir à la Pension.
+No Pokémon found in slot {1}.
+Aucun Pokémon dans l'emplacement {1}.
+No Pokémon on the field can flee.
+Aucun Pokémon sur le terrain ne peut fuir.
+No Pokémon on the field can use their held items.
+Aucun Pokémon sur le terrain ne peut utiliser son objet tenu.
+No ability
+Aucun talent
+No copyright infringements intended.
+Aucune violation de droits d'auteur n'est voulue.
+No item
+Aucun objet
+No matching Pokémon were found.
+Aucun Pokémon correspondant n'a été trouvé.
+No one will be able to run away during the next turn!
+Personne ne pourra fuir au prochain tour !
+No room in party for Pokémon.
+Pas de place dans l'équipe pour le Pokémon.
+No room in party for egg.
+Pas de place dans l'équipe pour l'Œuf.
+No room to deposit a Pokémon.
+Pas de place pour déposer un Pokémon.
+No save file was found.
+Aucune sauvegarde trouvée.
+No starting position was set in the map editor.
+Aucune position de départ n'a été définie dans l'éditeur de cartes.
+No surfing here!
+Pas de surf ici !
+No! There's no running from a Trainer battle!
+Non ! On ne fuit pas un combat de Dresseurs !
+No, thanks
+Non merci
+No. ???
+N° ???
+No. of Ribbons:
+Nbre de rubans :
+No. {1:03d}
+N° {1:03d}
+Nods off a lot.
+Somnole beaucoup.
+Non-Shadow Pokémon may lose HP each turn.
+Les Pokémon non Obscurs peuvent perdre des PV à chaque tour.
+None
+Aucun
+Nope. Nothing...
+Non. Rien...
+Normal type moves of all Pokémon on the field become Electric type.
+Les capacités Normal de tous les Pokémon sur le terrain deviennent de type Électrik.
+Nostalgic 1
+Nostalgie 1
+Nostalgic 2
+Nostalgie 2
+Not enough HP...
+Pas assez de PV...
+Not even a nibble...
+Pas même une touche...
+Nov.
+Nov.
+November
+Novembre
+Now you're more likely to encounter high-level Pokémon!
+Vous avez plus de chances de rencontrer des Pokémon de haut niveau !
+Now you're more likely to encounter low-level Pokémon!
+Vous avez plus de chances de rencontrer des Pokémon de bas niveau !
+Number Battled
+Nombre de combats
+Numerical
+Numérique
+OBTAINED
+ATTRAPÉS
+OK, {1}! Come back!
+OK, {1} ! Reviens !
+OT
+DO
+Oak's words echoed... There's a time and place for everything! But not now.
+Les paroles du Prof. Chen résonnent... Il y a un temps et un lieu pour chaque chose ! Mais pas maintenant.
+Oct.
+Oct.
+October
+Octobre
+Off
+Non
+Offense Cheer 1
+Encouragement offensif 1
+Offense Cheer 2
+Encouragement offensif 2
+Offense Cheer 3
+Encouragement offensif 3
+Often lost in thought.
+Souvent dans la lune.
+Oh no! The Pokémon broke free!
+Oh non ! Le Pokémon s'est libéré !
+Oh!<<n>>A Shadow Pokémon!
+Oh !<<n>>Un Pokémon Obscur !
+Oh! A bite!
+Oh ! Ça mord !
+Oh! A wild {1} and {2} appeared!
+Un {1} et un {2} sauvages apparaissent !
+Oh! A wild {1} appeared!
+Un {1} sauvage apparaît !
+Oh! A wild {1}, {2} and {3} appeared!
+Un {1}, un {2} et un {3} sauvages apparaissent !
+Oh, no. I can't buy {1}.
+Ah non. Je ne peux pas acheter : {1}.
+On
+Oui
+Once data has been deleted, there is no way to recover it.
+Une fois supprimées, les données ne pourront pas être récupérées.
+One Form
+Forme unique
+Opens the Key Bindings window, where you can choose which keyboard keys to use for each control.
+Ouvre la fenêtre des touches, où vous pouvez choisir les touches du clavier pour chaque commande.
+Opposing trainer {1} has no able Pokémon
+Le Dresseur adverse {1} n'a aucun Pokémon apte au combat
+Opposing trainer {1} has no battler position for their Pokémon to go (trying {2}v{3} battle)
+Le Dresseur adverse {1} n'a pas de place pour ses Pokémon (combat {2} contre {3})
+Options
+Options
+Order
+Ordre
+Organize Boxes
+Organiser les Boîtes
+Organize the Pokémon in Boxes and in your party.
+Organiser les Pokémon des Boîtes et de l'équipe.
+Other
+Autre
+Owned:
+Attrapés :
+PA: Ding-dong!
+ANNONCE : Ding-dong !
+PA: You have no Safari Balls left! Game over!
+ANNONCE : Vous n'avez plus de Safari Balls ! C'est terminé !
+PA: Your safari game is over!
+ANNONCE : Votre partie de Safari est terminée !
+POWER
+PUISSANCE
+PP
+PP
+PP was restored.
+Les PP sont restaurés.
+PP: ---<br>TYPE/{1}
+PP : ---<br>TYPE/{1}
+PP: {1: 2d}/{2: 2d}<br>TYPE/{3:s}
+PP : {1: 2d}/{2: 2d}<br>TYPE/{3:s}
+PP: {1}/{2}
+PP : {1}/{2}
+Parabolic
+Parabolique
+Paralysis
+Paralysie
+Party 1 has no Pokémon.
+L'équipe 1 n'a aucun Pokémon.
+Party 2 has no Pokémon.
+L'équipe 2 n'a aucun Pokémon.
+Party: {1}
+Équipe : {1}
+Perish Count
+Requiem
+Physical moves deal less damage to Pokémon on this side.
+Les capacités physiques infligent moins de dégâts aux Pokémon de ce camp.
+Pick the wallpaper.
+Choisissez le fond.
+PikaPika 1
+PikaPika 1
+PikaPika 2
+PikaPika 2
+Pink
+Rose
+Place
+Poser
+Plant Berry
+Planter une Baie
+Player
+Joueur
+Player character {1}'s walking charset was not found (filename: "{2}").
+Le charset de marche du personnage {1} est introuvable (fichier : « {2} »).
+Player-side trainer {1} has no able Pokémon
+Le Dresseur allié {1} n'a aucun Pokémon apte au combat
+Player-side trainer {1} has no battler position for their Pokémon to go (trying {2}v{3} battle)
+Le Dresseur allié {1} n'a pas de place pour ses Pokémon (combat {2} contre {3})
+Please enter the first Pokémon.
+Entrez le premier Pokémon.
+Please remove the Mail.
+Retirez la lettre.
+Please remove the mail.
+Retirez la lettre.
+Please see the documentation to learn how to set up the trainer player.
+Consultez la documentation pour savoir comment définir le Dresseur joueur.
+Please support the official games!
+Soutenez les jeux officiels !
+Pointed stones dug into {1}!
+Des pierres pointues s'enfoncent dans {1} !
+Pointed stones float in the air around {1}!
+Des pierres pointues flottent autour de {1} !
+Poison
+Poison
+Poison spikes were scattered all around {1}'s feet!
+Des pics toxiques s'éparpillent autour de {1} !
+Poké Balls
+Poké Balls
+Poké Center
+Centre Poké
+Pokéathlon
+Pokéathlon
+Pokédex
+Pokédex
+Pokédex:
+Pokédex :
+Pokédex<r>{1}/{2}
+Pokédex<r>{1}/{2}
+Pokégear
+Pokégear
+Pokémon Animations
+Animations Pokémon
+Pokémon is owned by:
+Pokémon appartient à :
+Pokémon may lose HP each turn. Blizzard always hits.
+Les Pokémon peuvent perdre des PV à chaque tour. Blizzard touche toujours.
+Pokémon may lose HP each turn. Boosts Sp. Defense of Rock types.
+Les Pokémon peuvent perdre des PV à chaque tour. Augmente la Déf. Spé. des types Roche.
+Pokémon on this side are immune to critical hits.
+Les Pokémon de ce camp sont immunisés contre les coups critiques.
+Pokémon on this side are immune to move effects.
+Les Pokémon de ce camp sont immunisés contre les effets des capacités.
+Pokémon on this side are more likely to trigger move effects.
+Les Pokémon de ce camp déclenchent plus souvent les effets des capacités.
+Pokémon on this side are protected from most damaging moves.
+Les Pokémon de ce camp sont protégés de la plupart des capacités offensives.
+Pokémon on this side are protected from most priority moves.
+Les Pokémon de ce camp sont protégés de la plupart des capacités prioritaires.
+Pokémon on this side are protected from most spread moves.
+Les Pokémon de ce camp sont protégés de la plupart des capacités de zone.
+Pokémon on this side are protected from most status moves.
+Les Pokémon de ce camp sont protégés de la plupart des capacités de statut.
+Pokémon on this side are protected from status conditions.
+Les Pokémon de ce camp sont protégés des altérations de statut.
+Pokémon on this side lose HP each turn. No effect on Fire types.
+Les Pokémon de ce camp perdent des PV à chaque tour. Sans effet sur les types Feu.
+Pokémon on this side lose HP each turn. No effect on Grass types.
+Les Pokémon de ce camp perdent des PV à chaque tour. Sans effet sur les types Plante.
+Pokémon on this side lose HP each turn. No effect on Rock types.
+Les Pokémon de ce camp perdent des PV à chaque tour. Sans effet sur les types Roche.
+Pokémon on this side lose HP each turn. No effect on Water types.
+Les Pokémon de ce camp perdent des PV à chaque tour. Sans effet sur les types Eau.
+Pokémon on this side take Rock type damage upon entry.
+Les Pokémon de ce camp subissent des dégâts de type Roche en entrant.
+Pokémon on this side take Steel type damage upon entry.
+Les Pokémon de ce camp subissent des dégâts de type Acier en entrant.
+Pokémon on this side take reduced damage from attacks.
+Les Pokémon de ce camp subissent moins de dégâts des attaques.
+Pokémon on this side will endure incoming attacks.
+Les Pokémon de ce camp encaissent les attaques sans tomber.
+Position {1},{2} is empty...
+La position {1},{2} est vide...
+Position {1},{2} is not empty...
+La position {1},{2} n'est pas vide...
+Pow
+Puis.
+Power boosted by Terastallization.
+Puissance augmentée par la téracristallisation.
+Power boosted by the held {1}.
+Puissance augmentée par l'objet {1}.
+Power boosted by the {1} ability.
+Puissance augmentée par le talent {1}.
+Power weakened by the held {1}.
+Puissance réduite par l'objet {1}.
+Power weakened by the {1} ability.
+Puissance réduite par le talent {1}.
+Press to open the Ready Menu, where registered items and available field moves can be used. (Default: D)
+Ouvre le menu Rapide, où vous pouvez utiliser les objets enregistrés et les capacités de terrain. (Par défaut : D)
+Pri
+Prio.
+Primal Reversion
+Primo-Résurgence
+Priority boosted by the {1} ability.
+Priorité augmentée par le talent {1}.
+Priority lowered by the {1} ability.
+Priorité réduite par le talent {1}.
+Protected from damage dealing moves. Contact inflicts a burn.
+Protégé des capacités offensives. Le contact brûle.
+Protected from damage dealing moves. Contact lowers Attack.
+Protégé des capacités offensives. Le contact baisse l'Attaque.
+Protected from damage dealing moves. Contact lowers Defense.
+Protégé des capacités offensives. Le contact baisse la Défense.
+Protected from damage dealing moves. Contact lowers Speed.
+Protégé des capacités offensives. Le contact baisse la Vitesse.
+Protected from most moves. Contact inflicts damage.
+Protégé de la plupart des capacités. Le contact inflige des dégâts.
+Protected from most moves. Contact inflicts poison.
+Protégé de la plupart des capacités. Le contact empoisonne.
+Proud of its power.
+Fier de sa force.
+Psychic
+Psychique
+Puddle
+Flaque
+Purple
+Violet
+Quadruped
+Quadrupède
+Quick Guard protected {1}!
+Prévention protège {1} !
+Quick tempered.
+Colérique.
+Quick to flee.
+Prend vite la fuite.
+Quiet
+Discret
+Quirky
+Bizarre
+Quit
+Quitter
+Quit Game
+Quitter le jeu
+RENTAL
+LOCATION
+RIBBONS
+RUBANS
+Raid Shield
+Bouclier Raid
+Rain
+Pluie
+Rain continues to fall.
+La pluie continue de tomber.
+Rainbow
+Arc-en-ciel
+Rampaging
+Mania
+Random Near Foe
+Ennemi proche au hasard
+Rare
+Rare
+Rash
+Foufou
+Read
+Lire
+Received the {1} from {2}.
+Vous recevez {1} de la part de {2}.
+Recharging
+Recharge
+Red
+Rouge
+Refrigerator
+Réfrigérateur
+Register
+Enregistrer
+Relaxed
+Relax
+Release
+Relâcher
+Release this Pokémon?
+Relâcher ce Pokémon ?
+Remember Move
+Se souvenir d'une capacité
+Restore which move?
+Restaurer quelle capacité ?
+Return
+Retour
+Return to the command menu.
+Revenir au menu des commandes.
+Return to the previous menu.
+Revenir au menu précédent.
+Reverses Speed order so slower Pokémon on the field move first.
+Inverse l'ordre de Vitesse : les Pokémon les plus lents agissent en premier.
+Revival
+Renouveau
+River
+Rivière
+Rock
+Roche
+Rotom is trying to forget its last move, but there isn't another move to replace it with.
+Motisma essaie d'oublier sa dernière capacité, mais aucune autre ne peut la remplacer.
+Rough Terrain
+Terrain accidenté
+Running
+Course
+SE Volume
+Volume effets
+SECOND
+DEUXIÈME
+SEEN
+VUS
+SEVENTH
+SEPTIÈME
+SIXTH
+SIXIÈME
+SKILLS
+STATS
+Safari Balls
+Safari Balls
+Sand
+Sable
+Sandstorm
+Tempête de sable
+Sassy
+Malpoli
+Saturday
+Samedi
+Savanna
+Savane
+Save
+Sauver
+Save failed.
+La sauvegarde a échoué.
+Save the removed mail in your PC?
+Ranger la lettre retirée dans le PC ?
+Scatters things often.
+Éparpille souvent ses affaires.
+Screen Size
+Taille de l'écran
+Sea
+Mer
+Sea of Fire
+Mer de feu
+Seafloor
+Fonds marins
+Search Mode
+Mode Recherche
+Search results
+Résultats de la recherche
+See ya!
+À plus !
+See {1}'s summary
+Voir le résumé de {1}
+Seen:
+Vus :
+Select
+Choisir
+Semi-Invulnerable
+Semi-invulnérable
+Send to Boxes
+Envoyer dans les Boîtes
+Send to a Box
+Envoyer dans une Boîte
+Send which Pokémon to Boxes?
+Envoyer quel Pokémon dans les Boîtes ?
+Sep.
+Sept.
+September
+Septembre
+Serious
+Sérieux
+Serpentine
+Serpentin
+Set
+Défini
+Set the level for {1} (max. {2}).
+Niveau de {1} (max. {2}).
+Set the name for this point.
+Nommez ce point.
+Shadow Pokémon can't be taught any moves.
+Les Pokémon Obscurs ne peuvent apprendre aucune capacité.
+Shadow Sky
+Ciel obscur
+Shape
+Forme
+Shift
+Déplacer
+Should {1} forget a move to learn {2}?
+{1} doit-il oublier une capacité pour apprendre {2} ?
+Simple
+Simple
+Sky
+Ciel
+Sky Drop won't let {1} go!
+Chute Libre ne lâche pas {1} !
+Sleep
+Sommeil
+Slow
+Lente
+Smallest
+Plus petit
+Snow
+Neige
+So how many {1}?
+Combien de {1} ?
+So you want the {1}?<<n>>It'll be ${2}. All right?
+Vous voulez : {1} ?<<n>>Ça fera {2} $. D'accord ?
+So you want {1} {2}?<<n>>It'll be ${3}. All right?
+Vous voulez {1} {2} ?<<n>>Ça fera {3} $. D'accord ?
+So you want {1} {2}?<<n>>They'll be ${3}. All right?
+Vous voulez {1} {2} ?<<n>>Ça fera {3} $. D'accord ?
+Someone's PC
+PC de quelqu'un
+Somewhat of a clown.
+Un peu clown.
+Somewhat stubborn.
+Un peu têtu.
+Somewhat vain.
+Un peu vaniteux.
+Sorry, a new Badge is required.
+Désolé, il faut un nouveau sceau.
+Soul
+Âme
+Sounds can be heard coming from inside! It will hatch soon!
+On entend des bruits à l'intérieur ! Il va bientôt éclore !
+Sp. Atk
+Atq. Spé.
+Sp. Def
+Déf. Spé.
+SpAtk
+AtqSp
+SpDef
+DéfSp
+Space
+Espace
+Spd
+Vit
+Special Attack
+Attaque Spéciale
+Special Defense
+Défense Spéciale
+Special moves deal less damage to Pokémon on this side.
+Les capacités spéciales infligent moins de dégâts aux Pokémon de ce camp.
+Special thanks to:
+Remerciements :
+Species {1} does not exist.
+L'espèce {1} n'existe pas.
+Species {1} was given but not a level.
+L'espèce {1} est donnée sans niveau.
+Speech Frame
+Cadre du texte
+Speed
+Vitesse
+Speed Down
+Vitesse en baisse
+Spikes were scattered all around {1}'s feet!
+Des picots s'éparpillent autour de {1} !
+Spiky Pika
+Pika Pointu
+Splinters
+Échardes
+Spring
+Printemps
+Start
+Lancer
+Started
+Début
+Steps: {1}/{2}<<n>>Balls: {3}
+Pas : {1}/{2}<<n>>Balls : {3}
+Still water
+Eau calme
+Store
+Ranger
+Store Pokémon in your party in Boxes.
+Ranger des Pokémon de l'équipe dans les Boîtes.
+Store items in the PC.
+Ranger des objets dans le PC.
+Strength is already being used.
+Force est déjà utilisée.
+Strength made it possible to move boulders around!
+Force permet de déplacer les rochers !
+Strength made it possible to move boulders around.
+Force permet de déplacer les rochers.
+Strong Winds
+Vents forts
+Strong willed.
+A une forte volonté.
+Strongly defiant.
+Très rebelle.
+Struggle
+Lutte
+Sturdy body.
+Corps robuste.
+Summer
+Été
+Sun
+Soleil
+Sunday
+Dimanche
+Swamp
+Marécage
+Switch
+Choix
+Switch In
+Envoyer
+TENTH
+DIXIÈME
+THIRD
+TROISIÈME
+TMs & HMs
+CT et CS
+TRAINER MEMO
+MÉMO DU DRESSEUR
+TWELFTH
+DOUZIÈME
+Take
+Prendre
+Take a screenshot. It is put in the same folder as the save file.
+Prend une capture d'écran. Elle est placée dans le même dossier que la sauvegarde.
+Take item
+Prendre l'objet
+Take out items from the PC.
+Retirer des objets du PC.
+Take the {1}?
+Prendre {1} ?
+Takes plenty of siestas.
+Fait souvent la sieste.
+Tall grass
+Hautes herbes
+Tallest
+Plus grand
+Teach which Pokémon?
+Apprendre à quel Pokémon ?
+Teach which move?
+Apprendre quelle capacité ?
+Teach {1}?
+Apprendre {1} ?
+Team Galactic 1
+Team Galaxie 1
+Team Galactic 2
+Team Galaxie 2
+Terastallization
+Téracristallisation
+Text Entry
+Saisie de texte
+Text Speed
+Vitesse du texte
+That won't fertilize the soil!
+Ça ne fertilisera pas le sol !
+That's too important to toss out!
+C'est trop important pour être jeté !
+That's your last Pokémon!
+C'est votre dernier Pokémon !
+The Attack and Defense stats of the Pokémon are swapped.
+L'Attaque et la Défense du Pokémon sont échangées.
+The Attack stat of the Pokémon increases whenever it is hit.
+L'Attaque du Pokémon augmente chaque fois qu'il est touché.
+The Bag is full.
+Le Sac est plein.
+The Bag is full. The Pokémon's item could not be removed.
+Le Sac est plein. L'objet du Pokémon n'a pas pu être retiré.
+The Box is full.
+La Boîte est pleine.
+The Exp Share was turned off.
+Le Multi Exp est désactivé.
+The Exp Share was turned on.
+Le Multi Exp est activé.
+The Fire-type attack fizzled out in the heavy rain!
+L'attaque Feu s'éteint sous la pluie battante !
+The Hyper Mode attack hurts {1}!
+L'attaque en Mode Hyper blesse {1} !
+The Lucky Chant shielded {1} from critical hits!
+Air Veinard protège {1} des coups critiques !
+The Mail was returned to the Bag with its message erased.
+La lettre a été remise dans le Sac et son message effacé.
+The Pokémon Boxes are full and can't accept any more!
+Les Boîtes Pokémon sont pleines et ne peuvent plus en accueillir !
+The Pokémon Storage System was opened.
+Le Système de Stockage Pokémon est ouvert.
+The Pokémon bounces back most incoming status moves.
+Le Pokémon renvoie la plupart des capacités de statut.
+The Pokémon can't fall asleep. Electric moves boosted by 30%.
+Le Pokémon ne peut pas s'endormir. Capacités Électrik renforcées de 30 %.
+The Pokémon can't use moves known by {1}.
+Le Pokémon ne peut pas utiliser les capacités connues par {1}.
+The Pokémon cannot act for {1} more turn(s).
+Le Pokémon ne peut pas agir pendant {1} tour(s).
+The Pokémon cannot be hit by most attacks.
+Le Pokémon ne peut pas être touché par la plupart des attaques.
+The Pokémon cannot evade and takes double damage from attacks.
+Le Pokémon ne peut pas esquiver et subit le double de dégâts.
+The Pokémon cannot use any healing effects that restores HP.
+Le Pokémon ne peut utiliser aucun effet qui restaure des PV.
+The Pokémon cannot use any sound-based moves.
+Le Pokémon ne peut utiliser aucune capacité sonore.
+The Pokémon cannot use any status moves.
+Le Pokémon ne peut utiliser aucune capacité de statut.
+The Pokémon cannot use the move {1}.
+Le Pokémon ne peut pas utiliser la capacité {1}.
+The Pokémon cannot use the same move twice in a row.
+Le Pokémon ne peut pas utiliser la même capacité deux fois de suite.
+The Pokémon gets its act together in {1} more turn(s).
+Le Pokémon se reprendra en main dans {1} tour(s).
+The Pokémon got away...
+Le Pokémon s'est échappé...
+The Pokémon has been made airborne, but it cannot evade attacks.
+Le Pokémon a été soulevé dans les airs, mais ne peut pas esquiver.
+The Pokémon has been made weaker to Fire type moves.
+Le Pokémon a été rendu plus vulnérable aux capacités Feu.
+The Pokémon heals {1} HP each turn. Grass moves boosted by 30%.
+Le Pokémon récupère {1} PV à chaque tour. Capacités Plante renforcées de 30 %.
+The Pokémon in this spot will restore {1} HP in {2} more turn(s).
+Le Pokémon à cet emplacement récupérera {1} PV dans {2} tour(s).
+The Pokémon is Terastallized into the {1} type.
+Le Pokémon est téracristallisé en type {1}.
+The Pokémon is airborne and immune to Ground moves.
+Le Pokémon est dans les airs et immunisé contre les capacités Sol.
+The Pokémon is amassing a stockpile to use or consume.
+Le Pokémon fait des réserves à utiliser ou à consommer.
+The Pokémon is being lifted in the air by {1}.
+Le Pokémon est soulevé dans les airs par {1}.
+The Pokémon is grounded and no longer immune to Ground moves.
+Le Pokémon est cloué au sol et n'est plus immunisé contre les capacités Sol.
+The Pokémon is grounded.
+Le Pokémon est cloué au sol.
+The Pokémon is immune to priority. Psychic moves boosted by 30%.
+Le Pokémon est immunisé contre la priorité. Capacités Psy renforcées de 30 %.
+The Pokémon is immune to status moves and takes less damage.
+Le Pokémon est immunisé contre les capacités de statut et subit moins de dégâts.
+The Pokémon is immune to statuses. Dragon moves weakened.
+Le Pokémon est immunisé contre les statuts. Capacités Dragon affaiblies.
+The Pokémon is in its Mega Evolved form.
+Le Pokémon est sous sa forme méga-évoluée.
+The Pokémon is in its Primal form.
+Le Pokémon est sous sa forme primitive.
+The Pokémon is in its Ultra form.
+Le Pokémon est sous sa forme Ultra.
+The Pokémon is in the Dynamax state.
+Le Pokémon est Dynamaxé.
+The Pokémon is less likely to attack {1}.
+Le Pokémon a moins de chances d'attaquer {1}.
+The Pokémon is protected from most incoming attacks.
+Le Pokémon est protégé de la plupart des attaques.
+The Pokémon is trapped while latched to {1}.
+Le Pokémon est piégé tant qu'il est accroché à {1}.
+The Pokémon loses {1} HP at the end of each turn.
+Le Pokémon perd {1} PV à la fin de chaque tour.
+The Pokémon loses {1} HP each turn it spends asleep.
+Le Pokémon perd {1} PV à chaque tour passé endormi.
+The Pokémon loses {1} HP each turn.
+Le Pokémon perd {1} PV à chaque tour.
+The Pokémon loses {1} HP each turn. Blizzard always hits.
+Le Pokémon perd {1} PV à chaque tour. Blizzard touche toujours.
+The Pokémon may hurt itself in confusion instead of attacking.
+Le Pokémon peut se blesser dans sa confusion au lieu d'attaquer.
+The Pokémon may only use the move {1}.
+Le Pokémon ne peut utiliser que la capacité {1}.
+The Pokémon rampages for a few turns. It then becomes confused.
+Le Pokémon se déchaîne pendant quelques tours, puis devient confus.
+The Pokémon refuses to flee or switch out.
+Le Pokémon refuse de fuir ou d'être remplacé.
+The Pokémon restores {1} HP at the end of each turn.
+Le Pokémon récupère {1} PV à la fin de chaque tour.
+The Pokémon restores {1} HP every turn, but cannot escape.
+Le Pokémon récupère {1} PV à chaque tour, mais ne peut pas fuir.
+The Pokémon takes damage at the end of each turn.
+Le Pokémon subit des dégâts à la fin de chaque tour.
+The Pokémon takes more damage from certain moves while minimized.
+Le Pokémon subit plus de dégâts de certaines capacités quand il est rapetissé.
+The Pokémon takes {1} type damage at the end of each turn.
+Le Pokémon subit des dégâts de type {1} à la fin de chaque tour.
+The Pokémon will be forced to faint in {1} more turn(s).
+Le Pokémon sera K.O. dans {1} tour(s).
+The Pokémon will fall asleep in {1} more turn(s).
+Le Pokémon s'endormira dans {1} tour(s).
+The Pokémon will survive all incoming attacks with 1 HP.
+Le Pokémon survivra à toutes les attaques avec 1 PV.
+The Pokémon will use {1} next turn.
+Le Pokémon utilisera {1} au prochain tour.
+The Pokémon's HP won't fall below {1}% when attacked.
+Les PV du Pokémon ne descendront pas sous {1} % quand il est attaqué.
+The Pokémon's ability is negated.
+Le talent du Pokémon est neutralisé.
+The Pokémon's data was added to the Pokédex.
+Les données du Pokémon ont été ajoutées au Pokédex.
+The Pokémon's evasion boosts are ignored.
+Les hausses d'esquive du Pokémon sont ignorées.
+The Pokémon's evasion boosts are ignored. No Dark immunities.
+Les hausses d'esquive du Pokémon sont ignorées. Plus d'immunités Ténèbres.
+The Pokémon's evasion boosts are ignored. No Ghost immunities.
+Les hausses d'esquive du Pokémon sont ignorées. Plus d'immunités Spectre.
+The Pokémon's next attack will be a guaranteed critical hit.
+La prochaine attaque du Pokémon sera forcément un coup critique.
+The Pokémon's next move is sure to hit {1}.
+La prochaine capacité du Pokémon touchera forcément {1}.
+The Pokémon's weight has been {1}.
+Le poids du Pokémon a été {1}.
+The Speed of grounded Pokémon on this side is lowered upon entry.
+La Vitesse des Pokémon au sol de ce camp baisse en entrant.
+The Speed of the Pokémon on this side is doubled.
+La Vitesse des Pokémon de ce camp est doublée.
+The Speed of the Pokémon on this side is halved.
+La Vitesse des Pokémon de ce camp est divisée par deux.
+The Tailwind blew from behind {1}!
+Le Vent Arrière souffle derrière {1} !
+The Trainer blocked your Poké Ball! Don't be a thief!
+Le Dresseur dévie la Poké Ball ! Voler, c'est mal !
+The Trainer's data was added to the list of battles and in PBS/trainers.txt.
+Les données du Dresseur ont été ajoutées à la liste des combats et à PBS/trainers.txt.
+The Water-type attack evaporated in the harsh sunlight!
+L'attaque Eau s'évapore sous le soleil brûlant !
+The ally {1}
+{1} allié
+The area returned to normal!
+Les lieux redeviennent normaux !
+The battlefield got weird!
+Le terrain devient bizarre !
+The battlefield is weird!
+Le terrain est bizarre !
+The battlefield is weird.
+Le terrain est bizarre.
+The battlefield returned to normal.
+Le terrain redevient normal.
+The battlers shared their pain!
+Les Pokémon se partagent la douleur !
+The boxes are full! You can't catch any more Pokémon!
+Les Boîtes sont pleines ! Vous ne pouvez plus attraper de Pokémon !
+The bursting flame hit {1} and {2}!
+La flamme explosive touche {1} et {2} !
+The bursting flame hit {1}!
+La flamme explosive touche {1} !
+The cave ceiling begins to crumble down all around you!
+Le plafond de la grotte commence à s'effondrer autour de vous !
+The cave continues to collapse all around you!
+La grotte continue de s'effondrer autour de vous !
+The combined effects of both Hail and Snow.
+Les effets combinés de la Grêle et de la Neige.
+The current map has no region set. Please set the MapPosition metadata setting for this map.
+La carte actuelle n'a pas de région. Définissez le paramètre MapPosition de cette carte.
+The damage dealt with the Pokémon's next move will be increased.
+Les dégâts de la prochaine capacité du Pokémon seront augmentés.
+The door to its heart is almost fully open.
+La porte de son cœur est presque grande ouverte.
+The door to its heart is nearly open.
+La porte de son cœur est presque ouverte.
+The door to its heart is open! Undo the final lock!
+La porte de son cœur est ouverte ! Retirez le dernier verrou !
+The door to its heart is opening up.
+La porte de son cœur s'entrouvre.
+The door to its heart is opening wider.
+La porte de son cœur s'ouvre davantage.
+The door to its heart is tightly shut.
+La porte de son cœur est bien fermée.
+The effects of Mud Sport have faded.
+Les effets de Lance-Boue se dissipent.
+The effects of Water Sport have faded.
+Les effets de Tourniquet se dissipent.
+The effects of the neutralizing gas wore off!
+Les effets du gaz inhibiteur se dissipent !
+The effects of the weather disappeared.
+Les effets de la météo disparaissent.
+The effects of the {1} prevent status moves from being used!
+Les effets de {1} empêchent d'utiliser des capacités de statut !
+The effects of {1} prevent {2} from using certain moves!
+Les effets de {1} empêchent {2} d'utiliser certaines capacités !
+The electric current disappeared from the battlefield!
+Le courant électrique quitte le terrain !
+The electricity disappeared from the battlefield.
+L'électricité quitte le terrain.
+The extremely harsh sunlight was not lessened at all!
+Les rayons brûlants du soleil ne faiblissent pas !
+The game has detected that the battery is low. You should save soon to avoid losing your progress.
+La batterie est faible. Sauvegardez bientôt pour ne pas perdre votre progression.
+The game was saved.
+La partie a été sauvegardée.
+The grass disappeared from the battlefield!
+L'herbe disparaît du terrain !
+The grass disappeared from the battlefield.
+L'herbe disparaît du terrain.
+The hail is crashing down.
+La grêle continue de tomber.
+The hail stopped.
+La grêle s'arrête.
+The hailstorm ended.
+La tempête de grêle prend fin.
+The healing wish came true for {1}!
+Le Vœu Soin de {1} se réalise !
+The level number ({1}) is invalid.
+Le niveau ({1}) est invalide.
+The likelihood of encountering Pokémon decreased!
+Les chances de rencontrer des Pokémon diminuent !
+The likelihood of encountering Pokémon increased!
+Les chances de rencontrer des Pokémon augmentent !
+The mail was saved in your PC.
+La lettre a été rangée dans le PC.
+The map data cannot be found.
+Les données de la carte sont introuvables.
+The map is corrupt. The game cannot continue.
+La carte est corrompue. Le jeu ne peut pas continuer.
+The map was not found. The game cannot continue.
+La carte est introuvable. Le jeu ne peut pas continuer.
+The message will be lost. Is that OK?
+Le message sera perdu. D'accord ?
+The mirror move failed!
+La Mimique échoue !
+The mist disappeared from the battlefield!
+La brume disparaît du terrain !
+The mist disappeared from the battlefield.
+La brume disparaît du terrain.
+The move Blizzard always hits. Boosts Defense of Ice types.
+Blizzard touche toujours. Augmente la Défense des types Glace.
+The mysterious air current blows on regardless!
+Le mystérieux courant d'air continue de souffler !
+The next Electric move used by the Pokémon will double in power.
+La prochaine capacité Électrik du Pokémon aura une puissance doublée.
+The next Fire move used by the Pokémon will ignite and explode.
+La prochaine capacité Feu du Pokémon s'enflammera et explosera.
+The next move used by the Pokémon will become Electric type.
+La prochaine capacité du Pokémon deviendra de type Électrik.
+The opposing team
+L'équipe adverse
+The opposing {1}
+{1} ennemi
+The plant seemed to be delighted.
+La plante a l'air ravie.
+The player is not on a map, so the region could not be determined.
+Le joueur n'est sur aucune carte, la région n'a pas pu être déterminée.
+The player trainer was not defined, so the pause menu can't be displayed.
+Le Dresseur joueur n'est pas défini, le menu Pause ne peut pas s'afficher.
+The power of the Pokémon's Shadow type moves are boosted by 50%.
+La puissance des capacités Obscures du Pokémon augmente de 50 %.
+The power of {1}'s Fire-type moves rose because of its {2}!
+{2} augmente la puissance des capacités Feu de {1} !
+The power of {1}'s Fire-type moves rose!
+La puissance des capacités Feu de {1} augmente !
+The previous save file has been backed up.
+La sauvegarde précédente a été copiée.
+The rain stopped.
+La pluie s'arrête.
+The rainbow on {1}'s side disappeared!
+L'arc-en-ciel du côté de {1} disparaît !
+The repellent's effect wore off!
+L'effet du répulsif s'est dissipé !
+The repellent's effect wore off! Would you like to use another one?
+L'effet du répulsif s'est dissipé ! Voulez-vous en utiliser un autre ?
+The sandstorm is raging.
+La tempête de sable fait rage.
+The sandstorm subsided.
+La tempête de sable se calme.
+The save file is corrupt, or is incompatible with this game.
+La sauvegarde est corrompue ou incompatible avec ce jeu.
+The save file is corrupt. A backup will be loaded.
+La sauvegarde est corrompue. Une copie de secours va être chargée.
+The saved data was deleted.
+Les données sauvegardées ont été supprimées.
+The script is taking too long. The game will restart.
+Le script prend trop de temps. Le jeu va redémarrer.
+The sea is deep here. A Pokémon may be able to go underwater.
+La mer est profonde ici. Un Pokémon pourrait plonger.
+The sea is deep here. Would you like to use Dive?
+La mer est profonde ici. Voulez-vous utiliser Plongée ?
+The sea of fire around {1} disappeared!
+La mer de feu autour de {1} disparaît !
+The shadow sky continues.
+Le ciel obscur persiste.
+The shadow sky faded.
+Le ciel obscur se dissipe.
+The sky is shadowy.
+Le ciel est obscur.
+The snow stopped.
+La neige s'arrête.
+The soil returned to its soft and earthy state.
+Le sol redevient meuble et fertile.
+The soil returned to its soft and loamy state.
+Le sol redevient meuble et fertile.
+The stats of Pokémon on this side cannot be lowered.
+Les stats des Pokémon de ce camp ne peuvent pas baisser.
+The substitute took damage for {1}!
+Le clone encaisse les dégâts à la place de {1} !
+The sunlight faded.
+Les rayons du soleil s'affaiblissent.
+The sunlight is extremely harsh.
+Les rayons du soleil sont brûlants.
+The sunlight is strong.
+Les rayons du soleil brillent fort.
+The sunlight turned extremely harsh!
+Les rayons du soleil sont brûlants !
+The sunlight turned harsh!
+Les rayons du soleil brillent fort !
+The swamp around {1} disappeared!
+Le marécage autour de {1} disparaît !
+The sweet scent faded for some reason...
+Le Doux Parfum s'est dissipé sans raison...
+The twisted dimensions returned to normal!
+Les dimensions faussées redeviennent normales !
+The two moves have become one! It's a combined move!
+Les deux capacités ne font qu'une ! C'est une capacité combinée !
+The water is a deep blue color... Would you like to use Surf on it?
+L'eau est d'un bleu profond... Voulez-vous utiliser Surf ?
+The weather cleared.
+Le temps s'éclaircit.
+The weirdness disappeared from the battlefield!
+Le terrain n'est plus bizarre !
+The weirdness disappeared from the battlefield.
+Le terrain n'est plus bizarre.
+The wild {1}
+{1} sauvage
+The wind is strong.
+Le vent souffle fort.
+The {1} can't be held.
+{1} ne peut pas être tenu.
+The {1} has sprouted.
+La {1} a germé.
+The {1} only allows the use of {2}!
+{1} ne permet que l'utilisation de {2} !
+The {1} plant is growing bigger.
+Le plant de {1} grandit.
+The {1} strengthened {2}'s power!
+{1} renforce la puissance de {2} !
+The {1} was planted in the soft, earthy soil.
+{1} a été plantée dans la terre meuble.
+The {1} was scattered on the soil.
+{1} a été répandu sur le sol.
+The {1} was used up...
+{1} est épuisé...
+The {1} weakened the damage to {2}!
+{1} réduit les dégâts infligés à {2} !
+The {1}'s indicating something right underfoot!
+{1} indique quelque chose juste sous vos pieds !
+There appears to be nothing here...
+Il n'y a rien ici, on dirait...
+There are no items.
+Il n'y a aucun objet.
+There are {1} \c<<[>>1<<]>>{2}\c<<[>>0<<]>>!<<n>>Want to pick them?
+Il y a {1} \c<<[>>1<<]>>{2}\c<<[>>0<<]>> !<<n>>Voulez-vous les cueillir ?
+There is 1 \c<<[>>1<<]>>{1}\c<<[>>0<<]>>!<<n>>Want to pick it?
+Il y a 1 \c<<[>>1<<]>>{1}\c<<[>>0<<]>> !<<n>>Voulez-vous la cueillir ?
+There is a different game file that is already saved.
+Une autre partie est déjà sauvegardée.
+There is no Pokémon.
+Il n'y a aucun Pokémon.
+There is no relief from this heavy rain!
+Rien ne peut arrêter cette pluie battante !
+There is no room left in the PC!
+Il n'y a plus de place dans le PC !
+There! All happy!
+Voilà ! Tout content !
+There's an item buried around here!
+Il y a un objet enterré dans le coin !
+There's no Mail here.
+Il n'y a aucune lettre ici.
+There's no PP left for this move!
+Cette capacité n'a plus de PP !
+There's no more room for Pokémon!
+Il n'y a plus de place pour les Pokémon !
+There's no more room in the Bag.
+Il n'y a plus de place dans le Sac.
+There's no room to store items.
+Il n'y a plus de place pour ranger des objets.
+This Pokémon can't be chosen.
+Ce Pokémon ne peut pas être choisi.
+This Pokémon is holding an item. It can't hold mail.
+Ce Pokémon tient un objet. Il ne peut pas tenir de lettre.
+This can't be used on the fainted Pokémon.
+Impossible de l'utiliser sur un Pokémon K.O.
+This is a non-profit fan-made game.
+Ceci est un jeu de fan à but non lucratif.
+This rock seems breakable with a hidden move.<<n>>Would you like to use Rock Smash?
+Ce rocher semble pouvoir être brisé.<<n>>Voulez-vous utiliser Éclate-Roc ?
+This trainer must have at least 1 Pokémon!
+Ce Dresseur doit avoir au moins 1 Pokémon !
+This tree looks like it can be cut down!<<n>>Would you like to cut it?
+Cet arbre a l'air de pouvoir être coupé !<<n>>Voulez-vous le couper ?
+This tree looks like it can be cut down.
+Cet arbre a l'air de pouvoir être coupé.
+This {1} plant is blooming cutely!
+Ce plant de {1} fleurit gentiment !
+This {1} plant is blooming prettily!
+Ce plant de {1} fleurit joliment !
+This {1} plant is blooming very beautifully!
+Ce plant de {1} fleurit à merveille !
+This {1} plant is in bloom!
+Ce plant de {1} est en fleurs !
+This {1} plant is in fabulous bloom!
+Ce plant de {1} est magnifiquement fleuri !
+Thoroughly cunning.
+Très rusé.
+Threw away {1} {2}.
+Vous jetez {1} {2}.
+Throw away items stored in the PC.
+Jeter des objets rangés dans le PC.
+Thursday
+Jeudi
+Time
+Durée
+Time:
+Durée :
+Time<r>{1}h {2}m
+Durée<r>{1} h {2} min
+Time<r>{1}m
+Durée<r>{1} min
+Timid
+Timide
+To Next Lv.
+N. suivant
+Too bad...<<n>>The Bag is full...
+Dommage...<<n>>Le Sac est plein...
+Took the {1} from {2} and gave it the {3}.
+Vous prenez {1} à {2} et lui donnez {3}.
+Took the {1}.
+Vous prenez {1}.
+Torchic
+Poussifeu
+Toss
+Jeter
+Toss<<n>>Item
+Jeter<<n>>un objet
+Toss Item
+Jeter un objet
+Toss out how many {1}?
+Jeter combien de {1} ?
+Town Map
+Carte
+Traded at Lv. {1}.
+Échangé au N. {1}.
+Trainer for data '{1}' is not defined.
+Le Dresseur pour les données '{1}' n'est pas défini.
+Trainer for data '{1}, {2}' is not defined.
+Le Dresseur pour les données '{1}, {2}' n'est pas défini.
+Trainer for data '{1}, {2}, {3}' is not defined.
+Le Dresseur pour les données '{1}, {2}, {3}' n'est pas défini.
+Trainer type {1} does not exist.
+La classe de Dresseur {1} n'existe pas.
+Trainer type {1} was given but not a trainer name.
+La classe de Dresseur {1} est donnée sans nom de Dresseur.
+Trapped and loses HP each turn.
+Piégé, perd des PV à chaque tour.
+Trapped by {1}.
+Piégé par {1}.
+Trapped by {1}. Defense drops each turn.
+Piégé par {1}. La Défense baisse à chaque tour.
+Trapped by {1}. Loses HP each turn.
+Piégé par {1}. Perd des PV à chaque tour.
+Treat as a capture
+Compter comme une capture
+Treat as a draw
+Compter comme un match nul
+Treat as a loss
+Compter comme une défaite
+Treat as a win
+Compter comme une victoire
+Treat as running away/forfeit
+Compter comme une fuite ou un abandon
+Tried to consume item that wasn't in the Bag somehow.
+Tentative d'utiliser un objet absent du Sac.
+Trio 1
+Trio 1
+Trio 2
+Trio 2
+Trio 3
+Trio 3
+Tuesday
+Mardi
+Turn Off
+Éteindre
+Turn off
+Éteindre
+Turn on
+Allumer
+Turn {1}
+Tour {1}
+Type
+Type
+Type changed by the {1} ability.
+Type modifié par le talent {1}.
+Type {1}/{2}
+Type {1}/{2}
+UPPER
+MAJ
+Ultra Burst
+Ultra-Explosion
+Ultra Space
+Ultra-Dimension
+Undefined species {1}.
+Espèce non définie : {1}.
+Underwater
+Sous l'eau
+Undiscovered
+Inconnu
+Unknown happiness-changing method: {1}
+Méthode de changement de bonheur inconnue : {1}
+Unknown terrain.
+Champ inconnu.
+Unknown weather.
+Météo inconnue.
+Urban
+Ville
+Use
+Utiliser
+Use TM's
+Utiliser des CT
+Use next Pokémon?
+Utiliser le Pokémon suivant ?
+Use on which Pokémon?
+Utiliser sur quel Pokémon ?
+Use the Arrow keys to move the main character.<<n>><<n>>You can also use the Arrow keys to select entries and navigate menus.
+Utilisez les flèches pour déplacer le personnage.<<n>><<n>>Les flèches servent aussi à choisir et à naviguer dans les menus.
+Used to confirm a choice, interact with people and things, and move through text. (Default: C)
+Sert à valider un choix, à interagir avec les gens et les objets, et à faire défiler le texte. (Par défaut : C)
+Used to exit, cancel a choice, and cancel a mode. While moving around, hold to move at a different speed. (Default: X)
+Sert à quitter, à annuler un choix ou un mode. En se déplaçant, maintenir pour changer de vitesse. (Par défaut : X)
+Used to open the Pause Menu. Also has various functions depending on context. (Default: Z)
+Ouvre le menu Pause. Sert aussi à d'autres choses selon le contexte. (Par défaut : Z)
+Used: {1}
+Utilisé : {1}
+User Side
+Camp du lanceur
+User and Allies
+Lanceur et alliés
+User or Near Ally
+Lanceur ou allié proche
+Using item...
+Utilisation de l'objet...
+Value {1} not defined by a constant in {2}
+La valeur {1} n'est définie par aucune constante de {2}
+Very finicky.
+Très tatillon.
+View Pokédex
+Voir le Pokédex
+Volcano
+Volcan
+Vulnerable
+Vulnérable
+WARNING!
+ATTENTION !
+Walk
+Marcher
+Walking
+Marche
+Wallpaper
+Fond
+Want to escape from here and return to {1}?
+Voulez-vous fuir et retourner à : {1} ?
+Want to plant a Berry?
+Voulez-vous planter une Baie ?
+Want to return to the healing spot used last in {1}?
+Voulez-vous retourner au dernier point de soin utilisé à {1} ?
+Want to sprinkle some water with the {1}?
+Voulez-vous arroser avec : {1} ?
+Washing machine
+Lave-linge
+Water 1
+Aquatique 1
+Water 2
+Aquatique 2
+Water 3
+Aquatique 3
+Water type moves deal 50% more damage. Halves Fire move damage.
+Les capacités Eau font 50 % de dégâts en plus. Dégâts des capacités Feu divisés par deux.
+Water type moves deal 50% more damage. Negates Fire type moves.
+Les capacités Eau font 50 % de dégâts en plus. Les capacités Feu échouent.
+Water's Edge
+Bord de l'eau
+Wednesday
+Mercredi
+Weight
+Poids
+Weight Changed
+Poids modifié
+Welcome to the Hall of Fame!
+Bienvenue au Panthéon !
+Welcome! How may I help you?
+Bienvenue ! Que puis-je faire pour vous ?
+What do you want to do with {1}'s Mail?
+Que voulez-vous faire de la lettre de {1} ?
+What do you want to do?
+Que voulez-vous faire ?
+What will<<n>>{1} do?
+Que doit faire<<n>>{1} ?
+What will<<n>>{1} throw?
+Que va<<n>>lancer {1} ?
+What will hatch from this? It doesn't seem close to hatching.
+Qu'est-ce qui va en sortir ? Il ne semble pas près d'éclore.
+What will you do with {1}?
+Que voulez-vous faire avec {1} ?
+What?
+Quoi ?
+When the flame touched the powder on the Pokémon, it exploded!
+La flamme touche la poudre sur le Pokémon et explose !
+Where do you want to send {1} to?
+Où voulez-vous envoyer {1} ?
+Which PC should be accessed?
+À quel PC voulez-vous accéder ?
+Which appliance would you like to order?
+Quel appareil voulez-vous choisir ?
+Which one will you take?
+Lequel voulez-vous prendre ?
+White
+Blanc
+Wide Guard protected {1}!
+Garde Large protège {1} !
+Wild {1} appeared!
+Un {1} sauvage apparaît !
+Winged
+Ailé
+Winter
+Hiver
+With contributions from:
+Avec les contributions de :
+Withdraw<<n>>Item
+Retirer<<n>>un objet
+Withdraw Item
+Retirer un objet
+Withdraw Pokémon
+Retirer des Pokémon
+Withdrew {1} {2}.
+Vous retirez {1} {2}.
+Wonder Room wore off, and Defense and Sp. Def stats returned to normal!
+Zone Étrange prend fin : la Défense et la Défense Spéciale reviennent à la normale !
+Wonder Room wore off, and the Defense and Sp. Def stats returned to normal!
+Zone Étrange prend fin : la Défense et la Déf. Spé. reviennent à la normale !
+Would you like to forfeit the match and quit now?
+Voulez-vous abandonner le match ?
+Would you like to give a nickname to {1}?
+Voulez-vous donner un surnom à {1} ?
+Would you like to leave the Safari Game right now?
+Voulez-vous quitter le Safari maintenant ?
+Would you like to nickname the newly hatched {1}?
+Voulez-vous donner un surnom au {1} qui vient d'éclore ?
+Would you like to save the game?
+Voulez-vous sauvegarder la partie ?
+Would you like to switch the two items?
+Voulez-vous échanger les deux objets ?
+Would you like to use Fly to go to {1}?
+Voulez-vous utiliser Vol pour aller à {1} ?
+Would you like to use Strength?
+Voulez-vous utiliser Force ?
+Yellow
+Jaune
+Yes
+Oui
+You are challenged by {1} and {2}!
+Un combat est lancé par {1} et {2} !
+You are challenged by {1}!
+Un combat est lancé par {1} !
+You are challenged by {1}, {2} and {3}!
+Un combat est lancé par {1}, {2} et {3} !
+You blacked out!
+Vous êtes hors jeu !
+You booted up the {1}.
+Vous allumez : {1}.
+You can't dismount your Bike here.
+Vous ne pouvez pas descendre de vélo ici.
+You can't escape!
+Impossible de fuir !
+You can't release an Egg.
+Vous ne pouvez pas relâcher un Œuf.
+You can't switch {1}'s Pokémon with one of yours!
+Vous ne pouvez pas échanger un Pokémon de {1} avec l'un des vôtres !
+You can't throw a Poké Ball!
+Vous ne pouvez pas lancer de Poké Ball !
+You can't use that here.
+Vous ne pouvez pas utiliser ça ici.
+You couldn't get away!
+Vous n'arrivez pas à fuir !
+You defeated {1} and {2}!
+Vous avez vaincu {1} et {2} !
+You defeated {1}!
+Vous avez vaincu {1} !
+You defeated {1}, {2} and {3}!
+Vous avez vaincu {1}, {2} et {3} !
+You failed to defeat your opponent in time!
+Vous n'avez pas vaincu votre adversaire à temps !
+You found \c[1]{1} {2}\c[0]!
+Vous trouvez \c[1]{1} {2}\c[0] !
+You found \c[1]{1}\c[0]!
+Vous trouvez \c[1]{1}\c[0] !
+You found a \c[1]{1}\c[0]!
+Vous trouvez \c[1]{1}\c[0] !
+You found an \c[1]{1}\c[0]!
+Vous trouvez \c[1]{1}\c[0] !
+You found {1} \c[1]{2} {3}\c[0]!
+Vous trouvez {1} \c[1]{2} {3}\c[0] !
+You found {1} \c[1]{2}\c[0]!
+Vous trouvez {1} \c[1]{2}\c[0] !
+You gave ${1} to the winner...
+Vous donnez {1} $ au gagnant...
+You got ${1} for winning!
+Vous remportez {1} $ !
+You got away safely!
+Vous prenez la fuite !
+You have no more Pokémon that can fight!
+Vous n'avez plus de Pokémon en état de se battre !
+You have no room to separate the Pokémon.
+Vous n'avez pas de place pour séparer les Pokémon.
+You lost against {1} and {2}!
+Vous avez perdu contre {1} et {2} !
+You lost against {1}!
+Vous avez perdu contre {1} !
+You lost against {1}, {2} and {3}!
+Vous avez perdu contre {1}, {2} et {3} !
+You must choose a move!
+Vous devez choisir une capacité !
+You need to escape immediately!
+Vous devez fuir immédiatement !
+You obtained \c[1]{1} {2}\c[0]!
+Vous obtenez \c[1]{1} {2}\c[0] !
+You obtained \c[1]{1}\c[0]!
+Vous obtenez \c[1]{1}\c[0] !
+You obtained a \c[1]{1}\c[0]!
+Vous obtenez \c[1]{1}\c[0] !
+You obtained an \c[1]{1}\c[0]!
+Vous obtenez \c[1]{1}\c[0] !
+You obtained {1} \c[1]{2} {3}\c[0]!
+Vous obtenez {1} \c[1]{2} {3}\c[0] !
+You obtained {1} \c[1]{2}\c[0]!
+Vous obtenez {1} \c[1]{2}\c[0] !
+You panicked and dropped ${1}...
+Pris de panique, vous perdez {1} $...
+You picked the \c[1]{1}\c[0].
+Vous cueillez \c[1]{1}\c[0].
+You picked the {1} \c[1]{2}\c[0].
+Vous cueillez {1} \c[1]{2}\c[0].
+You picked up ${1}!
+Vous ramassez {1} $ !
+You put the {1} in\<<n>>your Bag's <icon=bagPocket{2}>\c<<[>>1<<]>>{3}\c<<[>>0<<]>> pocket.
+Vous rangez {1} dans la poche\<<n>><icon=bagPocket{2}>\c<<[>>1<<]>>{3}\c<<[>>0<<]>> du Sac.
+You scurry back home, protecting your exhausted Pokémon from any further harm...
+Vous rentrez chez vous en hâte pour protéger vos Pokémon épuisés...
+You scurry back to a Pokémon Center, protecting your exhausted Pokémon from any further harm...
+Vous retournez en hâte au Centre Pokémon pour protéger vos Pokémon épuisés...
+You sense the presence of many!
+Vous sentez la présence de nombreux Pokémon !
+You turned over the {1} and got ${2}.
+Vous cédez {1} et recevez {2} $.
+You used a {1}.
+Vous utilisez : {1}.
+You used an {1}.
+Vous utilisez : {1}.
+You used your last {1}.
+Vous avez utilisé votre dernier objet : {1}.
+You were forced to flee the battle!
+Vous êtes forcé de fuir le combat !
+You're already surfing.
+Vous surfez déjà.
+You're holding a Pokémon!
+Vous tenez un Pokémon !
+You're in charge, {1}!
+À toi de jouer, {1} !
+You're running out of time!
+Le temps presse !
+Your PC's Mailbox is full.
+La boîte aux lettres de votre PC est pleine.
+Your Poké Balls short-circuited!<<n>>They cannot be used this battle!
+Vos Poké Balls ont grillé !<<n>>Impossible de les utiliser pendant ce combat !
+Your name?
+Votre nom ?
+Your opponent's weak! Get 'em, {1}!
+L'ennemi est affaibli ! Fonce, {1} !
+Your other Pokémon also gained Exp. Points!
+Vos autres Pokémon gagnent aussi des points d'expérience !
+Your party is full!
+Votre équipe est pleine !
+Your party's full!
+Votre équipe est pleine !
+Your team
+Votre équipe
+Z-Healing
+Soin Z
+Z-Power: Drastically raises the user's {1}.
+Force Z : augmente énormément {1} du lanceur.
+Z-Power: Fully restores an incoming Pokémon's HP.
+Force Z : restaure tous les PV du Pokémon qui entre.
+Z-Power: Fully restores the user's HP.
+Force Z : restaure tous les PV du lanceur.
+Z-Power: Raises the user's critical hit rate.
+Force Z : augmente le taux de critique du lanceur.
+Z-Power: Raises the user's {1}.
+Force Z : augmente {1} du lanceur.
+Z-Power: Resets the user's lowered stat stages.
+Force Z : annule les baisses de stats du lanceur.
+Z-Power: Sharply raises the user's {1}.
+Force Z : augmente beaucoup {1} du lanceur.
+Z-Power: The user becomes the center of attention.
+Force Z : le lanceur devient le centre de l'attention.
+Z: Details
+Z : Détails
+Z: Hide
+Z : Masquer
+<<[>>Special<<]>>: To Boxes
+<<[>>Spécial<<]>> : vers les Boîtes
+accents
+accents
+accuracy
+Précision
+and everyone else who helped out
+et de tous ceux qui ont aidé
+eight
+huit
+eighteen
+dix-huit
+eleven
+onze
+evasiveness
+Esquive
+fifteen
+quinze
+five
+cinq
+four
+quatre
+fourteen
+quatorze
+lower
+min
+nine
+neuf
+nineteen
+dix-neuf
+one
+un
+other
+autres
+seven
+sept
+seventeen
+dix-sept
+six
+six
+sixteen
+seize
+ten
+dix
+the ally {1}
+{1} allié
+the opposing team
+l'équipe adverse
+the opposing {1}
+{1} ennemi
+the wild {1}
+{1} sauvage
+thirteen
+treize
+three
+trois
+twelve
+douze
+twenty
+vingt
+two
+deux
+x{1: 2d}
+x{1: 2d}
+x{1: 3d}
+x{1: 3d}
+x{1:03d}
+x{1:03d}
+x{1}<r>$ {2}
+x{1}<r>{2} $
+your team
+votre équipe
+zero
+zéro
+{1:.1f} kg
+{1:.1f} kg
+{1:.1f} m
+{1:.1f} m
+{1} (Lv.{2})
+{1} (N.{2})
+{1} (♀, Lv.{2})
+{1} (♀, N.{2})
+{1} (♂, Lv.{2})
+{1} (♂, N.{2})
+{1} Pokémon
+Pokémon {1}
+{1} Terrain
+Champ {1}
+{1} absorbed nutrients with its roots!
+{1} absorbe des nutriments avec ses racines !
+{1} absorbed the poison spikes!
+{1} absorbe les pics toxiques !
+{1} acquired {2}!
+{1} obtient {2} !
+{1} activated!
+{1} s'active !
+{1} adores you! Its base Attack fell!
+{1} vous adore ! Son Attaque de base baisse !
+{1} adores you! Its base Defense fell!
+{1} vous adore ! Sa Défense de base baisse !
+{1} adores you! Its base HP fell!
+{1} vous adore ! Ses PV de base baissent !
+{1} adores you! Its base Special Attack fell!
+{1} vous adore ! Son Attaque Spéciale de base baisse !
+{1} adores you! Its base Special Defense fell!
+{1} vous adore ! Sa Défense Spéciale de base baisse !
+{1} adores you! Its base Speed fell!
+{1} vous adore ! Sa Vitesse de base baisse !
+{1} already has a burn!
+{1} est déjà brûlé !
+{1} already has a substitute!
+{1} a déjà un clone !
+{1} anchored itself with its roots!
+{1} s'ancre au sol avec ses racines !
+{1} anchors itself with {2}!
+{1} s'ancre au sol grâce à {2} !
+{1} anchors itself!
+{1} s'ancre au sol !
+{1} and {2} switched places!
+{1} et {2} échangent leurs places !
+{1} appears incapable of using its power!
+{1} semble incapable d'utiliser son pouvoir !
+{1} ate its {2}!
+{1} mange {2} !
+{1} avoided damage with {2}!
+{1} évite les dégâts grâce à {2} !
+{1} avoided the attack with {2}!
+{1} évite l'attaque grâce à {2} !
+{1} avoided the attack!
+{1} évite l'attaque !
+{1} avoided the move in time with your shout!
+Grâce à votre cri, {1} évite la capacité à temps !
+{1} avoids attacks by its ally Pokémon with {2}!
+{1} évite les attaques de ses alliés grâce à {2} !
+{1} avoids attacks by its ally Pokémon!
+{1} évite les attaques de ses alliés !
+{1} became Ash-Greninja!
+{1} devient Amphinobi de Sacha !
+{1} became cloaked in a freezing light!
+{1} s'entoure d'une lumière glaciale !
+{1} became cloaked in a harsh light!
+{1} s'entoure d'une lumière aveuglante !
+{1} became cloaked in a mystical veil!
+{1} s'enveloppe d'un voile mystique !
+{1} became cloaked in freezing air!
+{1} s'entoure d'un air glacial !
+{1} became cloaked in mystical moonlight!
+{1} est enveloppé d'un mystérieux clair de lune !
+{1} became confused due to fatigue!
+{1} est confus à cause de la fatigue !
+{1} became confused!
+{1} devient confus !
+{1} became fully charged due to its Power Herb!
+{1} est chargé à bloc grâce à son Herbe Pouvoir !
+{1} became fully charged due to its bond with its Trainer!
+{1} se charge à fond grâce au lien avec son Dresseur !
+{1} became healthy.
+{1} est en pleine forme.
+{1} became more friendly. However, its base Attack fell!
+{1} devient plus amical. Mais son Attaque de base baisse !
+{1} became more friendly. However, its base Defense fell!
+{1} devient plus amical. Mais sa Défense de base baisse !
+{1} became more friendly. However, its base HP fell!
+{1} devient plus amical. Mais ses PV de base baissent !
+{1} became more friendly. However, its base Special Attack fell!
+{1} devient plus amical. Mais son Attaque Spéciale de base baisse !
+{1} became more friendly. However, its base Special Defense fell!
+{1} devient plus amical. Mais sa Défense Spéciale de base baisse !
+{1} became more friendly. However, its base Speed fell!
+{1} devient plus amical. Mais sa Vitesse de base baisse !
+{1} became more friendly. Its base Attack can't go lower.
+{1} devient plus amical. Son Attaque de base ne peut plus baisser.
+{1} became more friendly. Its base Defense can't go lower.
+{1} devient plus amical. Sa Défense de base ne peut plus baisser.
+{1} became more friendly. Its base HP can't go lower.
+{1} devient plus amical. Ses PV de base ne peuvent plus baisser.
+{1} became more friendly. Its base Special Attack can't go lower.
+{1} devient plus amical. Son Attaque Spéciale de base ne peut plus baisser.
+{1} became more friendly. Its base Special Defense can't go lower.
+{1} devient plus amical. Sa Défense Spéciale de base ne peut plus baisser.
+{1} became more friendly. Its base Speed can't go lower.
+{1} devient plus amical. Sa Vitesse de base ne peut plus baisser.
+{1} became nimble!
+{1} devient plus agile !
+{1} became shrouded in mist!
+{1} s'entoure de brume !
+{1} became the center of attention!
+{1} devient le centre de l'attention !
+{1} became trapped by Magma Storm!
+{1} est piégé par Vortex Magma !
+{1} became trapped by Sand Tomb!
+{1} est piégé par Tourbi-Sable !
+{1} became trapped in the vortex!
+{1} est piégé dans le tourbillon !
+{1} became weaker to fire!
+{1} devient plus vulnérable au feu !
+{1} began charging power!
+{1} commence à se charger !
+{1} began charging up!
+{1} commence à se charger !
+{1} began having a nightmare!
+{1} commence à cauchemarder !
+{1} began to nap!
+{1} se met à faire la sieste !
+{1} blew away poison spikes!
+{1} balaie les pics toxiques !
+{1} blew away spikes!
+{1} balaie les picots !
+{1} blew away stealth rocks!
+{1} balaie les pierres pointues !
+{1} blew away sticky webs!
+{1} balaie la toile gluante !
+{1} boosted the accuracy of its next move using its {2}!
+{1} augmente la précision de sa prochaine capacité grâce à {2} !
+{1} boosted the accuracy of its next move!
+{1} augmente la précision de sa prochaine capacité !
+{1} booted up the PC.
+{1} allume le PC.
+{1} bounced the {2} back!
+{1} renvoie {2} !
+{1} braced itself!
+{1} se prépare à encaisser !
+{1} breaks the mold!
+{1} brise le moule !
+{1} burned itself out!
+{1} s'est consumé !
+{1} burrowed its way under the ground!
+{1} s'enfonce sous terre !
+{1} called {2}!
+{1} appelle {2} !
+{1} calmed down.
+{1} se calme.
+{1} came to its senses from the Trainer's call!
+{1} reprend ses esprits grâce à l'appel du Dresseur !
+{1} came to its senses!
+{1} reprend ses esprits !
+{1} can no longer escape because it used {2}!
+{1} ne peut plus fuir à cause de {2} !
+{1} can no longer escape because of {2}!
+{1} ne peut plus fuir à cause de {2} !
+{1} can no longer escape!
+{1} ne peut plus fuir !
+{1} can only use {2} due to its Encore!
+{1} ne peut utiliser que {2} à cause d'Encore !
+{1} can only use {2}!
+{1} ne peut utiliser que {2} !
+{1} can use items again!
+{1} peut de nouveau utiliser des objets !
+{1} can't be used on an Egg!
+{1} ne peut pas être utilisé sur un Œuf !
+{1} can't be used on that Pokémon.
+{1} ne peut pas être utilisé sur ce Pokémon.
+{1} can't get it going because of its {2}!
+{1} n'arrive pas à se lancer à cause de {2} !
+{1} can't get it going!
+{1} n'arrive pas à se lancer !
+{1} can't learn {2}.
+{1} ne peut pas apprendre {2}.
+{1} can't stockpile any more!
+{1} ne peut plus rien stocker !
+{1} can't use items anymore!
+{1} ne peut plus utiliser d'objets !
+{1} can't use its sealed {2}!
+{1} ne peut pas utiliser {2}, scellée !
+{1} can't use that move because it doesn't have a Berry!
+{1} ne peut pas utiliser cette capacité, il n'a pas de Baie !
+{1} can't use the same move twice in a row due to the torment!
+{1} ne peut pas utiliser la même capacité deux fois de suite à cause du Tourment !
+{1} can't use {2} after the taunt!
+{1} ne peut pas utiliser {2} à cause de la Provoc !
+{1} can't use {2} because of Heal Block!
+{1} ne peut pas utiliser {2} à cause d'Anti-Soin !
+{1} can't use {2} because of Throat Chop!
+{1} ne peut pas utiliser {2} à cause d'Exécu-Coupe !
+{1} can't use {2} because of gravity!
+{1} ne peut pas utiliser {2} à cause de la gravité !
+{1} can't use {2} on itself!
+{1} ne peut pas utiliser {2} sur lui-même !
+{1} cannot be burned because of {2}'s {3}!
+{1} ne peut pas être brûlé grâce à {3} de {2} !
+{1} cannot be burned!
+{1} ne peut pas être brûlé !
+{1} cannot be frozen solid because of {2}'s {3}!
+{1} ne peut pas être gelé grâce à {3} de {2} !
+{1} cannot be frozen solid!
+{1} ne peut pas être gelé !
+{1} cannot be paralyzed because of {2}'s {3}!
+{1} ne peut pas être paralysé grâce à {3} de {2} !
+{1} cannot be paralyzed!
+{1} ne peut pas être paralysé !
+{1} cannot be poisoned because of {2}'s {3}!
+{1} ne peut pas être empoisonné grâce à {3} de {2} !
+{1} cannot be poisoned!
+{1} ne peut pas être empoisonné !
+{1} cannot use {2} because of {3}'s {4}!
+{1} ne peut pas utiliser {2} à cause de {4} de {3} !
+{1} cannot use {2}!
+{1} ne peut pas utiliser {2} !
+{1} caused an uproar!
+{1} fait un brouhaha !
+{1} changed Forme!
+{1} change de forme !
+{1} changed back to its regular type!
+{1} retrouve son type d'origine !
+{1} changed form!
+{1} change de forme !
+{1} changed to Blade Forme!
+{1} passe en Forme Assaut !
+{1} changed to Shield Forme!
+{1} passe en Forme Parade !
+{1} chose Doom Desire as its destiny!
+Vœu Destructeur scelle le destin de {1} !
+{1} clamped {2}!
+{1} est pincé par {2} !
+{1} concentrated intensely!
+{1} se concentre intensément !
+{1} consumed its {2} and hurt {3}!
+{1} consomme {2} et blesse {3} !
+{1} copied {2}'s stat changes!
+{1} copie les changements de stats de {2} !
+{1} copied {2}'s {3}!
+{1} copie {3} de {2} !
+{1} corroded {2}'s {3}!
+{1} corrode {3} de {2} !
+{1} couldn't stay airborne because of gravity!
+{1} ne peut plus voler à cause de la gravité !
+{1} cured its infatuation status using its {2}!
+{1} soigne son attirance grâce à {2} !
+{1} cured its paralysis!
+{1} n'est plus paralysé !
+{1} cured its poisoning!
+{1} n'est plus empoisonné !
+{1} cut its own HP and laid a curse on {2}!
+{1} sacrifie des PV et maudit {2} !
+{1} cut its own HP and maximized its {2}!
+{1} sacrifie des PV et monte son {2} au maximum !
+{1} cut its own HP and minimized its {2}!
+{1} sacrifie des PV et réduit son {2} au minimum !
+{1} deactivated!
+{1} se désactive !
+{1} did not learn {2}.
+{1} n'apprend pas {2}.
+{1} doesn't become confused!
+{1} n'est pas confus !
+{1} dropped its {2}!
+{1} fait tomber {2} !
+{1} dropped to Lv. {2}!
+{1} descend au N. {2} !
+{1} emited a powerful magnetic pulse!
+{1} émet une puissante impulsion magnétique !
+{1} emited an electrical pulse out of desperation!
+{1} émet une impulsion électrique en désespoir de cause !
+{1} endured the hit!
+{1} encaisse le coup !
+{1} equipped a {2} it found in the appliance!
+{1} s'équipe d'un objet trouvé dans l'appareil : {2} !
+{1} evaded the attack!
+{1} évite l'attaque !
+{1} evolved into {2}!
+{1} évolue en {2} !
+{1} fainted!
+{1} est K.O. !
+{1} fainted...
+{1} est K.O....
+{1} fell asleep!
+{1} s'endort !
+{1} fell for the taunt!
+{1} tombe dans le piège de la Provoc !
+{1} fell in love from the {2}!
+{1} tombe amoureux à cause de {2} !
+{1} fell in love!
+{1} tombe amoureux !
+{1} fell straight down!
+{1} tombe au sol !
+{1} finally got its act together!
+{1} se reprend enfin en main !
+{1} fled from battle!
+{1} prend la fuite !
+{1} fled using its {2}!
+{1} prend la fuite grâce à {2} !
+{1} fled!
+{1} prend la fuite !
+{1} flew up high!
+{1} s'envole !
+{1} flinched and couldn't move!
+{1} a peur et ne peut pas attaquer !
+{1} floats in the air with its {2}!
+{1} flotte dans les airs grâce à {2} !
+{1} flung its {2}!
+{1} lance {2} !
+{1} foresaw an attack!
+{1} prévoit une attaque !
+{1} forfeited the match!
+{1} abandonne le match !
+{1} forgot how to use {2}.
+{1} oublie {2}.
+{1} forgot how to use {2}. And...
+{1} oublie {2}. Et...
+{1} forgot how to use {2}.\<<n>>And...
+{1} oublie {2}.\<<n>>Et...
+{1} forgot {2}...
+{1} oublie {2}...
+{1} formed a school!
+{1} forme un banc !
+{1} found a {2}!
+{1} trouve {2} !
+{1} found an {2}!
+{1} trouve {2} !
+{1} found one {2}!
+{1} trouve un objet : {2} !
+{1} frisked the foe and found one {2}!
+{1} fouille l'ennemi et trouve : {2} !
+{1} frisked {2} and found its {3}!
+{1} fouille {2} et trouve : {3} !
+{1} gained {2} Exp. Points!
+{1} gagne {2} points d'expérience !
+{1} gathered all its energy to break through its paralysis so you wouldn't worry!
+{1} rassemble toute son énergie pour vaincre la paralysie et ne pas vous inquiéter !
+{1} got a boosted {2} Exp. Points!
+{1} gagne {2} points d'expérience bonus !
+{1} got free of {2}'s {3}!
+{1} se libère de {3} de {2} !
+{1} got over its infatuation.
+{1} n'est plus amoureux.
+{1} got pumped from the {2}!
+{2} survolte {1} !
+{1} got {2} Exp. Points!
+{1} gagne {2} points d'expérience !
+{1} grew to Lv. {2}!
+{1} monte au N. {2} !
+{1} had its energy drained!
+L'énergie de {1} est drainée !
+{1} harvested one {2}!
+{1} récolte une {2} !
+{1} has Mega Evolved into {2}!
+{1} méga-évolue en {2} !
+{1} has already been selected.
+{1} est déjà sélectionné.
+{1} has been added to your party.
+{1} a rejoint votre équipe.
+{1} has been afflicted with an infestation by {2}!
+{1} est infesté par {2} !
+{1} has been laid down.
+{1} a été répandu.
+{1} has been sent to Box "{2}"!
+{1} a été envoyé dans la Boîte « {2} » !
+{1} has been sent to Box "{2}".
+{1} a été envoyé dans la Boîte « {2} ».
+{1} has no energy left to battle!
+{1} n'a plus la force de se battre !
+{1} has no moves left!
+{1} n'a plus de capacités !
+{1} has to use {2}!
+{1} doit utiliser {2} !
+{1} has two Abilities!
+{1} a deux talents !
+{1} has {2}!
+{1} a le talent {2} !
+{1} hasn't eaten any held berry, so it can't possibly belch!
+{1} n'a mangé aucune Baie, il ne peut donc pas roter !
+{1} hatched from the Egg!
+{1} sort de l'Œuf !
+{1} healed its burn with its sheer determination so you wouldn't worry!
+{1} soigne sa brûlure par la seule force de sa volonté pour ne pas vous inquiéter !
+{1} healed its burn!
+{1} soigne sa brûlure !
+{1} held up its {2} against {3}!
+{1} brandit {2} face à {3} !
+{1} hid underwater!
+{1} se cache sous l'eau !
+{1} hung on using its Focus Band!
+{1} tient bon grâce à son Bandeau !
+{1} hung on using its Focus Sash!
+{1} tient bon grâce à sa Ceinture Force !
+{1} hung on with Sturdy!
+{1} tient bon grâce à Fermeté !
+{1} ignored orders and kept sleeping!
+{1} ignore les ordres et continue de dormir !
+{1} ignored orders!
+{1} ignore les ordres !
+{1} intends to flip up a mat and block incoming attacks!
+{1} s'apprête à soulever un tatami pour bloquer les attaques !
+{1} is about to be attacked by its {2}!
+{1} va être attaqué par {2} !
+{1} is about to send out {2}. Will you switch your Pokémon?
+{1} va envoyer {2}. Voulez-vous changer de Pokémon ?
+{1} is absorbing power!
+{1} absorbe de l'énergie !
+{1} is afflicted by the curse!
+{1} est touché par la malédiction !
+{1} is already asleep!
+{1} dort déjà !
+{1} is already confused.
+{1} est déjà confus.
+{1} is already frozen solid!
+{1} est déjà gelé !
+{1} is already holding a {2}.
+{1} tient déjà l'objet {2}.
+{1} is already holding an {2}.
+{1} tient déjà l'objet {2}.
+{1} is already in battle!
+{1} est déjà au combat !
+{1} is already paralyzed!
+{1} est déjà paralysé !
+{1} is already poisoned!
+{1} est déjà empoisonné !
+{1} is angry!
+{1} est en colère !
+{1} is buffeted by the hail!
+La grêle frappe {1} !
+{1} is buffeted by the sandstorm!
+La tempête de sable frappe {1} !
+{1} is completely immune to becoming drowsy!
+{1} est totalement insensible à la somnolence !
+{1} is completely immune to being copied!
+{1} est totalement insensible à la copie !
+{1} is completely immune to being frozen!
+{1} est totalement insensible au gel !
+{1} is completely immune to being put to sleep!
+{1} est totalement insensible au sommeil !
+{1} is completely immune to burns!
+{1} est totalement insensible aux brûlures !
+{1} is completely immune to confusion!
+{1} est totalement insensible à la confusion !
+{1} is completely immune to effects that may disable its moves!
+{1} est totalement insensible aux effets qui bloquent ses capacités !
+{1} is completely immune to frostbite!
+{1} est totalement insensible aux engelures !
+{1} is completely immune to having its stats lowered!
+{1} est totalement insensible aux baisses de stats !
+{1} is completely immune to indirect damage!
+{1} est totalement insensible aux dégâts indirects !
+{1} is completely immune to infatuation!
+{1} est totalement insensible à l'attirance !
+{1} is completely immune to paralysis!
+{1} est totalement insensible à la paralysie !
+{1} is completely immune to poisoning!
+{1} est totalement insensible au poison !
+{1} is confused!
+{1} est confus !
+{1} is covered in powder!
+{1} est couvert de poudre !
+{1} is damaged by recoil!
+{1} subit le contrecoup !
+{1} is drowsing!
+{1} somnole !
+{1} is eating!
+{1} mange !
+{1} is evolving!
+{1} évolue !
+{1} is exerting its pressure!
+{1} exerce une pression !
+{1} is fast asleep.
+{1} dort profondément.
+{1} is frozen solid!
+{1} est gelé !
+{1} is getting pumped!
+{1} se survolte !
+{1} is hoping to take its attacker down with it!
+{1} veut entraîner son adversaire dans sa chute !
+{1} is hurt by Powder!
+{1} est blessé par la Nuée de Poudre !
+{1} is hurt by its {2}!
+{1} est blessé par {2} !
+{1} is hurt by the sea of fire!
+{1} est blessé par la mer de feu !
+{1} is hurt by the shadow sky!
+Le ciel obscur blesse {1} !
+{1} is hurt by the spikes!
+{1} est blessé par les picots !
+{1} is hurt by {2}!
+{1} est blessé par {2} !
+{1} is hurt by {2}'s {3}!
+{1} est blessé par {3} de {2} !
+{1} is hurt!
+{1} est blessé !
+{1} is immobilized by love!
+L'amour empêche {1} d'agir !
+{1} is in Hyper Mode!
+{1} est en Mode Hyper !
+{1} is in love with {2}!
+{1} est amoureux de {2} !
+{1} is loafing around!
+{1} paresse !
+{1} is locked in a nightmare!
+{1} est prisonnier d'un cauchemar !
+{1} is making an uproar!
+{1} fait un brouhaha !
+{1} is no longer disabled!
+{1} n'est plus sous entrave !
+{1} is no longer protected by Safeguard!
+{1} n'est plus protégé par Rune Protect !
+{1} is no longer protected by Safeguard!!
+{1} n'est plus protégé par Rune Protect !
+{1} is no longer protected by mist!
+{1} n'est plus protégé par la Brume !
+{1} is now being held.
+{1} tient maintenant l'objet.
+{1} is now holding the {2}.
+{1} tient maintenant : {2}.
+{1} is overflowing with space power!
+{1} déborde d'énergie cosmique !
+{1} is paralyzed! It can't move!
+{1} est paralysé ! Il ne peut pas attaquer !
+{1} is paralyzed! It may be unable to move!
+{1} est paralysé ! Il aura du mal à attaquer !
+{1} is protected by Mist!
+{1} est protégé par la Brume !
+{1} is protected by its substitute!
+{1} est protégé par son clone !
+{1} is protected from {2}'s {3} by Mist!
+La Brume protège {1} de {3} de {2} !
+{1} is protected from {2}'s {3} by {4}'s {5}!
+{5} de {4} protège {1} de {3} de {2} !
+{1} is radiating a blazing aura!
+{1} dégage une aura flamboyante !
+{1} is radiating a bursting aura!
+{1} dégage une aura explosive !
+{1} is radiating a dark aura!
+{1} dégage une aura ténébreuse !
+{1} is radiating a fairy aura!
+{1} dégage une aura enchanteresse !
+{1} is ready to help {2}!
+{1} est prêt à aider {2} !
+{1} is selected.
+{1} est sélectionné.
+{1} is standing its ground!
+{1} tient bon !
+{1} is storing energy!
+{1} accumule de l'énergie !
+{1} is switched out by the {2}!
+{1} est renvoyé grâce à {2} !
+{1} is switched out with the {2}!
+{1} est échangé grâce à {2} !
+{1} is tightening its focus!
+{1} se concentre !
+{1} is too nervous to eat Berries!
+{1} est trop nerveux pour manger des Baies !
+{1} is tormented by {2}'s {3}!
+{1} est tourmenté par {3} de {2} !
+{1} is tormented!
+{1} est tourmenté !
+{1} is unaffected because of its {2}!
+{1} n'est pas affecté grâce à {2} !
+{1} is unaffected because of {2}'s {3}!
+{1} n'est pas affecté grâce à {3} de {2} !
+{1} is unaffected!
+{1} n'est pas affecté !
+{1} is waiting for {2}'s move...
+{1} attend la capacité de {2}...
+{1} is watching carefully!
+{1} observe attentivement !
+{1} is weak!<<n>>Throw a Poké Ball now!
+{1} est affaibli !<<n>>Lancez une Poké Ball maintenant !
+{1} isn't holding anything.
+{1} ne tient rien.
+{1} kept going and crashed!
+{1} continue sur sa lancée et s'écrase !
+{1} kept the dance going with {2}!
+{1} poursuit la danse avec {2} !
+{1} landed a critical hit on {2}, wishing to be praised!
+{1} porte un coup critique à {2} pour vous impressionner !
+{1} landed a critical hit, wishing to be praised!
+{1} porte un coup critique pour vous impressionner !
+{1} learned {2}!
+{1} apprend {2} !
+{1} levitated with electromagnetism!
+{1} lévite grâce à l'électromagnétisme !
+{1} lost its focus and couldn't move!
+{1} perd sa concentration et ne peut pas attaquer !
+{1} lost some of its HP!
+{1} perd des PV !
+{1} lost {2} Exp. Points!
+{1} perd {2} points d'expérience !
+{1} made a wish!
+{1} fait un vœu !
+{1} made {2} drowsy!
+{1} rend {2} somnolent !
+{1} made {2} move faster!
+{1} permet à {2} d'agir plus vite !
+{1} made {2} stronger against physical and special moves!
+{1} rend {2} plus résistant aux capacités physiques et spéciales !
+{1} makes Ground moves miss with Magnet Rise!
+{1} évite les capacités Sol grâce à Vol Magnétik !
+{1} makes Ground moves miss with Telekinesis!
+{1} évite les capacités Sol grâce à Lévikinésie !
+{1} managed to expel the poison so you wouldn't worry!
+{1} expulse le poison pour ne pas vous inquiéter !
+{1} maxed its {2}!
+{1} monte son {2} au maximum !
+{1} melted the ice with its fiery determination so you wouldn't worry!
+{1} fait fondre la glace de toute sa volonté pour ne pas vous inquiéter !
+{1} melted the ice!
+{1} fait fondre la glace !
+{1} moved across!
+{1} passe de l'autre côté !
+{1} moved to the center!
+{1} se place au centre !
+{1} must recharge!
+{1} doit se recharger !
+{1} nature.
+Nature {1}.
+{1} obtained {2} {3}!
+{1} obtient {2} {3} !
+{1} obtained {2}!
+{1} obtient {2} !
+{1} obtained {2}.
+{1} obtient {2}.
+{1} pickpocketed {2}'s {3}!
+{1} dérobe l'objet {3} de {2} !
+{1} planted a {2} in the soft loamy soil.
+{1} plante une {2} dans la terre meuble.
+{1} planted an {2} in the soft loamy soil.
+{1} plante une {2} dans la terre meuble.
+{1} planted its roots!
+{1} plante ses racines !
+{1} possessed a new appliance!
+{1} prend possession d'un nouvel appareil !
+{1} pretended not to notice!
+{1} fait semblant de ne rien voir !
+{1} prevents escape with {2}!
+{2} de {1} empêche la fuite !
+{1} protected itself with the {2}!
+{1} se protège grâce à {2} !
+{1} protected itself!
+{1} se protège !
+{1} protected {2}!
+{1} protège {2} !
+{1} put in a substitute!
+{1} crée un clone !
+{1} put on its {2}!
+{1} s'équipe de {2} !
+{1} radiates with Mega energy!
+{1} rayonne d'énergie Méga !
+{1} raised {2}'s Defense!
+{1} augmente la Défense de {2} !
+{1} raised {2}'s Special Defense!
+{1} augmente la Défense Spéciale de {2} !
+{1} received a Pokémon from {2}.
+{1} reçoit un Pokémon de la part de {2}.
+{1} received a Pokémon.
+{1} reçoit un Pokémon.
+{1} received an encore!
+{1} subit un Encore !
+{1} received {2} from {3}!
+{1} reçoit {2} de la part de {3} !
+{1} recovered from fainting!
+{1} n'est plus K.O. !
+{1} refuses to go into storage!
+{1} refuse d'aller dans la Boîte !
+{1} refuses to leave you!
+{1} refuse de vous quitter !
+{1} restored a little HP using its {2}!
+{1} récupère un peu de PV grâce à {2} !
+{1} restored its health using its {2}!
+{1} récupère des PV grâce à {2} !
+{1} restored its {2}'s PP.
+{1} restaure les PP de {2}.
+{1} retrieved the thrown {2}!
+{1} récupère l'objet {2} lancé !
+{1} returned its status to normal using its {2}!
+{1} retrouve un statut normal grâce à {2} !
+{1} reversed all other Pokémon's auras!
+{1} inverse les auras de tous les autres Pokémon !
+{1} reverted the dimensions!
+{1} rétablit les dimensions !
+{1} reverted to its original typing!
+{1} retrouve ses types d'origine !
+{1} saved the game.
+{1} a sauvegardé la partie.
+{1} sealed any moves its target shares with it!
+{1} scelle les capacités qu'il partage avec sa cible !
+{1} sent out {2} and {3}!
+{1} envoie {2} et {3} !
+{1} sent out {2}!
+{1} envoie {2} !
+{1} sent out {2}, {3} and {4}!
+{1} envoie {2}, {3} et {4} !
+{1} set a shell trap!
+{1} prépare une carapace piège !
+{1} shared its guard with the target!
+{1} partage sa garde avec la cible !
+{1} shared its power with the target!
+{1} partage sa force avec la cible !
+{1} shared its {2} with {3}!
+{1} partage {2} avec {3} !
+{1} shed Leech Seed!
+{1} se débarrasse de Vampigraine !
+{1} shook itself awake so you wouldn't worry!
+{1} se réveille tout seul pour ne pas vous inquiéter !
+{1} shrouded itself with Magic Coat!
+{1} s'entoure de Reflet Magik !
+{1} shuddered with anticipation!
+{1} frissonne d'appréhension !
+{1} slept and became healthy!
+{1} dort et retrouve la forme !
+{1} snapped out of its confusion.
+{1} n'est plus confus.
+{1} snatched {2}'s move!
+{1} saisit la capacité de {2} !
+{1} sprang up!
+{1} bondit !
+{1} started heating up its beak!
+{1} commence à chauffer son bec !
+{1} stays awake because of its {2}!
+{1} reste éveillé grâce à {2} !
+{1} stays awake because of {2}'s {3}!
+{1} reste éveillé grâce à {3} de {2} !
+{1} stays awake!
+{1} reste éveillé !
+{1} stockpiled {2}!
+{1} stocke {2} !
+{1} stole and ate its target's {2}!
+{1} vole et mange {2} de sa cible !
+{1} stole the target's boosted stats!
+{1} vole les stats augmentées de la cible !
+{1} stole {2}'s {3} with {4}!
+{1} vole l'objet {3} de {2} grâce à {4} !
+{1} stole {2}'s {3}!
+{1} vole l'objet {3} de {2} !
+{1} stopped schooling!
+{1} ne forme plus de banc !
+{1} sucked up the liquid ooze!
+{1} aspire le suintement !
+{1} surrounded itself with a veil of water!
+{1} s'entoure d'un voile d'eau !
+{1} surrounds itself with electrified terrain!
+{1} s'entoure d'un champ électrifié !
+{1} surrounds itself with misty terrain!
+{1} s'entoure d'un champ de brume !
+{1} surrounds itself with psychic terrain!
+{1} s'entoure d'un champ psychique !
+{1} survived the poisoning.\<<n>>The poison faded away!
+{1} a survécu au poison.\<<n>>Le poison s'est dissipé !
+{1} swapped Abilities with its target!
+{1} échange son talent avec sa cible !
+{1} swapped Abilities with {2}!
+{1} échange son talent avec {2} !
+{1} swapped its {2} Ability with its target's {3} Ability!
+{1} échange son talent {2} contre le talent {3} de sa cible !
+{1} swapped its {2} Ability with {3}'s {4} Ability!
+{1} échange son talent {2} contre le talent {4} de {3} !
+{1} swapped the battle effects affecting each side of the field!
+{1} échange les effets de terrain des deux camps !
+{1} switched Speed with its target!
+{1} échange sa Vitesse avec celle de la cible !
+{1} switched all changes to its Attack and Sp. Atk with the target!
+{1} échange ses changements d'Attaque et d'Atq. Spé. avec la cible !
+{1} switched all changes to its Defense and Sp. Def with the target!
+{1} échange ses changements de Défense et de Déf. Spé. avec la cible !
+{1} switched items with its opponent!
+{1} échange son objet avec celui de l'adversaire !
+{1} switched its Attack and Defense!
+{1} échange son Attaque et sa Défense !
+{1} switched stat changes with the target!
+{1} échange ses changements de stats avec la cible !
+{1} thawed out!
+{1} dégèle !
+{1} threw a rock at the {2}!
+{1} lance une pierre sur {2} !
+{1} threw a {2}!
+{1} lance une {2} !
+{1} threw an {2}!
+{1} lance une {2} !
+{1} threw some bait at the {2}!
+{1} lance un appât sur {2} !
+{1} took aim at {2}!
+{1} vise {2} !
+{1} took in sunlight!
+{1} absorbe la lumière !
+{1} took its attacker down with it!
+{1} entraîne son adversaire dans sa chute !
+{1} took the attack with its {2}!
+{1} encaisse l'attaque grâce à {2} !
+{1} took the attack!
+{1} encaisse l'attaque !
+{1} took the kind offer!
+{1} accepte l'offre !
+{1} took the {2} attack!
+{1} subit l'attaque {2} !
+{1} took {2} into the sky!
+{1} emporte {2} dans les airs !
+{1} toughed it out so you wouldn't feel sad!
+{1} tient bon pour ne pas vous rendre triste !
+{1} traced {2}'s {3}!
+{1} copie {3} de {2} !
+{1} transformed into its Complete Forme!
+{1} prend sa Forme Parfaite !
+{1} transformed into the {2} type!
+{1} devient de type {2} !
+{1} transformed into the {2}-type!
+{1} devient de type {2} !
+{1} transformed into {2}!
+{1} se transforme en {2} !
+{1} transformed!
+{1} se transforme !
+{1} triggered!
+{1} se déclenche !
+{1} tucked in its head!
+{1} rentre la tête !
+{1} turned away!
+{1} se détourne !
+{1} turned into {2}!
+{1} se transforme en {2} !
+{1} twisted the dimensions!
+{1} fausse les dimensions !
+{1} unleashed energy!
+{1} libère son énergie !
+{1} used a {2}.
+{1} utilise : {2}.
+{1} used an {2}.
+{1} utilise : {2}.
+{1} used its {2} to get pumped!
+{1} utilise {2} et se survolte !
+{1} used the move instructed by {2}!
+{1} utilise la capacité ordonnée par {2} !
+{1} used the {2} on {3}.
+{1} utilise {2} sur {3}.
+{1} used the {2}.
+{1} utilise {2}.
+{1} used {2}!
+{1} utilise {2} !
+{1} vanished instantly!
+{1} disparaît soudainement !
+{1} waits for a target to make a move!
+{1} attend que sa cible agisse !
+{1} wants its target to bear a grudge!
+{1} veut que sa cible lui garde rancune !
+{1} wants to learn {2}, but it already knows {3} moves.
+{1} veut apprendre {2}, mais il connaît déjà {3} capacités.
+{1} was alerted to {2}!
+{1} est alerté par {2} !
+{1} was badly poisoned by the poison spikes!
+{1} est gravement empoisonné par les pics toxiques !
+{1} was badly poisoned by the {2}!
+{1} est gravement empoisonné par {2} !
+{1} was badly poisoned!
+{1} est gravement empoisonné !
+{1} was blocked by the kicked-up mat!
+{1} est bloqué par le tatami !
+{1} was burned by the {2}!
+{1} est brûlé par {2} !
+{1} was burned!
+{1} est brûlé !
+{1} was caught in a sticky web!
+{1} est pris dans une toile gluante !
+{1} was caught in the aftermath!
+{1} est pris dans l'explosion !
+{1} was cured of its poisoning.
+{1} n'est plus empoisonné.
+{1} was cured of paralysis.
+{1} n'est plus paralysé.
+{1} was dragged out!
+{1} est expulsé !
+{1} was freed from the Sky Drop!
+{1} est libéré de Chute Libre !
+{1} was freed from the telekinesis!
+{1} est libéré de la Lévikinésie !
+{1} was freed from {2}!
+{1} est libéré de {2} !
+{1} was frozen solid!
+{1} est gelé !
+{1} was given the {2} to hold.
+{1} tient maintenant : {2}.
+{1} was hurled into the air!
+{1} est projeté dans les airs !
+{1} was hurt by its burn!
+{1} souffre de sa brûlure !
+{1} was hurt by poison!
+{1} souffre du poison !
+{1} was hurt by the sunlight!
+{1} est blessé par le soleil !
+{1} was hurt by the {2}!
+{1} est blessé par {2} !
+{1} was hurt!
+{1} est blessé !
+{1} was identified!
+{1} est identifié !
+{1} was poisoned by the poison spikes!
+{1} est empoisonné par les pics toxiques !
+{1} was poisoned!
+{1} est empoisonné !
+{1} was prevented from healing!
+{1} ne peut plus se soigner !
+{1} was released.
+{1} a été relâché.
+{1} was seeded!
+{1} est infecté !
+{1} was squeezed by {2}!
+{1} est ligoté par {2} !
+{1} was struck on the head by a falling rock!
+{1} reçoit une pierre sur la tête !
+{1} was subjected to torment!
+{1} est tourmenté !
+{1} was thawed out.
+{1} est dégelé.
+{1} was trapped in the fiery vortex!
+{1} est piégé dans le tourbillon de feu !
+{1} was trapped in the vortex!
+{1} est piégé dans le tourbillon !
+{1} was woken from sleep.
+{1} se réveille.
+{1} was wrapped by {2}!
+{1} est ligoté par {2} !
+{1} wasn't affected!
+{1} n'est pas affecté !
+{1} watered the plant.
+{1} arrose la plante.
+{1} went back to {2}!
+{1} revient vers {2} !
+{1} whipped up a whirlwind!
+{1} crée un tourbillon !
+{1} will strike the Pokémon in this spot in {2} more turn(s).
+{1} frappera le Pokémon à cet emplacement dans {2} tour(s).
+{1} withdrew {2}!
+{1} rappelle {2} !
+{1} woke up!
+{1} se réveille !
+{1} woke up.
+{1} se réveille.
+{1} won't obey!
+{1} n'obéit pas !
+{1} won't obey! It hurt itself in its confusion!
+{1} n'obéit pas ! Il se blesse dans sa confusion !
+{1}!
+{1} !
+{1}'s Ability became {2} because of {3}!
+Le talent de {1} devient {2} à cause de {3} !
+{1}'s Ability became {2}!
+Le talent de {1} devient {2} !
+{1}'s Ability changed! Its Ability is now {2}!
+Le talent de {1} a changé ! Son talent est maintenant {2} !
+{1}'s Ability was suppressed!
+Le talent de {1} est neutralisé !
+{1}'s Aurora Veil wore off!
+Le Voile Aurore de {1} prend fin !
+{1}'s Exp. Points remained unchanged.
+Les points d'expérience de {1} restent inchangés.
+{1}'s Forewarn alerted it to {2}!
+Prédiction alerte {1} : {2} !
+{1}'s HP is full!
+Les PV de {1} sont au maximum !
+{1}'s HP was restored by {2} points.
+{1} récupère {2} PV.
+{1}'s HP was restored.
+{1} récupère des PV.
+{1}'s Heal Block wore off!
+L'Anti-Soin de {1} prend fin !
+{1}'s Light Screen wore off!
+Le Mur Lumière de {1} prend fin !
+{1}'s Lucky Chant wore off!
+La Air Veinard de {1} prend fin !
+{1}'s Mega Evolution faded!<<n>>It may now be captured!
+La méga-évolution de {1} prend fin !<<n>>Il peut maintenant être capturé !
+{1}'s Mist faded!
+La Brume de {1} se dissipe !
+{1}'s PC
+PC de {1}
+{1}'s PP increased.
+Les PP de {1} augmentent.
+{1}'s Primal Reversion!<<n>>It reverted to its primal form!
+Primo-Résurgence de {1} !<<n>>Il retrouve sa forme primitive !
+{1}'s Reflect wore off!
+La Protection de {1} prend fin !
+{1}'s Tailwind petered out!
+Le Vent Arrière de {1} retombe !
+{1}'s Taunt wore off!
+La Provoc de {1} prend fin !
+{1}'s area
+Zone de {1}
+{1}'s attack missed!
+{1} rate son attaque !
+{1}'s burn was healed.
+La brûlure de {1} est guérie.
+{1}'s data was added to the Pokédex.
+Les données de {1} ont été ajoutées au Pokédex.
+{1}'s disguise served it as a decoy!
+Le déguisement de {1} lui a servi de leurre !
+{1}'s disguise was busted!
+Le déguisement de {1} tombe !
+{1}'s effort values were reset.
+Les EV de {1} ont été réinitialisés.
+{1}'s electromagnetism wore off!
+Le Vol Magnétik de {1} prend fin !
+{1}'s encore ended!
+L'Encore de {1} prend fin !
+{1}'s fervent wish has reached {2}!
+Le souhait ardent de {1} atteint {2} !
+{1}'s health is sapped by Leech Seed!
+Vampigraine draine l'énergie de {1} !
+{1}'s held {2} was removed!
+L'objet {2} de {1} a été retiré !
+{1}'s illusion wore off!
+L'illusion de {1} se dissipe !
+{1}'s item cannot be stolen!
+L'objet de {1} ne peut pas être volé !
+{1}'s level remained unchanged.
+Le niveau de {1} reste inchangé.
+{1}'s lowered stats returned to normal!
+Les stats baissées de {1} reviennent à la normale !
+{1}'s mail must be removed before giving it an item.
+Il faut retirer la lettre de {1} avant de lui donner un objet.
+{1}'s move was postponed!
+La capacité de {1} est reportée !
+{1}'s moves have been electrified!
+Les capacités de {1} sont électrifiées !
+{1}'s new level is less than its current level, which shouldn't happen.
+Le nouveau niveau de {1} est inférieur au niveau actuel, ce qui ne devrait pas arriver.
+{1}'s nickname?
+Surnom de {1} ?
+{1}'s perish count fell to {2}!
+Le compte à rebours de {1} passe à {2} !
+{1}'s rage is building!
+La colère de {1} augmente !
+{1}'s raised stats returned to normal!
+Les stats augmentées de {1} reviennent à la normale !
+{1}'s shell trap didn't work!
+La carapace piège de {1} ne fonctionne pas !
+{1}'s stat changes returned to normal!
+Les changements de stats de {1} sont annulés !
+{1}'s stat changes were removed by {2}'s {3}!
+Les changements de stats de {1} sont annulés par {3} de {2} !
+{1}'s stat changes were removed!
+Les changements de stats de {1} sont annulés !
+{1}'s stats can't be changed further!
+Les stats de {1} ne peuvent plus changer !
+{1}'s stats can't be raised further!
+Les stats de {1} ne peuvent plus monter !
+{1}'s stats cannot be lowered!
+Les stats de {1} ne peuvent pas baisser !
+{1}'s stats may have changed due to the effects of the {2}!
+Les stats de {1} ont peut-être changé grâce à {2} !
+{1}'s stats were reversed!
+Les stats de {1} sont inversées !
+{1}'s stats won't go any higher!
+Les stats de {1} ne peuvent plus monter !
+{1}'s stats won't go any lower!
+Les stats de {1} ne peuvent plus baisser !
+{1}'s status returned to normal!
+Le statut de {1} revient à la normale !
+{1}'s stockpiled effect wore off!
+L'effet de stockage de {1} prend fin !
+{1}'s substitute faded!
+Le clone de {1} disparaît !
+{1}'s substitute protected it from {2}'s {3}!
+Le clone de {1} le protège de {3} de {2} !
+{1}'s taunt wore off!
+La provocation de {1} prend fin !
+{1}'s team is protected by Safeguard!
+L'équipe de {1} est protégée par Rune Protect !
+{1}'s team was disqualified!
+L'équipe de {1} est disqualifiée !
+{1}'s torment wore off!
+Le Tourment de {1} prend fin !
+{1}'s type changed to match {2}'s!
+{1} prend le type de {2} !
+{1}'s type changed to {2} because of its {3}!
+{1} devient de type {2} grâce à {3} !
+{1}'s type changed to {2}!
+{1} devient de type {2} !
+{1}'s uproar prevents sleeping.
+Le brouhaha de {1} empêche de dormir.
+{1}'s wish came true!
+Le Vœu de {1} se réalise !
+{1}'s {2} activated!
+{2} de {1} s'active !
+{1}'s {2} blocks {3}!
+{2} de {1} bloque {3} !
+{1}'s {2} burned {3}!
+{2} de {1} brûle {3} !
+{1}'s {2} cannot be lowered!
+{2} de {1} ne peut pas baisser !
+{1}'s {2} cured its infatuation status!
+{2} de {1} guérit son attirance !
+{1}'s {2} cured its paralysis!
+{2} de {1} soigne sa paralysie !
+{1}'s {2} cured its partner's paralysis!
+{2} de {1} soigne la paralysie de son partenaire !
+{1}'s {2} cured its partner's poison!
+{2} de {1} soigne l'empoisonnement de son partenaire !
+{1}'s {2} cured its poison!
+{2} de {1} soigne son empoisonnement !
+{1}'s {2} cured its poisoning!
+{2} de {1} soigne son empoisonnement !
+{1}'s {2} cured {3}'s poisoning!
+{2} de {1} soigne l'empoisonnement de {3} !
+{1}'s {2} defrosted it!
+{2} de {1} le dégèle !
+{1}'s {2} defrosted its partner!
+{2} de {1} dégèle son partenaire !
+{1}'s {2} drastically raised its {3}!
+{2} de {1} augmente énormément son {3} !
+{1}'s {2} drastically raised {3}'s {4}!
+{2} de {1} augmente énormément {4} de {3} !
+{1}'s {2} fell!
+{2} de {1} baisse !
+{1}'s {2} harshly fell!
+{2} de {1} baisse beaucoup !
+{1}'s {2} harshly lowered its {3}!
+{2} de {1} baisse beaucoup son {3} !
+{1}'s {2} harshly lowered {3}'s {4}!
+{2} de {1} baisse beaucoup {4} de {3} !
+{1}'s {2} healed its burn!
+{2} de {1} soigne sa brûlure !
+{1}'s {2} healed its partner's burn!
+{2} de {1} soigne la brûlure de son partenaire !
+{1}'s {2} increased.
+{2} de {1} augmente.
+{1}'s {2} is disabled!
+{2} de {1} est sous entrave !
+{1}'s {2} is reacting to {3}'s {4}!
+{2} de {1} réagit à {4} de {3} !
+{1}'s {2} let it move first!
+{2} de {1} lui permet d'agir en premier !
+{1}'s {2} let it share its {3} with {4}!
+{2} de {1} lui permet de partager {3} avec {4} !
+{1}'s {2} lost all of its PP due to the grudge!
+{2} de {1} perd tous ses PP à cause de la Rancune !
+{1}'s {2} lowered its {3}!
+{2} de {1} baisse son {3} !
+{1}'s {2} lowered {3}'s {4}!
+{2} de {1} baisse {4} de {3} !
+{1}'s {2} made its taunt wear off!
+{2} de {1} met fin à la provocation !
+{1}'s {2} made {3} fall asleep!
+{2} de {1} endort {3} !
+{1}'s {2} made {3} fall in love!
+{2} de {1} rend {3} amoureux !
+{1}'s {2} made {3} ineffective!
+{2} de {1} rend {3} inefficace !
+{1}'s {2} makes Ground moves miss!
+{2} de {1} fait rater les capacités Sol !
+{1}'s {2} maxed its {3}!
+{2} de {1} monte son {3} au maximum !
+{1}'s {2} paralyzed {3}! It may be unable to move!
+{2} de {1} paralyse {3} ! Il aura du mal à attaquer !
+{1}'s {2} poisoned {3}!
+{2} de {1} empoisonne {3} !
+{1}'s {2} popped!
+{2} de {1} éclate !
+{1}'s {2} prevented {3}'s {4} from working!
+{2} de {1} empêche {4} de {3} d'agir !
+{1}'s {2} prevents burns!
+{2} de {1} empêche les brûlures !
+{1}'s {2} prevents confusion!
+{2} de {1} empêche la confusion !
+{1}'s {2} prevents freezing!
+{2} de {1} empêche le gel !
+{1}'s {2} prevents paralysis!
+{2} de {1} empêche la paralysie !
+{1}'s {2} prevents poisoning!
+{2} de {1} empêche l'empoisonnement !
+{1}'s {2} prevents romance!
+{2} de {1} empêche l'amour !
+{1}'s {2} prevents stat loss!
+{2} de {1} empêche la baisse de ses stats !
+{1}'s {2} prevents switching!
+{2} de {1} empêche de changer de Pokémon !
+{1}'s {2} prevents {3} loss!
+{2} de {1} empêche la baisse de {3} !
+{1}'s {2} prevents {3}'s stat loss!
+{2} de {1} empêche la baisse des stats de {3} !
+{1}'s {2} radiates with Mega energy!
+{2} de {1} rayonne d'énergie Méga !
+{1}'s {2} raised its {3}!
+{2} de {1} augmente son {3} !
+{1}'s {2} raised {3}'s {4}!
+{2} de {1} augmente {4} de {3} !
+{1}'s {2} restored its HP.
+{2} de {1} restaure ses PV.
+{1}'s {2} restored its {3}'s PP!
+{2} de {1} restaure les PP de {3} !
+{1}'s {2} rose drastically!
+{2} de {1} augmente énormément !
+{1}'s {2} rose sharply!
+{2} de {1} augmente beaucoup !
+{1}'s {2} rose!
+{2} de {1} augmente !
+{1}'s {2} severely fell!
+{2} de {1} baisse énormément !
+{1}'s {2} severely lowered its {3}!
+{2} de {1} baisse énormément son {3} !
+{1}'s {2} severely lowered {3}'s {4}!
+{2} de {1} baisse énormément {4} de {3} !
+{1}'s {2} sharply raised its {3}!
+{2} de {1} augmente beaucoup son {3} !
+{1}'s {2} sharply raised {3}'s {4}!
+{2} de {1} augmente beaucoup {4} de {3} !
+{1}'s {2} snapped it out of its confusion!
+{2} de {1} met fin à sa confusion !
+{1}'s {2} was disabled by {3}'s {4}!
+{2} de {1} est mis sous entrave par {4} de {3} !
+{1}'s {2} was disabled!
+{2} de {1} est sous entrave !
+{1}'s {2} was incinerated!
+{2} de {1} est réduit en cendres !
+{1}'s {2} was taken over!
+{2} de {1} est remplacé !
+{1}'s {2} was transferred to {3}!
+{2} de {1} est transféré à {3} !
+{1}'s {2} woke it up!
+{2} de {1} le réveille !
+{1}'s {2} woke its partner up!
+{2} de {1} réveille son partenaire !
+{1}'s {2} won't go any higher!
+{2} de {1} ne peut plus monter !
+{1}'s {2} won't go any lower!
+{2} de {1} ne peut plus baisser !
+{1}'s {2} wore off!
+{2} de {1} prend fin !
+{1}, come back!
+{1}, reviens !
+{1}, switch out! Come back!
+{1}, on change ! Reviens !
+{1}, that's enough! Come back!
+{1}, ça suffit ! Reviens !
+{1}h {2}m
+{1} h {2} min
+{1}m
+{1} min
