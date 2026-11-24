@@ -135,8 +135,9 @@ module MapProceduralGenerator
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
   # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
   # notes: lines for the console (routes off the chain that found no room);
-  # fillers: Filler (see 013_Fillers.rb)
-  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers)
+  # fillers: Filler (see 013_Fillers.rb); hqs: { brick type => place name }
+  # of the guilds' headquarters (WORLD_HQS)
+  WorldResult = Struct.new(:text, :places, :caves, :seabeds, :islands, :interiors, :notes, :fillers, :hqs)
 
   TOWN_SIZE = 2
   # Times the world is laid out again when a place can't be assembled
@@ -297,6 +298,7 @@ module MapProceduralGenerator
     rescue Error
       raise if attempt == WORLD_TRIES - 1
     end
+    hqs = place_world_hqs(built, bricks, seed)
     # Warps of each place by name, written once all are known
     warps = Hash.new { |hash, name| hash[name] = [] }
     caves = built.flat_map do |wp, _place, _text, layout|
@@ -337,7 +339,37 @@ module MapProceduralGenerator
     islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
     fillers = world_fillers(world, built, seed, map_ids)
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes, fillers), built, caves, seabeds, islands, interiors,
-                           extra_notes(built) + notes, fillers)
+                           extra_notes(built) + notes, fillers, hqs)
+  end
+
+  # Lays each headquarters of WORLD_HQS on a place of the world whose
+  # ambiance it allows (GUILD_HQS), built again with it: the first place
+  # drawn where it fits. { brick type => place name }.
+  def place_world_hqs(built, bricks, seed)
+    rng = Random.new((seed * 1000) + 950)
+    hqs = {}
+    WORLD_HQS.each do |kind|
+      next if bricks.none? { |b| b.kind == kind }
+      allowed = GUILD_HQS[kind] || []
+      fits = built.each_index.select do |i|
+        wp, place, _text, layout = built[i]
+        place.counts.key?(kind) && !wp.league && !wp.victory && (allowed.empty? || allowed.include?(layout.ambiance))
+      end
+      fits.shuffle(random: rng).each do |i|
+        wp, place, _text, layout = built[i]
+        themed = place.dup
+        themed.counts = place.counts.merge(kind => 1..1)
+        themed.ambiance = layout.ambiance
+        text, new_layout = generate_world_place(themed, bricks, (seed * 1000) + wp.index)
+        next if new_layout.doors.none? { |_x, _y, brick| brick.kind == kind }
+        built[i] = [wp, themed, text, new_layout]
+        hqs[kind] = wp.name
+        break
+      rescue Error
+        next
+      end
+    end
+    return hqs
   end
 
   # Assembles each place of the world: [WorldPlace, Place, MapGen plan text,

@@ -49,15 +49,15 @@ module WorldEvents
       fail_at = ->(msg) { raise Error, "#{file}, ligne #{lineno} : #{msg}" }
       if line =~ /\A\[(.+)\]\z/
         section = $1
-        fail_at.call("section [#{section}] inconnue (#{DIALOGUE_SECTIONS.keys.join(', ')})") if !DIALOGUE_SECTIONS[section]
+        fail_at.call("section [#{section}] inconnue (#{DIALOGUE_SECTIONS.keys.join(', ')}, guilde_<id>_<rôle>)") if !section_tokens(section)
         fail_at.call("section [#{section}] en double") if sections[section]
         sections[section] = []
         next
       end
       fail_at.call("réplique hors d'une section") if !section
       line.scan(/\{([^}]*)\}/).flatten.each do |token|
-        next if DIALOGUE_SECTIONS[section].include?(token)
-        allowed = DIALOGUE_SECTIONS[section].map { |t| "{#{t}}" }.join(", ")
+        next if section_tokens(section).include?(token)
+        allowed = section_tokens(section).map { |t| "{#{t}}" }.join(", ")
         fail_at.call("jeton {#{token}} inconnu ou interdit dans [#{section}] (#{allowed.empty? ? 'aucun' : allowed})")
       end
       sections[section].push(line)
@@ -65,6 +65,12 @@ module WorldEvents
     missing = DIALOGUE_SECTIONS.keys.select { |key| !sections[key] || sections[key].empty? }
     raise Error, "#{file} : sections absentes ou vides : #{missing.join(', ')}" if !missing.empty?
     return sections
+  end
+
+  # Tokens allowed in that section (a guild's: guilde_<id>_<role>), nil if
+  # it is unknown.
+  def section_tokens(section)
+    return DIALOGUE_SECTIONS[section] || GUILD_LINES[section[/\Aguilde_[a-z0-9]+_(\w+)\z/, 1]]
   end
 
   def dialogues_path(root = ".")

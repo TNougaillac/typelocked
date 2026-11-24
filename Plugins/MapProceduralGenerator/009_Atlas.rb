@@ -17,6 +17,7 @@ module MapProceduralGenerator
   #   { start:, lab: (the start if it has the lab), gyms: [names in the order
   #     they are beaten], surf:, dive:, victory: (the Victory Road), league:
   #     [the rooms of the League, in order], items: { field item => town },
+  #     hqs: { brick type of a guild's headquarters => place },
   #     maps: { name => { kind:, title:, exits:, doors:, street:, grass:, dead_ends: ... } } }
   def world_atlas(result)
     places = result.places.sort_by { |wp, *| wp.index }
@@ -58,7 +59,7 @@ module MapProceduralGenerator
     end
     return { start: start && start[0].name, lab: lab && start[0].name, gyms: gyms,
              victory: places.find { |wp, *| wp.victory }&.first&.name,
-             items: field_towns(places),
+             items: field_towns(places), hqs: (result.hqs || {}).dup,
              league: interiors.select(&:role).map(&:name),
              surf: places.find { |wp, *| wp.surf }&.first&.name,
              dive: places.find { |wp, *| wp.dive }&.first&.name, maps: maps }
@@ -90,6 +91,7 @@ module MapProceduralGenerator
                        victory: atlas[:victory] && id.call(atlas[:victory]),
                        league: atlas[:league].map(&id),
                        items: atlas[:items].transform_values(&id),
+                       hqs: (atlas[:hqs] || {}).transform_values(&id),
                        surf: atlas[:surf] && id.call(atlas[:surf]),
                        dive: atlas[:dive] && id.call(atlas[:dive]),
                        maps: atlas[:maps].to_h { |name, spots| [id.call(name), spots.merge(name: name)] })
@@ -104,6 +106,7 @@ module MapProceduralGenerator
     text << "Arenes = #{atlas[:gyms].map(&label).join(', ')}\n"
     text << "Victoire = #{label.call(atlas[:victory])}\n" if atlas[:victory]
     atlas[:items].each { |item, town| text << "#{item} = #{label.call(town)}\n" }
+    (atlas[:hqs] || {}).each { |kind, place| text << "QG #{kind} = #{label.call(place)}\n" }
     text << "Ligue  = #{atlas[:league].map(&label).join(', ')}\n" if !atlas[:league].empty?
     text << "Surf   = #{atlas[:surf]}\n" if atlas[:surf]
     text << "Plongee = #{atlas[:dive]}\n" if atlas[:dive]

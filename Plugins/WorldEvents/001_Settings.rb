@@ -299,4 +299,22 @@ module WorldEvents
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
     "arceus_intro" => PLACE_TOKENS, "arceus_fin" => %w[joueur], "porte_ligue" => %w[joueur]
   }.freeze
+
+  # Guilds (#181): read from MapProc/Lore/guildes.txt (in the folder of
+  # MapProceduralGenerator). Each has its lines in dialogues.txt, sections
+  # guilde_<id>_<role> (id in lowercase), roles and their tokens:
+  GUILDS_FILE = "Lore/guildes.txt"
+  GUILD_POSITIONS = %w[alliée neutre affiliée rivale].freeze
+  GUILD_LINES = { "chef_combat" => PLACE_TOKENS, "chef_fin" => BATTLE_TOKENS,
+                  "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS }.freeze
+  # At the headquarters: the leader inside, on this cell of its template ([x,
+  # y, facing]), and 2 to 4 members outside, on the free cells by the street
+  # nearest its door (among this many).
+  GUILD_LEADER_SPOTS = { 27 => [4, 4, "bas"] }.freeze
+  GUILD_MEMBERS = 2..4
+  GUILD_NEAR_CELLS = 16
+  # The leader: at the level of the strongest trainer of its Tronçon (never
+  # above the cap), Pokémon by the seals won on the way (0 to 8), with sets
+  # (IVs of the lieutenant of those seals).
+  GUILD_LEADER_PARTY_SIZES = [4, 4, 4, 5, 5, 5, 6, 6, 6].freeze
 end

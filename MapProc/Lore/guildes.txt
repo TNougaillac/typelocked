@@ -1,0 +1,30 @@
+# Guildes des mondes générés (plugin WorldEvents, spec #181, pools de #179).
+# Une section par guilde, son identifiant en MAJUSCULES sans accents :
+#   Nom      = le nom affiché
+#   Position = alliée, neutre, affiliée ou rivale (face à la Famille)
+#   Biomes   = les ambiances où la guilde vit (celles de route.txt et ville.txt)
+#   QG       = le type de brique de son QG (GUILD_HQS de MapProceduralGenerator)
+#   Membres  = les types de dresseur de ses membres (PBS/trainer_types.txt)
+#   Chef     = le type de dresseur de son chef ; son nom dans trainer_types.txt
+#              est le titre du chef, écrit devant son nom tiré à la graine
+#   Titre    = ce titre (vérifié contre trainer_types.txt)
+#   Ennemis  = les guildes ennemies (réciproques), vide si aucune
+#   Pool     = les espèces de ses équipes (roster du jeu, sans légendaire)
+# Les répliques de chaque guilde sont dans dialogues.txt, sections
+# [guilde_<id>_chef_combat], [guilde_<id>_chef_fin], [guilde_<id>_membre_combat]
+# et [guilde_<id>_membre_fin] (id en minuscules).
+
+#-------------------------------------------------------------------------------
+[ELEVEURS]
+Nom      = Éleveurs
+Position = alliée
+Biomes   = prairie
+QG       = ferme
+Membres  = POKEMONBREEDER
+Chef     = CHEF_ELEVEURS
+Titre    = Doyen des Éleveurs
+Ennemis  =
+Pool     = MILTANK, TAUROS, MAREEP, FLAAFFY, AMPHAROS, TEPIG, PIGNITE, EMBOAR, SKIDDO, GOGOAT,
+           PONYTA, RAPIDASH, MUDBRAY, MUDSDALE, WOOLOO, DUBWOOL, SWINUB, PILOSWINE, BOUFFALANT,
+           TORCHIC, FARFETCHD, DODUO, DODRIO, SPOINK, GRUMPIG, LILLIPUP, HERDIER, STOUTLAND,
+           CHANSEY, BLISSEY

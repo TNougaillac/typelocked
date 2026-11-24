@@ -269,3 +269,29 @@ La lumière vacille, puis s'éteint. | Le Pacte est brisé, {joueur}. La Famille
 
 [porte_ligue]
 La porte est fermée. Il faut d'abord gagner ici.
+
+#-------------------------------------------------------------------------------
+# Guildes (guildes.txt) : chef et membres au QG
+#-------------------------------------------------------------------------------
+[guilde_eleveurs_membre_combat]
+Tu marches dans nos prés. Ici, on parle d'abord avec les Pokémon.
+Les bêtes de la ferme ne se laissent pas approcher par n'importe qui.
+La Famille prend sa part de chaque récolte. Toi, tu prendras une raclée.
+On élève nos Pokémon depuis trois générations. Montre-moi les tiens.
+Pas un pas de plus vers la ferme sans m'avoir battu.
+
+[guilde_eleveurs_membre_fin]
+Tu as la main, pour quelqu'un de la ville.
+Le Doyen voudra te voir. Il est à la ferme.
+Mes bêtes ont besoin de repos. Et moi aussi.
+Bon. Tu traites bien tes Pokémon, ça se voit.
+
+[guilde_eleveurs_chef_combat]
+Les Cousins viennent chaque saison compter nos bêtes. Voyons ce que vaut un désigné. | Si tu tiens debout face au troupeau, on parlera.
+J'ai vu passer la Famille, la sécheresse et trois Parrains. Tu ne me fais pas peur. | Montre-moi ce que le Pacte a fait de toi.
+Une ferme, ça se défend. Contre la Famille comme contre les curieux.
+
+[guilde_eleveurs_chef_fin]
+Le troupeau t'a jugé. Il a bon goût.
+Tu ne te bats pas comme eux. C'est déjà quelque chose.
+Reviens quand tu veux. La porte de la ferme est ouverte.

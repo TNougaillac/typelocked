@@ -86,9 +86,13 @@ module WorldEvents
   end
 
   # [[species, level]] of that type, levels from low to high: species
-  # reachable at that level first (else the type's earliest ones).
+  # reachable at that level first (else the pool's earliest ones).
   def typed_party(species, type, size, low, high, seals, rng)
-    pool = species.values.select { |sp| sp.types.include?(type) }
+    return pool_party(species, species.values.select { |sp| sp.types.include?(type) }, size, low, high, seals, rng)
+  end
+
+  # The same among the species of pool (a guild's).
+  def pool_party(species, pool, size, low, high, seals, rng)
     reachable = final_forms(species, pool, high, seals)
     reachable = pool.min_by(3, &:min_level) if reachable.empty?
     # The most evolved first, for a lieutenant that looks like one
