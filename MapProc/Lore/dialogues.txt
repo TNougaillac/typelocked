@@ -323,6 +323,18 @@ Fermé. On dit que les statues de {ville} n'obéissent que dans l'ordre.
 Une barrière garde le lieutenant. Les statues qui l'ouvrent ne se montrent pas : cherche à tâtons.
 Fermé. Les statues de cette salle sont invisibles. Avance la main.
 
+[arene_barriere_rochers]
+Une barrière garde le lieutenant. Des dalles creusent le sol de la salle, chacune attend son rocher.
+Fermé. À {ville}, on ne passe qu'en mettant chaque rocher sur sa dalle.
+
+[arene_dalle]
+Le rocher s'enfonce dans la dalle avec un bruit sourd.
+Clac ! La dalle cède sous le rocher.
+
+[arene_rochers_coinces]
+Coincé entre les rochers... Un membre de la Famille soupire et remet tout en place.
+Plus moyen de bouger. On te ramène à l'entrée, et les rochers à leur place.
+
 [arene_statue]
 La statue s'illumine.
 Un déclic. La statue brille à présent.

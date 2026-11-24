@@ -66,7 +66,8 @@ module WorldEvents
   end
 
   # The tileset of the lieutenant's type on a generated gym's interior, and
-  # its ice (leader[:ice], GYM_ICE) in place of the floor tile.
+  # its ice (leader[:ice], GYM_ICE) and plates (leader[:plates],
+  # GYM_BOULDER_TYPES) in place of the floor tile.
   def paint_gym_interior(infos, leader)
     tileset = GYM_INTERIOR_TILESETS[leader[:type]]
     map_id = infos.select { |_id, info| info.name == leader[:map] }.keys.min
@@ -75,8 +76,10 @@ module WorldEvents
     map = load_data(path)
     return if map.tileset_id != MapProceduralGenerator::GYM_TILESET || map.tileset_id == tileset
     map.tileset_id = tileset
-    leader[:ice].each do |x, y|
-      map.data.zsize.times { |z| map.data[x, y, z] = 384 + GYM_ICE_TILE if map.data[x, y, z] == 384 + GYM_FLOOR_TILE }
+    { GYM_ICE_TILE => leader[:ice], GYM_PLATE_TILE => leader[:plates] }.each do |tile, cells|
+      cells.each do |x, y|
+        map.data.zsize.times { |z| map.data[x, y, z] = 384 + tile if map.data[x, y, z] == 384 + GYM_FLOOR_TILE }
+      end
     end
     save_data(map, path)
   end

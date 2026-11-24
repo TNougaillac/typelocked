@@ -117,11 +117,11 @@ def check_gyms(atlas, plans, leaders, tms)
     standing = events.map { |e| [e.x, e.y] }
     barriers = events.select { |e| e.label.start_with?("Barriere") }
     if !spots[:template]
-      check_gym_mechanic(map, events, barriers, drawn, i, grid, arrival, standing)
+      check_gym_mechanic(map, spots, events, barriers, drawn, i, grid, arrival, standing)
       check_gym_ice(map, spots, events, drawn)
     end
-    # The barriers lift once the statues are lit
-    open = standing - barriers.map { |e| [e.x, e.y] }
+    # The barriers lift once the statues are lit (the boulders on their plates)
+    open = standing - (barriers + events.select { |e| e.label.start_with?("Rocher") }).map { |e| [e.x, e.y] }
     raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, arrival, open)[target]
     seen = members.flat_map do |e|
       dx, dy = W::STEPS[e.value("Facing")]
@@ -137,11 +137,14 @@ end
 # The mechanic of a generated gym (#121): barriers on every floor cell
 # around the lieutenant, hidden by its switch, and its statues (touched to
 # turn it on), each reachable while the barriers stand, in the number the
-# lieutenant drew; none of them in a cramped room only.
-def check_gym_mechanic(map, events, barriers, drawn, index, grid, arrival, standing)
+# lieutenant drew; none of them in a cramped room only. Or, for
+# GYM_BOULDER_TYPES, its boulders (check_gym_boulders).
+def check_gym_mechanic(map, spots, events, barriers, drawn, index, grid, arrival, standing)
   statues = events.select { |e| e.label.start_with?("Statue") }
   raise MapEvents::Error, "#{map} : #{statues.length} statues au lieu de #{drawn[:statues]}" if statues.length != drawn[:statues]
-  if statues.empty?
+  switch = "S#{W::GYM_STATUE_SWITCH + index + 1}"
+  check_gym_boulders(map, spots, events, barriers, drawn, switch)
+  if statues.empty? && drawn[:plates].empty?
     raise MapEvents::Error, "#{map} : barrières sans statue" if !barriers.empty?
     return puts("#{map} : salle trop étroite, pas de statue")
   end
@@ -150,7 +153,6 @@ def check_gym_mechanic(map, events, barriers, drawn, index, grid, arrival, stand
   if barriers.map { |e| [e.x, e.y] }.sort != around.sort
     raise MapEvents::Error, "#{map} : barrières #{barriers.map { |e| [e.x, e.y] }} au lieu de #{around}"
   end
-  switch = "S#{W::GYM_STATUE_SWITCH + index + 1}"
   barriers.each { |e| raise MapEvents::Error, "#{map} : [NPC #{e.label}] sans Hide = #{switch}" if e.value("Hide") != switch }
   seen = reach(grid, arrival, standing)
   statues.each do |e|
@@ -160,6 +162,40 @@ def check_gym_mechanic(map, events, barriers, drawn, index, grid, arrival, stand
     hidden = W::GYM_HIDDEN.include?(drawn[:type])
     raise MapEvents::Error, "#{map} : [NPC #{e.label}] statue visible/invisible à tort" if hidden == !e.value("Graphic").nil?
   end
+end
+
+# The boulders of a generated gym (#121, tranche 5): only for
+# GYM_BOULDER_TYPES, one per plate, pushed without Strength and checking the
+# plates, solvable with the events of its plan, none on a plate. Counts in
+# BOULDER_STATS how many generated gyms with a mechanic could take boulders
+# whatever their type (on their statues' or plates' cells).
+BOULDER_STATS = Hash.new(0)
+def check_gym_boulders(map, spots, events, barriers, drawn, switch)
+  boulders = events.select { |e| e.label.start_with?("Rocher") }
+  plates = drawn[:plates]
+  leader = events.find { |e| e.label == "Lieutenant" }.then { |e| [e.x, e.y] }
+  members = events.select { |e| e.label.start_with?("Membre") }.map { |e| [e.x, e.y] }
+  locks = plates + events.select { |e| e.label.start_with?("Statue") }.map { |e| [e.x, e.y] }
+  if !locks.empty?
+    fit = W.gym_boulders(spots, leader, members, locks, Random.new(drawn[:gym]))
+    BOULDER_STATS[fit.empty? ? "impossibles" : "possibles"] += 1
+  end
+  if !W::GYM_BOULDER_TYPES.include?(drawn[:type])
+    raise MapEvents::Error, "#{map} : rochers ou dalles dans une arène #{drawn[:type]}" if !boulders.empty? || !plates.empty?
+    return
+  end
+  return puts("#{map} : arène #{drawn[:type]} sans rochers (statues)") if plates.empty?
+  BOULDER_STATS["arènes à rochers"] += 1
+  cells = boulders.map { |e| [e.x, e.y] }
+  raise MapEvents::Error, "#{map} : #{cells.length} rochers pour #{plates.length} dalles" if cells.sort != drawn[:boulders].sort || cells.length != plates.length
+  raise MapEvents::Error, "#{map} : rocher posé sur une dalle" if !(cells & plates).empty?
+  boulders.each do |e|
+    scripts = e.fields.filter_map { |key, value| value if key == "Script" }
+    wanted = ["pbPushThisEvent(true)", "WorldEvents.gym_plates(#{switch[1..]}, #{plates.inspect}, @event_id, #{spots[:entry].inspect})"]
+    raise MapEvents::Error, "#{map} : [NPC #{e.label}] Script #{scripts}" if scripts != wanted
+  end
+  people = [leader, *members, *barriers.map { |e| [e.x, e.y] }]
+  raise MapEvents::Error, "#{map} : rochers impossibles à mettre sur leurs dalles" if !W.gym_boulders_solvable?(spots, cells, people, leader, plates)
 end
 
 # The ice of a generated gym (#121, tranche 4): only for GYM_ICE, on its
@@ -219,8 +255,9 @@ def check_cells(plan, spots, gates)
     # A guild member holding a dungeon gate stands in its 1-tile corridor
     next if (spots[:gates] || []).include?(cell) && entry.label.start_with?("Guilde")
     raise MapEvents::Error, "#{where} : sur une sortie, une porte ou devant" if blocked.include?(cell)
-    # A gym's barrier on the ground around the lieutenant (check_gym_mechanic)
-    next if entry.label.start_with?("Barriere") && (spots[:ground] || []).include?(cell)
+    # A gym's barrier on the ground around the lieutenant (check_gym_mechanic),
+    # its boulders on its ground (check_gym_boulders)
+    next if entry.label.start_with?("Barriere", "Rocher") && (spots[:ground] || []).include?(cell)
     raise MapEvents::Error, "#{where} : case hors de l'inventaire (inaccessible ?)" if !free.include?(cell)
     next if entry.kind != :trainer
     # A trainer never sees an exit or a door
@@ -1372,7 +1409,7 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_start(atlas, plans)
       check_services(atlas, plans)
       check_gyms(atlas, plans, events[:leaders], tms)
-      gym_statues.concat(events[:leaders].map { |l| l[:statues] })
+      gym_statues.concat(events[:leaders].map { |l| l[:statues] + l[:plates].length })
       # The right hands of the showdowns fight only there (check_showdowns)
       seconds = events[:guilds].filter_map { |g| g[:showdown] && "[#{g[:showdown][:foes][1][0]},#{g[:showdown][:foes][1][1]}," }
       rematch = ",#{W::REMATCH_VERSION}]"
@@ -1455,8 +1492,9 @@ puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }
 puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
 puts "Objets de terrain donnés par un chef de guilde : #{guild_fields}"
-puts "Arènes à statues : #{gym_statues.count(&:positive?)} sur #{gym_statues.length}, #{gym_statues.sum} statues"
+puts "Arènes à statues ou dalles : #{gym_statues.count(&:positive?)} sur #{gym_statues.length}, #{gym_statues.sum} statues ou dalles"
 puts "Glace possible dans les arènes : #{ICE_STATS.inspect}"
+puts "Rochers dans les arènes à mécanisme : #{BOULDER_STATS.map { |k, n| "#{k} #{n}" }.join(", ")}"
 if ICE_STATS["aucune"] * 2 > ICE_STATS.values.sum
   CI.error(File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb"), nil, "GYM_ICE_PATTERNS : glace possible dans moins de la moitié des arènes")
 end

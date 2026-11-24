@@ -201,6 +201,50 @@ module WorldEvents
     pbSEPlay("Door slide")
     say("arene_ouverte")
   end
+
+  # After pushing a boulder of a generated gym (#121, tranche 5, event id
+  # pushed): a sound if it lies on one of the plates, the switch on once
+  # every plate holds a boulder, and the boulders back in place (the player
+  # at the entry) if the push shut the player away from the entry.
+  def gym_plates(switch, plates, pushed, entry)
+    stones = $game_map.events.values.select { |e| e.name =~ / Rocher\d+\z/ }
+    event = $game_map.events[pushed]
+    if event && !$game_switches[switch] && plates.include?([event.x, event.y])
+      say("arene_dalle")
+      if plates.all? { |cell| stones.any? { |e| [e.x, e.y] == cell } }
+        $game_switches[switch] = true
+        $game_map.need_refresh = true
+        pbSEPlay("Door slide")
+        say("arene_ouverte")
+      end
+    end
+    return if player_reach[entry]
+    say("arene_rochers_coinces")
+    pbFadeOutIn do
+      stones.each do |e|
+        e.moveto(e.instance_variable_get(:@original_x), e.instance_variable_get(:@original_y))
+        $PokemonMap&.movedEvents&.delete([$game_map.map_id, e.id])
+      end
+      $game_player.moveto(*entry)
+      $game_map.need_refresh = true
+    end
+  end
+
+  # { [x, y] => true } of the cells the player can walk to from where he stands.
+  def player_reach
+    seen = { [$game_player.x, $game_player.y] => true }
+    queue = seen.keys
+    until queue.empty?
+      x, y = queue.shift
+      { 2 => [0, 1], 4 => [-1, 0], 6 => [1, 0], 8 => [0, -1] }.each do |dir, (dx, dy)|
+        cell = [x + dx, y + dy]
+        next if seen[cell] || !$game_player.passable?(x, y, dir)
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    return seen
+  end
 end
 
 # Heals done in each Centre (map ID => count), saved with the game.

@@ -8,7 +8,9 @@ tileset for its lieutenant's type).
 - floor: Mew's light stone, tinted with the type's colour; exit: Mew's rug
   shrunk into one tile, on that floor;
 - ice (tile ICE, terrain tag Ice, #121 tranche 4): the floor, lighter, with
-  white glints; WorldEvents lays it on the floor of the Ice gyms.
+  white glints; WorldEvents lays it on the floor of the Ice gyms;
+- plate (tile PLATE, #121 tranche 5): a square slab sunk in the floor, where
+  a boulder goes in the Rock, Ground and Fighting gyms.
 Every tile is drawn whole in its 32x32 frame.
 Each tileset is a copy of tileset 25 (Cave 4G) with its own graphic, its
 walls and rock blocked, its floor and exit walkable.
@@ -31,6 +33,8 @@ from guild_dungeons_4g import (EXIT, FLOOR, LOWER, MEW, MEW_FLOORS, PANEL_COLUMN
 FIRST_ID = 37
 # Ice floor tile (WorldEvents::GYM_ICE_TILE) and Essentials' Ice terrain tag
 ICE, ICE_TAG = 43, 12
+# Plate floor tile (WorldEvents::GYM_PLATE_TILE)
+PLATE = 44
 # Colour of each type (the classic ones), by the plugin's type ID
 TYPES = {
     "NORMAL": (168, 168, 120), "FIRE": (240, 128, 48), "WATER": (104, 144, 240), "GRASS": (120, 200, 80),
@@ -72,6 +76,7 @@ def sheet(mew, profile, colour):
     mat.alpha_composite(small_rug(mew))
     put(EXIT, mat)
     put(ICE, ice_tile(floor))
+    put(PLATE, plate_tile(floor))
     return out
 
 
@@ -88,6 +93,20 @@ def ice_tile(floor):
     return out
 
 
+def plate_tile(floor):
+    """The floor with a 22x22 slab sunk in it: a dark rim on top and left,
+    a light one on the bottom and right, the slab a little darker."""
+    out = floor.copy()
+    px = out.load()
+    shade = lambda c, k: tuple(max(0, min(255, int(v * k))) for v in c[:3]) + (255,)  # noqa: E731
+    for y in range(5, 27):
+        for x in range(5, 27):
+            edge_dark = x in (5, 6) or y in (5, 6)
+            edge_light = x in (25, 26) or y in (25, 26)
+            px[x, y] = shade(px[x, y], 0.55 if edge_dark and not edge_light else 1.3 if edge_light else 0.82)
+    return out
+
+
 def main():
     mew = Image.open(MEW).convert("RGBA")
     profile = strip_profile(mew)
@@ -100,7 +119,7 @@ def main():
         sheets.append(out)
         subprocess.run(["ruby", "tools/art/tileset_clone.rb", str(SOURCE_ID), str(tileset_id), name, name], check=True)
         passages = {str(n): "=15" for n in list(UPPER.values()) + list(LOWER.values()) + [VOID]}
-        passages.update({str(FLOOR): "=0", str(EXIT): "=0", str(ICE): f"=0/{ICE_TAG}"})
+        passages.update({str(FLOOR): "=0", str(EXIT): "=0", str(ICE): f"=0/{ICE_TAG}", str(PLATE): "=0"})
         subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(tileset_id), "0", json.dumps(passages)], check=True)
         sections.append(f"[{tileset_id}]   # {name}\nTile = {VOID},void\nTile = {FLOOR},floor\nTile = 0,walls\nDoubleWalls = true")
     print("#-------------------------------\n".join(s + "\n" for s in sections))
