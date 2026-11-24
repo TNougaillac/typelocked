@@ -15,7 +15,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
 require File.join(ROOT, "Plugins", "LevelCap", "001_Settings")
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 010_Usurers 011_Casinos 011_Guilds 012_Economy 012_ItemPool].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 010_GymExteriors 010_Usurers 011_Casinos 011_Guilds 012_Economy 012_ItemPool].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 M.check_plans = true   # plans made without text, fully validated (#345)
 E = ProceduralEncounters
@@ -1224,6 +1224,13 @@ end
 { "sol" => W.item_table, "recoin" => W.nook_table, "revisite" => W.revisit_table }.each do |key, table|
   CI.error(settings, nil, "objets.txt : pas d'objet « #{key} » à 0 sceau") if table[0].nil? || table[0].empty?
 end
+# Dark gyms (#121, tranche 3): DarkMap under the gym's section only, once
+metadata = ["[001]", "Name = Ville", "[002]", "Name = Arène", "DarkMap = true", "[003]", "Name = Arène"]
+dark = W.dark_metadata(metadata, [2, 3])
+wanted = ["[001]", "Name = Ville", "[002]", "DarkMap = true", "Name = Arène", "[003]", "DarkMap = true", "Name = Arène"]
+CI.error(settings, nil, "dark_metadata : #{dark.inspect}") if dark != wanted
+unknown = W::GYM_DARK - W::GYM_INTERIOR_TILESETS.keys
+CI.error(settings, nil, "GYM_DARK : types inconnus #{unknown.join(', ')}") if !unknown.empty?
 # The casino's prize counter (#330): pool items with « casino », a price for
 # each rarity
 require File.join(ROOT, "Plugins", "FamilyCasino", "001_Settings")
