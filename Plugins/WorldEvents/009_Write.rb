@@ -63,7 +63,8 @@ module WorldEvents
     return tms
   end
 
-  # Replaces the trainers of the last world (version TRAINER_VERSION) with
+  # Replaces the trainers of the last world (versions TRAINER_VERSION and
+  # REMATCH_VERSION) with
   # these sections, then compiles the trainers (MapEvents checks them).
   def write_trainers(sections)
     lines = remove_trainer_lines(MapGenerator.read_pbs(TRAINERS_PBS))
@@ -79,7 +80,7 @@ module WorldEvents
     skipping = false
     lines.each do |line|
       if line.start_with?("[")
-        skipping = line.match?(/\A\[[^,\]]+,[^,\]]+,\s*#{TRAINER_VERSION}\s*\]/)
+        skipping = line.match?(/\A\[[^,\]]+,[^,\]]+,\s*(#{TRAINER_VERSION}|#{REMATCH_VERSION})\s*\]/)
         kept.pop if skipping && kept.last&.start_with?("#-")
       elsif line.start_with?("#-")
         skipping = false

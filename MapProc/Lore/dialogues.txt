@@ -158,6 +158,21 @@ Entre. Ici, les prix sont fixés par qui tu sais.
 La Famille te souhaite de bonnes affaires. Elle y tient.
 
 #-------------------------------------------------------------------------------
+# Vendeur d'une ville libérée par une guilde (#187, #176) : plus de marge.
+[vendeur_libre]
+La Famille ne passe plus prendre sa part. Les prix redeviennent honnêtes.
+Depuis que les Cousins sont partis, je vends au juste prix. Profites-en.
+On respire, ici. Et les étiquettes aussi.
+
+#-------------------------------------------------------------------------------
+# Marchand ambulant (#176) : il vend sur les routes, loin des boutiques de la
+# Famille.
+[marchand]
+Psst. Pas de Cousins par ici ? Bien. Jette un œil, rien de tout ça ne vient d'une boutique.
+Je vends moins cher que la Famille. Et des choses qu'elle ne vend pas.
+Tout se paie comptant. Je ne reprends rien, et je ne t'ai jamais vu.
+
+#-------------------------------------------------------------------------------
 # Infirmière des Centres Pokémon (dite en jeu) : elle travaille pour la Famille.
 # Une seule boîte par réplique : la dernière pose la question (oui / non).
 #-------------------------------------------------------------------------------
@@ -241,6 +256,18 @@ Bien. Monte. Le Pacte t'attend.
 [lieutenant_ct]
 Et ta part. Une seule, choisis bien.
 La Famille récompense ceux qui la servent. Choisis.
+
+[lieutenant_revanche]
+Le Pacte est brisé. Plus de règles, plus de Parrain. Juste toi et moi.
+Tu as pris ma chevalière. Je viens la reprendre, avec tout ce que j'ai.
+{ville} ne m'obéit plus. Il me reste mes Pokémon. Et ma revanche.
+Sans le Pacte, je me bats pour moi. Ce sera autre chose que la première fois.
+
+[lieutenant_revanche_fin]
+Alors c'est vrai. La Famille n'est plus rien devant toi.
+Garde la chevalière. Tu l'as gagnée deux fois.
+Je n'ai plus rien à défendre. Prends ceci, et va-t'en.
+Le Parrain avait raison de te craindre.
 
 [membre_combat]
 Personne ne voit le lieutenant sans passer par moi.

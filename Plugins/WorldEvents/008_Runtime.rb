@@ -65,8 +65,27 @@ module WorldEvents
   end
 
   # The clerk of a shop where that many seals are won on the way.
-  def mart(seals)
-    pbPokemonMart(mart_stock(seals), line("vendeur"))
+  # A shop (#176): the Family's margin (MART_PRICE_FACTOR) until the guild
+  # switch freed, if any, is on.
+  def mart(seals, freed = nil)
+    stock = mart_stock(seals)
+    margin = (freed && $game_switches[freed]) ? 1 : MART_PRICE_FACTOR
+    stock.each { |item| buy_price(item, margin) }
+    pbPokemonMart(stock, line(margin == 1 ? "vendeur_libre" : "vendeur"))
+  end
+
+  # The travelling merchant (#176): basics a bit cheaper than the shop,
+  # rares ([item, price]) dear. He cannot buy.
+  def merchant(basics, rares)
+    basics.each { |item| buy_price(item, MART_PRICE_FACTOR * MERCHANT_BASIC_FACTOR) }
+    rares.each { |item, price| $game_temp.mart_prices[item] = [price, -1] }
+    pbPokemonMart(basics + rares.map(&:first), line("marchand"), true)
+  end
+
+  # This mart's buy price of item: its PBS price times factor (selling back
+  # keeps the PBS sell price). pbPokemonMart clears it.
+  def buy_price(item, factor)
+    $game_temp.mart_prices[item] = [(GameData::Item.get(item).price * factor).round, -1]
   end
 
   # An exit of the first town, before the starter.
@@ -147,11 +166,13 @@ module WorldEvents
   end
 
   # Arceus (interpreter: the event's, for OverworldBoss): beaten or caught,
-  # the Pact is broken and the door of its room opens.
+  # the Pact is broken, the door of its room opens and the postgame begins
+  # (#106: no level cap, the lieutenants' rematches).
   def arceus(interpreter, level, switch)
     outcome = interpreter.boss_battle(:ARCEUS, level, **ARCEUS_BOSS)
     return if ![1, 4].include?(outcome)
     $game_switches[switch] = true
+    $game_switches[POSTGAME_SWITCH] = true
     $game_map.need_refresh = true
     say("arceus_fin")
   end

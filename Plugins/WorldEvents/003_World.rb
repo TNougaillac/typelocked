@@ -10,7 +10,8 @@ module WorldEvents
   # { plans: { map name => MapEvents plan text }, trainers: [sections of
   # PBS/trainers.txt], leaders: [the lieutenants, see gym_events], league:
   # [its fights, see league_events], items: [the items, see item_events],
-  # guilds: [the guilds at their headquarters, see guild_events] }.
+  # guilds: [the guilds at their headquarters, see guild_events], merchants:
+  # [the travelling merchants, see merchant_events] }.
   # zones and encounters: ProceduralEncounters' world_zones and
   # world_encounters (its second value) of that world, for the trainers;
   # species (the roster), tms ([[item, move, type, power, status?]]) and
@@ -28,13 +29,13 @@ module WorldEvents
     lines = Lines.new(dialogues, region_name(result), Random.new((seed * 1000) + 750))
     plans = Hash.new { |hash, name| hash[name] = [] }
     start_events(atlas, plans, rng)
-    service_events(atlas, seals_at(result), plans)
     trainers = []
     leaders = []
     league = []
     names = Hash.new { |hash, trainer_type| hash[trainer_type] = [] }
     if species && tms && caps
-      sets = Sets.new(dex || load_dex, tms, Random.new((seed * 1000) + 770))
+      dex ||= load_dex
+      sets = Sets.new(dex, tms, Random.new((seed * 1000) + 770))
       leaders = gym_events(atlas, species, tms, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 720))
       league = league_events(atlas, species, caps, plans, trainers, names, lines, sets, Random.new((seed * 1000) + 740))
     end
@@ -66,18 +67,25 @@ module WorldEvents
     else
       guilds = nil
     end
+    freed_towns = (freed || []).to_h { |zone| [zone[:town], zone[:switch]] }
+    service_events(atlas, seals_at(result), plans, freed_towns)
+    merchants = zones ? merchant_events(result, atlas, zones, plans, Random.new((seed * 1000) + 860)) : []
     if zones && tms
       weather = weather_items(type, Random.new((seed * 1000) + 780))
       pact = Random.new((seed * 1000) + 790).rand(PACT_INCENSES)
       revisit = { species: species, type: type, caps: caps, rng: Random.new((seed * 1000) + 850) }
       items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730), pact, revisit)
     end
-    habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760),
-                    (freed || []).to_h { |zone| [zone[:town], zone[:switch]] })
+    habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760), freed_towns)
     casino_events(result, atlas, plans, Random.new((seed * 1000) + 800))
     usurer_events(result, atlas, plans, Random.new((seed * 1000) + 790))
+    if !leaders.empty?
+      rematch_events(atlas, species, caps, leaders, plans, trainers,
+                     Lines.new(dialogues, region_name(result), Random.new((seed * 1000) + 870)),
+                     Sets.new(dex, tms, Random.new((seed * 1000) + 880)), Random.new((seed * 1000) + 890))
+    end
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
-             league: league, items: items || [], guilds: guilds || [], sources: atlas[:items] }
+             league: league, items: items || [], guilds: guilds || [], sources: atlas[:items], merchants: merchants }
   end
 
   def plan_text(name, events)
@@ -104,7 +112,9 @@ module WorldEvents
   #-----------------------------------------------------------------------------
   # Pokémon Centres and shops
   #-----------------------------------------------------------------------------
-  def service_events(atlas, seals, plans)
+  # freed: { town => game switch } (guild_liberations): its shop drops the
+  # Family's margin once the switch is on.
+  def service_events(atlas, seals, plans, freed = {})
     atlas[:maps].each do |name, map|
       next if map[:kind] != "interieur"
       if (events = CENTRE_EVENTS[map[:template]])
@@ -114,7 +124,7 @@ module WorldEvents
         end
       elsif (clerk = MART_CLERK[map[:template]]) && map[:building] == "boutique"
         add(plans, name, "Npc", "Vendeur", *clerk, ["Graphic", CLERK_GRAPHIC],
-            ["Script", "WorldEvents.mart(#{seals[map[:owner]] || 0})"])
+            ["Script", "WorldEvents.mart(#{[seals[map[:owner]] || 0, freed[map[:owner]]].compact.join(', ')})"])
       end
     end
   end

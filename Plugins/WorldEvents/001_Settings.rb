@@ -35,6 +35,28 @@ module WorldEvents
   CLERK_GRAPHIC = "trainer_COUSIN_F"
   # Stock of a shop: the items of MapProc/Lore/objets.txt sold from the seals
   # won on the way there (boutique=N, 012_ItemPool.rb).
+  # Economy (#176): the Family takes its margin, shops sell at their PBS
+  # price times MART_PRICE_FACTOR (selling back is unchanged). A town freed
+  # by a guild (#187) sells at the PBS price again.
+  MART_PRICE_FACTOR = 1.5
+  # A travelling merchant on MERCHANT_CHANCE % of the stretches (the routes
+  # reached with the same seals), on one of their routes: MERCHANT_BASICS
+  # items of the shops' stock a bit cheaper than the shop (shop price times
+  # MERCHANT_BASIC_FACTOR), and MERCHANT_RARES items found in no shop, dear
+  # (MERCHANT_RARE_TABLE: from that many seals, item => price).
+  MERCHANT_CHANCE       = 60
+  MERCHANT_BASICS       = 3
+  MERCHANT_BASIC_FACTOR = 0.8
+  MERCHANT_RARES        = 3
+  MERCHANT_RARE_TABLE = {
+    0 => { HEARTSCALE: 3000, EVERSTONE: 2500, FIRESTONE: 4000, WATERSTONE: 4000, THUNDERSTONE: 4000,
+           LEAFSTONE: 4000, MOONSTONE: 5000, EXPSHARE: 6000, SCOPELENS: 6000, KINGSROCK: 6000 },
+    2 => { SUNSTONE: 5000, METALCOAT: 6000, LEFTOVERS: 9000, EVIOLITE: 9000, PPUP: 8000, RARECANDY: 10000 },
+    4 => { DUSKSTONE: 6000, SHINYSTONE: 6000, DAWNSTONE: 6000, ICESTONE: 6000, LIFEORB: 12000,
+           CHOICEBAND: 12000, CHOICESPECS: 12000, CHOICESCARF: 12000, FOCUSSASH: 10000 },
+    6 => { PPMAX: 15000, ASSAULTVEST: 14000, ROCKYHELMET: 12000, WEAKNESSPOLICY: 14000 }
+  }.freeze
+  MERCHANT_GRAPHIC = "NPC 22"
 
   # Trainers of the world, written in PBS/trainers.txt with this version
   # (one per type and name): a new world replaces them all.
@@ -227,6 +249,17 @@ module WorldEvents
   LEADER_IVS = [10, 12, 15, 18, 21, 24, 27, 30].freeze
   LEAGUE_IVS = 31
 
+  # Postgame (#106): game switch turned on once Arceus is beaten or caught;
+  # it lifts the level cap (LevelCap::POSTGAME_SWITCH, the same) and wakes
+  # the lieutenants for a rematch, with REMATCH_VERSION of their team in
+  # PBS/trainers.txt: REMATCH_PARTY_SIZE Pokémon of their type at Arceus's
+  # level, REMATCH_IVS; each gives one item of REMATCH_GIFTS (in turn).
+  POSTGAME_SWITCH = 65
+  REMATCH_VERSION = TRAINER_VERSION + 1
+  REMATCH_PARTY_SIZE = 6
+  REMATCH_IVS = 31
+  REMATCH_GIFTS = %i[PPMAX ABILITYCAPSULE RARECANDY ABILITYPATCH].freeze
+
   # Items of a world. How many: per square of a route, per town (islands
   # too), per floor of a cave (not the dark ones), plus the loot of each nook.
   ROUTE_ITEMS = 1..2
@@ -328,13 +361,14 @@ module WorldEvents
     "cousin_combat" => PLACE_TOKENS, "cousin_fin" => BATTLE_TOKENS, "cousin_carte" => PLACE_TOKENS,
     "professeur_intro" => %w[joueur type], "professeur_balls" => %w[joueur type],
     "professeur_apres" => %w[joueur type], "professeur_pokedex" => %w[joueur type], "ball" => [], "garde" => %w[joueur],
-    "vendeur" => [], "infirmiere_fin_gratuit" => %w[joueur prix], "infirmiere_prix" => %w[joueur prix],
+    "vendeur" => [], "vendeur_libre" => [], "marchand" => [], "infirmiere_fin_gratuit" => %w[joueur prix], "infirmiere_prix" => %w[joueur prix],
     "infirmiere_sans_argent" => %w[joueur], "maitre_intro" => %w[joueur], "maitre_sans_ecaille" => %w[joueur],
     "maitre_aucun" => %w[joueur], "maitre_fin" => %w[joueur],
     "don" => PLACE_TOKENS, "don_apres" => PLACE_TOKENS, "terrain_attente" => PLACE_TOKENS,
     "terrain_don" => PLACE_TOKENS, "terrain_apres" => PLACE_TOKENS,
     "lieutenant_combat" => PLACE_TOKENS, "lieutenant_fin" => BATTLE_TOKENS,
     "lieutenant_victoire" => PLACE_TOKENS, "lieutenant_ct" => PLACE_TOKENS,
+    "lieutenant_revanche" => PLACE_TOKENS, "lieutenant_revanche_fin" => BATTLE_TOKENS,
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "arene_barriere" => PLACE_TOKENS, "arene_barriere_ordre" => PLACE_TOKENS, "arene_barriere_cachee" => PLACE_TOKENS,
     "arene_statue" => [], "arene_statue_deja" => [], "arene_statue_rang" => %w[rang], "arene_statue_erreur" => [],
