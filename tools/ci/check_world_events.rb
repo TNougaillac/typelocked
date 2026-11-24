@@ -116,7 +116,10 @@ def check_gyms(atlas, plans, leaders, tms)
     target = [leader.x, leader.y + 1]
     standing = events.map { |e| [e.x, e.y] }
     barriers = events.select { |e| e.label.start_with?("Barriere") }
-    check_gym_mechanic(map, events, barriers, drawn, i, grid, arrival, standing) if !spots[:template]
+    if !spots[:template]
+      check_gym_mechanic(map, events, barriers, drawn, i, grid, arrival, standing)
+      check_gym_ice(map, spots, events, drawn)
+    end
     # The barriers lift once the statues are lit
     open = standing - barriers.map { |e| [e.x, e.y] }
     raise MapEvents::Error, "#{map} : le lieutenant est hors d'atteinte" if !reach(grid, arrival, open)[target]
@@ -157,6 +160,27 @@ def check_gym_mechanic(map, events, barriers, drawn, index, grid, arrival, stand
     hidden = W::GYM_HIDDEN.include?(drawn[:type])
     raise MapEvents::Error, "#{map} : [NPC #{e.label}] statue visible/invisible à tort" if hidden == !e.value("Graphic").nil?
   end
+end
+
+# The ice of a generated gym (#121, tranche 4): only for GYM_ICE, on its
+# ground but the exit, the entry and the people, solvable with the events
+# of its plan. Counts in ICE_STATS how many generated gyms could take ice
+# whatever their type: all their floor, part of it or none.
+ICE_STATS = Hash.new(0)
+def check_gym_ice(map, spots, events, drawn)
+  leader = events.find { |e| e.label == "Lieutenant" }.then { |e| [e.x, e.y] }
+  members = events.select { |e| e.label.start_with?("Membre") }.map { |e| [e.x, e.y] }
+  statues = events.select { |e| e.label.start_with?("Statue") }.map { |e| [e.x, e.y] }
+  ice = W.gym_ice(spots, leader, members, statues)
+  free = spots[:ground] - [spots[:entry], spots[:exits][0][0, 2]] - events.map { |e| [e.x, e.y] }
+  ICE_STATS[ice.empty? ? "aucune" : (ice.length == free.length ? "toute" : "en partie")] += 1
+  ice = drawn[:ice]
+  return raise_if(!ice.empty?, "#{map} : glace dans une arène #{drawn[:type]}") if !W::GYM_ICE.include?(drawn[:type])
+  return puts("#{map} : arène #{drawn[:type]} sans glace (aucun motif jouable)") if ice.empty?
+  standing = events.map { |e| [e.x, e.y] }
+  stray = ice - spots[:ground] + (ice & (standing + [spots[:entry], spots[:exits][0][0, 2]]))
+  raise MapEvents::Error, "#{map} : glace hors du sol ou sous un événement #{stray.first(3)}" if !stray.empty?
+  raise MapEvents::Error, "#{map} : glace sans issue" if !W.gym_ice_solvable?(spots, ice, standing, leader, statues)
 end
 
 # Rows of passable cells (true) of a generated floor's ground cells
@@ -1432,5 +1456,9 @@ puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} r�
 puts "QG bloquants : #{blockades} sur #{blockable} mondes qui en permettent un"
 puts "Objets de terrain donnés par un chef de guilde : #{guild_fields}"
 puts "Arènes à statues : #{gym_statues.count(&:positive?)} sur #{gym_statues.length}, #{gym_statues.sum} statues"
+puts "Glace possible dans les arènes : #{ICE_STATS.inspect}"
+if ICE_STATS["aucune"] * 2 > ICE_STATS.values.sum
+  CI.error(File.join(ROOT, "Plugins", "WorldEvents", "001_Settings.rb"), nil, "GYM_ICE_PATTERNS : glace possible dans moins de la moitié des arènes")
+end
 puts "#{count} mondes, graines #{WORLD_SEEDS}, #{pact_total} Encens du Pacte, #{guild_walkers}/#{guild_among} membres de guilde sur leurs routes (#{share} %)"
 CI.finish("Événements des mondes")
