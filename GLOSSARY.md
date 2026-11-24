@@ -38,6 +38,12 @@ _Avoid_ : chef d'arène
 Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
 _Avoid_ : sbires, Team, grunts
 
+**Usurier** :
+Un Cousin qui prête l'argent de la Famille, avec des intérêts, à rendre avant le prochain sceau.
+
+**Recouvreur** :
+Un Cousin envoyé sur les routes pour réclamer une dette en retard.
+
 **Infirmière** :
 L'infirmière d'un Centre Pokémon, membre de la Famille comme les vendeurs. Elle soigne gratuitement trois fois par Centre, puis fait payer.
 _Avoid_ : Infirmière Joëlle

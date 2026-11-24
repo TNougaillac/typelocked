@@ -39,6 +39,7 @@
 #   Gift = TM39                 Win = text after a win, Gift = item given,
 #   Switch = 25                 Switch = game switch turned on, each Reward
 #   Reward = pbAddPokemon(:EEVEE, 5)   = one script line run on a win;
+#   Script = pbFoo              Script = script line run after the Gift,
 #   Rage = 71,6                 Rage = once game switch 71 is on, it sees 6
 #   RageBattle = Traître !      cells ahead and says the RageBattle texts
 #   Hide = A                    instead of Battle; Hide = gone once the
@@ -91,7 +92,7 @@ module MapEvents
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
     npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide Show] + MOVE_KEYS,
-    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle Hide] + MOVE_KEYS + TRAINER_COMMENTS,
+    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Script Switch Rage RageBattle Hide] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]
   }

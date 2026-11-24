@@ -71,7 +71,6 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
     generated.gaps.each do |seals, type|
       CI.error(path, nil, "#{where} : aucun Pokémon #{type} capturable avec #{seals} sceau(x)")
     end
-    generated.missing.each { |family| CI.error(path, nil, "#{where} : famille #{family} absente du monde") }
   end
 rescue M::Error, MapGenerator::Error => e
   CI.error(path, nil, e.message)

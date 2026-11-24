@@ -24,8 +24,8 @@ module ProceduralEncounters
   # coverage pass)
   Entry = Struct.new(:species, :weight, :min_level, :max_level, :role)
   Table = Struct.new(:zone, :type, :levels, :slots, :dominant)
-  # gaps: [seals, type] left without a Pokémon; missing: families nowhere
-  Result = Struct.new(:tables, :gaps, :missing)
+  # gaps: [seals, type] left without a Pokémon
+  Result = Struct.new(:tables, :gaps)
 
   module_function
 
@@ -56,11 +56,10 @@ module ProceduralEncounters
       end
     end
     gaps = cover_types(tables, species, uses, rng)
-    missing = cover_families(tables, species, uses, rng)
     pooled.each { |table| draw_pool(table, roster, uses, rng) }
     tables = zones.flat_map { |zone| (tables + pooled).select { |t| t.zone.equal?(zone) } }
     tables.each { |t| t.slots.sort_by!.with_index { |e, i| [-e.weight, i] } }
-    return Result.new(tables, gaps, missing)
+    return Result.new(tables, gaps)
   end
 
   # A table of a zone with a pool: its Pokémon by tier, stage and use, the
@@ -209,17 +208,6 @@ module ProceduralEncounters
       end
     end
     return gaps
-  end
-
-  def cover_families(tables, species, uses, rng)
-    missing = []
-    species.values.group_by(&:family).each do |family, members|
-      next if tables.any? { |t| t.slots.any? { |e| e.species.family == family } }
-      table, sp = best_pick(tables, members, uses, rng)
-      next missing.push(family) if !table
-      add(table, sp, 0, uses, :cover)
-    end
-    return missing
   end
 
   # Whole percents adding up to 100, at least 1 each (largest remainders).

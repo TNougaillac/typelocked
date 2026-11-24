@@ -75,11 +75,11 @@ module ProceduralEncounters
     return AMBIANCE_BIOMES[layout.ambiance] || "herbe"
   end
 
-  # name => PBS lines of every zone of the world, from the Pokémon drawn for
-  # it among the roster (species). pools: see world_zones.
+  # name => PBS lines of every zone of the world, from the whole roster.
+  # pools: see world_zones.
   def world_encounters(result, species, caps, seed, pools = {})
     zones = world_zones(result, caps, pools)
-    generated = generate(zones, world_species(species, (seed * 1000) + 901), (seed * 1000) + 900, species)
+    generated = generate(zones, species, (seed * 1000) + 900)
     lines = zones.to_h { |zone| [zone.name, zone_lines(generated.tables.select { |t| t.zone.equal?(zone) })] }
     return lines, generated
   end
