@@ -14,4 +14,7 @@ module LevelCap
   FALLBACK_CAPS = [16, 24, 27, 33, 41, 49, 54, 57, 72]
   # Items that give levels or Exp. outside battle, blocked at the cap.
   LEVEL_ITEMS = %i[RARECANDY EXPCANDYXS EXPCANDYS EXPCANDYM EXPCANDYL EXPCANDYXL]
+  # Game switch of the postgame (WorldEvents::POSTGAME_SWITCH, #106): no cap
+  # once it is on.
+  POSTGAME_SWITCH = 65
 end

@@ -14,6 +14,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
+require File.join(ROOT, "Plugins", "LevelCap", "001_Settings")
 %w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds 012_Economy].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
@@ -427,6 +428,39 @@ def check_league(atlas, plans, fights, leaders)
   elders.each do |f|
     next if f[:team].all? { |sp, _| ROSTER[sp].types.include?(f[:type]) }
     raise MapEvents::Error, "Ligue : #{f[:name]} a des Pokémon hors de son type #{f[:type]}"
+  end
+end
+
+# Postgame (#106): every lieutenant fights again once POSTGAME_SWITCH is on,
+# with REMATCH_VERSION of his team (REMATCH_PARTY_SIZE Pokémon of his type,
+# the strongest at Arceus's level) and an item of REMATCH_GIFTS.
+def check_rematches(atlas, plans, leaders, sections, items)
+  high = (E::CAPS[atlas[:gyms].length] || E::CAPS.last) + W::ARCEUS_LEVEL_BONUS
+  rematches = sections.select { |sec| sec.start_with?(*leaders.map { |l| "[#{l[:trainer]},#{l[:name]},#{W::REMATCH_VERSION}]" }) }
+  raise MapEvents::Error, "revanches : #{rematches.length} équipes pour #{leaders.length} lieutenants" if rematches.length != leaders.length
+  leaders.each do |l|
+    where = "#{l[:map]} : revanche de #{l[:name]}"
+    event = plans[l[:map]].events.find { |e| e.label == "Lieutenant" }
+    if event.value("Rematch") != "#{W::POSTGAME_SWITCH},#{W::REMATCH_VERSION}"
+      raise MapEvents::Error, "#{where} : Rematch = #{event.value('Rematch').inspect}"
+    end
+    raise MapEvents::Error, "#{where} : pas de RematchBattle" if !event.value("RematchBattle")
+    gift = event.value("RematchGift")
+    raise MapEvents::Error, "#{where} : cadeau #{gift.inspect}" if gift != l[:rematch][:gift].to_s || !items.include?(gift)
+    section = rematches.find { |sec| sec.start_with?("[#{l[:trainer]},#{l[:name]},#{W::REMATCH_VERSION}]") }
+    team = section.scan(/^Pokemon = (\w+),(\d+)$/).map { |sp, lv| [sp.to_sym, lv.to_i] }
+    raise MapEvents::Error, "#{where} : équipe différente dans trainers.txt" if team != l[:rematch][:team]
+    raise MapEvents::Error, "#{where} : #{team.length} Pokémon" if team.length != W::REMATCH_PARTY_SIZE
+    raise MapEvents::Error, "#{where} : niveau #{team.map(&:last).max} au lieu de #{high}" if team.map(&:last).max != high
+    off = team.reject { |sp, _| ROSTER[sp].types.include?(l[:type]) }
+    raise MapEvents::Error, "#{where} : #{off.map(&:first).join(', ')} hors du type #{l[:type]}" if !off.empty?
+  end
+end
+
+# The rematches as fights for check_sets.
+def rematch_fights(leaders, seals)
+  return leaders.map do |l|
+    { name: l[:name], role: "revanche", type: l[:type], team: l[:rematch][:team], sets: l[:rematch][:sets], seals: seals }
   end
 end
 
@@ -997,6 +1031,14 @@ W::CENTRE_EVENTS.each do |template, events|
 end
 CI.error(settings, nil, "HEART_SCALE : objet #{W::HEART_SCALE} absent de items.txt") if !items.include?(W::HEART_SCALE.to_s)
 CI.error(settings, nil, "PACT_INCENSE : objet #{W::PACT_INCENSE} absent de items.txt") if !items.include?(W::PACT_INCENSE.to_s)
+# Postgame (#106): the same switch for LevelCap, a free one, gifts that exist
+CI.error(settings, nil, "POSTGAME_SWITCH : #{W::POSTGAME_SWITCH} au lieu de LevelCap #{LevelCap::POSTGAME_SWITCH}") if W::POSTGAME_SWITCH != LevelCap::POSTGAME_SWITCH
+taken = [*(W::GYM_SWITCH + 1)..(W::GYM_SWITCH + 8), *(W::LEAGUE_SWITCH + 1)..(W::LEAGUE_SWITCH + 6)]
+if taken.include?(W::POSTGAME_SWITCH) || W::POSTGAME_SWITCH >= W::GUILD_SWITCH
+  CI.error(settings, nil, "POSTGAME_SWITCH : #{W::POSTGAME_SWITCH} déjà pris par une arène, la Ligue ou une guilde")
+end
+CI.error(settings, nil, "REMATCH_VERSION : #{W::REMATCH_VERSION} = TRAINER_VERSION") if W::REMATCH_VERSION == W::TRAINER_VERSION
+W::REMATCH_GIFTS.each { |item| CI.error(settings, nil, "REMATCH_GIFTS : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
 CI.error(settings, nil, "MAP_ITEM : objet #{W::MAP_ITEM} absent de items.txt") if !items.include?(W::MAP_ITEM.to_s)
 [W::RELEARNER_GRAPHIC, W::FIELD_GRAPHIC, W::ARCEUS_GRAPHIC, W::NURSE_GRAPHIC, *W::GIFT_GRAPHICS].each do |graphic|
   CI.error(settings, nil, "graphisme #{graphic} absent") if !File.exist?(File.join(ROOT, "Graphics", "Characters", "#{graphic}.png"))
@@ -1045,6 +1087,7 @@ guild_among = 0
 rewards = Hash.new(0)
 freed = 0
 merchants = 0
+rematches = 0
 blockades = 0
 blockable = 0
 enemy_pairs = 0
@@ -1087,11 +1130,16 @@ Dir.glob(File.join(folder, "*.txt")).sort.select { |path| M.world_file?(path) }.
       check_gyms(atlas, plans, events[:leaders], tms)
       # The right hands of the showdowns fight only there (check_showdowns)
       seconds = events[:guilds].filter_map { |g| g[:showdown] && "[#{g[:showdown][:foes][1][0]},#{g[:showdown][:foes][1][1]}," }
-      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans, events[:trainers].reject { |sec| sec.start_with?(*seconds) },
+      rematch = ",#{W::REMATCH_VERSION}]"
+      check_trainers(result, zones.to_h { |z| [z.name, z] }, plans,
+                     events[:trainers].reject { |sec| sec.start_with?(*seconds) || sec.lines.first.chomp.end_with?(rematch) },
                      species, ttypes)
+      check_rematches(atlas, plans, events[:leaders], events[:trainers], items)
+      rematches += events[:leaders].length
       check_map_giver(atlas, plans)
       check_league(atlas, plans, events[:league], events[:leaders])
-      check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]), atlas[:gyms].length, items)
+      check_sets(events[:leaders] + events[:league] + guild_fights(events[:guilds]) +
+                 rematch_fights(events[:leaders], atlas[:gyms].length), atlas[:gyms].length, items)
       check_guilds(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:guilds], bricks)
       freed += check_liberations(result, atlas, plans, events[:guilds])
       merchants += check_economy(result, atlas, zones.to_h { |z| [z.name, z] }, plans, events[:merchants], events[:guilds])
@@ -1141,6 +1189,7 @@ if nooks >= 20
   CI.error(settings, nil, "REVISIT_POKEMON : aucun Pokémon dans #{nooks} recoins à revisiter") if pokemon.zero?
   CI.error(settings, nil, "REVISIT_LORE : aucune trace du Pacte dans #{nooks} recoins à revisiter") if lore.zero?
 end
+puts "Revanches de lieutenants : #{rematches} sur #{WORLD_SEEDS.size} monde(s)"
 puts "Marchands ambulants : #{merchants} sur #{WORLD_SEEDS.size} monde(s)"
 puts "Récompenses des guildes : #{rewards.sort.map { |kind, n| "#{n} #{kind}" }.join(', ')} ; #{freed} zones libérées"
 puts "Paires de guildes ennemies dans les mondes : #{enemy_pairs}, #{settled} règlements de comptes"

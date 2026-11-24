@@ -121,9 +121,31 @@ module WorldEvents
   end
 
   # sets: [set or nil] for each Pokémon (see Sets#draw), none for a member.
-  def team_section(type, name, lose, team, sets = [])
-    return "[#{type},#{name},#{TRAINER_VERSION}]\nLoseText = #{lose}\n" +
+  def team_section(type, name, lose, team, sets = [], version = TRAINER_VERSION)
+    return "[#{type},#{name},#{version}]\nLoseText = #{lose}\n" +
            team.each_with_index.map { |(species, level), k| "Pokemon = #{species},#{level}\n" + set_lines(sets[k]) }.join
+  end
+
+  # The postgame rematch of each lieutenant (#106): once POSTGAME_SWITCH is
+  # on, he fights again with REMATCH_VERSION of his team, REMATCH_PARTY_SIZE
+  # Pokémon of his type at Arceus's level, and gives a gift. Drawn after the
+  # rest of the world (rng, lines, sets: its own), so nothing else moves.
+  # Adds rematch: { team:, sets:, gift: } to each leader.
+  def rematch_events(atlas, species, caps, leaders, plans, trainers, lines, sets, rng)
+    seals = atlas[:gyms].length
+    high = (caps[seals] || caps.last) + ARCEUS_LEVEL_BONUS
+    leaders.each_with_index do |leader, i|
+      title = atlas[:maps][leader[:town]][:title]
+      team = typed_party(species, leader[:type], REMATCH_PARTY_SIZE, high - LEADER_LEVEL_SPREAD, high, seals, rng)
+      team_sets = sets.draw(team, leader[:type], seals, REMATCH_IVS)
+      lose = lines.text("lieutenant_revanche_fin", title)
+      gift = REMATCH_GIFTS[i % REMATCH_GIFTS.length]
+      trainers.push(team_section(leader[:trainer], leader[:name], lose, team, team_sets, REMATCH_VERSION))
+      event = plans[leader[:map]].find { |_x, _y, text| text.start_with?("[Trainer Lieutenant]") }
+      event[2] += "Rematch = #{POSTGAME_SWITCH},#{REMATCH_VERSION}\n" \
+                  "RematchBattle = #{lines.text('lieutenant_revanche', title)}\nRematchEnd = #{lose}\nRematchGift = #{gift}\n"
+      leader[:rematch] = { team: team, sets: team_sets, gift: gift }
+    end
   end
 
   # The League's rooms, in the order of the inventory: the four Anciens, the

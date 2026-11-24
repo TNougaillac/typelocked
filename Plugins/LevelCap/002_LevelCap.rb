@@ -8,7 +8,7 @@ module LevelCap
   module_function
 
   def current
-    return nil if !$player
+    return nil if !$player || $game_switches&.[](POSTGAME_SWITCH)
     return cap_for_seals($player.badge_count)
   end
 
