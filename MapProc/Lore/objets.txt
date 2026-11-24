@@ -7,6 +7,7 @@
 #   Sources   sol (au sol, caché ou donné par un habitant), recoin, revisite
 #             (recoin à revisiter, #269), guilde (don d'une guilde alliée,
 #             #189), meteo (objets de météo du type imposé, WEATHER_ITEMS),
+#             casino (lot du comptoir du casino de la Famille, #330),
 #             boutique=N (vendu dès N Sceaux, puis toujours)
 # Hors du pool : objets de terrain, Carte, Écailles Cœur, Encens du Pacte,
 # objets tenus des dresseurs (leurs propres règles). Le nom après # est
@@ -22,26 +23,26 @@ TM               commun      0+      sol recoin revisite                      # 
 CHERIBERRY       peu_commun  0..1    sol                                      # Baie Ceriz
 ESCAPEROPE       peu_commun  0..1    sol boutique=0                           # Corde Sortie
 PECHABERRY       peu_commun  0..1    sol                                      # Baie Pêcha
-PPUP             peu_commun  0+      sol recoin                               # PP Plus
-RARECANDY        peu_commun  0+      sol recoin                               # Super Bonbon
+PPUP             peu_commun  0+      sol recoin casino                        # PP Plus
+RARECANDY        peu_commun  0+      sol recoin casino                        # Super Bonbon
 REPEL            peu_commun  0..1    sol boutique=0                           # Repousse
 NUGGET           rare        0..5    sol recoin                               # Pépite
 DAMPROCK         tres_rare   0+      meteo                                    # Roche Humide
 EVERSTONE        tres_rare   0..3    recoin                                   # Pierre Stase
 EVIOLITE         tres_rare   0..3    revisite                                 # Évoluroc
 EXPSHARE         tres_rare   0+      recoin revisite guilde                   # Multi Exp
-FIRESTONE        tres_rare   0..3    sol recoin revisite                      # Pierre Feu
+FIRESTONE        tres_rare   0..3    sol recoin revisite casino               # Pierre Feu
 HEATROCK         tres_rare   0+      meteo                                    # Roche Chaude
 ICYROCK          tres_rare   0+      meteo                                    # Roche Glace
 KINGSROCK        tres_rare   0..3    revisite                                 # Roche Royale
-LEAFSTONE        tres_rare   0..3    sol recoin revisite                      # Pierre Plante
+LEAFSTONE        tres_rare   0..3    sol recoin revisite casino               # Pierre Plante
 LEFTOVERS        tres_rare   0+      recoin revisite guilde                   # Restes
 METALCOAT        tres_rare   0..3    revisite                                 # Peau Métal
-MOONSTONE        tres_rare   0..3    sol recoin revisite                      # Pierre Lune
+MOONSTONE        tres_rare   0..3    sol recoin revisite casino               # Pierre Lune
 SCOPELENS        tres_rare   0..3    revisite                                 # Lentilscope
 SMOOTHROCK       tres_rare   0+      meteo                                    # Roche Lisse
-SUNSTONE         tres_rare   0..5    sol revisite                             # Pierre Soleil
-THUNDERSTONE     tres_rare   0..3    sol recoin revisite                      # Pierre Foudre
+SUNSTONE         tres_rare   0..5    sol revisite casino                      # Pierre Soleil
+THUNDERSTONE     tres_rare   0..3    sol recoin revisite casino               # Pierre Foudre
 TM07             tres_rare   0+      meteo                                    # CT07
 TM102            tres_rare   0+      meteo                                    # CT102
 TM103            tres_rare   0+      meteo                                    # CT103
@@ -51,7 +52,7 @@ TM18             tres_rare   0+      meteo                                    # 
 TM22             tres_rare   0+      meteo                                    # CT22
 TM25             tres_rare   0+      meteo                                    # CT25
 TM37             tres_rare   0+      meteo                                    # CT37
-WATERSTONE       tres_rare   0..3    sol recoin revisite                      # Pierre Eau
+WATERSTONE       tres_rare   0..3    sol recoin revisite casino               # Pierre Eau
 GREATBALL        commun      2..3    sol boutique=2                           # Super Ball
 REVIVE           commun      2..5    sol boutique=2                           # Rappel
 SITRUSBERRY      commun      2..5    sol                                      # Baie Sitrus
@@ -78,14 +79,14 @@ ASSAULTVEST      tres_rare   4+      revisite                                 # 
 CHOICEBAND       tres_rare   4+      revisite guilde                          # Bandeau Choix
 CHOICESCARF      tres_rare   4+      recoin revisite guilde                   # Mouchoir Choix
 CHOICESPECS      tres_rare   4+      revisite guilde                          # Lunettes Choix
-DAWNSTONE        tres_rare   4+      sol revisite                             # Pierre Aube
-DUSKSTONE        tres_rare   4+      sol revisite                             # Pierre Nuit
+DAWNSTONE        tres_rare   4+      sol revisite casino                      # Pierre Aube
+DUSKSTONE        tres_rare   4+      sol revisite casino                      # Pierre Nuit
 FOCUSSASH        tres_rare   4+      recoin revisite guilde                   # Ceinture Force
-ICESTONE         tres_rare   4+      sol revisite                             # Pierre Glace
+ICESTONE         tres_rare   4+      sol revisite casino                      # Pierre Glace
 LIFEORB          tres_rare   4+      recoin revisite guilde                   # Orbe Vie
 LUCKYEGG         tres_rare   4+      recoin guilde                            # Œuf Chance
 ROCKYHELMET      tres_rare   4+      revisite                                 # Casque Brut
-SHINYSTONE       tres_rare   4+      sol revisite                             # Pierre Éclat
+SHINYSTONE       tres_rare   4+      sol revisite casino                      # Pierre Éclat
 WEAKNESSPOLICY   tres_rare   4+      revisite                                 # Vulné-Assurance
 MAXPOTION        commun      6+      sol boutique=6                           # Potion Max
 FULLRESTORE      peu_commun  6+      sol boutique=7                           # Guérison
