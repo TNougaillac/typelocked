@@ -1023,6 +1023,23 @@ Le tileset des grottes se reconstruit à part (il recopie le tileset 7 vers l'ID
 - Deux halos sur la même case : le second va sur le calque 2. Les deux ont la même priorité ; l'ordre d'affichage entre les calques 2 et 3 est à vérifier en jeu.
 - Le halo ne se pose que sur un calque 3 vide : une pointe d'arbre sous un autre objet du calque 3 n'est pas dessinée.
 
+## F22. Chronos de la génération du monde (WorldTiming)
+**Version cible :** Essentials v21.1. **Statut :** écrit, non testé en jeu (#344).
+
+- **But :** mesurer avant d'optimiser (#345). Chaque génération de monde (nouvelle partie, monde redessiné depuis la sauvegarde, menu debug) écrit le temps total et le temps de chaque étape dans la console de debug, et l'ajoute à `MapProc/Export/chronos.txt` (date, graine), pour comparer avant / après.
+- **Étapes :** plans des lieux (`compute_world`, `generate_world`), relecture des plans (`MapGenerator.parse`, aussi celle des rencontres), écriture des cartes (`MapGenerator.generate`), intérieurs, `relink_warps`, `paint_cave`, recoins, métadonnées, cartes supprimées, inventaire, monde MapGen (raccords, Town Map), PBS du monde compilés, rencontres, événements (`MapEvents.parse`, `MapEvents.generate`, reste de WorldEvents), puis « Autres » (le reste du temps).
+- **Temps propre :** une étape ne compte que son propre temps ; celui d'une étape chronométrée qu'elle appelle va à cette étape. Les lignes font donc le total.
+- **Monde tiré pendant l'intro :** ses plans sont calculés dans un fil à basse priorité pendant l'intro ; leur durée est affichée à part (« dont dessiné pendant l'intro, hors total ») et n'entre pas dans le total.
+- **Aucun effet sur le monde :** mesure seulement (empreinte `tools/ci/world_fingerprint.rb` inchangée).
+
+| Fichier | Rôle |
+|---|---|
+| `Plugins/WorldTiming/001_WorldTiming.rb` | Étapes (`STEPS`), chronométrage (`measure`), rapport et log. |
+| `tools/ci/check_world_timing.rb` | CI sur des étapes factices : temps propre, somme = total, monde de l'intro à part, log écrit. |
+
+### Points d'accroche Essentials (aucun script de base modifié)
+- `Module#prepend` sur la classe singleton de chaque module des étapes ; alias de `MapProceduralGenerator.generate_world_maps` (après ceux de ProceduralEncounters et WorldEvents) pour le rapport.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
