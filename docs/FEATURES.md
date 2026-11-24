@@ -849,6 +849,43 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Descriptions issues de PokeAPI : la plus récente qui tient dans la place de la version anglaise, sinon la plus courte ; à vérifier dans les fenêtres du Résumé et du Sac. 20 descriptions d'objets (lettres, objets de démo) restent en anglais.
 - Les Pokédex des formes régionales reprennent l'entrée de l'espèce de base en anglais (PokeAPI ne les sépare pas).
 
+## F22. Défi du jour (DailyChallenge)
+**Statut :** v1.0.0, écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. Dépend de NewGameSetup, Monotype, MapProceduralGenerator et RunHistory (`Requires`).
+**Dossier :** `Plugins/DailyChallenge/`
+
+### Règles
+- **Écran titre :** « New Game » demande « Défi du jour (JJ/MM) », « Graine au hasard » ou « Retour ». Le défi rappelle la version du générateur et le meilleur score du jour, puis demande confirmation. « Rejouer cette graine » (RunHistory) ne pose pas la question.
+- **Même monde pour tous :** la graine vient de la date de l'ordinateur (change à minuit, heure locale) : `Zlib.crc32("TypeLocked AAAA-MM-JJ") % 1 000 000`. Deux joueurs ont la même région seulement avec la même version du générateur (MapProceduralGenerator).
+- **Même type, mêmes starters :** tirés de la graine avant la fenêtre Monotype (pas de choix Normal/Facile). Le Nuzlocke reste au choix : sans lui, le score est × 0,5 (RunHistory).
+- **Essais :** autant qu'on veut ; le meilleur score de chaque jour est gardé (`DAYS_KEPT`, 30 jours) dans `DailyChallenge.rxdata`, à côté de la sauvegarde.
+- **Historique :** la liste de RunHistory a une vue « Défis du jour » : la meilleure partie de chaque jour, la plus récente en premier, avec sa date.
+- **Partie multi :** une partie lancée depuis un salon n'est pas un défi (la graine du salon remplace celle du jour).
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Nom du fichier, jours gardés, sel de la graine et du tirage. |
+| `002_Seed.rb` | Jour, graine du jour, tirage du type et des starters (fonctions pures, contrôlées par la CI). |
+| `003_Data.rb` | `$daily_challenge` (jour du défi, dans la sauvegarde), meilleurs scores du jour, version du générateur. |
+| `004_Title.rb` | Question de « New Game » à l'écran titre. |
+| `005_Setup.rb` | Type et starters du défi au début de la partie (NewGameSetup, ordre 15). |
+| `006_History.rb` | Meilleur score du jour à chaque enregistrement RunHistory, vue « Défis du jour ». |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`PokemonLoad_Scene#pbChoose` (après l'alias de RunHistory), `RunHistory.record` et `RunHistory.extra_views`, lecture de `MapProceduralGenerator.next_game_seed` (lecteur ajouté depuis ce plugin).
+
+### À vérifier au premier lancement
+- « New Game » → « Défi du jour » : la console affiche la même graine pour deux lancements le même jour, et le professeur annonce le même type avec les mêmes 3 starters.
+- « Graine au hasard » : graine et type différents à chaque fois.
+- Sauvegarder une partie du défi : elle apparaît dans la vue « Défis du jour » de la liste ; une seconde partie du jour avec un meilleur score la remplace.
+- « Retour » dans la question revient à l'écran titre.
+
+### Limites connues
+- Le classement est local ; le partage entre amis par le serveur des salons fera l'objet d'une issue à part.
+- Les rencontres en combat (attaques, captures) restent aléatoires : seuls le monde, le type et les starters sont communs.
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -956,6 +993,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 02/11/2026 | DailyChallenge v1.0.0 : défi du jour (graine tirée de la date, même type et mêmes starters pour tous, meilleur score du jour, vue « Défis du jour ») ; RunHistory v1.2.0 : vues de la liste extensibles (`RunHistory.extra_views`) ; contrôle CI de la graine du jour | `Plugins/DailyChallenge/*`, `Plugins/RunHistory/005_List.rb`, `Plugins/RunHistory/meta.txt`, `tools/ci/check_daily_challenge.rb`, `.github/workflows/ci.yml`, `GLOSSARY.md`, `docs/FEATURES.md` |
 | 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
 | 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |  
 | 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
