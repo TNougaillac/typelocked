@@ -56,9 +56,10 @@ module WorldEvents
             ["Type", member], ["Name", member_name], ["BattleID", TRAINER_VERSION],
             ["Battle", lines.text("membre_combat", title)], ["EndBattle", lose])
       end
-      statues = layout[:hold] ? gym_mechanic(plans, map, spots, layout, members, type, i, lines, title, rng) : 0
+      statues = layout[:hold] ? gym_mechanic(plans, map, spots, layout, members, type, i, lines, title, rng) : []
+      ice = (layout[:hold] && GYM_ICE.include?(type)) ? gym_ice(spots, layout[:leader], members, statues) : []
       leaders.push({ gym: i + 1, map: map, town: town, type: type, trainer: trainer, name: name, team: team,
-                     sets: team_sets, tm: tm, members: members.length, statues: statues })
+                     sets: team_sets, tm: tm, members: members.length, statues: statues.length, ice: ice })
     end
     return leaders
   end
@@ -85,16 +86,16 @@ module WorldEvents
 
   # The mechanic of a generated gym (#121): barriers on the cells around the
   # lieutenant, lifted once the room's statues are all touched (in their
-  # order for GYM_ORDERED, invisible for GYM_HIDDEN). Returns the number of
-  # statues placed (0: no mechanic, the room being too cramped).
+  # order for GYM_ORDERED, invisible for GYM_HIDDEN). Returns the statues'
+  # cells (none: no mechanic, the room being too cramped).
   def gym_mechanic(plans, map, spots, layout, members, type, index, lines, title, rng)
-    return 0 if index >= GYM_STATUE_LOCKS
+    return [] if index >= GYM_STATUE_LOCKS
     ground = spots[:ground].to_h { |cell| [cell, true] }
     lx, ly = layout[:leader]
     barriers = STEPS.values.map { |dx, dy| [lx + dx, ly + dy] }.select { |cell| ground[cell] }
     taken = [layout[:leader], *barriers, *members.map { |x, y, *| [x, y] }]
     open = gym_reach(ground, spots[:entry], taken)
-    return 0 if barriers.none? { |bx, by| STEPS.values.any? { |dx, dy| open[[bx + dx, by + dy]] } }
+    return [] if barriers.none? { |bx, by| STEPS.values.any? { |dx, dy| open[[bx + dx, by + dy]] } }
     near = [spots[:entry], layout[:leader], *members.map { |x, y, *| [x, y] }]
     blocked = blocked_cells(spots)
     statues = []
@@ -108,7 +109,7 @@ module WorldEvents
       next if after.length != open.length - statues.length - 1
       statues.push(cell)
     end
-    return 0 if statues.empty?
+    return [] if statues.empty?
     switch = GYM_STATUE_SWITCH + index + 1
     ordered = GYM_ORDERED.include?(type)
     hidden = GYM_HIDDEN.include?(type)
@@ -121,7 +122,63 @@ module WorldEvents
       add(plans, map, "NPC", "Statue#{k + 1}", x, y, *(hidden ? [] : [["Graphic", GYM_STATUE]]),
           ["Script", "WorldEvents.gym_statue(#{k + 1}, #{statues.length}, #{switch}, #{ordered})"])
     end
-    return statues.length
+    return statues
+  end
+
+  # The barriers of a gym with statues: its ground cells around the
+  # lieutenant (gym_mechanic).
+  def gym_barriers(spots, leader, statues)
+    return [] if statues.empty?
+    return STEPS.values.map { |dx, dy| [leader[0] + dx, leader[1] + dy] } & spots[:ground]
+  end
+
+  # The ice cells of a GYM_ICE gym: the first of GYM_ICE_PATTERNS, on its
+  # ground but the exit, the entry and the people, that keeps it solvable.
+  def gym_ice(spots, leader, members, statues)
+    exit_cell = spots[:exits][0][0, 2]
+    people = [leader, *members.map { |x, y, *| [x, y] }, *statues, *gym_barriers(spots, leader, statues)]
+    free = spots[:ground] - [exit_cell, spots[:entry]] - people
+    GYM_ICE_PATTERNS.each do |pattern|
+      ice = free.select { |x, y| pattern.call(x, y) }
+      return ice if gym_ice_solvable?(spots, ice, people, leader, statues)
+    end
+    return []
+  end
+
+  # On that ice, with these people standing: every statue touched with the
+  # barriers up, then the lieutenant reached with them down, and the entry
+  # (the exit by it) reached again from any cell the player can stop on.
+  def gym_ice_solvable?(spots, ice, people, leader, statues)
+    ground = (spots[:ground] - [spots[:exits][0][0, 2]]).to_h { |cell| [cell, true] }
+    ice = ice.to_h { |cell| [cell, true] }
+    touched = ->(seen, cell) { STEPS.values.any? { |dx, dy| seen[[cell[0] + dx, cell[1] + dy]] } }
+    lowered = people - gym_barriers(spots, leader, statues)
+    [[people, statues], [lowered, [leader]]].each do |blocked, targets|
+      seen = ice_reach(ground, ice, spots[:entry], blocked)
+      return false if !targets.all? { |cell| touched.call(seen, cell) }
+      return false if !seen.keys.all? { |cell| ice_reach(ground, ice, cell, blocked)[spots[:entry]] }
+    end
+    return true
+  end
+
+  # { cell => true } of the cells the player can stop on from start: a step
+  # onto ice slides on until a cell without ice or a blocked cell ahead.
+  def ice_reach(ground, ice, start, blocked)
+    open = ->(cell) { ground[cell] && !blocked.include?(cell) }
+    seen = { start => true }
+    queue = [start]
+    until queue.empty?
+      x, y = queue.shift
+      STEPS.each_value do |dx, dy|
+        cell = [x + dx, y + dy]
+        next if !open.call(cell)
+        cell = [cell[0] + dx, cell[1] + dy] while ice[cell] && open.call([cell[0] + dx, cell[1] + dy])
+        next if seen[cell]
+        seen[cell] = true
+        queue.push(cell)
+      end
+    end
+    return seen
   end
 
   # { cell => true } of the ground cells reached from start, not through taken.

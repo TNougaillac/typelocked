@@ -149,6 +149,16 @@ module WorldEvents
   # bumping into the action key).
   GYM_ORDERED = %i[PSYCHIC ELECTRIC STEEL].freeze
   GYM_HIDDEN  = %i[GHOST DARK].freeze
+  # Types whose generated gym has a floor of ice (#121, tranche 4): the
+  # player slides until a wall, a person or a cell without ice. Ice tile
+  # GYM_ICE_TILE (terrain tag Ice) in place of the floor tile GYM_FLOOR_TILE
+  # of the gym's tileset (tools/art/gym_interiors_4g.py), on the cells of the
+  # first of GYM_ICE_PATTERNS that keeps the room solvable (else no ice).
+  GYM_ICE        = %i[ICE].freeze
+  GYM_FLOOR_TILE = 42
+  GYM_ICE_TILE   = 43
+  GYM_ICE_PATTERNS = [->(_x, _y) { true }, ->(x, y) { (x + y) % 4 != 0 }, ->(_x, y) { y % 3 != 0 },
+                      ->(x, y) { (x + y).odd? }].freeze
   # Barrier charset by type (tools/art/gym_props_4g.py), GYM_BARRIER otherwise.
   GYM_BARRIERS = { ROCK: "Gym boulder", GROUND: "Gym boulder", FIGHTING: "Gym boulder", ICE: "Gym ice",
                    WATER: "Gym ice", GRASS: "Gym tree", BUG: "Gym tree", POISON: "Gym tree" }.freeze

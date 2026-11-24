@@ -6,7 +6,9 @@ tileset for its lieutenant's type).
 - the back wall: Mew's plaster panel, tinted with the type's colour;
 - the side and front walls: Mew's grey strip on black;
 - floor: Mew's light stone, tinted with the type's colour; exit: Mew's rug
-  shrunk into one tile, on that floor.
+  shrunk into one tile, on that floor;
+- ice (tile ICE, terrain tag Ice, #121 tranche 4): the floor, lighter, with
+  white glints; WorldEvents lays it on the floor of the Ice gyms.
 Every tile is drawn whole in its 32x32 frame.
 Each tileset is a copy of tileset 25 (Cave 4G) with its own graphic, its
 walls and rock blocked, its floor and exit walkable.
@@ -27,6 +29,8 @@ from guild_dungeons_4g import (EXIT, FLOOR, LOWER, MEW, MEW_FLOORS, PANEL_COLUMN
                                WALLS, sheet_for, small_rug, strip_profile, tile)
 
 FIRST_ID = 37
+# Ice floor tile (WorldEvents::GYM_ICE_TILE) and Essentials' Ice terrain tag
+ICE, ICE_TAG = 43, 12
 # Colour of each type (the classic ones), by the plugin's type ID
 TYPES = {
     "NORMAL": (168, 168, 120), "FIRE": (240, 128, 48), "WATER": (104, 144, 240), "GRASS": (120, 200, 80),
@@ -67,6 +71,20 @@ def sheet(mew, profile, colour):
     mat = floor.copy()
     mat.alpha_composite(small_rug(mew))
     put(EXIT, mat)
+    put(ICE, ice_tile(floor))
+    return out
+
+
+def ice_tile(floor):
+    """The floor half way to white, with two diagonal glints."""
+    out = Image.blend(floor, Image.new("RGBA", floor.size, (240, 252, 255, 255)), 0.5)
+    px = out.load()
+    for start, length in ((4, 10), (17, 7)):
+        for i in range(length):
+            for w in (0, 1):
+                x, y = start + i + w, 26 - start - i + 2
+                if 0 <= x < 32 and 0 <= y < 32:
+                    px[x, y] = (255, 255, 255, 255)
     return out
 
 
@@ -82,7 +100,7 @@ def main():
         sheets.append(out)
         subprocess.run(["ruby", "tools/art/tileset_clone.rb", str(SOURCE_ID), str(tileset_id), name, name], check=True)
         passages = {str(n): "=15" for n in list(UPPER.values()) + list(LOWER.values()) + [VOID]}
-        passages.update({str(FLOOR): "=0", str(EXIT): "=0"})
+        passages.update({str(FLOOR): "=0", str(EXIT): "=0", str(ICE): f"=0/{ICE_TAG}"})
         subprocess.run(["ruby", "tools/art/tileset_tables.rb", str(tileset_id), "0", json.dumps(passages)], check=True)
         sections.append(f"[{tileset_id}]   # {name}\nTile = {VOID},void\nTile = {FLOOR},floor\nTile = 0,walls\nDoubleWalls = true")
     print("#-------------------------------\n".join(s + "\n" for s in sections))
