@@ -450,6 +450,10 @@ def check_items(atlas, zones, plans, items)
     nooks = 1 if spots[:dark] && spots[:loot]
     nooks += (spots[:hill_tops] || []).length
     raise MapEvents::Error, "#{name} : #{loot[name]} butins pour #{nooks} recoins" if loot[name] != nooks
+    # A visible ball in tall grass is half hidden by the blades
+    grass = spots[:grass] || []
+    hidden = plans[name]&.events&.find { |e| e.kind == :item && !e.value("Hidden") && grass.include?([e.x, e.y]) }
+    raise MapEvents::Error, "#{name} : objet visible #{hidden.label} dans les hautes herbes (#{hidden.x},#{hidden.y})" if hidden
   end
   atlas[:items].each do |item, town|
     # Given by a guild's leader (check_guild_field_items)

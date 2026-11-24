@@ -246,9 +246,11 @@ module WorldEvents
     end
     cells = (slot[:source] == "sol") ? (spots[:dead_ends] || []).shuffle(random: rng) : []
     cells += ((spots[:grass] || []) + (spots[:street] || []) + (spots[:floor] || [])).shuffle(random: rng)
+    hidden = slot[:source] == "cache"
+    # A ball in tall grass is half hidden by the blades: only hidden items go there
+    cells -= spots[:grass] || [] if !hidden
     cell = item_cell(spots, cells, taken)
     return nil if !cell
-    hidden = slot[:source] == "cache"
     add(plans, map, "Item", "Objet#{count}", cell[0], cell[1], ["Item", slot[:item]], *(hidden ? [["Hidden", "oui"]] : []))
     return slot[:source]
   end
