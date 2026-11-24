@@ -56,10 +56,12 @@ module WorldEvents
             ["Type", member], ["Name", member_name], ["BattleID", TRAINER_VERSION],
             ["Battle", lines.text("membre_combat", title)], ["EndBattle", lose])
       end
-      statues = layout[:hold] ? gym_mechanic(plans, map, spots, layout, members, type, i, lines, title, rng) : []
+      mechanic = layout[:hold] ? gym_mechanic(plans, map, spots, layout, members, type, i, lines, title, rng) : {}
+      statues = mechanic[:statues] || []
       ice = (layout[:hold] && GYM_ICE.include?(type)) ? gym_ice(spots, layout[:leader], members, statues) : []
       leaders.push({ gym: i + 1, map: map, town: town, type: type, trainer: trainer, name: name, team: team,
-                     sets: team_sets, tm: tm, members: members.length, statues: statues.length, ice: ice })
+                     sets: team_sets, tm: tm, members: members.length, statues: statues.length, ice: ice,
+                     plates: mechanic[:plates] || [], boulders: mechanic[:boulders] || [] })
     end
     return leaders
   end
@@ -86,16 +88,18 @@ module WorldEvents
 
   # The mechanic of a generated gym (#121): barriers on the cells around the
   # lieutenant, lifted once the room's statues are all touched (in their
-  # order for GYM_ORDERED, invisible for GYM_HIDDEN). Returns the statues'
-  # cells (none: no mechanic, the room being too cramped).
+  # order for GYM_ORDERED, invisible for GYM_HIDDEN); for GYM_BOULDER_TYPES,
+  # once a boulder lies on each plate where a statue would stand
+  # (gym_boulders, statues if none fit). Returns { statues:, plates:,
+  # boulders: } cells ({}: no mechanic, the room being too cramped).
   def gym_mechanic(plans, map, spots, layout, members, type, index, lines, title, rng)
-    return [] if index >= GYM_STATUE_LOCKS
+    return {} if index >= GYM_STATUE_LOCKS
     ground = spots[:ground].to_h { |cell| [cell, true] }
     lx, ly = layout[:leader]
     barriers = STEPS.values.map { |dx, dy| [lx + dx, ly + dy] }.select { |cell| ground[cell] }
     taken = [layout[:leader], *barriers, *members.map { |x, y, *| [x, y] }]
     open = gym_reach(ground, spots[:entry], taken)
-    return [] if barriers.none? { |bx, by| STEPS.values.any? { |dx, dy| open[[bx + dx, by + dy]] } }
+    return {} if barriers.none? { |bx, by| STEPS.values.any? { |dx, dy| open[[bx + dx, by + dy]] } }
     near = [spots[:entry], layout[:leader], *members.map { |x, y, *| [x, y] }]
     blocked = blocked_cells(spots)
     statues = []
@@ -109,24 +113,36 @@ module WorldEvents
       next if after.length != open.length - statues.length - 1
       statues.push(cell)
     end
-    return [] if statues.empty?
+    return {} if statues.empty?
     switch = GYM_STATUE_SWITCH + index + 1
+    boulders = []
+    if GYM_BOULDER_TYPES.include?(type)
+      boulders = gym_boulders(spots, layout[:leader], members, statues, Random.new(rng.rand(1 << 30)))
+    end
     ordered = GYM_ORDERED.include?(type)
     hidden = GYM_HIDDEN.include?(type)
     section = ordered ? "arene_barriere_ordre" : (hidden ? "arene_barriere_cachee" : "arene_barriere")
+    section = "arene_barriere_rochers" if !boulders.empty?
     barriers.each_with_index do |(x, y), k|
       add(plans, map, "NPC", "Barriere#{k + 1}", x, y, ["Graphic", GYM_BARRIERS.fetch(type, GYM_BARRIER)],
           ["Text", lines.text(section, title)], ["Hide", "S#{switch}"])
+    end
+    if !boulders.empty?
+      boulders.each_with_index do |(x, y), k|
+        add(plans, map, "NPC", "Rocher#{k + 1}", x, y, ["Graphic", GYM_BOULDER_GRAPHIC],
+            ["Script", "pbPushThisEvent(true)"], ["Script", "WorldEvents.gym_plates(#{switch}, #{statues.inspect}, @event_id, #{spots[:entry].inspect})"])
+      end
+      return { statues: [], plates: statues, boulders: boulders }
     end
     statues.each_with_index do |(x, y), k|
       add(plans, map, "NPC", "Statue#{k + 1}", x, y, *(hidden ? [] : [["Graphic", GYM_STATUE]]),
           ["Script", "WorldEvents.gym_statue(#{k + 1}, #{statues.length}, #{switch}, #{ordered})"])
     end
-    return statues
+    return { statues: statues, plates: [], boulders: [] }
   end
 
-  # The barriers of a gym with statues: its ground cells around the
-  # lieutenant (gym_mechanic).
+  # The barriers of a gym with statues (or plates): its ground cells around
+  # the lieutenant (gym_mechanic).
   def gym_barriers(spots, leader, statues)
     return [] if statues.empty?
     return STEPS.values.map { |dx, dy| [leader[0] + dx, leader[1] + dy] } & spots[:ground]
@@ -161,7 +177,63 @@ module WorldEvents
     return true
   end
 
-  # { cell => true } of the cells the player can stop on from start: a step
+  # A boulder for each plate of a GYM_BOULDER_TYPES gym, drawn
+  # GYM_BOULDER_DISTANCE cells from it in line (the cells between and the
+  # one to push from walkable), not by the entry, until a draw is solvable
+  # (gym_boulders_solvable?); none if no draw is.
+  def gym_boulders(spots, leader, members, plates, rng)
+    exit_cell = spots[:exits][0][0, 2]
+    people = [leader, *members.map { |x, y, *| [x, y] }, *gym_barriers(spots, leader, plates)]
+    ground = spots[:ground].to_h { |cell| [cell, true] }
+    walkable = ->(cell) { ground[cell] && cell != exit_cell && !people.include?(cell) }
+    ex, ey = spots[:entry]
+    choices = plates.map do |px, py|
+      STEPS.values.flat_map do |dx, dy|
+        GYM_BOULDER_DISTANCE.filter_map do |d|
+          line = (1..d + 1).map { |k| [px + (dx * k), py + (dy * k)] }
+          cell = line[d - 1]
+          next if !line.all?(&walkable) || plates.include?(cell) || (cell[0] - ex).abs + (cell[1] - ey).abs <= 1
+          cell
+        end
+      end
+    end
+    return [] if choices.any?(&:empty?)
+    GYM_BOULDER_TRIES.times do
+      boulders = choices.map { |cells| cells.sample(random: rng) }
+      next if boulders.uniq.length != boulders.length
+      return boulders if gym_boulders_solvable?(spots, boulders, people, leader, plates)
+    end
+    return []
+  end
+
+  # With these boulders (one in line with each plate, gym_boulders) and
+  # people standing: in some order, each boulder pushed straight onto its
+  # plate, the player walking to each push with the barriers up, then the
+  # lieutenant reached with them down. (A push that shuts the player away
+  # from the exit puts everything back in game: gym_plates.)
+  def gym_boulders_solvable?(spots, boulders, people, leader, plates)
+    ground = (spots[:ground] - [spots[:exits][0][0, 2]]).to_h { |cell| [cell, true] }
+    lowered = people - gym_barriers(spots, leader, plates)
+    boulders.each_index.to_a.permutation.any? do |order|
+      stones = boulders.dup
+      player = spots[:entry]
+      pushed = order.all? do |i|
+        (px, py), (bx, by) = plates[i], stones[i]
+        dx, dy = (px <=> bx), (py <=> by)
+        next false if dx != 0 && dy != 0
+        ((px - bx).abs + (py - by).abs).times.all? do
+          x, y = stones[i]
+          region = gym_reach(ground, player, people + stones)
+          target = [x + dx, y + dy]
+          next false if !region[[x - dx, y - dy]] || !ground[target] || (people + stones).include?(target)
+          stones[i] = target
+          player = [x, y]
+        end
+      end
+      pushed && STEPS.values.any? { |dx, dy| gym_reach(ground, player, lowered + stones)[[leader[0] + dx, leader[1] + dy]] }
+    end
+  end
+
   # onto ice slides on until a cell without ice or a blocked cell ahead.
   def ice_reach(ground, ice, start, blocked)
     open = ->(cell) { ground[cell] && !blocked.include?(cell) }

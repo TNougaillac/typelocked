@@ -159,6 +159,18 @@ module WorldEvents
   GYM_ICE_TILE   = 43
   GYM_ICE_PATTERNS = [->(_x, _y) { true }, ->(x, y) { (x + y) % 4 != 0 }, ->(_x, y) { y % 3 != 0 },
                       ->(x, y) { (x + y).odd? }].freeze
+  # Types whose generated gym has boulders instead of statues (#121,
+  # tranche 5): each pushed without Strength (pbPushThisEvent) onto its
+  # plate (tile GYM_PLATE_TILE, in place of the floor), the barriers lifted
+  # once every plate holds a boulder. Each boulder starts GYM_BOULDER_DISTANCE
+  # cells from its plate, in line; no push ever shuts the player away from
+  # the exit for good (such a push puts them all back). GYM_BOULDER_TRIES
+  # draws at most, else statues.
+  GYM_BOULDER_TYPES    = %i[ROCK GROUND FIGHTING].freeze
+  GYM_BOULDER_DISTANCE = (2..3).freeze
+  GYM_BOULDER_TRIES    = 30
+  GYM_BOULDER_GRAPHIC  = "Object boulder"
+  GYM_PLATE_TILE       = 44
   # Barrier charset by type (tools/art/gym_props_4g.py), GYM_BARRIER otherwise.
   GYM_BARRIERS = { ROCK: "Gym boulder", GROUND: "Gym boulder", FIGHTING: "Gym boulder", ICE: "Gym ice",
                    WATER: "Gym ice", GRASS: "Gym tree", BUG: "Gym tree", POISON: "Gym tree" }.freeze
@@ -382,6 +394,7 @@ module WorldEvents
     "lieutenant_revanche" => PLACE_TOKENS, "lieutenant_revanche_fin" => BATTLE_TOKENS,
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
     "arene_barriere" => PLACE_TOKENS, "arene_barriere_ordre" => PLACE_TOKENS, "arene_barriere_cachee" => PLACE_TOKENS,
+    "arene_barriere_rochers" => PLACE_TOKENS, "arene_dalle" => [], "arene_rochers_coinces" => [],
     "arene_statue" => [], "arene_statue_deja" => [], "arene_statue_rang" => %w[rang], "arene_statue_erreur" => [],
     "arene_ouverte" => [],
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
