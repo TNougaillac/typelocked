@@ -379,7 +379,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `ALWAYS_ON` vaut `true`.
 
 ## F10. Rythme rapide (FastPace)
-**Statut :** v1.0.0, écrit, **non testé**.
+**Statut :** v1.2.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/FastPace/`
 
@@ -390,6 +390,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Chaussures de course** dès le début.
 - **Déplacements plus rapides** (`MOVE_SPEEDS`) : course 0,1 s/case (Essentials : 0,125), vélo 0,05 s/case (0,1), surf 0,1 s/case (0,125). La marche reste à 0,25 s/case. Les déplacements imposés par un événement gardent leur vitesse.
 - **Options par défaut d'une nouvelle partie :** course activée par défaut (maintenir Retour pour marcher) et texte rapide. Le joueur peut les changer dans les Options.
+- **Choix du Repousse** (#118) : quand un Repousse s'épuise, rien n'est relancé automatiquement : le même menu que le raccourci Poké Ball des combats sauvages (Enhanced Battle UI) s'ouvre, avec les Repousses du Sac et leur quantité. Gauche/Droite pour choisir, C pour l'utiliser, Z pour la description, Retour (ou « Retour » aux bouts du menu) pour ne rien utiliser.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -398,9 +399,10 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `001_Settings.rb` | Tous les réglages. |
 | `002_ExpMultiplier.rb` | `Pokemon#base_exp` multiplié. |
 | `003_Movement.rb` | Chaussures de course, vitesses du joueur, options par défaut. |
+| `004_Repel.rb` | Menu de choix du Repousse suivant (`FastPace::RepelSelection`, graphismes d'Enhanced Battle UI). |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Player#has_running_shoes`, `Game_Player#set_movement_type`, `PokemonSystem#initialize`.
+`Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Player#has_running_shoes`, `Game_Player#set_movement_type`, `PokemonSystem#initialize`. Le gestionnaire `:on_player_step_taken, :repel_counter` d'Essentials est remplacé (retiré puis ajouté de nouveau).
 
 ### Limites connues
 - Les options par défaut ne s'appliquent que si aucune sauvegarde n'existe encore (Essentials garde les options d'une partie à l'autre).
@@ -468,14 +470,14 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - Les obstacles sur la carte gardent les graphismes d'Essentials (`Object tree 1`, `Object rock`, `Object boulder`, copiés des événements de la démo).
 
 ## F13. Rencontres sauvages générées (ProceduralEncounters)
-**Statut :** v1.4.1, écrit, testé hors jeu (CI), **non testé en jeu**.
+**Statut :** v1.5.0, écrit, testé hors jeu (CI), **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de MapProceduralGenerator (`Requires = MapProceduralGenerator`), sans le modifier.
 **Dossier :** `Plugins/ProceduralEncounters/`
 
 ### Règles
 - Quand un monde MapProc est généré (menu debug ou nouvelle partie), chaque carte reçoit ses rencontres dans `PBS/encounters.txt` : `Land` s'il y a des hautes herbes, `Water` et les trois cannes s'il y a de l'eau, `Cave` pour chaque grotte. Seules les sections des cartes du monde sont remplacées (ou retirées si la carte n'a plus ni herbe, ni eau, ni grotte), puis le fichier est recompilé. Une copie est écrite dans `MapProc/Export/<monde>_<graine>_rencontres.txt`.
 - Source : les 806 espèces de `docs/roster/pokedex.csv` (types, types Monotype, génération, force, famille) et les évolutions de `PBS/pokemon.txt` / `pokemon_forms.txt`. C'est tout le Pokédex d'Essentials v21.1 moins les légendaires, fabuleux et Ultra-Chimères. Modifier le fichier change les rencontres à la prochaine génération du monde.
-- **Pokémon du monde :** si la liste en a plus de `WORLD_SPECIES` (300), chaque graine tire des familles entières jusqu'à 300 Pokémon : d'abord au moins `TYPE_FAMILIES` (4) familles capturables par type imposé, puis, à chaque tour, la plus équilibrante (types, forces, générations) parmi `WORLD_SAMPLE` (6) tirées au hasard. Deux mondes partagent environ 55 % de leurs Pokémon. Une liste de 300 ou moins est prise entière.
+- **Pokémon du monde :** chaque monde pioche dans tout le Pokédex (806 espèces), sans limite ni garantie que chaque famille apparaisse ; les tables de chaque lieu y piochent selon le biome, les types dominants, les niveaux et les sceaux.
 - **Niveaux :** les sceaux d'une carte = les arènes avant elle dans la chaîne. Les niveaux montent du cap précédent vers 80 % de l'écart jusqu'au cap suivant (caps de LevelCap, sinon `CAPS`), en commençant à 3. Cannes : Canne -6, Super Canne -3, Méga Canne +2.
 - **Boucles et raccourcis :** une route hors de la chaîne prend les sceaux et les niveaux de la zone de son palier (là où on peut l'emprunter au plus tôt). La CI (`check_encounters.rb`) le vérifie sur chaque graine.
 - **Îles :** une île en bateau a ses propres rencontres, aux sceaux et aux niveaux de son port. L'arène d'une île compte à la place de son port pour les sceaux des lieux suivants.
@@ -484,8 +486,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Tirage :** chaque table tire 4 à 7 Pokémon (environ 60 % d'entre eux des types dominants) selon le biome, la force (faible 3, moyen 2, fort 0,5 + 0,25 par sceau), le stade (divisé par le stade) et l'usage (moins probable s'il est déjà ailleurs). Une famille n'apparaît qu'une fois par table.
 - **Évolutions :** une évolution par niveau apparaît à partir de ce niveau ; par pierre, bonheur, échange… à partir de 3 sceaux (stade 2) ou 6 sceaux (stade 3).
 - **Couverture Monotype :** chaque type imposé a au moins un Pokémon capturable dans un lieu du tronçon ou du tronçon précédent (herbe, grotte, ou surf une fois Surf obtenu ; les cannes ne comptent pas). Les manquants sont ajoutés au tronçon, d'abord ceux qui couvrent le plus de types d'un coup, à 5 % chacun.
-- **Couverture du Pokédex :** chaque famille tirée pour le monde apparaît au moins une fois dans le monde, à 5 %.
-- **Taille des tables :** 8 Pokémon en herbe, 7 en grotte, 5 en surf. La couverture remplit d'abord jusque-là, puis dépasse en dernier recours (14 / 12 / 8). Garder les 149 familles fait monter environ un tiers des tables à 10-12 Pokémon (choix assumé, plutôt que des familles absentes).
+- **Taille des tables :** 8 Pokémon en herbe, 7 en grotte, 5 en surf. La couverture des types remplit d'abord jusque-là, puis dépasse en dernier recours (14 / 12 / 8).
 - Même graine du monde = mêmes rencontres.
 - Nouvelle partie : écrites en silence (console seulement). Quand le monde d'une partie non sauvegardée est supprimé, les sections de ses cartes sont retirées ; quand celui de la sauvegarde est redessiné, ses rencontres sont réécrites.
 
@@ -505,7 +506,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 ### À vérifier au premier lancement
 - Générer un monde, puis marcher dans les hautes herbes d'une route, pêcher et surfer dans une ville à lac, entrer dans une grotte.
-- La console liste les types ou familles sans Pokémon s'il y en a (la CI vérifie qu'il n'y en a aucun sur 3 graines).
+- La console liste les types sans Pokémon s'il y en a (la CI vérifie qu'il n'y en a aucun sur 3 graines).
 
 ### Limites connues
 - Pas de rencontres de nuit, Éclate-Roc, Poké Radar ni sous l'eau (fonds marins).
@@ -961,6 +962,8 @@ Aucun alias : `pbSlotMachine`, `pbVoltorbFlip`, `$player.coins`, `pbReceiveItem`
 | 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
 | 26/10/2026 | MapGenerator v1.10.0 (#119) : la caméra s'arrête aux bords sans carte voisine en vue, plus de noir au bord du monde | `Plugins/MapGenerator/008_EdgeCamera.rb`, `Plugins/MapGenerator/meta.txt`, `docs/FEATURES.md` |
 | 26/10/2026 | MapProceduralGenerator v0.27.0, MapGenerator v1.11.0 (#119) : cartes de décor autour des lieux (forêt, mer, montagne selon le voisin), `type=decor` dans les plans du monde, raccords par les coins ; contrôles CI | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/007_RegionImage.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `tools/ci/check_encounters.rb`, `docs/FEATURES.md` |
+| 26/10/2026 | FastPace v1.1.0 (#118) : quand un Repousse s'épuise, choix du suivant dans le message (liste des Repousses du Sac avec leur quantité) au lieu du Sac | `Plugins/FastPace/*`, `docs/FEATURES.md` |
+| 27/10/2026 | FastPace v1.2.0 (#118) : le choix du Repousse suivant ouvre le menu du raccourci Poké Ball d'Enhanced Battle UI (`Requires`) | `Plugins/FastPace/*`, `docs/FEATURES.md` |
 | 26/10/2026 | Nuzlocke v1.3.0 (#117) : sauvegarde automatique après une défaite, panneau d'équipe du Pokémon mort avec le message de sa mort, fond « City » pour les nouvelles boîtes Cimetière | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
 | 26/10/2026 | WorldEvents v1.13.0, MapEvents v1.5.0 (#114) : infirmière de la Famille (nouvelle apparence), 3 soins gratuits par Centre puis payants selon les sceaux ; clés `Graphic` et `Confirm` des copies ; lore et glossaire | `Plugins/WorldEvents/*`, `Plugins/MapEvents/*`, `Graphics/Characters/NPC Famille infirmiere.png`, `tools/art/family_nurse.py`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/LORE.md`, `GLOSSARY.md`, `docs/FEATURES.md` |
 | 26/10/2026 | Début de partie (#115) : WorldEvents v1.14.0 (Pokédex donné avec le starter, Carte donnée par un Cousin non contournable de la première route), Monotype v1.6.0 (starters qui évoluent), MapProceduralGenerator v0.28.0 (cases où l'on marche dans l'inventaire) ; contrôles CI | `Plugins/WorldEvents/*`, `Plugins/Monotype/*`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/009_Atlas.rb`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
@@ -975,14 +978,14 @@ Aucun alias : `pbSlotMachine`, `pbVoltorbFlip`, `$player.coins`, `pbReceiveItem`
 | 27/10/2026 | Online v1.4.0 (#147) : échanges entre joueurs depuis le panneau du salon (type du receveur, ni mort ni Œuf ni dernier Pokémon, pas une capture, annulés à la coupure) | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Online v1.5.0 (#148) : les autres joueurs visibles sur la même carte (sprite, pseudo, déplacements suivis), leur parler propose un combat ou un échange | `Plugins/Online/*`, `tools/ci/check_online.rb`, `docs/FEATURES.md` |
 | 27/10/2026 | Monotype v1.7.0 : les starters sont tirés dans tout le Pokédex des rencontres (806 espèces, 481 starters possibles au lieu de 176) et plus dans la liste des 300 | `Plugins/Monotype/*`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
-
 | 27/10/2026 | MapProceduralGenerator v0.32.0 (#110) : 49 objets de décor tirés de tilesets libres (Emerald Outdoors, KingTapir) pour les ambiances (tileset Outside T4216 à T4383), 21 briques de décor ; le décor obligatoire se pose après les autres briques obligatoires | `Plugins/MapProceduralGenerator/003_Builder.rb`, `tools/art/import_props.py`, `docs/CREDITS.md`, `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/ville.txt`, `MapProc/route.txt`, `MapProc/Briques/*`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.34.0 (#162) : passe large dans les packs, 57 objets de plus (Emerald Outdoors, KingTapir Galar Misc, Stow-on-Side, Agate Village, Alola Misc ; tileset Outside jusqu'à T4895), 21 briques de décor par ambiance, 8 de rue (`lampe`) et 6 de place (`foire`) | `tools/art/import_props.py`, `docs/CREDITS.md`, `Graphics/Tilesets/Outside.png`, `Data/Tilesets.rxdata`, `MapProc/ville.txt`, `MapProc/route.txt`, `MapProc/Briques/*`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
-| 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |
+| 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |  
 | 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 03/11/2026 | FamilyCasino v1.0.0 : casino de la Famille (jetons, machines à sous, Voltorbataille, roulette, pile ou face, comptoir des lots) ; WorldEvents v1.18.0 : 1 ou 2 croupiers par monde ; contrôle CI | `Plugins/FamilyCasino/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/011_Casinos.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 05/11/2026 | Liste des 300 Pokémon supprimée ; ProceduralEncounters v1.5.0 : plus de limite de 300 Pokémon par monde (`WORLD_SPECIES`, `TYPE_FAMILIES`, `WORLD_SAMPLE` supprimés) et plus de garantie que chaque famille apparaisse, chaque monde pioche dans tout le Pokédex (`docs/roster/pokedex.csv`) | `docs/roster/liste-300.*`, `Plugins/ProceduralEncounters/*`, `docs/FEATURES.md` |
 | 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
