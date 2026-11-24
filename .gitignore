@@ -11,3 +11,12 @@ Data/Map[0-9]*.rxdata
 !Data/Map022.rxdata
 !Data/Map023.rxdata
 !Data/Map028.rxdata
+
+# Save file, run history and error log, written next to Game.exe only when
+# Essentials can't reach its data folder (System.data_directory, %APPDATA%)
+/Game*.rxdata
+/RunHistory.rxdata
+/errorlog.txt
+
+# graphify knowledge graph (rebuilt by the cloud setup script)
+graphify-out/
