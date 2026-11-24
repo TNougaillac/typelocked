@@ -379,7 +379,7 @@ Appels à `Compiler.convert_to_trainer_event`, `Compiler.convert_to_item_event`,
 - L'objet Multi Exp (`EXPALL`) et l'option de débogage n'ont plus d'effet tant que `ALWAYS_ON` vaut `true`.
 
 ## F10. Rythme rapide (FastPace)
-**Statut :** v1.0.0, écrit, **non testé**.
+**Statut :** v1.2.0, écrit, **non testé**.
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/FastPace/`
 
@@ -390,6 +390,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - **Chaussures de course** dès le début.
 - **Déplacements plus rapides** (`MOVE_SPEEDS`) : course 0,1 s/case (Essentials : 0,125), vélo 0,05 s/case (0,1), surf 0,1 s/case (0,125). La marche reste à 0,25 s/case. Les déplacements imposés par un événement gardent leur vitesse.
 - **Options par défaut d'une nouvelle partie :** course activée par défaut (maintenir Retour pour marcher) et texte rapide. Le joueur peut les changer dans les Options.
+- **Choix du Repousse** (#118) : quand un Repousse s'épuise, rien n'est relancé automatiquement : le même menu que le raccourci Poké Ball des combats sauvages (Enhanced Battle UI) s'ouvre, avec les Repousses du Sac et leur quantité. Gauche/Droite pour choisir, C pour l'utiliser, Z pour la description, Retour (ou « Retour » aux bouts du menu) pour ne rien utiliser.
 
 ### Fichiers
 | Fichier | Rôle |
@@ -398,9 +399,10 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | `001_Settings.rb` | Tous les réglages. |
 | `002_ExpMultiplier.rb` | `Pokemon#base_exp` multiplié. |
 | `003_Movement.rb` | Chaussures de course, vitesses du joueur, options par défaut. |
+| `004_Repel.rb` | Menu de choix du Repousse suivant (`FastPace::RepelSelection`, graphismes d'Enhanced Battle UI). |
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
-`Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Player#has_running_shoes`, `Game_Player#set_movement_type`, `PokemonSystem#initialize`.
+`Pokemon#base_exp` (lu uniquement par `Battle#pbGainExpOne`), `Player#has_running_shoes`, `Game_Player#set_movement_type`, `PokemonSystem#initialize`. Le gestionnaire `:on_player_step_taken, :repel_counter` d'Essentials est remplacé (retiré puis ajouté de nouveau).
 
 ### Limites connues
 - Les options par défaut ne s'appliquent que si aucune sauvegarde n'existe encore (Essentials garde les options d'une partie à l'autre).
@@ -933,6 +935,8 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 25/10/2026 | RunHistory v1.1.0 : score d'une partie (sceaux, Anciens, Parrain, Arceus, dresseurs et membres d'arène battus, morts, bonus de vitesse à la victoire, multiplicateur de type, ×0,5 sans Nuzlocke), sur les cartes, dans les détails, sur la carte de dresseur et dans la vue « Meilleurs scores » (5 meilleurs de tous les temps) ; un Pokémon mort reste pâli après la défaite | `Plugins/RunHistory/*`, `docs/FEATURES.md` |
 | 26/10/2026 | MapGenerator v1.10.0 (#119) : la caméra s'arrête aux bords sans carte voisine en vue, plus de noir au bord du monde | `Plugins/MapGenerator/008_EdgeCamera.rb`, `Plugins/MapGenerator/meta.txt`, `docs/FEATURES.md` |
 | 26/10/2026 | MapProceduralGenerator v0.27.0, MapGenerator v1.11.0 (#119) : cartes de décor autour des lieux (forêt, mer, montagne selon le voisin), `type=decor` dans les plans du monde, raccords par les coins ; contrôles CI | `Plugins/MapProceduralGenerator/*`, `Plugins/MapGenerator/006_World.rb`, `Plugins/MapGenerator/007_RegionImage.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_world_events.rb`, `tools/ci/check_encounters.rb`, `docs/FEATURES.md` |
+| 26/10/2026 | FastPace v1.1.0 (#118) : quand un Repousse s'épuise, choix du suivant dans le message (liste des Repousses du Sac avec leur quantité) au lieu du Sac | `Plugins/FastPace/*`, `docs/FEATURES.md` |
+| 27/10/2026 | FastPace v1.2.0 (#118) : le choix du Repousse suivant ouvre le menu du raccourci Poké Ball d'Enhanced Battle UI (`Requires`) | `Plugins/FastPace/*`, `docs/FEATURES.md` |
 | 26/10/2026 | Nuzlocke v1.3.0 (#117) : sauvegarde automatique après une défaite, panneau d'équipe du Pokémon mort avec le message de sa mort, fond « City » pour les nouvelles boîtes Cimetière | `Plugins/Nuzlocke/*`, `docs/FEATURES.md` |
 | 26/10/2026 | WorldEvents v1.13.0, MapEvents v1.5.0 (#114) : infirmière de la Famille (nouvelle apparence), 3 soins gratuits par Centre puis payants selon les sceaux ; clés `Graphic` et `Confirm` des copies ; lore et glossaire | `Plugins/WorldEvents/*`, `Plugins/MapEvents/*`, `Graphics/Characters/NPC Famille infirmiere.png`, `tools/art/family_nurse.py`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/LORE.md`, `GLOSSARY.md`, `docs/FEATURES.md` |
 | 26/10/2026 | Début de partie (#115) : WorldEvents v1.14.0 (Pokédex donné avec le starter, Carte donnée par un Cousin non contournable de la première route), Monotype v1.6.0 (starters qui évoluent), MapProceduralGenerator v0.28.0 (cases où l'on marche dans l'inventaire) ; contrôles CI | `Plugins/WorldEvents/*`, `Plugins/Monotype/*`, `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/009_Atlas.rb`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `tools/ci/check_pbs.rb`, `docs/FEATURES.md` |
