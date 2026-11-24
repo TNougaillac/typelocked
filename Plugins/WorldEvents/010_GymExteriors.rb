@@ -23,6 +23,9 @@ module WorldEvents
   # Normal one (MapProceduralGenerator::GYM_TILESET).
   GYM_INTERIOR_TILESETS = %i[NORMAL FIRE WATER GRASS ELECTRIC ICE FIGHTING POISON GROUND FLYING PSYCHIC BUG ROCK
                              GHOST DRAGON DARK STEEL FAIRY].each_with_index.to_h { |type, i| [type, 37 + i] }.freeze
+  # Generated gyms left in the dark (#121, tranche 3), like the dark caves:
+  # DarkMap in their map metadata.
+  GYM_DARK = %i[GHOST DARK].freeze
 
   module_function
 
@@ -43,6 +46,7 @@ module WorldEvents
   # lieutenant's type, on the town's map, and its generated interior.
   def paint_gyms(leaders)
     infos = load_data("Data/MapInfos.rxdata")
+    darken_gyms(infos, leaders)
     leaders.each do |leader|
       paint_gym_interior(infos, leader)
       map_id = infos.select { |_id, info| info.name == leader[:town] }.keys.min
@@ -63,6 +67,34 @@ module WorldEvents
       end
       save_data(map, path) if changed
     end
+  end
+
+  # The interiors of the GYM_DARK lieutenants get DarkMap (their metadata is
+  # written with the world's maps, before the types are drawn).
+  def darken_gyms(infos, leaders)
+    ids = leaders.select { |leader| GYM_DARK.include?(leader[:type]) }
+                 .filter_map { |leader| infos.select { |_id, info| info.name == leader[:map] }.keys.min }
+    return if ids.empty?
+    file = MapGenerator::MAP_METADATA_PBS
+    MapGenerator.write_pbs(file, dark_metadata(MapGenerator.read_pbs(file), ids))
+    Compiler.compile_map_metadata(file)
+  end
+
+  # The lines of map_metadata.txt with « DarkMap = true » under the sections
+  # of these map ids (none twice).
+  def dark_metadata(lines, ids)
+    out = []
+    section = nil
+    lines.each do |line|
+      if line =~ /\A\[0*(\d+)\]/
+        section = $1.to_i
+      elsif line.strip == "DarkMap = true" && ids.include?(section)
+        next
+      end
+      out.push(line)
+      out.push("DarkMap = true") if line.start_with?("[") && ids.include?(section)
+    end
+    return out
   end
 
   # The tileset of the lieutenant's type on a generated gym's interior.
