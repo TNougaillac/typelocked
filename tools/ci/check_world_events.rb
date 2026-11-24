@@ -14,7 +14,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds 012_ItemPool].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 M.check_plans = true   # plans made without text, fully validated (#345)
 E = ProceduralEncounters
@@ -313,13 +313,13 @@ def check_services(atlas, plans)
 end
 
 # The nooks to come back to (#269: their field item is given after their
-# map's seals): a rare item (REVISIT_TABLE or a TM), a
+# map's seals): a rare item (revisite in objets.txt, or a TM), a
 # Pokémon of the imposed type at most at the cap, or a trace of the Pact
 # before a rare item, the ball gone once taken. Returns [nooks, Pokémon,
 # lore].
 def check_revisits(atlas, zones, plans, type, species, tms)
   opened = W.field_item_seals(atlas)
-  rare = W::REVISIT_TABLE.values.flat_map(&:keys).map(&:to_s) + tms.map { |tm| tm.first.to_s }
+  rare = W.revisit_table.values.flat_map(&:keys).map(&:to_s) + tms.map { |tm| tm.first.to_s }
   counts = [0, 0, 0]
   atlas[:maps].each do |name, spots|
     nooks = (spots[:nooks] || []).reject { |nook| nook[2] == "sombre" }.map { |x, y, kind, *| [x, y, kind] }
@@ -420,6 +420,11 @@ def check_items(atlas, zones, plans, items)
       raise MapEvents::Error, "#{town} : #{item} donné sans attendre le sceau de la ville (#{npc.value('When')})"
     end
   end
+  # Every drawn item comes from the pool (#331): its items, a TM (the draw of
+  # :TM), Heart Scales, Pact Incenses and the field items
+  pool = W.item_pool.map(&:id) + [W::HEART_SCALE, W::PACT_INCENSE] + atlas[:items].keys
+  strays = items.map { |i| i[:item] }.uniq.reject { |item| pool.include?(item) || item.to_s.start_with?("TM") }
+  raise MapEvents::Error, "objets hors de objets.txt : #{strays.join(', ')}" if !strays.empty?
   scales = items.count { |i| i[:item] == W::HEART_SCALE }
   raise MapEvents::Error, "#{scales} Écailles Cœur au lieu de #{W::HEART_SCALES}" if scales != W::HEART_SCALES
   early = plans.select { |name, plan| plan.events.any? { |e| e.label.start_with?("MaitreCapacites") } && zones[name].seals <= 1 }
@@ -778,7 +783,7 @@ end
 # guild with a rallying enemy (W.guild_rivals) see farther and say a line of
 # [guilde_vengeance] under the ally's switch, those of the routes leave under
 # their own; no other member does; by an ally's headquarters, a member
-# gives an item of GUILD_BONUS_ITEMS under each present enemy's switch.
+# gives an item of the pool's guilde source under each present enemy's switch.
 # Returns the enemy pairs of the world.
 def check_rivalries(world, result, atlas, plans, drawn, items)
   hqs = atlas[:hqs]
@@ -827,7 +832,7 @@ def check_rivalries(world, result, atlas, plans, drawn, items)
       where = "guilde #{g[:id]} : bonus contre #{bonus[:enemy]}"
       raise MapEvents::Error, "#{where} : absent du QG" if !npc || bonus[:map] != g[:hq]
       raise MapEvents::Error, "#{where} : sous #{npc.value('When')} au lieu de S#{enemy[:switch]}" if npc.value("When") != "S#{enemy[:switch]}"
-      raise MapEvents::Error, "#{where} : objet #{npc.value('Gift')}" if !W::GUILD_BONUS_ITEMS.include?(npc.value("Gift")&.to_sym) || !items.include?(npc.value("Gift"))
+      raise MapEvents::Error, "#{where} : objet #{npc.value('Gift')}" if !W.guild_bonus_items.include?(npc.value("Gift")&.to_sym) || !items.include?(npc.value("Gift"))
     end
   end
   return pairs
@@ -1088,17 +1093,30 @@ W::HOUSE_SPOTS.each do |template, cells|
   cut = reach(grid, start, []).keys - people - reach(grid, start, people).keys
   CI.error(settings, nil, "HOUSE_SPOTS : #{template}, les habitants coupent #{cut.first(3).inspect}") if !cut.empty?
 end
-W::MART_STOCK.values.flatten.each { |item| CI.error(settings, nil, "MART_STOCK : objet #{item} absent de items.txt") if !items.include?(item.to_s) }
-# No shop sells a field item (FIELD_ITEMS, Surf, Dive, the Skates...)
-field_items = M::FIELD_ITEMS.values.map(&:first) + [M::SURF_ITEM, M::DIVE_ITEM] + M::EXTRA_FIELD_ITEMS.keys + M::NOOKS.values
-sold = W::MART_STOCK.values.flatten & field_items
-CI.error(settings, nil, "MART_STOCK : objets de terrain en boutique (#{sold.join(', ')})") if !sold.empty?
-{ "ITEM_TABLE" => W::ITEM_TABLE, "NOOK_TABLE" => W::NOOK_TABLE, "REVISIT_TABLE" => W::REVISIT_TABLE }.each do |key, table|
-  CI.error(settings, nil, "#{key} : pas de ligne à 0 sceau") if !table[0]
-  table.values.flat_map(&:keys).uniq.each do |item|
-    CI.error(settings, nil, "#{key} : objet #{item} absent de items.txt") if item != :TM && !items.include?(item.to_s)
-  end
+# The pool of items (#331, objets.txt): a format error gives its file and
+# line, every table has a line at 0 seals, no shop sells a field item (FIELD_ITEMS,
+# Surf, Dive, the Skates...), every weather item is in it with « meteo ».
+begin
+  W.parse_item_pool("BIDULE commun 0+ sol\n", "objets.txt", items)
+  CI.error(settings, nil, "objets.txt : un objet inconnu passe")
+rescue W::Error => e
+  CI.error(settings, nil, "objets.txt : erreur sans fichier ni ligne (#{e.message})") if !e.message.start_with?("objets.txt, ligne 1 :")
 end
+begin
+  W.item_pool
+rescue W::Error => e
+  CI.error(W.item_pool_path(ROOT), nil, e.message)
+end
+field_items = M::FIELD_ITEMS.values.map(&:first) + [M::SURF_ITEM, M::DIVE_ITEM] + M::EXTRA_FIELD_ITEMS.keys + M::NOOKS.values
+sold = W.mart_stock(99) & field_items
+CI.error(settings, nil, "objets.txt : objets de terrain en boutique (#{sold.join(', ')})") if !sold.empty?
+CI.error(settings, nil, "objets.txt : rien en boutique à 0 sceau") if W.mart_stock(0).empty?
+{ "sol" => W.item_table, "recoin" => W.nook_table, "revisite" => W.revisit_table }.each do |key, table|
+  CI.error(settings, nil, "objets.txt : pas d'objet « #{key} » à 0 sceau") if table[0].nil? || table[0].empty?
+end
+weather = W.item_pool.select { |item| item.sources.include?("meteo") }.map(&:id)
+missing = W::WEATHER_ITEMS.values.flatten.uniq - weather
+CI.error(settings, nil, "objets.txt : objets de météo sans « meteo » (#{missing.join(', ')})") if !missing.empty?
 # The nurse of each Centre template asks a question (Confirm goes in its first answer)
 W::CENTRE_EVENTS.each do |template, events|
   event = load_rxdata(File.join(ROOT, "Data", format("Map%03d.rxdata", template))).instance_variable_get(:@events)[events[0][0]]

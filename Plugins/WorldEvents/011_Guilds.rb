@@ -305,7 +305,8 @@ module WorldEvents
   end
 
   # Once an enemy's leader is beaten, a member of the ally (rallied or not)
-  # gives one of GUILD_BONUS_ITEMS by its headquarters. drawn: guild_events,
+  # gives an item of the pool's guilde source (objets.txt) by its
+  # headquarters. drawn: guild_events,
   # each guild's bonuses go to its :bonuses ([{ enemy:, item:, label:,
   # map: }]).
   def rival_bonuses(atlas, guilds, drawn, plans, lines, rng)
@@ -320,7 +321,7 @@ module WorldEvents
         next if !guild.enemies.include?(enemy[:id])
         cell = hq_cell(outside, anchor, plans[g[:hq]], rng)
         next if !cell
-        item = GUILD_BONUS_ITEMS.sample(random: rng)
+        item = guild_bonus_items.sample(random: rng)
         label = "Bonus#{guild.id.capitalize}#{g[:bonuses].length + 1}"
         add(plans, g[:hq], "Npc", label, cell[0], cell[1], ["Graphic", "trainer_#{guild.member_types.first}"],
             ["Facing", cell[2]], ["When", "S#{enemy[:switch]}"],
@@ -488,7 +489,7 @@ module WorldEvents
       item = (guild_field_items(result, atlas, hq) - taken).first
       return { kind: "terrain", item: item } if item
     end
-    line = NOOK_TABLE[NOOK_TABLE.keys.select { |from| from <= seals }.max].reject { |loot, _weight| loot == :TM }
+    line = nook_table[nook_table.keys.select { |from| from <= seals }.max].reject { |loot, _weight| loot == POOL_TM }
     pick = rng.rand(line.values.sum)
     return { kind: "objet", item: line.find { |_item, weight| (pick -= weight) < 0 }[0], money: GUILD_MONEY * (seals + 1) }
   end
