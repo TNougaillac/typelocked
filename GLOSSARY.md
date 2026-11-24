@@ -38,6 +38,12 @@ _Avoid_ : chef d'arène
 Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
 _Avoid_ : sbires, Team, grunts
 
+**Usurier** :
+Un Cousin qui prête l'argent de la Famille, avec des intérêts, à rendre avant le prochain sceau.
+
+**Recouvreur** :
+Un Cousin envoyé sur les routes pour réclamer une dette en retard.
+
 **Infirmière** :
 L'infirmière d'un Centre Pokémon, membre de la Famille comme les vendeurs. Elle soigne gratuitement trois fois par Centre, puis fait payer.
 _Avoid_ : Infirmière Joëlle
@@ -58,6 +64,20 @@ _Avoid_ : segment, étape
 Le sommet de la Famille, au bout du parcours des arènes.
 _Avoid_ : Ligue Pokémon (au sens officiel, indépendant)
 
+## Les guildes
+
+**Guilde** :
+Un groupe de personnes autour d'un même thème (les nageurs, les mineurs, les éleveurs…), avec un lieu attitré, des membres sur les routes et des Pokémon à son image. Chaque partie en rencontre quelques-unes, selon la région.
+_Avoid_ : faction, clan, gang
+
+**Position** :
+L'attitude d'une guilde face à la Famille, la même dans toutes les parties : alliée (elle peut rejoindre le joueur), neutre (elle paie et se tait), affiliée (elle travaille pour la Famille) ou rivale (mauvaise, mais ennemie de la Famille).
+_Avoid_ : camp, alignement
+
+**Chef de guilde** :
+Le dresseur le plus fort d'une guilde, qui tient son lieu attitré. Battre le chef d'une guilde alliée la fait rejoindre le joueur.
+_Avoid_ : boss, leader
+
 ## Le verrou
 
 **Pacte** :
@@ -69,7 +89,7 @@ La personne que le Pacte a désignée pour cette génération. Les PNJ l'appelle
 _Avoid_ : Élu, Lié
 
 **Type imposé** :
-Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans toutes les parties, et le joueur est le seul dresseur de la région à en avoir un.
+Le seul type de Pokémon avec lequel le joueur peut jouer, à cause du Pacte. Il est obligatoire dans le mode principal du jeu, et le joueur est le seul dresseur de la région à en avoir un.
 _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 
 **Starter** :
@@ -85,6 +105,19 @@ _Avoid_ : allié, compagnon, membre
 **Village d'origine** :
 La première ville de la partie, d'où part le joueur. Les recrues viennent s'y installer.
 _Avoid_ : ville de départ, bourg
+## L'exploration
+
+**Objet de terrain** :
+Un objet qui permet de franchir un obstacle de la région (un arbre à couper, un rocher à briser, l'eau à traverser…). Il remplace les capsules techniques des jeux d'origine : aucun Pokémon n'a besoin de connaître une capacité pour passer.
+_Avoid_ : CS, capsule secrète
+
+**Don du Pacte** :
+Le pouvoir que le Pacte donne au joueur sur son type imposé. Il lui permet de franchir un obstacle propre à ce type (le Feu fait fondre la glace, le Spectre traverse un mur hanté…), et chaque type a le sien.
+_Avoid_ : capacité de type, pouvoir du type
+
+**Recoin** :
+Un petit lieu facultatif fermé par un obstacle, avec quelque chose qui vaut le détour. Certains s'ouvrent au premier passage, d'autres demandent de revenir plus tard avec le bon objet de terrain.
+_Avoid_ : zone secrète, bonus
 
 ## Multijoueur
 

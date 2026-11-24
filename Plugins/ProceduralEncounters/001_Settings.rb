@@ -98,16 +98,6 @@ module ProceduralEncounters
   # seals, by stage (2 = first evolution, 3 = second).
   STAGE_SEALS = { 2 => 3, 3 => 6 }.freeze
 
-  # Pokémon of a world: whole families drawn from the roster until about
-  # WORLD_SPECIES of them, with at least TYPE_FAMILIES families a Monotype run
-  # of each type can catch. The whole roster when it is that small. Each
-  # further family is the most balancing one (types, tiers, generations)
-  # among WORLD_SAMPLE drawn by chance: more keeps the world more even, less
-  # makes worlds differ more.
-  WORLD_SPECIES = 300
-  TYPE_FAMILIES = 4
-  WORLD_SAMPLE = 6
-
   # How often a Pokémon is drawn, by tier (« force » in the roster); « fort »
   # gains FORT_PER_SEAL per seal. Evolved stages are divided by their stage.
   TIER_WEIGHTS = { "faible" => 3.0, "moyen" => 2.0, "fort" => 0.5 }.freeze

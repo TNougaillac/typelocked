@@ -6,3 +6,6 @@ Data/MapProcAtlas.rxdata
 
 # Maps of the generated worlds (the demo maps already in the repo stay tracked)
 Data/Map[0-9]*.rxdata
+
+# graphify knowledge graph (rebuilt by the cloud setup script)
+graphify-out/

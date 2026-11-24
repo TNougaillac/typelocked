@@ -1,6 +1,6 @@
 # Pokédex du jeu (TypeLocked)
 
-Toutes les espèces d'Essentials v21.1 hors légendaires : 806 espèces, 383 familles, sur les 898 de `PBS/pokemon.txt` (les plugins n'ajoutent aucune espèce). Chaque monde en tire 300 par familles entières, en équilibrant types, forces et générations (plugin ProceduralEncounters). Données brutes : [pokedex.csv](pokedex.csv).
+Toutes les espèces d'Essentials v21.1 hors légendaires : 806 espèces, 383 familles, sur les 898 de `PBS/pokemon.txt` (les plugins n'ajoutent aucune espèce). Chaque monde les prend toutes (plugin ProceduralEncounters). Données brutes : [pokedex.csv](pokedex.csv).
 
 ## Règles
 

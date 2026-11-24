@@ -66,10 +66,8 @@ module ProceduralEncounters
     generated.gaps.each do |seals, type|
       Console.echoln_li(_INTL("Rencontres : aucun Pokémon {1} capturable avec {2} sceau(x).", type, seals))
     end
-    generated.missing.each { |family| Console.echoln_li(_INTL("Rencontres : famille {1} absente du monde.", family)) }
-    return if quiet || (generated.gaps.empty? && generated.missing.empty?)
-    pbMessage(_INTL("Attention : {1} type(s) sans Pokémon sur un tronçon, {2} famille(s) absente(s). Détail dans la console.",
-                    generated.gaps.length, generated.missing.length))
+    return if quiet || generated.gaps.empty?
+    pbMessage(_INTL("Attention : {1} type(s) sans Pokémon sur un tronçon. Détail dans la console.", generated.gaps.length))
   end
 end
 

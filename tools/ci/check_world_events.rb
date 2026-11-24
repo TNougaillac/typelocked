@@ -13,7 +13,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 010_Usurers].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -95,10 +95,16 @@ def check_gyms(atlas, plans, leaders, tms)
     raise MapEvents::Error, "#{map} : sceau #{leader.value('Badge')} au lieu de #{i + 1}" if leader.value("Badge").to_i != i + 1
     drawn = leaders.find { |l| l[:map] == map }
     raise MapEvents::Error, "#{map} : niveau #{tops[leaders.index(drawn)]} au lieu du plafond #{E::CAPS[i]}" if tops[leaders.index(drawn)] != E::CAPS[i]
-    tm = tms.find { |item, *| item.to_s == leader.value("Gift") }
+    loot = leader.value("Script").to_s
+    loot_tm, held, pack = loot[/\AWorldEvents\.seal_loot\((.*)\)\z/, 1]&.then { |args| eval("[#{args}]") }
+    raise MapEvents::Error, "#{map} : butin du sceau absent (#{loot})" if !held || !pack
+    tm = tms.find { |item, *| item == loot_tm }
     if !tm || !W.useful_tms(tms, drawn[:type], drawn[:gym] - 1).include?(tm)
-      raise MapEvents::Error, "#{map} : CT #{leader.value('Gift')} absente ou inutile pour le type #{drawn[:type]}"
+      raise MapEvents::Error, "#{map} : CT #{loot_tm} absente ou inutile pour le type #{drawn[:type]}"
     end
+    tier = W::SEAL_LOOT_TIERS[[i, W::SEAL_LOOT_TIERS.length - 1].min]
+    raise MapEvents::Error, "#{map} : objet tenu #{held} hors du palier #{tier}" if !W::SEAL_HELD_ITEMS[tier].include?(held)
+    raise MapEvents::Error, "#{map} : lot #{pack.inspect} hors du palier #{tier}" if !W::SEAL_PACKS[tier].include?(pack)
     members = events.select { |e| e.kind == :trainer && e.label.start_with?("Membre") }
     raise MapEvents::Error, "#{map} : #{members.length} membres" if !W::GYM_MEMBERS.include?(members.length)
     grid = PASSABLE[spots[:template]]
@@ -284,6 +290,9 @@ def check_items(atlas, zones, plans, items)
   raise MapEvents::Error, "#{scales} Écailles Cœur au lieu de #{W::HEART_SCALES}" if scales != W::HEART_SCALES
   early = plans.select { |name, plan| plan.events.any? { |e| e.label.start_with?("MaitreCapacites") } && zones[name].seals <= 1 }
   raise MapEvents::Error, "aucun Maître des Capacités avant le 2e sceau" if early.empty?
+  usurers = plans.select { |_name, plan| plan.events.any? { |e| e.label == "Usurier" } }.keys
+  raise MapEvents::Error, "aucun usurier de la Famille" if usurers.empty?
+  raise MapEvents::Error, "usurier dans la ville de départ #{atlas[:start]}" if usurers.include?(atlas[:start])
   plans.each do |name, plan|
     plan.events.each do |e|
       next if e.kind != :npc || !e.value("Gift") || e.value("Once")
@@ -460,6 +469,12 @@ W::SET_STATUS.each { |move| CI.error(settings, nil, "SET_STATUS : capacité #{mo
   CI.error(settings, nil, "SET_ITEMS/TYPE_BOOSTERS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
 end
 CI.error(settings, nil, "SET_ITEMS : pas de ligne à 0 sceau") if !W::SET_ITEMS[0]
+(W::SEAL_HELD_ITEMS.flatten - [:BOOSTER] + W::SEAL_PACKS.flatten(2).map(&:first)).uniq.each do |item|
+  CI.error(settings, nil, "SEAL_HELD_ITEMS/SEAL_PACKS : objet #{item} absent de items.txt") if !items.include?(item.to_s)
+end
+if W::SEAL_LOOT_TIERS.max >= [W::SEAL_HELD_ITEMS.length, W::SEAL_PACKS.length].min
+  CI.error(settings, nil, "SEAL_LOOT_TIERS : palier sans ligne dans SEAL_HELD_ITEMS ou SEAL_PACKS")
+end
 W::TM_STATUS.each { |move| CI.error(settings, nil, "TM_STATUS : capacité #{move} absente de moves.txt") if !moves[move] }
 W::TM_POWER_OVERRIDES.each_key { |move| CI.error(settings, nil, "TM_POWER_OVERRIDES : capacité #{move} absente de moves.txt") if !moves[move] }
 W::WEATHER_ITEMS.values.flatten.uniq.each do |item|
