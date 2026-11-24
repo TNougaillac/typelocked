@@ -1,0 +1,56 @@
+{
+  "enabledPlugins": {
+    "caveman@caveman": true,
+    "ponytail@ponytail": true
+  },
+  "extraKnownMarketplaces": {
+    "caveman": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/JuliusBrussee/caveman.git"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/DietrichGebert/ponytail.git"
+      }
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "graphify hook-guard search",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "graphify hook-guard read",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "graphify hook-guard compact",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
