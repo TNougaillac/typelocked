@@ -19,7 +19,7 @@ module WorldTiming
   STEPS = [
     [MapProceduralGenerator, :compute_world,        PLANS],
     [MapProceduralGenerator, :generate_world,       PLANS],
-    [MapGenerator,           :parse,                "Relecture des plans (MapGenerator.parse)"],
+    [MapGenerator,           :parse,                "Palettes lues (MapGenerator.parse)"],
     [MapGenerator,           :generate,             "Écriture des cartes (MapGenerator.generate)"],
     [MapProceduralGenerator, :write_interior,       "Intérieurs (write_interior)"],
     [MapGenerator,           :relink_warps,         "Téléporteurs (relink_warps)"],

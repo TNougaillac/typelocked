@@ -24,22 +24,16 @@ module ProceduralEncounters
     surf_town = places.find { |wp, *| wp.surf }&.first
     segments = places.group_by { |wp, *| seals.call(wp) }
     zones = {}
-    places.each do |wp, place, text, layout|
+    places.each do |wp, _place, _text, layout|
       segment = segments[seals.call(wp)]
       position = segment.index { |other, *| other.equal?(wp) } / [segment.length - 1, 1].max.to_f
       levels = zone_levels(seals.call(wp), position, caps)
-      plan = MapGenerator.parse(text, place.file)
-      types = []
-      types.push("Land") if cells?(plan, GRASS_TILES)
-      types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+      types = map_types(layout.plan)
       surf = surf_town && wp.index >= surf_town.index
       zones[wp.name] = Zone.new(wp.name, wp.index, seals.call(wp), levels, land_biome(wp, layout), types, surf)
     end
-    extras.each do |wp, place, text, layout|
-      plan = MapGenerator.parse(text, place.file)
-      types = []
-      types.push("Land") if cells?(plan, GRASS_TILES)
-      types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+    extras.each do |wp, _place, _text, layout|
+      types = map_types(layout.plan)
       tier = zones[places.find { |other, *| other.index == wp.tier }[0].name]
       pool = pools[(result.hqs || {}).key(wp.name)]
       zones[wp.name] = Zone.new(wp.name, wp.tier, tier.seals, tier.levels, land_biome(wp, layout), types, tier.surf, pool)
@@ -52,15 +46,20 @@ module ProceduralEncounters
       zones[name] = Zone.new(name, wp.index, route.seals, route.levels, nil, ["Cave"], route.surf, route.pool)
     end
     # An island by boat: the seals and levels of its port
-    (result.islands || []).each do |wp, port, place, text, layout|
-      plan = MapGenerator.parse(text, place.file)
-      types = []
-      types.push("Land") if cells?(plan, GRASS_TILES)
-      types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+    (result.islands || []).each do |wp, port, _place, _text, layout|
+      types = map_types(layout.plan)
       town = zones[port.name]
       zones[wp.name] = Zone.new(wp.name, wp.index, town.seals, town.levels, land_biome(wp, layout), types, town.surf)
     end
     return zones.values.sort_by { |z| [z.index, z.types == ["Cave"] ? 1 : 0] }
+  end
+
+  # Encounter types of a map: grass, water (its plan as made, #345).
+  def map_types(plan)
+    types = []
+    types.push("Land") if cells?(plan, GRASS_TILES)
+    types.concat(WATER_TYPES) if cells?(plan, WATER_TILES)
+    return types
   end
 
   # Does any cell of the map show one of those tiles?

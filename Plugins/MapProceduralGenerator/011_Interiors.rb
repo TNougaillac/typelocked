@@ -51,6 +51,17 @@ module MapProceduralGenerator
 
   # [Warps] and [Events] of a place of that size: warps are
   # [x, y, target map name, tx, ty, facing (2, 4, 6, 8), door charset or nil].
+  # The same warps on a plan, as parse would read them from warps_text.
+  def add_plan_warps(plan, warps, width, height)
+    return plan if warps.empty?
+    plan.events = Array.new(height) { "." * width }
+    warps.each_with_index do |(x, y, target, tx, ty, facing, graphic), i|
+      plan.warps[WARP_SYMBOLS[i]] = MapGenerator::Warp.new(target, tx, ty, WARP_FACING[facing] ? facing : 0, graphic)
+      plan.events[y][x] = WARP_SYMBOLS[i]
+    end
+    return plan
+  end
+
   def warps_text(warps, width, height)
     return "" if warps.empty?
     raise Error, "plus de #{WARP_SYMBOLS.length} passages sur une carte" if warps.length > WARP_SYMBOLS.length

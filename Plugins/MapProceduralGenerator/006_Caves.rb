@@ -18,8 +18,8 @@ module MapProceduralGenerator
   # target map name, tx, ty]]; seed: of the walls and decorations drawn by
   # the painter; dark: a dark cave (a nook, see NOOKS); guild: the
   # headquarters (GUILD_HQS) of a guild's dungeon (#337), its owner: the
-  # place of its door.
-  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark, :tileset, :guild, :owner)
+  # place of its door; plan: its MapGen plan (cave_floor_text).
+  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark, :tileset, :guild, :owner, :plan)
 
   module_function
 
@@ -247,8 +247,19 @@ module MapProceduralGenerator
   end
 
   # MapGen plan of a cave floor: floor and rock (the painter draws the walls
-  # when the map is written), and its warps (exit to the route, ladder).
+  # when the map is written), and its warps (exit to the route, ladder). Its
+  # plan is put in floor.plan too, made without the text (#345).
   def cave_floor_text(floor, route)
+    tileset = floor.tileset || CAVE_TILESET
+    palette = (@cave_palettes ||= {})[tileset] ||=
+      MapGenerator.parse("Name = palette\nTileset = #{tileset}\nGround = .\n[Legend]\n. = #{CAVE_FLOOR}\nx = #{CAVE_ROCK}\n[Map]\n.\n", "grotte")
+    events = floor.rows.map { |row| "." * row.length }
+    warps = floor.warps.each_with_index.to_h do |(x, y, target, tx, ty, facing), i|
+      events[y][x] = (i + 1).to_s
+      [(i + 1).to_s, MapGenerator::Warp.new(target, tx, ty, MapGenerator::WARP_DIRECTIONS.fetch(facing || "bas"), nil)]
+    end
+    floor.plan = MapGenerator.assemble(palette, name: floor.name, rows: floor.rows.map { |row| row.map { |f| f ? "." : "x" }.join },
+                                       warps: warps, events: events, check: check_plans)
     text = +"# Grotte de #{route}, générée par MapProceduralGenerator (#{floor.dark ? 'grotte sombre' : (floor.level == 0) ? '1er étage' : 'sous-sol'}).\n"
     text << "# Les murs sont dessinés par le générateur de donjon d'Essentials quand la carte est écrite.\n"
     text << "Name    = #{floor.name}\n"

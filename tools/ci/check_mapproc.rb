@@ -10,6 +10,8 @@ require_relative "lib/essentials"
 Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 M = MapProceduralGenerator
+# Plans made without text go through the whole validation of MapGen (#345)
+M.check_plans = true
 SEEDS = 1..10
 # Seeds of the worlds (WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others
 # locally)
@@ -863,6 +865,16 @@ worlds.each do |path|
     end
     titles = plan.places.values.map(&:display_name)
     raise M::Error, "#{File.basename(path)} (graine #{seed}) : noms affichés en double" if titles.uniq.length != titles.length
+    # Each map's plan, made without text (#345), is the one its text reads
+    maps = result.places.map { |_wp, _place, text, layout| [text, layout.plan] } +
+           result.caves.map { |_wp, _name, text, floor| [text, floor.plan] } +
+           result.seabeds.map { |_wp, _name, text, *, made| [text, made] } +
+           result.islands.map { |*, text, layout| [text, layout.plan] } + result.fillers.map { |f| [f.text, f.plan] }
+    maps.each do |text, made|
+      read = MapGenerator.parse(text, made.file)
+      wrong = read.members.reject { |key| key == :file || read[key] == made[key] }
+      CI.error(path, nil, "graine #{seed} : #{made.name}, plan sans texte différent du texte relu (#{wrong.join(', ')})") if !wrong.empty?
+    end
     result.places.each do |wp, place, text, layout|
       plan = MapGenerator.parse(text, place.file)
       MapGenerator.check_tiles(plan, tilesets[place.tileset_id])

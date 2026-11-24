@@ -30,7 +30,9 @@ module MapProceduralGenerator
   # the ferry terminal's door (on the quay, entered from the promenade below);
   # spots: the place's inventory (see PlaceBuilder#inventory); levels: the
   # [Layer3] rows of the raised levels (nil without), see level_rows
-  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance, :levels)
+  # plan: the MapGen plan of the place (generate_place), its warps added by
+  # the world
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance, :levels, :plan)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -596,7 +598,7 @@ module MapProceduralGenerator
     rescue Error
       raise if attempt == PLACE_RETRIES
     end
-    text = plan_text(place, seed, layout.rows, layout.levels)
-    return MapGenerator.parse(text, place.file), text, layout
+    layout.plan = place_plan(place, seed, layout.rows, layout.levels)
+    return layout.plan, plan_text(place, seed, layout.rows, layout.levels), layout
   end
 end

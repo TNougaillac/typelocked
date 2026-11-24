@@ -135,7 +135,7 @@ module MapProceduralGenerator
   # text: MapGen world plan; places: [WorldPlace, Place, MapGen plan text, Layout];
   # caves: [WorldPlace of the route, name, MapGen plan text, CaveFloor, excess],
   # one per floor;
-  # seabeds: [WorldPlace of the route, name, MapGen plan text];
+  # seabeds: [WorldPlace of the route, name, MapGen plan text, excess, plan];
   # islands: [WorldPlace of the island, WorldPlace of its port, Place,
   # MapGen plan text, Layout]; interiors: Interior (see 011_Interiors.rb)
   # notes: lines for the console (routes off the chain that found no room);
@@ -353,7 +353,8 @@ module MapProceduralGenerator
       next if !wp.deep
       name = "#{wp.name} (fonds)"
       excess = side_excess(world, "fonds", Random.new((seed * 1000) + 800 + wp.index))
-      [wp, name, seabed_text(name, place, layout, Random.new((seed * 1000) + 700 + wp.index), excess), excess]
+      text, plan = seabed_map(name, place, layout, Random.new((seed * 1000) + 700 + wp.index), excess)
+      [wp, name, text, excess, plan]
     end
     # The boats between each port and its island
     islands.each do |island|
@@ -365,8 +366,10 @@ module MapProceduralGenerator
                                 islands.map { |wp, _port, _place, _text, layout| [wp, layout, 50 + wp.index] }, seed,
                                 hqs.select { |kind, _name| HQ_ROOM_KINDS.include?(kind) })
     interiors.each { |it| warps[it.owner].push([*it.door, it.name, *it.arrival, 8, it.graphic]) if it.door }
-    built.each { |wp, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
-    islands.each { |wp, _port, place, text, _layout| text << warps_text(warps[wp.name], place.width, place.height) }
+    (built + islands.map { |wp, _port, *rest| [wp, *rest] }).each do |wp, place, text, layout|
+      text << warps_text(warps[wp.name], place.width, place.height)
+      add_plan_warps(layout.plan, warps[wp.name], place.width, place.height)
+    end
     fillers = world_fillers(world, built, seed, map_ids)
     return WorldResult.new(world_text(world, built, seed, caves, seabeds, islands, region, notes, fillers), built, caves, seabeds, islands, interiors,
                            extra_notes(built) + notes, fillers, hqs)
@@ -702,8 +705,9 @@ module MapProceduralGenerator
 
   # MapGen plan of the seabed under a route: the same size, open around the
   # deep water (the player surfaces where the water above is deep), rock
-  # elsewhere, with a few patches of seaweed.
-  def seabed_text(name, place, layout, rng, excess = nil)
+  # elsewhere, with a few patches of seaweed. Returns its text and its plan,
+  # made without the text (#345).
+  def seabed_map(name, place, layout, rng, excess = nil)
     w, h = place.width, place.height
     deep = layout.deep.to_h { |cell| [cell, true] }
     dist = distances(layout.deep, w, h)
@@ -740,13 +744,14 @@ module MapProceduralGenerator
     text << "Tileset = #{SEABED_TILESET}\n"
     text << "Ground  = .\n"
     # The floor variants too, so the seabed is the same for a world seed
-    text << "Seed    = #{rng.rand(1_000_000)}\n"
+    plan_seed = rng.rand(1_000_000)
+    text << "Seed    = #{plan_seed}\n"
     text << SEABED_PALETTE
     text << "\n[Map]\n"
-    h.times do |y|
-      text << Array.new(w) { |x| open[y][x] ? (weed[[x, y]] ? "s" : ".") : "R" }.join << "\n"
-    end
-    return text
+    rows = Array.new(h) { |y| Array.new(w) { |x| open[y][x] ? (weed[[x, y]] ? "s" : ".") : "R" }.join }
+    rows.each { |row| text << row << "\n" }
+    @seabed_palette ||= MapGenerator.parse("Name = palette\nTileset = #{SEABED_TILESET}\nGround = .\n#{SEABED_PALETTE}\n[Map]\n.\n", "fonds")
+    return text, MapGenerator.assemble(@seabed_palette, name: name, seed: plan_seed, rows: rows, check: check_plans)
   end
 
   # Warps of a route's cave entrances: the first one to 1F, the second one

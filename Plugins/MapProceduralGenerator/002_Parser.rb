@@ -351,7 +351,7 @@ module MapProceduralGenerator
         raise Error, "#{place.file}, ligne #{lineno} : [Ambiance #{ambiance.name}] redéfinit « #{sym} », absent de la palette"
       end
     end
-    palette = MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+    palette = palette_plan(place)
     # With ambiances, the ground and street are defined by each ambiance only
     if place.ambiances.any?
       [place.ground, place.street].uniq.each do |sym|
@@ -512,6 +512,28 @@ module MapProceduralGenerator
       place.per_case.push(kind) if chosen.per_case.include?(kind)
     end
     return place
+  end
+
+  # Set by the CI: every plan made without text goes through the whole
+  # validation of MapGenerator.parse (#345). Off in game.
+  class << self
+    attr_accessor :check_plans
+  end
+
+  # The palette of a place as a parsed MapGen plan, read once for each
+  # palette text (ambiance, street style) and shared by the plans of every
+  # place that has it (#345).
+  # shortcut: kept for the whole session (a few dozen palettes), cleared by nothing; fine while palettes don't change in game.
+  def palette_plan(place)
+    key = [place.ground, place.tileset_id, palette_text(place)]
+    return (@palettes ||= {})[key] ||= MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+  end
+
+  # MapGen plan of a place, with no text to read again: its palette, then
+  # the assembled rows and levels, as parse would read them from plan_text.
+  def place_plan(place, seed, rows, levels = nil)
+    return MapGenerator.assemble(palette_plan(place), name: place.name, map_id: place.map_id, seed: seed, rows: rows,
+                                 overlays: levels&.any? ? { 2 => levels } : {}, check: check_plans)
   end
 
   # MapGen plan text of a place: header, palette, then the assembled rows.
