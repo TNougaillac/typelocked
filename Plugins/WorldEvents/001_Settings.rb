@@ -33,16 +33,8 @@ module WorldEvents
   # The clerk of each shop template ([x, y]), a member of the Family.
   MART_CLERK = { 25 => [2, 3], 54 => [2, 3] }.freeze
   CLERK_GRAPHIC = "trainer_COUSIN_F"
-  # Stock of a shop by the seals won on the way there: each line adds its
-  # items from that number of seals on.
-  MART_STOCK = {
-    0 => %i[POKEBALL POTION ANTIDOTE PARALYZEHEAL REPEL ESCAPEROPE],
-    1 => %i[AWAKENING BURNHEAL ICEHEAL],
-    2 => %i[GREATBALL SUPERPOTION SUPERREPEL REVIVE],
-    4 => %i[ULTRABALL HYPERPOTION FULLHEAL MAXREPEL],
-    6 => %i[MAXPOTION],
-    7 => %i[FULLRESTORE]
-  }.freeze
+  # Stock of a shop: the items of MapProc/Lore/objets.txt sold from the seals
+  # won on the way there (boutique=N, 012_ItemPool.rb).
 
   # Trainers of the world, written in PBS/trainers.txt with this version
   # (one per type and name): a new world replaces them all.
@@ -229,39 +221,14 @@ module WorldEvents
   # given by an inhabitant.
   ITEM_SOURCES = { "sol" => 30, "cache" => 25, "don" => 45 }.freeze
   GIFT_SHARE = 40
-  # What they are, by the seals won before the map: the table of the highest
-  # line at most that many seals, item => weight. TM: a TM of the game drawn
-  # at random (never twice, nor a lieutenant's).
-  ITEM_TABLE = {
-    0 => { POTION: 10, POKEBALL: 10, ANTIDOTE: 4, PARALYZEHEAL: 4, ORANBERRY: 6, PECHABERRY: 3,
-           CHERIBERRY: 3, REPEL: 3, ESCAPEROPE: 2, TM: 1 },
-    2 => { SUPERPOTION: 10, GREATBALL: 8, POKEBALL: 3, AWAKENING: 3, BURNHEAL: 3, ICEHEAL: 3,
-           SITRUSBERRY: 5, REVIVE: 3, ETHER: 3, SUPERREPEL: 3, TM: 3, FIRESTONE: 1, WATERSTONE: 1,
-           THUNDERSTONE: 1, LEAFSTONE: 1, MOONSTONE: 1, RARECANDY: 1, NUGGET: 1 },
-    4 => { HYPERPOTION: 8, ULTRABALL: 8, FULLHEAL: 5, REVIVE: 5, LUMBERRY: 4, SITRUSBERRY: 4,
-           ELIXIR: 3, MAXREPEL: 3, TM: 4, RARECANDY: 2, PPUP: 2, NUGGET: 2, PROTEIN: 1, IRON: 1,
-           CALCIUM: 1, ZINC: 1, CARBOS: 1, SUNSTONE: 1, DUSKSTONE: 1, SHINYSTONE: 1, DAWNSTONE: 1, ICESTONE: 1 },
-    6 => { MAXPOTION: 8, FULLRESTORE: 3, ULTRABALL: 8, FULLHEAL: 4, MAXREVIVE: 3, MAXETHER: 3,
-           LUMBERRY: 4, TM: 5, RARECANDY: 3, PPUP: 2, BIGNUGGET: 1, HPUP: 1, PROTEIN: 1, IRON: 1,
-           CALCIUM: 1, ZINC: 1, CARBOS: 1 }
-  }.freeze
-  # The loot of a nook, by the seals won when it opens (its map's, or those
-  # before the field item that opens it, whichever is more): rarer.
-  NOOK_TABLE = {
-    0 => { RARECANDY: 3, NUGGET: 3, TM: 4, PPUP: 1, EVERSTONE: 1, MOONSTONE: 1, FIRESTONE: 1,
-           WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1 },
-    4 => { RARECANDY: 4, BIGNUGGET: 2, TM: 4, PPUP: 2, LEFTOVERS: 1, LIFEORB: 1, CHOICESCARF: 1,
-           FOCUSSASH: 1, EXPSHARE: 1, LUCKYEGG: 1, HPUP: 1 }
-  }.freeze
-  # The loot of a nook to come back to (#269: opened by a field item obtained
-  # after its map), by the same seals: TMs, evolution stones, strong held
-  # items only. Never a Heart Scale nor a Pact Incense there.
-  REVISIT_TABLE = {
-    0 => { TM: 6, FIRESTONE: 1, WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1, MOONSTONE: 1, SUNSTONE: 1,
-           EVIOLITE: 1, LEFTOVERS: 1, EXPSHARE: 1, SCOPELENS: 1, KINGSROCK: 1, METALCOAT: 1 },
-    4 => { TM: 6, DUSKSTONE: 1, SHINYSTONE: 1, DAWNSTONE: 1, ICESTONE: 1, LIFEORB: 1, CHOICEBAND: 1,
-           CHOICESPECS: 1, CHOICESCARF: 1, FOCUSSASH: 1, ASSAULTVEST: 1, ROCKYHELMET: 1, WEAKNESSPOLICY: 1 }
-  }.freeze
+  # What they are, by the seals won before the map: drawn by rarity among the
+  # items of MapProc/Lore/objets.txt (012_ItemPool.rb) of the source « sol »;
+  # the loot of a nook (by the seals won when it opens: its map's, or those
+  # before the field item that opens it, whichever is more) among « recoin »,
+  # that of a nook to come back to (#269: opened by a field item obtained
+  # after its map) among « revisite » (TMs, evolution stones, strong held
+  # items only; never a Heart Scale nor a Pact Incense there). TM: a TM of
+  # the game drawn at random (never twice, nor a lieutenant's).
   # Of the nooks to come back to: REVISIT_POKEMON % hold a Pokémon of the
   # imposed type instead (at the level of their Tronçon, under the cap; a
   # capture in Nuzlocke), and REVISIT_LORE % of the others a trace of the
@@ -408,9 +375,8 @@ module WorldEvents
   # the members of its enemies see GUILD_RAGE_SIGHT cells ahead (never an
   # exit nor a door) and say [guilde_vengeance]; once an enemy's leader is
   # beaten, its members leave the routes and a member of the ally gives one
-  # of GUILD_BONUS_ITEMS by its headquarters.
+  # of the items « guilde » of MapProc/Lore/objets.txt by its headquarters.
   GUILD_RAGE_SIGHT  = 6
-  GUILD_BONUS_ITEMS = %i[LEFTOVERS LIFEORB CHOICESCARF CHOICEBAND CHOICESPECS FOCUSSASH EXPSHARE LUCKYEGG].freeze
   # The settling of scores (#190): for each guild with a rallying enemy (its
   # « rivals »), once the ally rallied, its leader waits by the enemy's
   # headquarters for a double battle, side by side with the player against

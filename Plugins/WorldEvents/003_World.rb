@@ -99,11 +99,6 @@ module WorldEvents
     return seals
   end
 
-  # Stock of a shop with that many seals.
-  def mart_stock(seals)
-    return MART_STOCK.select { |from, _items| from <= seals }.values.flatten
-  end
-
   #-----------------------------------------------------------------------------
   # Pokémon Centres and shops
   #-----------------------------------------------------------------------------

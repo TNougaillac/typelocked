@@ -1,0 +1,93 @@
+# Pool des objets du jeu (#331) : tous les objets qu'une partie peut donner
+# au hasard, lus par WorldEvents (en jeu et en CI). Une ligne par objet :
+#   Objet     identifiant de PBS/items.txt (TM = une CT tirée au hasard,
+#             jamais deux fois ni celle d'un lieutenant)
+#   Rareté    poids du tirage : commun 8, peu_commun 4, rare 2, tres_rare 1
+#   Sceaux    où il tombe au sol et en recoin : 0..1 (de 0 à 1 Sceau), 4+ (dès 4)
+#   Sources   sol (au sol, caché ou donné par un habitant), recoin, revisite
+#             (recoin à revisiter, #269), guilde (don d'une guilde alliée,
+#             #189), meteo (objets de météo du type imposé, WEATHER_ITEMS),
+#             boutique=N (vendu dès N Sceaux, puis toujours)
+# Hors du pool : objets de terrain, Carte, Écailles Cœur, Encens du Pacte,
+# objets tenus des dresseurs (leurs propres règles). Le nom après # est
+# celui du jeu, pour lire le fichier.
+#
+# Objet          Rareté      Sceaux  Sources
+ANTIDOTE         commun      0..1    sol boutique=0                           # Antidote
+ORANBERRY        commun      0..1    sol                                      # Baie Oran
+PARALYZEHEAL     commun      0..1    sol boutique=0                           # Anti-Para
+POKEBALL         commun      0..3    sol boutique=0                           # Poké Ball
+POTION           commun      0..1    sol boutique=0                           # Potion
+TM               commun      0+      sol recoin revisite                      # CT (une au hasard)
+CHERIBERRY       peu_commun  0..1    sol                                      # Baie Ceriz
+ESCAPEROPE       peu_commun  0..1    sol boutique=0                           # Corde Sortie
+PECHABERRY       peu_commun  0..1    sol                                      # Baie Pêcha
+PPUP             peu_commun  0+      sol recoin                               # PP Plus
+RARECANDY        peu_commun  0+      sol recoin                               # Super Bonbon
+REPEL            peu_commun  0..1    sol boutique=0                           # Repousse
+NUGGET           rare        0..5    sol recoin                               # Pépite
+DAMPROCK         tres_rare   0+      meteo                                    # Roche Humide
+EVERSTONE        tres_rare   0..3    recoin                                   # Pierre Stase
+EVIOLITE         tres_rare   0..3    revisite                                 # Évoluroc
+EXPSHARE         tres_rare   0+      recoin revisite guilde                   # Multi Exp
+FIRESTONE        tres_rare   0..3    sol recoin revisite                      # Pierre Feu
+HEATROCK         tres_rare   0+      meteo                                    # Roche Chaude
+ICYROCK          tres_rare   0+      meteo                                    # Roche Glace
+KINGSROCK        tres_rare   0..3    revisite                                 # Roche Royale
+LEAFSTONE        tres_rare   0..3    sol recoin revisite                      # Pierre Plante
+LEFTOVERS        tres_rare   0+      recoin revisite guilde                   # Restes
+METALCOAT        tres_rare   0..3    revisite                                 # Peau Métal
+MOONSTONE        tres_rare   0..3    sol recoin revisite                      # Pierre Lune
+SCOPELENS        tres_rare   0..3    revisite                                 # Lentilscope
+SMOOTHROCK       tres_rare   0+      meteo                                    # Roche Lisse
+SUNSTONE         tres_rare   0..5    sol revisite                             # Pierre Soleil
+THUNDERSTONE     tres_rare   0..3    sol recoin revisite                      # Pierre Foudre
+TM07             tres_rare   0+      meteo                                    # CT07
+TM102            tres_rare   0+      meteo                                    # CT102
+TM103            tres_rare   0+      meteo                                    # CT103
+TM11             tres_rare   0+      meteo                                    # CT11
+TM14             tres_rare   0+      meteo                                    # CT14
+TM18             tres_rare   0+      meteo                                    # CT18
+TM22             tres_rare   0+      meteo                                    # CT22
+TM25             tres_rare   0+      meteo                                    # CT25
+TM37             tres_rare   0+      meteo                                    # CT37
+WATERSTONE       tres_rare   0..3    sol recoin revisite                      # Pierre Eau
+GREATBALL        commun      2..3    sol boutique=2                           # Super Ball
+REVIVE           commun      2..5    sol boutique=2                           # Rappel
+SITRUSBERRY      commun      2..5    sol                                      # Baie Sitrus
+SUPERPOTION      commun      2..3    sol boutique=2                           # Super Potion
+AWAKENING        peu_commun  2..3    sol boutique=1                           # Réveil
+BURNHEAL         peu_commun  2..3    sol boutique=1                           # Anti-Brûle
+ETHER            peu_commun  2..3    sol                                      # Huile
+ICEHEAL          peu_commun  2..3    sol boutique=1                           # Antigel
+SUPERREPEL       peu_commun  2..3    sol boutique=2                           # Super Repousse
+FULLHEAL         commun      4+      sol boutique=4                           # Total Soin
+HYPERPOTION      commun      4..5    sol boutique=4                           # Hyper Potion
+LUMBERRY         commun      4+      sol                                      # Baie Prine
+ULTRABALL        commun      4+      sol boutique=4                           # Hyper Ball
+ELIXIR           peu_commun  4..5    sol                                      # Élixir
+MAXREPEL         peu_commun  4..5    sol boutique=4                           # Repousse Max
+BIGNUGGET        rare        4+      sol recoin                               # Maxi Pépite
+CALCIUM          rare        4+      sol                                      # Calcium
+CARBOS           rare        4+      sol                                      # Carbone
+HPUP             rare        4+      sol recoin                               # PV Plus
+IRON             rare        4+      sol                                      # Fer
+PROTEIN          rare        4+      sol                                      # Protéine
+ZINC             rare        4+      sol                                      # Zinc
+ASSAULTVEST      tres_rare   4+      revisite                                 # Veste de Combat
+CHOICEBAND       tres_rare   4+      revisite guilde                          # Bandeau Choix
+CHOICESCARF      tres_rare   4+      recoin revisite guilde                   # Mouchoir Choix
+CHOICESPECS      tres_rare   4+      revisite guilde                          # Lunettes Choix
+DAWNSTONE        tres_rare   4+      sol revisite                             # Pierre Aube
+DUSKSTONE        tres_rare   4+      sol revisite                             # Pierre Nuit
+FOCUSSASH        tres_rare   4+      recoin revisite guilde                   # Ceinture Force
+ICESTONE         tres_rare   4+      sol revisite                             # Pierre Glace
+LIFEORB          tres_rare   4+      recoin revisite guilde                   # Orbe Vie
+LUCKYEGG         tres_rare   4+      recoin guilde                            # Œuf Chance
+ROCKYHELMET      tres_rare   4+      revisite                                 # Casque Brut
+SHINYSTONE       tres_rare   4+      sol revisite                             # Pierre Éclat
+WEAKNESSPOLICY   tres_rare   4+      revisite                                 # Vulné-Assurance
+MAXPOTION        commun      6+      sol boutique=6                           # Potion Max
+FULLRESTORE      peu_commun  6+      sol boutique=7                           # Guérison
+MAXETHER         peu_commun  6+      sol                                      # Huile Max
+MAXREVIVE        peu_commun  6+      sol                                      # Rappel Max
