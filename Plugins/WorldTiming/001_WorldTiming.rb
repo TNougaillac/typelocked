@@ -86,7 +86,8 @@ module WorldTiming
   # Prints and logs the report; a log that can't be written is skipped.
   def finish(seed, total, drawn)
     lines = report(seed, total, drawn)
-    lines.each { |line| Console.echoln_li(line) }
+    # Console.echo hands its text to printf: a bare % (the share column) is a format error
+    lines.each { |line| Console.echoln_li(line.gsub("%", "%%")) }
     begin
       File.open(LOG_FILE, "a") { |f| f.write("[#{Time.now.strftime('%Y-%m-%d %H:%M:%S')}] #{lines.join("\n")}\n\n") }
     rescue SystemCallError => e
