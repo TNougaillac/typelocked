@@ -103,6 +103,15 @@ _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 Le premier Pokémon du joueur, choisi parmi trois Pokémon de son type imposé.
 _Avoid_ : Pokémon de départ
 
+## Les recrues
+
+**Recrue** :
+Un spécialiste (maître des capacités, éleveur, passeur…) que le joueur bat quelque part dans la région et qui accepte ensuite de le rejoindre pour lui rendre un service. Les recrues ne font partie d'aucune guilde, et chaque partie n'en contient que quelques-unes.
+_Avoid_ : allié, compagnon, membre
+
+**Village d'origine** :
+La première ville de la partie, d'où part le joueur. Les recrues viennent s'y installer.
+_Avoid_ : ville de départ, bourg
 ## L'exploration
 
 **Objet de terrain** :
