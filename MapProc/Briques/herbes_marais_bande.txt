@@ -1,0 +1,8 @@
+# Marais : une bande d'herbe de marais.
+Brique    = Herbe de marais (bande)
+Type      = herbes
+Ambiances = marais
+Poids     = 2
+[Map]
+ɦɦɦɦɦɦɦɦ
+ɦɦɦɦɦɦɦɦ

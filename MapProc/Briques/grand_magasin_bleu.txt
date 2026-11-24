@@ -1,0 +1,8 @@
+Brique = Grand magasin bleu
+Type   = immeuble
+Porte  = 4,3
+[Map]
+νννννννЄЄ
+νννννννЄЄ
+νννννννЄЄ
+νννννννЄЄ

@@ -1,8 +1,8 @@
 Brique = Maison bleue à cheminée
 Type   = maison
-Porte  = 2,3
+Porte  = 1,3
 [Map]
-UUUUU
-UUUUU
-UUUUU
-UUUUU
+UUUU
+UUUU
+UUUU
+UUUU

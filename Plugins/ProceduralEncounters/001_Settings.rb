@@ -16,14 +16,21 @@ module ProceduralEncounters
   # Tiles that trigger encounters in the Outside tileset (as stored by MapGen:
   # 384 + n for T<n>, 48 * slot for an autotile): tall grass T6, the same on
   # sand, dirt, gravel, mountain rock and meadow (T124, T125, T133, T147, T148,
-  # T143) and very tall grass T7, water A1 (deep water included).
-  GRASS_TILES = [6, 7, 124, 125, 133, 143, 147, 148].map { |n| 384 + n }.freeze
+  # T143), snow (T14636, Outside 4G), the edges of a patch (T14912 to
+  # T14914), marsh grass (T14952 to T14960), the volcano's ash-dusted grass
+  # (T14971, T14973 to T14977) and very tall grass T7 and T14915, water A1
+  # (deep water included).
+  GRASS_TILES = ([6, 7, 124, 125, 133, 143, 147, 148, 14636, 14912, 14913, 14914, 14915, 14971] +
+                 (14952..14960).to_a + (14973..14977).to_a).map { |n| 384 + n }.freeze
   WATER_TILES = [48].freeze
 
   # Ambiance of a route (MapProc, [Ambiance] of route.txt) => land biome,
   # « herbe » otherwise.
   AMBIANCE_BIOMES = { "prairie" => "prairie", "sable" => "sable", "terre battue" => "terre",
-                      "minérale" => "minéral", "automne" => "automne", "forêt tropicale" => "tropical" }.freeze
+                      "minérale" => "minéral", "automne" => "automne", "forêt tropicale" => "tropical",
+                      "neige" => "neige", "marais" => "marais", "volcan" => "volcan", "plage" => "plage",
+                      "forêt sombre" => "sombre", "haute montagne" => "haute montagne",
+                      "ruines" => "ruines" }.freeze
 
   # Biome => type => weight (0 or absent = never there). A Pokémon takes the
   # best weight among its own types.
@@ -44,8 +51,22 @@ module ProceduralEncounters
                     POISON: 1, PSYCHIC: 1 },
     "tropical" => { GRASS: 3, BUG: 3, POISON: 3, DRAGON: 2, FLYING: 2, FAIRY: 1, ELECTRIC: 1,
                     FIGHTING: 1, NORMAL: 1 },
+    "neige"    => { ICE: 8, WATER: 2, STEEL: 1, NORMAL: 1, PSYCHIC: 1, GHOST: 1, FAIRY: 1,
+                    FLYING: 1, GROUND: 1 },
+    "marais"   => { WATER: 5, GROUND: 5, POISON: 5, GRASS: 2, BUG: 2, DARK: 1, GHOST: 1,
+                    NORMAL: 1 },
+    "volcan"   => { FIRE: 5, ROCK: 5, GROUND: 5, DRAGON: 1, STEEL: 1, FIGHTING: 1, DARK: 1,
+                    POISON: 1 },
+    "plage"    => { WATER: 5, GROUND: 5, ROCK: 2, FLYING: 2, NORMAL: 1, BUG: 1, FIGHTING: 1,
+                    POISON: 1 },
+    "sombre"   => { BUG: 5, GHOST: 5, DARK: 5, GRASS: 5, POISON: 2, FAIRY: 1, PSYCHIC: 1,
+                    NORMAL: 1 },
     "montagne" => { ROCK: 3, GROUND: 3, FIGHTING: 3, FLYING: 2, STEEL: 2, DRAGON: 2, ICE: 2,
                     FIRE: 1, NORMAL: 1 },
+    "haute montagne" => { ROCK: 5, FIGHTING: 5, ICE: 5, FLYING: 5, STEEL: 2, GROUND: 2, DRAGON: 1,
+                          NORMAL: 1 },
+    "ruines"   => { PSYCHIC: 5, ROCK: 5, GHOST: 5, GROUND: 2, STEEL: 2, DARK: 1, FAIRY: 1,
+                    NORMAL: 1 },
     "ville"    => { NORMAL: 3, POISON: 2, ELECTRIC: 2, STEEL: 2, PSYCHIC: 2, DARK: 2, FAIRY: 2,
                     GHOST: 1, FIGHTING: 1, FIRE: 1, GRASS: 1 },
     "grotte"   => { ROCK: 3, GROUND: 3, STEEL: 2, GHOST: 2, DARK: 2, POISON: 2, DRAGON: 2,
@@ -80,8 +101,8 @@ module ProceduralEncounters
   DOMINANT_REPEAT = 0.25
 
   # A type counts as catchable in a tronçon (same number of seals) when it is
-  # in that tronçon or in the COVER_WINDOW - 1 before it (the player can go
-  # back). A Pokémon added for coverage gets at least COVER_PERCENT %.
+  # in that tronçon or in the COVER_WINDOW - 1 tronçons before it (the player
+  # can go back; a number of seals with no place is skipped). A Pokémon added for coverage gets at least COVER_PERCENT %.
   COVER_WINDOW = 2
   COVER_PERCENT = 5
 

@@ -1,0 +1,6 @@
+# Éolienne de ferme (SirMalo Urban F1) (#320).
+Brique    = Éolienne
+Type      = decor
+Ambiances = prairie, chemins de terre, terre battue
+[Map]
+ҐҐҐ

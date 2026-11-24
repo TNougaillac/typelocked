@@ -1,0 +1,12 @@
+# Carrière : le QG des Mineurs (#213). Une entrée de mine dans la roche,
+# des blocs et des cailloux gris. Posée seulement là où la guilde est tirée.
+Brique    = Carrière des Mineurs
+Type      = carriere
+Ambiances = minérale, haute montagne
+[Map]
+,x 123
+xj 456
+,  789
+......
+j,x ,j
+,xj x,

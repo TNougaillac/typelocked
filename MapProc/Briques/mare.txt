@@ -1,0 +1,11 @@
+# Mare : une eau dormante bordée de terre, posée sur l'herbe (#301). On en
+# fait le tour (ni Surf ni pêche).
+Brique    = Mare
+Type      = decor
+Ambiances = verdoyante, prairie, chemins de terre, automne, forêt sombre
+Poids     = 5
+[Map]
+ѳѳѳѳ
+ѳѳѳѳ
+ѳѳѳѳ
+ѳѳѳѳ

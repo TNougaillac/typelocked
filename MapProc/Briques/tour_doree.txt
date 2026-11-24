@@ -1,0 +1,10 @@
+Brique = Tour dorée
+Type   = immeuble
+Porte  = 3,5
+[Map]
+ηηηηηηη
+ηηηηηηη
+ηηηηηηη
+ηηηηηηη
+ηηηηηηη
+ηηηηηηη

@@ -1,8 +1,7 @@
-Brique = Bâtiment Card vert (miroir)
+Brique = Maison vert sombre
 Type   = special
-Porte  = 1,3
+Porte  = 1,2
 [Map]
-YYYY
 YYYY
 YYYY
 YYYY

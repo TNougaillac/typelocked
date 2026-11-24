@@ -2,7 +2,7 @@ Brique = Garage
 Type   = maison
 Porte  = 1,3
 [Map]
-KKKKK
-KKKKK
-KKKKK
-KKKKK
+KKKK
+KKKK
+KKKK
+KKKK

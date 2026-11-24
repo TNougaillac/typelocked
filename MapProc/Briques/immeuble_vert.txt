@@ -1,0 +1,8 @@
+Brique = Immeuble vert
+Type   = immeuble
+Porte  = 4,3
+[Map]
+θθθθθθ
+θθθθθθ
+θθθθθθ
+θθθθθθ

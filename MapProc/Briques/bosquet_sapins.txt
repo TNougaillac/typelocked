@@ -1,10 +1,9 @@
-# Bosquet : deux sapins et un arbre touffu.
+# Bosquet : deux sapins et un arbre touffu, assez écartés pour que leurs
+# dessins ne se recouvrent pas.
 Brique    = Bosquet de sapins
 Type      = decor
 Ambiances = verdoyante, minérale, automne
 [Map]
-ǜǜ ȁȁ
-ǜǜ ȁȁ
-   ȁȁ
- ǜǜ
- ǜǜ
+ǜǜ  ȁȁ
+ǜǜ  ȁȁ  ǜǜ
+    ȁȁ  ǜǜ

@@ -3,9 +3,22 @@
 MapProc/Export/
 Data/MapProcWorld.rxdata
 Data/MapProcAtlas.rxdata
+# Town Map image drawn for the generated world (Image of MapProc/monde.txt)
+Graphics/UI/Town Map/typelocked_proc.png
 
 # Maps of the generated worlds (the demo maps already in the repo stay tracked)
 Data/Map[0-9]*.rxdata
+# ... but the house rooms of tools/art/interior_mew.py (#322), on IDs the demo left free
+!Data/Map021.rxdata
+!Data/Map022.rxdata
+!Data/Map023.rxdata
+!Data/Map028.rxdata
+
+# Save file, run history and error log, written next to Game.exe only when
+# Essentials can't reach its data folder (System.data_directory, %APPDATA%)
+/Game*.rxdata
+/RunHistory.rxdata
+/errorlog.txt
 
 # graphify knowledge graph (rebuilt by the cloud setup script)
 graphify-out/

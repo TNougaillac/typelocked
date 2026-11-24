@@ -1,0 +1,12 @@
+# Placette ronde : un anneau de briques autour d'un parterre, contre une rue
+# (#298). On marche dessus ; une par ville au plus (« placette » de ville.txt).
+Brique    = Placette ronde
+Type      = placette
+Contre    = rue
+Ambiances = verdoyante, prairie, automne, terre battue, minérale, ruines
+[Map]
+ѫѫѫѫѫ
+ѫѫѫѫѫ
+ѫѫѫѫѫ
+ѫѫѫѫѫ
+ѫѫѫѫѫ

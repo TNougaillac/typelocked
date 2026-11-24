@@ -126,6 +126,16 @@ _Avoid_ : capacité de type, pouvoir du type
 Un petit lieu facultatif fermé par un obstacle, avec quelque chose qui vaut le détour. Certains s'ouvrent au premier passage, d'autres demandent de revenir plus tard avec le bon objet de terrain.
 _Avoid_ : zone secrète, bonus
 
+## La génération des cartes
+
+**Palette** :
+La légende d'un lieu généré : ce que chaque symbole dessine (sols, objets, terrains), selon son ambiance et son style de rue. Elle est lue une seule fois, puis partagée par toutes les cartes qui l'utilisent.
+_Avoid_ : légende, tileset
+
+**Grille** :
+Le dessin d'une carte générée, un symbole de la palette par case. Une palette et une grille suffisent à écrire la carte.
+_Avoid_ : plan texte, map
+
 ## Multijoueur
 
 **Salon** :

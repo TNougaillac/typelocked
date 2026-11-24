@@ -2,6 +2,7 @@
 # Posée de chaque côté du mur de rochers d'une route qui passe par une grotte.
 Brique = Entrée de grotte
 Type   = grotte
+Poids  = 2
 Porte  = 1,2
 
 [Map]

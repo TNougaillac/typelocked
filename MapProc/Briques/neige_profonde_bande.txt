@@ -1,0 +1,8 @@
+# Neige : une longue bande de neige profonde.
+Brique    = Bande de neige profonde
+Type      = decor
+Ambiances = neige
+Poids     = 2
+[Map]
+ǩǩǩǩǩǩǩ
+ǩǩǩǩǩǩǩ

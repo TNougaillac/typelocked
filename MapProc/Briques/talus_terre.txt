@@ -1,0 +1,8 @@
+# Talus de terre : deux gradins au bord d'une route de campagne (#296).
+Brique    = Talus de terre
+Type      = decor
+Ambiances = verdoyante, prairie, terre battue, automne
+Poids     = 3
+[Map]
+ϩϪϫϪϬ
+ϩϪϫϪϬ

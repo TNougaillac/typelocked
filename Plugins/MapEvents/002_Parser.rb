@@ -18,6 +18,7 @@
 #                               1-6; Through = oui walks through the others)
 #   Trigger = contact          (NPC: action (default) or contact, run when the
 #                               player steps on it or bumps into it)
+#   Show = S71                 (NPC: there only once S71 or V7>=1 holds)
 #   Hide = V7>=1               (NPC: gone once the condition holds: A to D =
 #                               its self switch, S25 = game switch 25 on,
 #                               V7>=1 = game variable 7 at least 1)
@@ -36,8 +37,14 @@
 #   Badge = 1                   Outcome, RegSpeech; several Battle = rematches.
 #   Win = \me[Badge get]Badge !  Gym leader: Badge = n gives badge n (1-8),
 #   Gift = TM39                 Win = text after a win, Gift = item given,
+#   Switch = 25                 Switch = game switch turned on, each Reward
+#   Reward = pbAddPokemon(:EEVEE, 5)   = one script line run on a win;
 #   Script = pbFoo              Script = script line run after the Gift,
-#   Switch = 25                 Switch = game switch turned on)
+#   Rage = 71,6                 Rage = once game switch 71 is on, it sees 6
+#   RageBattle = Traître !      cells ahead and says the RageBattle texts
+#   Hide = A                    instead of Battle; Hide = gone once the
+#                               condition holds, A = once beaten, like an
+#                               NPC's)
 #   [Copy N]                   (a copy of event 2 of map 24, as it is there:
 #   Pos = 7,2                   pages, graphics, commands; it keeps its ID when
 #   From = 24,2                 free, for the events that name it, such as a
@@ -84,8 +91,8 @@ module MapEvents
   TRAINER_COMMENTS = %w[Battle Type Name BattleID DoubleBattle Backdrop Continue EndBattle
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
-    npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide] + MOVE_KEYS,
-    trainer: %w[Pos Graphic Facing Sight Badge Win Gift Script Switch] + MOVE_KEYS + TRAINER_COMMENTS,
+    npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide Show] + MOVE_KEYS,
+    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Script Switch Rage RageBattle Hide] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]
   }
@@ -166,13 +173,15 @@ module MapEvents
       fail_at.call("direction « #{value} » inconnue (#{FACINGS.keys.join(', ')})")
     elsif key == "Move" && !MOVES[value]
       fail_at.call("déplacement « #{value} » inconnu (#{MOVES.keys.join(', ')})")
+    elsif key == "Rage" && value !~ /\A\d+\s*,\s*\d+\z/
+      fail_at.call("attendu « Rage = interrupteur,vue », par exemple 71,6")
     elsif key == "From" && value !~ /\A\d+\s*,\s*\d+\z/
       fail_at.call("attendu « From = carte,événement », par exemple 24,2")
     elsif key == "Trigger" && !TRIGGERS[value]
       fail_at.call("déclenchement « #{value} » inconnu (#{TRIGGERS.keys.join(', ')})")
     elsif key == "Hide" && value !~ HIDE_PATTERN
       fail_at.call("condition « #{value} » inconnue (A à D, S25, V7>=1)")
-    elsif key == "When" && value !~ WHEN_PATTERN
+    elsif %w[Show When].include?(key) && value !~ WHEN_PATTERN
       fail_at.call("condition « #{value} » inconnue (S25, V7>=1)")
     elsif NUMBER_KEYS.include?(key) && value !~ /\A\d+\z/
       fail_at.call("nombre attendu pour « #{key} », trouvé « #{value} »")
@@ -224,9 +233,12 @@ module MapEvents
       REQUIRED[entry.kind].each do |key|
         raise Error, "#{where} : « #{key} » manquant" if !entry.value(key)
       end
+      raise Error, "#{where} : « RageBattle » demande « Rage »" if entry.value("RageBattle") && !entry.value("Rage")
+      raise Error, "#{where} : « Rage » demande « RageBattle »" if entry.value("Rage") && !entry.value("RageBattle")
       if entry.kind == :npc
         raise Error, "#{where} : « Text », « Script » ou « Gift » manquant" if !%w[Text Script Gift].any? { |k| entry.value(k) }
         raise Error, "#{where} : « Wait » demande « When »" if entry.value("Wait") && !entry.value("When")
+        raise Error, "#{where} : « Show » et « When » ensemble" if entry.value("Show") && entry.value("When")
         raise Error, "#{where} : « Gift » demande « Once » (sinon il redonne)" if entry.value("Gift") && !entry.value("Once")
         raise Error, "#{where} : « Once » utilise déjà l'interrupteur local A de « Hide »" if entry.value("Once") && entry.value("Hide") == "A"
       end

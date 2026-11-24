@@ -10,8 +10,11 @@ module WorldEvents
   module_function
 
   # Draws the items of the world into plans. Returns [{ map:, source:, item: }]
-  # (source: sol, cache, don, recoin, terrain). weather: see weather_items.
-  def item_events(result, atlas, zones, tms, leaders, weather, plans, lines, rng)
+  # (source: sol, cache, don, recoin, terrain; a nook holding a Pokémon has
+  # pokemon: [species, level] and no item). weather: see weather_items.
+  # pact: how many Pact Incenses. revisit: { species:, type:, caps:, rng: }
+  # for the Pokémon and the lore of the nooks to come back to (none without).
+  def item_events(result, atlas, zones, tms, leaders, weather, plans, lines, rng, pact = 0, revisit = nil)
     zones = zones.to_h { |zone| [zone.name, zone] }
     used_tms = leaders.filter_map { |leader| leader[:tm]&.first }
     weather -= used_tms
@@ -24,16 +27,22 @@ module WorldEvents
     slots.each_with_index { |slot, i| slot[:source] = sources[i] }
     all = (slots + nooks).sort_by { |slot| [slot[:seals], slot[:index], slot[:map]] }
     all.each do |slot|
-      table = (slot[:source] == "recoin") ? NOOK_TABLE : ITEM_TABLE
+      table = slot[:revisit] ? revisit_table : ((slot[:source] == "recoin") ? nook_table : item_table)
       slot[:item] = draw_item(table, slot[:seals], tms, used_tms, rng)
     end
-    heart_scales(all)
+    heart_scales(all.reject { |slot| slot[:revisit] })
     weather_nooks(all, weather)
+    pact_incenses(all, weather, pact)
+    revisit_loot(all, zones, revisit) if revisit
     items = []
     # Gifts first: they need a cell by the street
     all.sort_by { |slot| (slot[:source] == "don") ? 0 : 1 }.each do |slot|
       placed = place_item(plans, atlas[:maps][slot[:map]], slot, lines, rng)
-      items.push({ map: slot[:map], source: placed, item: slot[:item] }) if placed
+      next if !placed
+      item = { map: slot[:map], source: placed, item: slot[:pokemon] ? nil : slot[:item] }
+      item[:pokemon] = slot[:pokemon] if slot[:pokemon]
+      item[:revisit] = true if slot[:revisit]
+      items.push(item)
     end
     items.concat(field_item_events(atlas, plans, lines, rng))
     relearner_events(result, atlas, zones, plans, rng)
@@ -65,9 +74,9 @@ module WorldEvents
   end
 
   # The loot of each nook, at the seals it opens with: a pocket or an islet
-  # on its map, a dark cave at its far end.
+  # on its map, a dark cave at its far end; and of each hill top.
   def nook_slots(result, atlas, zones)
-    opened = field_item_seals(atlas)
+    opened = field_item_seals(atlas, zones)
     slots = []
     places = result.places.map(&:first) + (result.islands || []).map(&:first)
     places.each do |wp|
@@ -77,6 +86,8 @@ module WorldEvents
         next if kind == "sombre"
         slots.push(nook_slot(zones, wp.name, [x, y], kind, opened))
       end
+      # The top of a hill: a loot for whoever climbs it
+      (spots[:hill_tops] || []).each { |cell| slots.push(nook_slot(zones, wp.name, cell, nil, opened)) }
     end
     result.caves.each do |wp, name, *|
       spots = atlas[:maps][name]
@@ -86,19 +97,55 @@ module WorldEvents
     return slots
   end
 
+  # A nook whose field item is given after its map's seals is one to come
+  # back to (revisit).
   def nook_slot(zones, name, cell, kind, opened)
     found = slot(zones, name, "recoin")
     item = MapProceduralGenerator::NOOKS[kind]
+    found[:revisit] = true if opened[item].to_i > found[:seals]
     found[:seals] = [found[:seals], opened[item] || 0].max
     return found.merge(cell: cell)
   end
 
-  # Seals won once each field item is given: its town's lieutenant's.
-  def field_item_seals(atlas)
+  # The nooks to come back to (#269): a Pokémon of the imposed type for REVISIT_POKEMON % of them, a trace of
+  # the Pact before the item for REVISIT_LORE % of the others.
+  def revisit_loot(slots, zones, revisit)
+    rng = revisit[:rng]
+    typed = (revisit[:species] || {}).values.select do |sp|
+      revisit[:type] && sp.monotype_types.include?(revisit[:type]) && REVISIT_TIERS.include?(sp.tier)
+    end
+    slots.each do |slot|
+      next if !slot[:revisit]
+      if rng.rand(100) < REVISIT_POKEMON && !typed.empty?
+        level = revisit_level(zones, slot[:seals], revisit[:caps])
+        slot[:pokemon] = pool_party(revisit[:species], typed, 1, level, level, slot[:seals], rng)[0]
+      elsif rng.rand(100) < REVISIT_LORE
+        slot[:lore] = true
+      end
+    end
+  end
+
+  # Level of a Pokémon found in a nook opened with that many seals: the top
+  # of the wild Pokémon of that Tronçon, under the cap.
+  def revisit_level(zones, seals, caps)
+    tops = zones.values.select { |zone| zone.seals == seals }.map { |zone| zone.levels[1] }
+    top = tops.max || zones.values.map { |zone| zone.levels[1] }.max
+    return caps ? [top, caps[seals] || caps.last].min : top
+  end
+
+  # Seals won once each field item is given: its town's lieutenant's; for
+  # one given outside the gyms (the Skates, #270), the seals on the way to
+  # its town.
+  def field_item_seals(atlas, zones = {})
     return atlas[:items].to_h do |item, town|
+      next [item, zones[town]&.seals || 0] if extra_field_item?(item)
       gym = atlas[:gyms].index(town)
       [item, gym ? gym + 1 : 0]
     end
+  end
+
+  def extra_field_item?(item)
+    return MapProceduralGenerator::EXTRA_FIELD_ITEMS.key?(item)
   end
 
   # How many of each source among count slots: gifts at least GIFT_SHARE %,
@@ -140,14 +187,25 @@ module WorldEvents
   end
 
   # The weather items go to nooks evenly spread along the way (at most half
-  # of them, so the nooks keep some rare loot), the rest to other slots, in
-  # place of their item (never of a Heart Scale).
+  # of them, so the nooks keep some rare loot; never one to come back to,
+  # which keeps its own), the rest to other slots, in place of their item
+  # (never of a Heart Scale).
   def weather_nooks(slots, weather)
-    nooks = slots.select { |slot| slot[:source] == "recoin" && slot[:item] != HEART_SCALE }
-    others = slots.select { |slot| slot[:source] != "recoin" && slot[:item] != HEART_SCALE }
+    nooks = slots.select { |slot| slot[:source] == "recoin" && !slot[:revisit] && slot[:item] != HEART_SCALE }
+    others = slots.select { |slot| slot[:source] != "recoin" && !slot[:revisit] && slot[:item] != HEART_SCALE }
     in_nooks = [weather.length, (nooks.length + 1) / 2].min
     spread(nooks, weather.first(in_nooks))
     spread(others, weather.drop(in_nooks))
+  end
+
+  # The Pact Incenses go to nooks and gifts evenly spread along the way, in
+  # place of their item (never of a Heart Scale nor of a weather item, nor in
+  # a nook to come back to).
+  def pact_incenses(slots, weather, count)
+    spots = slots.select do |slot|
+      %w[recoin don].include?(slot[:source]) && !slot[:revisit] && slot[:item] != HEART_SCALE && !weather.include?(slot[:item])
+    end
+    spread(spots, [PACT_INCENSE] * count)
   end
 
   # Items evenly spread over these slots.
@@ -164,7 +222,16 @@ module WorldEvents
     count = taken.count { |*, text| text.start_with?("[Item ", "[Npc Don") } + 1
     if slot[:cell]
       x, y = slot[:cell]
-      add(plans, map, "Item", "Recoin#{count}", x, y, ["Item", slot[:item]])
+      if slot[:pokemon]
+        species, level = slot[:pokemon]
+        add(plans, map, "Npc", "Recoin#{count}", x, y, ["Graphic", NOOK_GRAPHIC], *texts(lines, "recoin_pokemon", "Text", spots[:title]),
+            ["Script", "pbSetSelfSwitch(@event_id, \"A\", true) if WorldEvents.nook_pokemon(:#{species}, #{level})"], ["Hide", "A"])
+      elsif slot[:lore]
+        add(plans, map, "Npc", "Recoin#{count}", x, y, ["Graphic", NOOK_GRAPHIC], *texts(lines, "recoin_lore", "Text", spots[:title]),
+            ["Script", "pbSetSelfSwitch(@event_id, \"A\", true) if pbItemBall(:#{slot[:item]})"], ["Hide", "A"])
+      else
+        add(plans, map, "Item", "Recoin#{count}", x, y, ["Item", slot[:item]])
+      end
       return "recoin"
     end
     if slot[:source] == "don"
@@ -216,12 +283,19 @@ module WorldEvents
   end
 
   # Each field item: a member of the Family in its town gives it once the
-  # town's lieutenant is beaten (its switch).
+  # town's lieutenant is beaten (its switch). One obtained outside the gyms
+  # (the Skates, #270): a hidden inhabitant gives it at once.
   def field_item_events(atlas, plans, lines, rng)
     items = []
     atlas[:items].each_with_index do |(item, town), i|
       spots = atlas[:maps][town]
       next if !spots
+      # Given by a guild's leader (#274): no hidden inhabitant
+      next items.push({ map: town, source: "guilde", item: item }) if hq_place?(atlas, town)
+      if extra_field_item?(item)
+        items.push({ map: town, source: "cache_terrain", item: item }) if hidden_giver(spots, item, i, town, plans, lines, rng)
+        next
+      end
       cell = item_cell(spots, npc_cells(spots, rng), plans[town])
       next if !cell
       x, y, facing = cell
@@ -233,6 +307,20 @@ module WorldEvents
       items.push({ map: town, source: "terrain", item: item })
     end
     return items
+  end
+
+  # A hidden inhabitant who gives that field item: on the cell by a street
+  # farthest from the town's Pokémon Centre (a dead end first).
+  def hidden_giver(spots, item, index, town, plans, lines, rng)
+    door = (spots[:doors] || []).find { |_x, _y, kind| kind == "centre" } || spots[:exits]&.first&.drop(1) || [0, 0]
+    cells = npc_cells(spots, rng).sort_by { |x, y, _facing| [-((x - door[0]).abs + (y - door[1]).abs), y, x] }
+    cell = item_cell(spots, cells, plans[town])
+    return false if !cell
+    x, y, facing = cell
+    add(plans, town, "Npc", "Terrain#{index + 1}", x, y, ["Graphic", HIDDEN_GIVER_GRAPHIC], ["Facing", facing],
+        *texts(lines, "terrain_cache", "Text", spots[:title]), ["Gift", item],
+        *texts(lines, "terrain_cache_apres", "Once", spots[:title]))
+    return true
   end
 
   # A Move Relearner in a town reached with at most each RELEARNERS seals

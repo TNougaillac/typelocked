@@ -1,0 +1,7 @@
+Brique = Boutique fleurie
+Type   = immeuble
+Porte  = 1,2
+[Map]
+ΩΩΩΩ
+ΩΩΩΩ
+ΩΩΩΩ

@@ -18,8 +18,12 @@ module ProceduralEncounters
   end
 
   # quiet: console only (world of a new game).
+  # The dungeons of the guilds draw from their pools (WorldEvents, when
+  # installed).
   def write_world(result, map_ids, seed, export, quiet: false)
-    lines, generated = world_encounters(result, load_species, level_caps, seed)
+    species = load_species
+    pools = defined?(WorldEvents) ? WorldEvents.guild_pools(WorldEvents.load_guilds(".", species)) : {}
+    lines, generated = world_encounters(result, species, level_caps, seed, pools)
     pbs = MapGenerator.read_pbs(ENCOUNTERS_PBS)
     copy = +""
     lines.each do |name, body|

@@ -12,7 +12,7 @@ module MapProceduralGenerator
   # arrival: [x, y] where the player lands inside; a room of the League (see
   # LEAGUE_ROOMS): role, onward ([x, y, next room's name, tx, ty]: its door to
   # the next room), and no door nor exit but in the entrance
-  Interior = Struct.new(:name, :owner, :kind, :template, :door, :exit, :arrival, :role, :onward)
+  Interior = Struct.new(:name, :owner, :kind, :template, :door, :exit, :arrival, :role, :onward, :graphic)
   # Symbols of the warps in a plan's [Events] (one per warp of a place)
   WARP_SYMBOLS = (("1".."9").to_a + ("a".."z").to_a + ("A".."Z").to_a).freeze
   WARP_FACING = { 2 => "bas", 4 => "gauche", 6 => "droite", 8 => "haut" }.freeze
@@ -20,18 +20,21 @@ module MapProceduralGenerator
   module_function
 
   # The interiors behind the doors of these places ([WorldPlace, Layout, salt]),
-  # each place drawing from its own seed.
-  def place_interiors(places, seed)
+  # each place drawing from its own seed. dungeons: { headquarters => place }
+  # whose door leads to its guild's dungeon instead (#337).
+  def place_interiors(places, seed, dungeons = {})
     return places.flat_map do |wp, layout, salt|
       rng = Random.new((seed * 1000) + 300 + salt)
       count = Hash.new(0)
       layout.doors.flat_map do |x, y, brick|
         next league_rooms(wp.name, [x, y]) if brick.kind == LEAGUE
         templates = INTERIORS[brick.kind]
-        next [] if !templates || NO_INTERIOR.include?(brick.kind)
+        # A gym (#121) or a guild's dungeon: its own floor (006_Caves.rb)
+        next [] if !templates || NO_INTERIOR.include?(brick.kind) || dungeons[brick.kind] == wp.name || brick.kind == GYM
         count[brick.kind] += 1
         template, ex, ey = templates.sample(random: rng)
-        [Interior.new("#{wp.name} - #{brick.kind} #{count[brick.kind]}", wp.name, brick.kind, template, [x, y], [ex, ey], [ex, ey - 1])]
+        graphic = DOOR_GRAPHICS[brick.rows[brick.door[1]][brick.door[0]]]
+        [Interior.new("#{wp.name} - #{brick.kind} #{count[brick.kind]}", wp.name, brick.kind, template, [x, y], [ex, ey], [ex, ey - 1], nil, nil, graphic)]
       end
     end
   end
@@ -47,14 +50,25 @@ module MapProceduralGenerator
   end
 
   # [Warps] and [Events] of a place of that size: warps are
-  # [x, y, target map name, tx, ty, facing (2, 4, 6, 8)].
+  # [x, y, target map name, tx, ty, facing (2, 4, 6, 8), door charset or nil].
+  # The same warps on a plan, as parse would read them from warps_text.
+  def add_plan_warps(plan, warps, width, height)
+    return plan if warps.empty?
+    plan.events = Array.new(height) { "." * width }
+    warps.each_with_index do |(x, y, target, tx, ty, facing, graphic), i|
+      plan.warps[WARP_SYMBOLS[i]] = MapGenerator::Warp.new(target, tx, ty, WARP_FACING[facing] ? facing : 0, graphic)
+      plan.events[y][x] = WARP_SYMBOLS[i]
+    end
+    return plan
+  end
+
   def warps_text(warps, width, height)
     return "" if warps.empty?
     raise Error, "plus de #{WARP_SYMBOLS.length} passages sur une carte" if warps.length > WARP_SYMBOLS.length
     text = +"\n[Warps]\n"
     events = Array.new(height) { "." * width }
-    warps.each_with_index do |(x, y, target, tx, ty, facing), i|
-      text << "#{WARP_SYMBOLS[i]} = #{target} #{tx},#{ty} #{WARP_FACING[facing]}\n"
+    warps.each_with_index do |(x, y, target, tx, ty, facing, graphic), i|
+      text << "#{WARP_SYMBOLS[i]} = #{target} #{tx},#{ty} #{WARP_FACING[facing]}#{" porte=#{graphic}" if graphic}\n"
       events[y][x] = WARP_SYMBOLS[i]
     end
     text << "\n[Events]\n"
@@ -72,6 +86,7 @@ module MapProceduralGenerator
     template = load_data(sprintf("Data/Map%03d.rxdata", interior.template))
     map = Marshal.load(Marshal.dump(template))
     map.events = {}
+    map.tileset_id = INTERIOR_TILESETS.fetch(map.tileset_id, map.tileset_id)
     owner = map_ids[interior.owner]
     add_warp = lambda do |x, y, target, tx, ty, facing|
       event = RPG::Event.new(x, y)

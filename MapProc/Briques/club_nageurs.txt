@@ -1,0 +1,13 @@
+# Club de natation : le QG du Cercle des nageurs (#218). Le bâtiment à
+# bassin, où l'on entre, et un parasol, sur la plage. Posé seulement là où la
+# guilde est tirée (une ville portuaire à la plage : les routes de plage sont
+# en mer).
+Brique    = Club du Cercle des nageurs
+Type      = nageurs
+Poids     = 2
+Ambiances = plage
+Porte     = 2,2
+[Map]
+εεεεε   œœ
+εεεεε   œœ
+εεεεε

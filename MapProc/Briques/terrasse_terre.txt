@@ -1,0 +1,8 @@
+# Terrasse basse de terre : un massif surélevé (#296).
+Brique    = Terrasse de terre
+Type      = decor
+Ambiances = chemins de terre, terre battue, automne
+Poids     = 3
+[Map]
+ʫʬʬʭ
+ʫʬʬʭ

@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Maison verte à volets
+Type   = batisse
+[Map]
+ЗЗЗЗ
+ЗЗЗЗ
+ЗЗЗЗ

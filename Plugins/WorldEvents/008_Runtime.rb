@@ -113,6 +113,39 @@ module WorldEvents
     pbMoveRoute($game_player, [PBMoveRoute::BACKWARD], true)
   end
 
+  # A rallied guild gives a Pokémon of the imposed type (#186): a gift, so
+  # the Nuzlocke asks its nickname (pbNickname) and it can die like any other.
+  def guild_pokemon(species, level)
+    pbAddPokemon(species, level)
+  end
+
+  # A Pokémon found in a nook to come back to (#269): added like a capture
+  # (the Nuzlocke nickname applies). False if the player can't take it (the
+  # nook keeps it).
+  def nook_pokemon(species, level)
+    return pbAddPokemon(species, level)
+  end
+
+  # A beaten guild pays the player.
+  def guild_money(amount)
+    $player.money += amount
+    pbMessage(_INTL("{1} reçoit {2} $ !", $player.name, amount.to_s_formatted))
+  end
+
+  # The settling of scores (#190): the player and the ally's leader against
+  # the enemy's leader and its right hand; won, the enemy's switch is on,
+  # as if its leader were beaten (its members leave, the ally's bonus).
+  def showdown(partner_type, partner_name, leader_type, leader_name, second_type, second_name, switch)
+    pbRegisterPartner(partner_type, partner_name, TRAINER_VERSION)
+    setBattleRule("double")
+    won = TrainerBattle.start(leader_type, leader_name, TRAINER_VERSION, second_type, second_name, TRAINER_VERSION)
+    pbDeregisterPartner
+    return if !won
+    $game_switches[switch] = true
+    $game_map.need_refresh = true
+    say("guilde_reglement_fin")
+  end
+
   # Arceus (interpreter: the event's, for OverworldBoss): beaten or caught,
   # the Pact is broken and the door of its room opens.
   def arceus(interpreter, level, switch)
@@ -121,6 +154,31 @@ module WorldEvents
     $game_switches[switch] = true
     $game_map.need_refresh = true
     say("arceus_fin")
+  end
+
+  # A statue of a generated gym (#121, Statue<rank> of count): lit once
+  # touched (its self switch A). Ordered: it says its number, and a statue
+  # touched out of turn puts them all out. The last one lit turns on switch,
+  # which lifts the barriers around the lieutenant.
+  def gym_statue(rank, count, switch, ordered)
+    statues = (1..count).map { |k| $game_map.events.values.find { |e| e.name.end_with?(" Statue#{k}") } }
+    return if statues.include?(nil)
+    key = ->(event) { [$game_map.map_id, event.id, "A"] }
+    return say("arene_statue_deja") if $game_self_switches[key.call(statues[rank - 1])]
+    say("arene_statue_rang", "rang" => rank.to_s) if ordered
+    if ordered && statues.count { |e| $game_self_switches[key.call(e)] } != rank - 1
+      statues.each { |e| $game_self_switches[key.call(e)] = false }
+      pbSEPlay("GUI party switch")
+      return say("arene_statue_erreur")
+    end
+    $game_self_switches[key.call(statues[rank - 1])] = true
+    pbSEPlay("Voltorb Flip tile")
+    say("arene_statue")
+    return if statues.any? { |e| !$game_self_switches[key.call(e)] }
+    $game_switches[switch] = true
+    $game_map.need_refresh = true
+    pbSEPlay("Door slide")
+    say("arene_ouverte")
   end
 end
 
@@ -141,4 +199,13 @@ class << TrainerBattle
     setBattleRule("single") if $game_temp.battle_rules["size"] == "double" && !pbCanDoubleBattle?
     return __world_events_start_core(*args)
   end
+end
+
+# A defeat opens the guilds' dungeons again (#335): the player wakes at a
+# Centre, the exits closed by GUILD_LOCK_SWITCH no longer hold them.
+alias __world_events_pbStartOver pbStartOver
+
+def pbStartOver(*args)
+  (1..WorldEvents::GUILD_LOCKS).each { |i| $game_switches[WorldEvents::GUILD_LOCK_SWITCH + i] = false }
+  return __world_events_pbStartOver(*args)
 end

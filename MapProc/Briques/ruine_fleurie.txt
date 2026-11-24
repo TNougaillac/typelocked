@@ -1,0 +1,8 @@
+# Ruines : une ruine au toit couvert de fleurs, fermée.
+Brique    = Ruine fleurie
+Type      = decor
+Ambiances = ruines
+[Map]
+ττττττ
+ττττττ
+ττττττ

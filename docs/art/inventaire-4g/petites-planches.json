@@ -1,0 +1,227 @@
+[
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Base.png",
+  "tiles": 96,
+  "used": 96
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Berry Soil.png",
+  "tiles": 36,
+  "used": 4
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Canalave City Set.png",
+  "tiles": 120,
+  "used": 16
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Concrete Path.png",
+  "tiles": 96,
+  "used": 16
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Dirt Path.png",
+  "tiles": 96,
+  "used": 16
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Eterna City Road.png",
+  "tiles": 60,
+  "used": 8
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Eterna Forest Set.png",
+  "tiles": 192,
+  "used": 40
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Flower (Blue - Autotile).png",
+  "tiles": 16,
+  "used": 0
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Flower (Pink - Autotile).png",
+  "tiles": 16,
+  "used": 0
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Flower (Purple - Autotile).png",
+  "tiles": 16,
+  "used": 0
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Flower (Yellow - Autotile).png",
+  "tiles": 16,
+  "used": 0
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Flowers (Static).png",
+  "tiles": 12,
+  "used": 0
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Grass.png",
+  "tiles": 4,
+  "used": 0
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Grassy Path.png",
+  "tiles": 96,
+  "used": 16
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Hearthome City Set.png",
+  "tiles": 120,
+  "used": 16
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Jubilife City Set.png",
+  "tiles": 100,
+  "used": 16
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Ledges.png",
+  "tiles": 58,
+  "used": 8
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Oreburgh City Set.png",
+  "tiles": 112,
+  "used": 4
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Path.png",
+  "tiles": 96,
+  "used": 12
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Sand.png",
+  "tiles": 96,
+  "used": 36
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Snow Patches.png",
+  "tiles": 64,
+  "used": 13
+ },
+ {
+  "file": "DPPt Exterior Ground Tiles v1/Platinum/Tall Grass.png",
+  "tiles": 8,
+  "used": 0
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Beach Corner.png",
+  "tiles": 352,
+  "used": 192
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Beach.png",
+  "tiles": 288,
+  "used": 0
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Flowers 01.png",
+  "tiles": 25,
+  "used": 25
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Flowers 02.png",
+  "tiles": 25,
+  "used": 0
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Flowers 03.png",
+  "tiles": 25,
+  "used": 25
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Flowers 04.png",
+  "tiles": 25,
+  "used": 0
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Ledge.png",
+  "tiles": 320,
+  "used": 224
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Rocks.png",
+  "tiles": 352,
+  "used": 352
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Sea.png",
+  "tiles": 352,
+  "used": 224
+ },
+ {
+  "file": "HGSS Autotiles/HGSS Waves.png",
+  "tiles": 288,
+  "used": 218
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/A_beach.png",
+  "tiles": 72,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Cavewater.png",
+  "tiles": 132,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Flowers2.png",
+  "tiles": 11,
+  "used": 1
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/HGSS Sea.png",
+  "tiles": 352,
+  "used": 224
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/HGSS Waves.png",
+  "tiles": 288,
+  "used": 218
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Lake.png",
+  "tiles": 216,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Land.png",
+  "tiles": 132,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Land2 (2).png",
+  "tiles": 132,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/NOANIMSEA.png",
+  "tiles": 12,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/STILL.png",
+  "tiles": 132,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Sand.png",
+  "tiles": 11,
+  "used": 1
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/TFJ_Waterfall.png",
+  "tiles": 60,
+  "used": 0
+ },
+ {
+  "file": "Remastered Kanto Johto Map Pack/Graphics/Autotiles/Waterfall crest.png",
+  "tiles": 4,
+  "used": 2
+ }
+]

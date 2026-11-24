@@ -4,5 +4,4 @@ Type      = decor
 Ambiances = forêt tropicale
 Poids     = 2
 [Map]
-ļļ
- ļ
+ļ ļ ļ

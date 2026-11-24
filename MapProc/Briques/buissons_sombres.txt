@@ -1,0 +1,6 @@
+# Deux buissons sombres (SirMalo Nature D1) (#317).
+Brique    = Buissons sombres
+Type      = decor
+Ambiances = verdoyante, chemins de terre, forêt sombre, marais
+[Map]
+ѶѶ ѶѶ

@@ -41,6 +41,9 @@
 #                               on the ground below the water, left end,
 #                               middle and right end; an [Ambiance] may give
 #                               its own tiles: « Rive = T832 T833 T834 »)
+#   EauBordee = oui            (optional: the water autotile draws its own
+#                               bottom bank, « Rive » is not drawn below it;
+#                               « {rive} » still gives its tiles)
 #   Rebord  = (_)              (with Ponton: [Legend] symbols of water with the
 #                               south lip of a pier drawn on it, left, middle
 #                               and right: the row below the last planks)
@@ -63,10 +66,13 @@
 #                               brick file for it)
 #   [Ambiance verdoyante]      (optional, as many as wanted: each place draws
 #   Poids = 6                   one, by weight, 1 by default)
+#   Mer   = oui                (optional: drawn only by the sea, by a port
+#                               town, an island or a sea route)
 #   Sol   = T1|T2|T3           (tiles of the ground symbol, as in [Legend])
 #   Rue   = T274 N=T266 ...    (tiles of the street symbol: as in [Terrains]
 #                               with edges N=..., else as in [Legend]; not
-#                               needed when Rue and Sol are the same symbol)
+#                               needed when Rue and Sol are the same symbol;
+#                               several lines: styles, each town draws one)
 #   t     = T520 2x3           (a symbol of the palette below redefined for
 #                               this ambiance, in its own section's syntax)
 #   arbre = 0..1 par case      (a type of [Briques] with another quantity for
@@ -88,6 +94,9 @@
 #                               lamps, benches, signs)
 #   Ambiances = sable, minérale (optional: only drawn in places of one of
 #                               these [Ambiance], comma-separated)
+#   Unique = oui               (optional: laid once per place at most)
+#   Porte = 1,1 est            (a door on a side of the brick, walked into
+#                               from the east or « ouest »)
 #   [Map]
 #   CCCCC                      (palette symbols; " " = not part of the brick)
 #===============================================================================
@@ -99,8 +108,10 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock, :plan, :sea_rock)
+                     :mask, :joints, :filler, :lock, :plan, :sea_rock, :edged_water, :street_style, :gates)
   # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
+  # gates: a guild's dungeon (#335), the number of gates across it (see
+  # close_gates), nil = none;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
   # filler: « Comble », a symbol of one cell that blocks the way, for the
@@ -110,20 +121,48 @@ module MapProceduralGenerator
   # ferry: its ferry terminal leads to an island (set by the world); nook:
   # the obstacle of its optional nook, a key of NOOKS (set by the world);
   # banks: « Rive », the 3 symbols of the bank below the water;
+  # edged_water: « EauBordee », the water draws its own bottom bank;
   # fixed_counts: quantities set by the world (plateau, islands), which the
-  # ambiance doesn't change
-  # ground, street: tile text of the ground and street symbols; banks: tiles
+  # ambiance doesn't change; street_style: the town's street style (index in
+  # its ambiance's streets, drawn by generate_place, nil = the first)
+  # ground, street: tile text of the ground and street symbols (streets: every
+  # « Rue » line, its styles; street: the first); banks: tiles
   # of the 3 bank symbols on that ground (nil = those of the palette);
   # palette: symbol => its definition for this ambiance; counts, per_case:
   # quantities of brick types for this ambiance, as in [Briques]
-  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case)
-  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
+  # coastal: « Mer = oui », drawn only by the sea (see coastal?)
+  Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets,
+                        :coastal)
+  # door_side: nil = the door is walked into from below; « est », « ouest » =
+  # from that side of it (« Porte = 1,1 est », a cave's mouth in a rock wall)
+  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances, :unique, :door_side) do
+    # The cell in front of the door, from the brick's corner: [x, y]
+    def front
+      ox, oy = DOOR_FRONTS[door_side]
+      return [door[0] + ox, door[1] + oy]
+    end
+
+    # The top left cell of the path that leaves the door (STREET_WIDTH wide)
+    def path_start
+      return (door_side == "ouest") ? [door[0] - STREET_WIDTH, door[1]] : front
+    end
+  end
+  DOOR_FRONTS = { nil => [0, 1], "est" => [1, 0], "ouest" => [-1, 0] }.freeze
+  # The way the player faces when coming out of a door (MapGen's [Warps])
+  DOOR_FACINGS = { nil => "bas", "est" => "droite", "ouest" => "gauche" }.freeze
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
+  RIDGE = "crete"     # file of the ridges drawn by the builder (type « montagne »)
   SIDES = %w[nord sud est ouest]
 
   module_function
+
+  # The cell in front of a door laid at x, y (the door's own cell): [x, y].
+  def door_front(x, y, brick)
+    fx, fy = brick.front
+    return [x - brick.door[0] + fx, y - brick.door[1] + fy]
+  end
 
   def read(path)
     return File.read(path, encoding: "UTF-8").sub(/\A﻿/, "")
@@ -138,7 +177,7 @@ module MapProceduralGenerator
   end
 
   def parse_place(text, file = "lieu")
-    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false, nil, nil, nil, false, nil, nil, nil, false)
+    place = Place.new(file, nil, nil, nil, nil, nil, nil, nil, nil, [], 1..1, nil, {}, [], +"", nil, nil, nil, nil, [], nil, nil, false, nil, nil, false, false, nil, false, nil, nil, nil, false, nil, nil, nil, false, false)
     section = :header
     text.each_line.with_index(1) do |raw, lineno|
       fail_at = proc { |msg| raise Error, "#{file}, ligne #{lineno} : #{msg}" }
@@ -172,12 +211,15 @@ module MapProceduralGenerator
         case key.downcase
         when "poids" then ambiance.weight = integer(value, fail_at)
         when "sol"   then ambiance.ground = value
-        when "rue"   then ambiance.street = value
+        when "mer"   then ambiance.coastal = (value.downcase == "oui")
+        when "rue"
+          ambiance.street ||= value
+          (ambiance.streets ||= []).push(value)
         when "rive"
           ambiance.banks = value.split
           fail_at.call("3 tuiles attendues (gauche, milieu, droite), ex. « T832 T833 T834 »") unless ambiance.banks.length == 3
         else
-          fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive, un type de [Briques] ou un symbole)") if !place.counts.key?(key)
+          fail_at.call("clé inconnue « #{key} » dans [Ambiance] (Poids, Sol, Rue, Rive, Mer, un type de [Briques] ou un symbole)") if !place.counts.key?(key)
           ambiance.per_case.push(key) if value.sub!(/\s+par\s+case\z/, "")
           ambiance.counts[key] = range(value, fail_at)
         end
@@ -194,6 +236,7 @@ module MapProceduralGenerator
         place.width, place.height = $1.to_i, $2.to_i
       when "sol"     then place.ground = symbol(value, fail_at)
       when "rue"     then place.street = symbol(value, fail_at)
+      when "eaubordee" then place.edged_water = (value == "oui")
       when "bordure" then place.border = symbol(value, fail_at)
       when "comble"  then place.filler = symbol(value, fail_at)
       when "sorties"
@@ -266,13 +309,17 @@ module MapProceduralGenerator
       when "brique" then brick.name = value
       when "type"   then brick.kind = value
       when "porte"
-        fail_at.call("attendu « colonne,ligne », ex. 2,4") unless value =~ /\A(\d+),(\d+)\z/
+        fail_at.call("attendu « colonne,ligne », ex. 2,4, ou « 1,1 est »") unless value =~ /\A(\d+),(\d+)(?:\s+(est|ouest))?\z/
         brick.door = [$1.to_i, $2.to_i]
+        brick.door_side = $3
       when "poids"  then brick.weight = integer(value, fail_at)
       when "contre"
         fail_at.call("seule valeur possible : « Contre = rue »") unless value == "rue"
         brick.by_street = true
       when "ambiances" then brick.ambiances = value.split(",").map(&:strip)
+      when "unique"
+        fail_at.call("seule valeur possible : « Unique = oui »") unless value == "oui"
+        brick.unique = true
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -283,7 +330,12 @@ module MapProceduralGenerator
     brick.rows.map! { |row| row.ljust(width) }
     if brick.door
       x, y = brick.door
-      if y != brick.rows.length - 1 || x >= width || brick.rows[y][x] == " "
+      if brick.door_side
+        fx, = brick.front
+        if y >= brick.rows.length || x >= width || brick.rows[y][x] == " " || (fx.between?(0, width - 1) && brick.rows[y][fx] != " ")
+          raise Error, "#{file} : la porte #{x},#{y} doit être une case du bord #{brick.door_side} de [Map]"
+        end
+      elsif y != brick.rows.length - 1 || x >= width || brick.rows[y][x] == " "
         raise Error, "#{file} : la porte #{x},#{y} doit être une case de la dernière ligne de [Map]"
       end
     end
@@ -299,7 +351,7 @@ module MapProceduralGenerator
         raise Error, "#{place.file}, ligne #{lineno} : [Ambiance #{ambiance.name}] redéfinit « #{sym} », absent de la palette"
       end
     end
-    palette = MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+    palette = palette_plan(place)
     # With ambiances, the ground and street are defined by each ambiance only
     if place.ambiances.any?
       [place.ground, place.street].uniq.each do |sym|
@@ -377,9 +429,17 @@ module MapProceduralGenerator
 
   # Draws an ambiance by weight; nil if the place has none.
   def draw_ambiance(place, rng)
-    return nil if place.ambiances.empty?
-    roll = rng.rand(place.ambiances.sum(&:weight))
-    return place.ambiances.find { |a| (roll -= a.weight) < 0 }.name
+    pool = place.ambiances.select do |a|
+      (!a.coastal || coastal?(place)) && (a.name != MOUNTAIN_AMBIANCE || place.mountain)
+    end
+    return nil if pool.empty?
+    roll = rng.rand(pool.sum(&:weight))
+    return pool.find { |a| (roll -= a.weight) < 0 }.name
+  end
+
+  # By the sea: a port town, an island or a sea route.
+  def coastal?(place)
+    return !!(place.port || place.island || place.crossing == "mer")
   end
 
   # Palette with the ambiance's ground and street.
@@ -391,8 +451,10 @@ module MapProceduralGenerator
     text = place.palette.gsub("{sol}", ground).gsub("{rive}", rive)
     text << "\n# Ambiance #{chosen.name}\n[Legend]\n#{place.ground} = #{chosen.ground}\n"
     if chosen.street && place.street != place.ground
-      section = (chosen.street =~ /\s\w+=/) ? "Terrains" : "Legend"
-      text << "[#{section}]\n#{place.street} = #{chosen.street}\n"
+      tiles = chosen.streets[place.street_style || 0]
+      section = (tiles =~ /\s\w+=/) ? "Terrains" : "Legend"
+      text << "[#{section}]\n#{place.street} = #{tiles}\n"
+      text << style_centre_text(place, chosen)
     end
     if chosen.banks && place.banks
       text << "[Legend]\n"
@@ -402,6 +464,17 @@ module MapProceduralGenerator
       text << "[#{palette_section(place, sym)}]\n#{sym} = #{value.gsub('{sol}', ground).gsub('{rive}', rive)}\n"
     end
     return text
+  end
+
+  # The [Legend] symbols of the palette drawn with the middle tile of the
+  # first street style (the square's paving under the fountain) take that of
+  # the town's style.
+  def style_centre_text(place, chosen)
+    first = chosen.streets[0].split.first
+    own = chosen.streets[place.street_style || 0].split.first
+    return "" if first == own
+    syms = place.palette.scan(/^(\S)\s*=\s*#{first}\s*(?:#.*)?$/).flatten
+    return syms.map { |sym| "[Legend]\n#{sym} = #{own}\n" }.join
   end
 
   # The middle tile of the place's own « Rive » (« T849 » for « ' = T849 »),
@@ -439,6 +512,28 @@ module MapProceduralGenerator
       place.per_case.push(kind) if chosen.per_case.include?(kind)
     end
     return place
+  end
+
+  # Set by the CI: every plan made without text goes through the whole
+  # validation of MapGenerator.parse (#345). Off in game.
+  class << self
+    attr_accessor :check_plans
+  end
+
+  # The palette of a place as a parsed MapGen plan, read once for each
+  # palette text (ambiance, street style) and shared by the plans of every
+  # place that has it (#345).
+  # shortcut: kept for the whole session (a few dozen palettes), cleared by nothing; fine while palettes don't change in game.
+  def palette_plan(place)
+    key = [place.ground, place.tileset_id, palette_text(place)]
+    return (@palettes ||= {})[key] ||= MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+  end
+
+  # MapGen plan of a place, with no text to read again: its palette, then
+  # the assembled rows and levels, as parse would read them from plan_text.
+  def place_plan(place, seed, rows, levels = nil)
+    return MapGenerator.assemble(palette_plan(place), name: place.name, map_id: place.map_id, seed: seed, rows: rows,
+                                 overlays: levels&.any? ? { 2 => levels } : {}, check: check_plans)
   end
 
   # MapGen plan text of a place: header, palette, then the assembled rows.

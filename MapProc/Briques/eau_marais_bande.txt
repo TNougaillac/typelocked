@@ -1,0 +1,9 @@
+# Marais : un bras d'eau peu profonde.
+Brique    = Eau du marais (bande)
+Type      = decor
+Ambiances = marais
+Poids     = 2
+[Map]
+ɗɗɗɗɗɗɗɗɗɗ
+ɗɗɗɗɗɗɗɗɗɗ
+ɗɗɗɗɗɗɗɗɗɗ

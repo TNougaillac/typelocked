@@ -1,8 +1,8 @@
-# Panneau d'affichage et petit panneau en bois.
+# Un grand panneau en bois.
 Brique    = Panneaux de bois
 Type      = decor
 Ambiances = terre battue, chemins de terre, forêt tropicale
 [Map]
 İİİ
-İİİıı
-İİİıı
+İİİ
+İİİ

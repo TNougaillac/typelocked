@@ -1,0 +1,9 @@
+# Foire : le QG des Forains (#217), la salle de jeux seule (ville sans place
+# pour ses stands).
+Brique = Salle de jeux des Forains
+Type   = forains
+Porte  = 3,2
+[Map]
+δδδδδδδ
+δδδδδδδ
+δδδδδδδ

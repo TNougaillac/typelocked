@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Petit immeuble beige
+Type   = batisse
+[Map]
+χχχχ
+χχχχ
+χχχχ

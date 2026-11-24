@@ -1,6 +1,4 @@
-Brique = Stand jaune
+Brique = Stand au store rose
 Type   = foire
 [Map]
-yyy
-yyy
-{.}
+yyyyy

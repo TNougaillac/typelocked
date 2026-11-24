@@ -66,5 +66,16 @@ metas.each do |path, fields|
   end
 end
 
+# Interface4G: each frame it picks is a file of Graphics/Windowskins.
+settings = File.join(ROOT, "Plugins", "Interface4G", "001_Settings.rb")
+if File.exist?(settings)
+  load settings
+  frames = [Interface4G::MENU_FRAME, Interface4G::SIGN_DEFAULT, *Interface4G::SIGN_FRAMES.values].uniq
+  frames.each do |frame|
+    next if File.exist?(File.join(ROOT, "Graphics", "Windowskins", "#{frame}.png"))
+    CI.error(settings, nil, "cadre « #{frame} » absent de Graphics/Windowskins")
+  end
+end
+
 puts "#{metas.length} plugins, #{text_files.length} fichiers texte"
 CI.finish("Plugins et encodage")

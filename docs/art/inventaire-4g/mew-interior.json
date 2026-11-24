@@ -1,0 +1,111 @@
+{
+ "chunks": {
+  "A1": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A10": {
+   "tiles": 52,
+   "used": 0
+  },
+  "A11": {
+   "tiles": 64,
+   "used": 0
+  },
+  "A12": {
+   "tiles": 60,
+   "used": 0
+  },
+  "A13": {
+   "tiles": 28,
+   "used": 0
+  },
+  "A2": {
+   "tiles": 64,
+   "used": 6
+  },
+  "A3": {
+   "tiles": 64,
+   "used": 22
+  },
+  "A4": {
+   "tiles": 64,
+   "used": 22
+  },
+  "A5": {
+   "tiles": 64,
+   "used": 22
+  },
+  "A6": {
+   "tiles": 64,
+   "used": 22
+  },
+  "A7": {
+   "tiles": 56,
+   "used": 16
+  },
+  "A8": {
+   "tiles": 50,
+   "used": 0
+  },
+  "A9": {
+   "tiles": 52,
+   "used": 0
+  },
+  "B1": {
+   "tiles": 48,
+   "used": 0
+  },
+  "B10": {
+   "tiles": 56,
+   "used": 0
+  },
+  "B11": {
+   "tiles": 60,
+   "used": 0
+  },
+  "B12": {
+   "tiles": 32,
+   "used": 0
+  },
+  "B13": {
+   "tiles": 4,
+   "used": 0
+  },
+  "B2": {
+   "tiles": 52,
+   "used": 2
+  },
+  "B3": {
+   "tiles": 64,
+   "used": 14
+  },
+  "B4": {
+   "tiles": 64,
+   "used": 14
+  },
+  "B5": {
+   "tiles": 62,
+   "used": 14
+  },
+  "B6": {
+   "tiles": 60,
+   "used": 2
+  },
+  "B7": {
+   "tiles": 56,
+   "used": 0
+  },
+  "B8": {
+   "tiles": 48,
+   "used": 6
+  },
+  "B9": {
+   "tiles": 46,
+   "used": 18
+  }
+ },
+ "sheet": "Mew Interior",
+ "tiles": 1398,
+ "used": 180
+}

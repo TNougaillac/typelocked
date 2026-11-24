@@ -1,0 +1,6 @@
+# Panneau Pokémon, le long d'une rue (style froid) (#320).
+Brique    = Panneau Pokémon
+Type      = lampe
+Contre    = rue
+[Map]
+ғғ

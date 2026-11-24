@@ -193,9 +193,18 @@ module MapProceduralGenerator
       rng = Random.new(@seed ^ PLAN_SALT)
       roll = rng.rand(TOWN_PLANS.values.sum { |plan| plan[:weight] })
       @plan = TOWN_PLANS.find { |_name, plan| (roll -= plan[:weight]) < 0 }[0]
+      # An excess draws among its own plans, the next one if a canal can't be
+      # laid
+      plans = excess[:plans]
+      @plan = plans[rng.rand(plans.length)] if plans
       @plan = @place.plan if @place.plan
       @plan = "carrefour" if @plain
-      @plan = "carrefour" if @plan == "canal" && (!@place.water || !@place.pier || !@place.lips)
+      @plan = (plans && plans.find { |p| p != "canal" }) || "carrefour" if @plan == "canal" && !canal?
+    end
+
+    # Whether the place can have a canal (water, its wooden bridges and their lips)
+    def canal?
+      return @place.water && @place.pier && @place.lips
     end
 
     # A grid of straight streets (GRID: tiles between two streets), each
@@ -218,7 +227,7 @@ module MapProceduralGenerator
     # become wooden bridges (« Ponton », with their « Rebord » lips).
     def lay_canal(hub)
       rng = Random.new(@seed ^ PLAN_SALT ^ 2)
-      width = rng.rand(CANAL[:width])
+      width = rng.rand(excess[:river] || CANAL[:width])
       left, right = @plaza ? [@plaza[0], @plaza[2]] : [hub[0], hub[0] + STREET_WIDTH]
       ends = @exits.select { |side, *| %w[nord sud].include?(side) }.map { |_side, x, _y| x }
       spots = ((@w * 0.15).to_i..(@w * 0.85).to_i - width).select do |x0|
@@ -228,8 +237,11 @@ module MapProceduralGenerator
       return if spots.empty?
       x0 = spots.sample(random: rng)
       @h.times do |y|
+        # With a grid, only the streets right across become bridges (not a
+        # grid's street from north to south, cut by the canal)
+        across = !excess[:grid] || (x0...x0 + width).all? { |x| @street[y][x] }
         (x0...x0 + width).each do |x|
-          if @street[y][x]
+          if @street[y][x] && across
             @cells[y][x] = @place.pier
           else
             @cells[y][x] = @place.water
@@ -239,6 +251,91 @@ module MapProceduralGenerator
         end
       end
       lay_pier_lips
+    end
+
+    # A canal from the western to the eastern edge, as wide as the stone
+    # bridge is long (STONE_BRIDGE, that often among the canals; not the river
+    # of an excess): the streets that cross it from north to south become
+    # stone bridges, their posts on the banks, and the other streets stop at
+    # the water. false when the bridge is not
+    # in the palette, when the draw says no or when no row suits (then the
+    # canal runs from north to south, see lay_canal).
+    def lay_stone_canal(hub)
+      bridge = @palette.objects[STONE_BRIDGE[:symbol]]
+      return false if !bridge&.halo || excess[:river] || excess[:grid]
+      rng = Random.new(@seed ^ PLAN_SALT ^ 3)
+      return false if rng.rand(100) >= STONE_BRIDGE[:chance]
+      width = bridge.height
+      top, bottom = @plaza ? [@plaza[1], @plaza[3]] : [hub[1], hub[1] + STREET_WIDTH]
+      ends = @exits.select { |side, *| %w[ouest est].include?(side) }.map { |_side, _x, y| y }
+      spots = ((@h * 0.15).to_i..(@h * 0.85).to_i - width).select do |y0|
+        (y0 + width + 2 <= top || y0 >= bottom + 2) &&
+          ends.none? { |ey| ey + STREET_WIDTH + 2 > y0 && ey < y0 + width + 2 } && stone_bridges(bridge, hub, y0)
+      end
+      return false if spots.empty?
+      y0 = spots.sample(random: rng)
+      decks = stone_bridges(bridge, hub, y0)
+      (y0...y0 + width).each do |y|
+        @w.times do |x|
+          @border[y][x] = false
+          next if decks.any? { |deck| x.between?(deck, deck + STREET_WIDTH - 1) }
+          @cells[y][x] = @place.water
+          @water[y][x] = @solid[y][x] = true
+          @street[y][x] = false
+        end
+      end
+      rows = Array.new(width) { STONE_BRIDGE[:symbol] * bridge.width }
+      decks.each do |deck|
+        stamp(Brick.new(STONE_BRIDGE[:kind], "Pont de pierre", STONE_BRIDGE[:kind], nil, 1, false, rows), deck - 1, y0)
+        # The deck is walked on; nothing goes where the posts stand
+        (y0...y0 + width).each { |y| STREET_WIDTH.times { |ox| @solid[y][deck + ox] = false } }
+        stone_bridge_posts(bridge, deck, y0).each { |x, y| @solid[y][x] = true if !@street[y][x] }
+      end
+      return true
+    end
+
+    # The left columns of the decks of the stone bridges of a canal whose
+    # first row is y0, nil if that row doesn't suit. A street that crosses the
+    # canal straight gets a bridge in its middle (the deck is STREET_WIDTH
+    # wide); the other streets stop at the water. The posts stand on free
+    # ground or on the street, and the exits still lead to the square by the
+    # streets.
+    def stone_bridges(bridge, hub, y0)
+      band = (y0...y0 + bridge.height)
+      crossing = (0...@w).select { |x| band.all? { |y| @street[y][x] } }
+      runs = crossing.slice_when { |a, b| b != a + 1 }.select { |run| run.length >= STREET_WIDTH }
+      decks = runs.map { |run| run[(run.length - STREET_WIDTH) / 2] }
+      return nil if decks.empty? || decks.each_cons(2).any? { |a, b| b - a < STONE_BRIDGE[:apart] }
+      posts = decks.flat_map { |deck| stone_bridge_posts(bridge, deck, y0) }
+      return nil if posts.any? { |x, y| !inside?(x, y) || @solid[y][x] }
+      # The streets left once the canal is dug
+      open = lambda do |x, y|
+        next false if !inside?(x, y) || !@street[y][x]
+        next !band.cover?(y) || decks.any? { |deck| x.between?(deck, deck + STREET_WIDTH - 1) }
+      end
+      # (the fountain stands on the hub of a square: from its corner)
+      start = @plaza ? @plaza[0, 2] : hub
+      seen = { start => true }
+      queue = [start]
+      until queue.empty?
+        x, y = queue.shift
+        NEIGHBOURS.each do |ox, oy|
+          cell = [x + ox, y + oy]
+          next if seen[cell] || !open.call(*cell)
+          seen[cell] = true
+          queue.push(cell)
+        end
+      end
+      return nil if !open.call(*start) || @exits.any? { |_side, ex, ey| !seen[[ex, ey]] }
+      return decks
+    end
+
+    # The cells of the banks where the posts of a stone bridge stand (the
+    # rows of its drawing above and below its deck, beside the street).
+    def stone_bridge_posts(bridge, deck, y0)
+      _hw, hh, _hx, hy, = bridge.halo
+      rows = (y0 - hy...y0).to_a + (y0 + bridge.height...y0 - hy + hh).to_a
+      return rows.product([deck - 1, deck + STREET_WIDTH]).map(&:reverse)
     end
 
     # A paved square around the hub of a town (PLAZA), its fountain in the
@@ -297,12 +394,29 @@ module MapProceduralGenerator
       return false
     end
 
+    # True if a cell of the brush, on the ground, lies beside the top of a
+    # level (its stairs aside): a path there would join that level, whose
+    # cliff would not be drawn along it.
+    def brush_hugs_cliff?(x, y)
+      return false if !@level
+      STREET_WIDTH.times do |oy|
+        STREET_WIDTH.times do |ox|
+          cx, cy = x + ox, y + oy
+          next if level_at(cx, cy) > 0
+          return true if NEIGHBOURS.any? do |nx, ny|
+            inside?(cx + nx, cy + ny) && level_at(cx + nx, cy + ny) > 0 && !@stairs_at&.key?([cx + nx, cy + ny])
+          end
+        end
+      end
+      return false
+    end
+
     # Brush steps from every street cell outward: distances[y][x] (nil = no
     # path), parents for carve_path.
     def street_distances
       @parents = Array.new(@h) { Array.new(@w) }
       distances = Array.new(@h) { Array.new(@w) }
-      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) } }
+      free = Array.new(@h) { |y| Array.new(@w) { |x| brush_free?(x, y) && !brush_hugs_cliff?(x, y) } }
       queue = []
       @h.times do |y|
         @w.times do |x|

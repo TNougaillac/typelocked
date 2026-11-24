@@ -1,0 +1,8 @@
+Brique = Pavillon rouge
+Type   = immeuble
+Porte  = 3,3
+[Map]
+οοοοοοοЈ
+οοοοοοοЈ
+οοοοοοοЈ
+οοοοοοοЈ

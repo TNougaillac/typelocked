@@ -6203,13 +6203,13 @@ Flags = Fling_30
 Description = An item that attracts Pokémon. Use it to flee from any battle with a wild Pokémon.
 #-------------------------------
 [BICYCLE]
-Name = Bicycle
-NamePlural = Bicycles
+Name = Vélo
+NamePlural = Vélos
 Pocket = 8
 Price = 0
 FieldUse = Direct
 Flags = KeyItem
-Description = A folding Bicycle that enables much faster movement than the Running Shoes.
+Description = Un vélo pliable, bien plus rapide que la course. Il fait aussi passer les pistes cyclables des villes.
 #-------------------------------
 [OLDROD]
 Name = Old Rod
@@ -6608,3 +6608,35 @@ Price = 0
 FieldUse = Direct
 Flags = KeyItem
 Description = Une lanterne qui éclaire les grottes sombres.
+#-------------------------------
+[SKATES]
+Name = Patins
+NamePlural = Patins
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Une paire de patins à glace, pour traverser la glace glissante sans tomber.
+#-------------------------------
+[WADERS]
+Name = Bottes
+NamePlural = Bottes
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = De hautes bottes étanches, pour traverser la boue profonde des marais.
+#-------------------------------
+[CLIMBINGCLAWS]
+Name = Griffes d'escalade
+NamePlural = Griffes d'escalade
+Pocket = 8
+Price = 0
+Flags = KeyItem
+Description = Des griffes à fixer aux gants, pour escalader les parois rocheuses.
+#-------------------------------
+[PACTINCENSE]
+Name = Encens du Pacte
+NamePlural = Encens du Pacte
+Pocket = 1
+Price = 0
+FieldUse = Direct
+Description = Un encens qui attire les Pokémon que le Pacte vous destine : le prochain Pokémon sauvage pourra être capturé.

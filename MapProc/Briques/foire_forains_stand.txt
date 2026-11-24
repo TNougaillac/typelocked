@@ -1,0 +1,13 @@
+# Foire : le QG des Forains (#217), un stand devant la salle de jeux.
+Brique = Petite foire des Forains
+Type   = forains
+Poids  = 2
+Porte  = 3,6
+[Map]
+.yyyyy.
+.......
+.......
+.......
+δδδδδδδ
+δδδδδδδ
+δδδδδδδ

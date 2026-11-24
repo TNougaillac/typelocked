@@ -1,0 +1,7 @@
+# Bâtisse sans porte (décor de ville).
+Brique = Demeure aux tuiles bleues
+Type   = batisse
+[Map]
+БББББББ
+БББББББ
+БББББББ

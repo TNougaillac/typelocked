@@ -11,7 +11,7 @@ require_relative "lib/ci"
 require_relative "lib/essentials"
 Essentials.load_scripts("Overworld_RandomDungeons")
 Dir.glob(File.join(ROOT, "Plugins", "MapProceduralGenerator", "*.rb")).sort.each do |path|
-  next if %w[005_Debug 007_NewGame 012_Nooks].include?(File.basename(path, ".rb"))
+  next if %w[005_Debug 007_NewGame 012_Nooks 014_TerrainTags 015_Tone].include?(File.basename(path, ".rb"))
   require path
 end
 M = MapProceduralGenerator

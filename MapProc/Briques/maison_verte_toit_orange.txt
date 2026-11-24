@@ -1,0 +1,6 @@
+Brique = Maison verte au toit orange
+Type   = maison
+Porte  = 1,1
+[Map]
+ѱѱѱѱ
+ѱѱѱѱ

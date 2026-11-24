@@ -1,7 +1,7 @@
 # Minéral : un éboulis de blocs gris.
 Brique    = Éboulis gris
 Type      = decor
-Ambiances = minérale
+Ambiances = minérale, haute montagne
 Poids     = 2
 [Map]
  ,x

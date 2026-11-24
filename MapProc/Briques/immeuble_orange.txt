@@ -1,0 +1,8 @@
+Brique = Immeuble orange
+Type   = immeuble
+Porte  = 2,3
+[Map]
+βββββ
+βββββ
+βββββ
+βββββ

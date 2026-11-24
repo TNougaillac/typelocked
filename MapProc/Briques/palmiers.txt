@@ -1,9 +1,0 @@
-# Désert et forêt tropicale : deux palmiers.
-Brique    = Palmiers
-Type      = decor
-Ambiances = sable, forêt tropicale
-[Map]
-ȩȩȩ
-ȩȩȩǐǐǐ
-ȩȩȩǐǐǐ
-ȩȩȩǐǐǐ

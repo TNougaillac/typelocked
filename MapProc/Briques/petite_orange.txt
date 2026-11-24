@@ -1,7 +1,8 @@
 Brique = Petite maison orange
 Type   = maison
-Porte  = 1,2
+Porte  = 1,3
 [Map]
 oooo
 oooo
-wwww
+oooo
+oooo

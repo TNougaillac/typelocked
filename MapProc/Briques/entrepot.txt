@@ -1,8 +1,7 @@
 Brique = Entrepôt du port
 Type   = port
-Porte  = 2,3
+Porte  = 2,2
 [Map]
-JJJJ
-JJJJ
-JJJJ
-JJJJ
+JJJJJ
+JJJJJ
+JJJJJ

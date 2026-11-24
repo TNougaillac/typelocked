@@ -1,0 +1,10 @@
+# Automne : une plaque de terre ocre (on y marche).
+Brique    = Terre ocre
+Type      = decor
+Ambiances = automne
+Poids     = 2
+[Map]
+ʄʄʄʄ
+ʄʄʄʄʄ
+ʄʄʄʄʄ
+ ʄʄʄ

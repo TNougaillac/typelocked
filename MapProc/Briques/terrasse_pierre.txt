@@ -1,0 +1,8 @@
+# Terrasse basse de pierre : un massif surélevé (#296).
+Brique    = Terrasse de pierre
+Type      = decor
+Ambiances = verdoyante, prairie, minérale
+Poids     = 3
+[Map]
+ʮʯʯʯϢ
+ʮʯʯʯϢ

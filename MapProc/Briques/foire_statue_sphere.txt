@@ -1,0 +1,5 @@
+# Statue à la sphère (SirMalo Urban F4) (#320).
+Brique    = Statue à la sphère
+Type      = foire
+[Map]
+ққ

@@ -1,0 +1,7 @@
+Brique = Haute maison turquoise
+Type   = maison
+Porte  = 1,2
+[Map]
+ΒΒΒΒΒ
+ΒΒΒΒΒ
+ΒΒΒΒΒ

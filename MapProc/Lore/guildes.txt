@@ -1,0 +1,195 @@
+# Guildes des mondes générés (plugin WorldEvents, spec #181, pools de #179).
+# Une section par guilde, son identifiant en MAJUSCULES sans accents :
+#   Nom      = le nom affiché
+#   Position = alliée, neutre, affiliée ou rivale (face à la Famille)
+#   Biomes   = les ambiances où la guilde vit : celles où son QG se pose
+#              (GUILD_HQS), rien si son QG va partout
+#   QG       = le type de brique de son QG (GUILD_HQS de MapProceduralGenerator)
+#   Membres  = les types de dresseur de ses membres (PBS/trainer_types.txt)
+#   Chef     = le type de dresseur de son chef ; son nom dans trainer_types.txt
+#              est le titre du chef, écrit devant son nom tiré à la graine
+#   Titre    = ce titre (vérifié contre trainer_types.txt)
+#   Ennemis  = les guildes ennemies (réciproques), vide si aucune
+#   Pool     = les espèces de ses équipes (roster du jeu, sans légendaire)
+#   Objet    = (facultatif) l'objet de terrain hors arène que donne son chef
+#              (#274), en plus de sa récompense, quand le monde a cet objet
+#              et que la guilde est tirée ; sinon un habitant caché le donne
+# Les répliques de chaque guilde sont dans dialogues.txt, sections
+# [guilde_<id>_chef_combat], [guilde_<id>_chef_fin], [guilde_<id>_chef_victoire]
+# (après sa défaite, avant sa récompense), [guilde_<id>_membre_combat] et
+# [guilde_<id>_membre_fin] (id en minuscules).
+
+#-------------------------------------------------------------------------------
+[ELEVEURS]
+Nom      = Éleveurs
+Position = alliée
+Biomes   = prairie
+QG       = ferme
+Membres  = POKEMONBREEDER
+Chef     = CHEF_ELEVEURS
+Titre    = Doyen des Éleveurs
+Ennemis  =
+Pool     = MILTANK, TAUROS, MAREEP, FLAAFFY, AMPHAROS, TEPIG, PIGNITE, EMBOAR, SKIDDO, GOGOAT, PONYTA,
+           RAPIDASH, MUDBRAY, MUDSDALE, WOOLOO, DUBWOOL, SWINUB, PILOSWINE, MAMOSWINE, BOUFFALANT,
+           TORCHIC, COMBUSKEN, BLAZIKEN, FARFETCHD, SIRFETCHD, DODUO, DODRIO, SPOINK, GRUMPIG,
+           LILLIPUP, HERDIER, STOUTLAND, HAPPINY, CHANSEY, BLISSEY
+
+#-------------------------------------------------------------------------------
+[NAGEURS]
+Nom      = Cercle des nageurs
+Position = rivale
+Biomes   = plage
+QG       = nageurs
+Membres  = SWIMMER_M, SWIMMER_F
+Chef     = CHEF_NAGEURS
+Titre    = Maître nageur
+Ennemis  = PONTES
+Objet    = SKATES
+Pool     = TENTACOOL, TENTACRUEL, GOLDEEN, SEAKING, STARYU, STARMIE, AZURILL, MARILL, AZUMARILL,
+           BUIZEL, FLOATZEL, FINNEON, LUMINEON, MANTYKE, MANTINE, CORSOLA, CURSOLA, WAILMER, WAILORD,
+           SOBBLE, DRIZZILE, INTELEON, SEEL, DEWGONG, SPHEAL, SEALEO, WALREIN, LAPRAS, SHELLDER,
+           CLOYSTER
+
+#-------------------------------------------------------------------------------
+[DUNDEES]
+Nom      = Dundees
+Position = rivale
+Biomes   = marais
+QG       = dundees
+Membres  = FISHERMAN, CAMPER
+Chef     = CHEF_DUNDEES
+Titre    = Grand chasseur
+Ennemis  = PONTES
+Objet    = WADERS
+Pool     = TOTODILE, CROCONAW, FERALIGATR, SANDILE, KROKOROK, KROOKODILE, CHEWTLE, DREDNAW, SEVIPER,
+           EKANS, ARBOK, TYRUNT, TYRANTRUM
+
+#-------------------------------------------------------------------------------
+[PONTES]
+Nom      = Gardiens des pontes
+Position = alliée
+Biomes   = plage
+QG       = pontes
+Membres  = POKEMONRANGER_F, PICNICKER
+Chef     = CHEF_PONTES
+Titre    = Gardienne des nids
+Ennemis  = NAGEURS, DUNDEES, BRACONNIERS
+Pool     = SQUIRTLE, WARTORTLE, BLASTOISE, TURTWIG, GROTLE, TORTERRA, TORKOAL, TIRTOUGA, CARRACOSTA,
+           TURTONATOR, CHEWTLE, DREDNAW, SHUCKLE, LAPRAS
+
+#-------------------------------------------------------------------------------
+[BRACONNIERS]
+Nom      = Braconniers
+Position = affiliée
+Biomes   = verdoyante, automne, forêt sombre
+QG       = braconniers
+Membres  = POKEMANIAC, CAMPER
+Chef     = CHEF_BRACONNIERS
+Titre    = Cheffe des braconniers
+Ennemis  = FORESTIERS, PONTES
+Pool     = HOUNDOUR, HOUNDOOM, POOCHYENA, MIGHTYENA, SPINARAK, ARIADOS, JOLTIK, GALVANTULA, SNEASEL,
+           WEAVILE, PURRLOIN, LIEPARD, NICKIT, THIEVUL, CARNIVINE, ABSOL
+
+#-------------------------------------------------------------------------------
+[FORESTIERS]
+Nom      = Gardes forestiers
+Position = alliée
+Biomes   = verdoyante, automne, forêt sombre
+QG       = poste
+Membres  = POKEMONRANGER_F, CAMPER
+Chef     = CHEF_FORESTIERS
+Titre    = Capitaine des gardes
+Ennemis  = BRACONNIERS
+Pool     = GROWLITHE, ARCANINE, ROCKRUFF, LYCANROC, SHINX, LUXIO, LUXRAY, ROWLET, DARTRIX,
+           DECIDUEYE, PHANTUMP, TREVENANT, DEERLING, SAWSBUCK, PANCHAM, PANGORO, HERACROSS
+
+#-------------------------------------------------------------------------------
+[OUVRIERS]
+Nom      = Ouvriers
+Position = alliée
+Biomes   = terre battue
+QG       = chantier
+Membres  = HIKER, CRUSHGIRL
+Chef     = CHEF_OUVRIERS
+Titre    = Contremaître
+Ennemis  = CONTREBANDIERS
+Pool     = MACHOP, MACHOKE, MACHAMP, TIMBURR, GURDURR, CONKELDURR, DRILBUR, EXCADRILL, THROH, SAWK,
+           CRABRAWLER, CRABOMINABLE, RHYHORN, RHYDON, RHYPERIOR, ARON, LAIRON, AGGRON, CUFANT,
+           COPPERAJAH
+
+#-------------------------------------------------------------------------------
+[CONTREBANDIERS]
+Nom      = Contrebandiers
+Position = affiliée
+QG       = contrebande
+Membres  = SAILOR, POKEMANIAC
+Chef     = CHEF_CONTREBANDIERS
+Titre    = Capitaine
+Ennemis  = OUVRIERS
+Pool     = KOFFING, WEEZING, GRIMER, MUK, TRUBBISH, GARBODOR, STUNKY, SKUNTANK, CROAGUNK, TOXICROAK,
+           PURRLOIN, LIEPARD, NICKIT, THIEVUL, SABLEYE, INKAY, MALAMAR, ZORUA, ZOROARK
+
+#-------------------------------------------------------------------------------
+[FORAINS]
+Nom      = Forains
+Position = neutre
+QG       = forains
+Membres  = JUGGLER, PAINTER
+Chef     = CHEF_FORAINS
+Titre    = Monsieur Loyal
+Ennemis  = 
+Pool     = MRMIME, MIMEJR, MRRIME, SPINDA, SMEARGLE, CHINGLING, CHIMECHO, DRIFLOON, DRIFBLIM, SWIRLIX,
+           SLURPUFF, ESPURR, MEOWSTIC, MIMIKYU, IMPIDIMP, MORGREM, GRIMMSNARL, ORICORIO
+
+#-------------------------------------------------------------------------------
+[MINEURS]
+Nom      = Mineurs
+Position = neutre
+Biomes   = minérale, haute montagne
+QG       = carriere
+Membres  = HIKER, RUINMANIAC
+Chef     = CHEF_MINEURS
+Titre    = Chef de galerie
+Ennemis  = 
+Objet    = CLIMBINGCLAWS
+Pool     = GEODUDE, GRAVELER, GOLEM, ONIX, STEELIX, ROGGENROLA, BOLDORE, GIGALITH, DIGLETT, DUGTRIO,
+           NOSEPASS, PROBOPASS, CARBINK, ROLYCOLY, CARKOL, COALOSSAL
+
+#-------------------------------------------------------------------------------
+[ORDRE]
+Nom      = Ordre du Pacte
+Position = rivale
+Biomes   = ruines
+QG       = temple
+Membres  = PSYCHIC_M, RUINMANIAC
+Chef     = CHEF_ORDRE
+Titre    = Grand Prieur
+Ennemis  = 
+Pool     = BRONZOR, BRONZONG, SIGILYPH, BALTOY, CLAYDOL, RIOLU, LUCARIO, TYROGUE, HITMONLEE,
+           HITMONCHAN, HITMONTOP, HONEDGE, DOUBLADE, AEGISLASH, UNOWN, YAMASK, COFAGRIGUS, RUNERIGUS
+
+#-------------------------------------------------------------------------------
+[ENDEUILLES]
+Nom      = Endeuillés
+Position = alliée
+Biomes   = cimetière
+QG       = cimetiere
+Membres  = LADY, AROMALADY
+Chef     = CHEF_ENDEUILLES
+Titre    = Doyenne des Endeuillés
+Ennemis  = 
+Pool     = DUSKULL, DUSCLOPS, DUSKNOIR, SHUPPET, BANETTE, LITWICK, LAMPENT, CHANDELURE, PHANTUMP,
+           TREVENANT, SNORUNT, GLALIE, FROSLASS, DREEPY, DRAKLOAK, DRAGAPULT
+
+#-------------------------------------------------------------------------------
+[CHROMES]
+Nom      = Chromés
+Position = rivale
+QG       = chromes
+Membres  = TEAMROCKET_M, TEAMROCKET_F
+Chef     = CHEF_CHROMES
+Titre    = Chef de bande
+Ennemis  = 
+Objet    = BICYCLE
+Pool     = KOFFING, WEEZING, SCRAGGY, SCRAFTY, POOCHYENA, MIGHTYENA, ZIGZAGOON, LINOONE, OBSTAGOON,
+           ELECTRIKE, MANECTRIC, TOXEL, TOXTRICITY, PANCHAM, PANGORO

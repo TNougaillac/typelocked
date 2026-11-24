@@ -174,16 +174,29 @@ module MapProceduralGenerator
         @solid[y][x] = true
         @street[y][x] = @border[y][x] = false
       end
-      fill = [@place.rock, @place.border].compact.map { |sym| [sym, @palette.objects[sym]] }
-      wall.each_key do |x, y|
-        fill.each do |sym, object|
+      # The rocks first, then the border's trees where no rock fits, unless
+      # their canopy would cover a rock
+      [@place.rock, @place.border].compact.each do |sym|
+        object = @palette.objects[sym]
+        next if !object
+        wall.each_key do |x, y|
           cells = (0...object.height).flat_map { |dy| (0...object.width).map { |dx| [x + dx, y + dy] } }
           next if !cells.all? { |cx, cy| wall[[cx, cy]] && !@cells[cy][cx] }
+          next if object.forest && canopy_covers?(object, x, y, sym)
           cells.each { |cx, cy| @cells[cy][cx] = sym }
-          break
         end
       end
-      wall.each_key { |x, y| @cells[y][x] ||= @place.pebble }
+      # Pebbles in the gaps (a town has none: its « Comble »)
+      wall.each_key { |x, y| @cells[y][x] ||= @place.pebble || @place.filler }
+    end
+
+    # Whether the canopy of a forest object at x, y (two rows above it, a
+    # column on each side, MapGenerator's draw_forest) would cover another
+    # object.
+    def canopy_covers?(object, x, y, sym)
+      cells = (0...object.width).flat_map { |dx| [[x + dx, y - 1], [x + dx, y - 2]] } +
+              (0...object.height).flat_map { |dy| [[x - 1, y + dy], [x + object.width, y + dy]] }
+      return cells.any? { |cx, cy| inside?(cx, cy) && @cells[cy][cx] != sym && @palette.objects[@cells[cy][cx]] }
     end
 
     #---------------------------------------------------------------------------
@@ -261,13 +274,86 @@ module MapProceduralGenerator
     def place_cave_entrances(start, depth)
       return if !@bricks.any? { |b| b.kind == CAVE }
       [[0, start], [start + depth, vertical_route? ? @h : @w]].each do |from, to|
+        # The brick and the path that leaves its door (below it, or beside a
+        # side door), all on that side of the wall
         side = lambda do |brick, x, y|
-          a0 = vertical_route? ? y : x
-          a1 = a0 + (vertical_route? ? brick.rows.length + STREET_WIDTH : brick.rows[0].length)
-          next a0 >= from && a1 <= to
+          ax, ay = brick.path_start
+          a0, size, path = vertical_route? ? [y, brick.rows.length, ay] : [x, brick.rows[0].length, ax]
+          next [a0, a0 + path].min >= from && [a0 + size, a0 + path + STREET_WIDTH].max <= to
         end
         next if place_brick(CAVE, side)
+        # The drawn entrance didn't fit: any other one
+        next if @bricks.select { |b| b.kind == CAVE }.sort_by(&:name).any? { |b| put_brick(b, side) }
         error("impossible de placer l'entrée de la grotte ; allonge la route")
+      end
+    end
+
+    #---------------------------------------------------------------------------
+    # Guild dungeons (#335)
+    #---------------------------------------------------------------------------
+    # The hub of a dungeon: straight in from its only exit, GATE_HUB of its
+    # depth away, so that its street runs straight through the gates.
+    def gate_hub
+      side, offset = @place.exits[0]
+      dx, dy = INLAND[side]
+      reach = (((dx == 0) ? @h : @w) * GATE_HUB[side]).to_i
+      x = { "nord" => offset, "sud" => offset, "ouest" => 0, "est" => @w - STREET_WIDTH }[side]
+      y = { "nord" => 0, "sud" => @h - STREET_WIDTH, "ouest" => offset, "est" => offset }[side]
+      return [x + (dx * reach), y + (dy * reach)]
+    end
+
+    # The gates across a dungeon (@place.gates of them, at GATE_SPOTS of its
+    # depth from its exit): rock, else the border's trees, from side to side
+    # like a shortcut's lock, with a corridor one tile wide on the street
+    # where a member of the guild stands. @gates: the corridor's cell nearest
+    # the exit, for each; @gate_end: tiles from the exit's edge past the
+    # last one (its headquarters stands beyond, see past_gates?).
+    def close_gates
+      side, ex, ey = @exits[0]
+      dx, dy = INLAND[side]
+      ax, ay = dy.abs, dx.abs
+      depth = (dx == 0) ? @h : @w
+      edge_x = (dx < 0) ? @w - 1 : ex
+      edge_y = (dy < 0) ? @h - 1 : ey
+      thickness = gate_thickness(dx == 0)
+      @gates = []
+      GATE_SPOTS.first(@place.gates).each do |share|
+        start = (depth * share).to_i
+        gap = (0...thickness).map { |t| (dx == 0) ? [ex, edge_y + (dy * (start + t))] : [edge_x + (dx * (start + t)), ey] }
+        band = {}
+        gap.each do |x0, y0|
+          [-1, 1].each do |dir|
+            x, y = x0, y0
+            while covered?(x, y)
+              band[[x, y]] = true
+              x += ax * dir
+              y += ay * dir
+            end
+          end
+        end
+        gap.each { |cell| band.delete(cell) }
+        fill_wall(band)
+        @gates.push(gap[0])
+        @gate_end = start + thickness
+      end
+    end
+
+    # Thickness of a gate along the way in: its rock's, else the border's.
+    def gate_thickness(vertical)
+      object = (@place.rock && @palette.objects[@place.rock]) || @palette.objects[@place.border]
+      return 2 if !object
+      return vertical ? object.height : object.width
+    end
+
+    # True if that brick at x, y lies wholly past the last gate (away from
+    # the exit).
+    def past_gates?(brick, x, y)
+      bw, bh = brick.rows.map(&:length).max, brick.rows.length
+      case @exits[0][0]
+      when "nord"  then y >= @gate_end
+      when "sud"   then y + bh <= @h - @gate_end
+      when "ouest" then x >= @gate_end
+      else              x + bw <= @w - @gate_end
       end
     end
   end

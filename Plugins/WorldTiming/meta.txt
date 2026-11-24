@@ -1,0 +1,9 @@
+Name       = WorldTiming
+Version    = 1.0.1
+Essentials = 21.1
+Requires   = MapGenerator
+Requires   = MapProceduralGenerator
+Requires   = MapEvents
+Requires   = ProceduralEncounters
+Requires   = WorldEvents
+Credits    = TypeLocked

@@ -1,0 +1,10 @@
+# Plage : du bois flotté et des petites plantes sur le sable.
+Brique    = Bois flotté
+Type      = decor
+Ambiances = plage
+Poids     = 2
+[Map]
+ʎʎ  ʒ
+ ʒ ʏʏ
+ʐʐ ʒ
+ʐʐ
