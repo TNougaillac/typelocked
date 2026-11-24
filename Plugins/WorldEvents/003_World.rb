@@ -74,6 +74,7 @@ module WorldEvents
     end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760),
                     (freed || []).to_h { |zone| [zone[:town], zone[:switch]] })
+    casino_events(result, atlas, plans, Random.new((seed * 1000) + 800))
     usurer_events(result, atlas, plans, Random.new((seed * 1000) + 790))
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
              league: league, items: items || [], guilds: guilds || [], sources: atlas[:items] }

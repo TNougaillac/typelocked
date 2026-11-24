@@ -558,7 +558,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.17.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
+**Statut :** v1.18.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -647,11 +647,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 
 ### Intégration
 - Rien à faire : actif dès que MapProc génère un monde.
-<<<<<<< HEAD
-- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` et `MART_STOCK` nomment des événements et des objets qui existent, que chaque route a ses dresseurs, que chaque dresseur a son équipe (taille selon les sceaux, espèces connues, niveau au plus au plafond, un seul par type et nom), que les plus forts dresseurs d'un tronçon ne sont jamais plus faibles que ceux du tronçon d'avant, que la vue d'un dresseur n'atteint ni sortie ni porte, que chaque arène a son lieutenant (types tous différents, équipe de son type, plus fort au plafond, CT utile de son type et jamais deux fois la même, objet tenu et lot du butin dans le palier de son sceau) et 2 à 4 membres de son type, qu'on ne peut pas atteindre le lieutenant à pied sans passer dans la vue d'un membre, que les types de dresseur existent avec leurs graphismes et leur genre, que les attaques de `TM_STATUS` et `SET_STATUS` et les objets de `SET_ITEMS` existent, que chaque Pokémon des lieutenants et de la Ligue a un set de 1 à 4 attaques qu'il peut connaître (niveau, CT ou reproduction sous le plafond de puissance), une attaque du type du dresseur s'il en apprend une par niveau, un talent caché seulement s'il en a un et un objet qui existe, que la Ligue a ses quatre Anciens (types différents), son Parrain et Arceus dans l'ordre des salles, chaque porte fermée par l'interrupteur de sa salle, des niveaux croissants au-dessus du dernier lieutenant, le Parrain au plafond, que chaque recoin a son butin, que chaque objet de terrain est donné dans sa ville après son sceau, qu'il y a `HEART_SCALES` Écailles Cœur, que les Encens du Pacte sont au plus le nombre tiré et seulement dans des recoins ou des dons, un Maître des Capacités avant le 2e sceau, que chaque don est unique et que les dons atteignent `GIFT_SHARE` %, que les objets des tables et les graphismes existent, que `dialogues.txt` se lit (avec le fichier et la ligne de l'erreur sinon), qu'aucune réplique n'est redite avant que sa section soit épuisée, que chaque ville (sauf la première) a ses habitants et chaque maison 1 à 2, que les cases de `HOUSE_SPOTS` sont libres et ne coupent aucun passage, et que la même graine redonne les mêmes événements.
-=======
-- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` nomme des événements qui existent, que chaque route a ses dresseurs, que chaque dresseur a son équipe (taille selon les sceaux, espèces connues, niveau au plus au plafond, un seul par type et nom), que les plus forts dresseurs d'un tronçon ne sont jamais plus faibles que ceux du tronçon d'avant, que la vue d'un dresseur n'atteint ni sortie ni porte, que chaque arène a son lieutenant (types tous différents, équipe de son type, plus fort au plafond, CT utile de son type et jamais deux fois la même) et 2 à 4 membres de son type, qu'on ne peut pas atteindre le lieutenant à pied sans passer dans la vue d'un membre, que les types de dresseur existent avec leurs graphismes et leur genre, que les attaques de `TM_STATUS` et `SET_STATUS` et les objets de `SET_ITEMS` existent, que chaque Pokémon des lieutenants et de la Ligue a un set de 1 à 4 attaques qu'il peut connaître (niveau, CT ou reproduction sous le plafond de puissance), une attaque du type du dresseur s'il en apprend une par niveau, un talent caché seulement s'il en a un et un objet qui existe, que la Ligue a ses quatre Anciens (types différents), son Parrain et Arceus dans l'ordre des salles, chaque porte fermée par l'interrupteur de sa salle, des niveaux croissants au-dessus du dernier lieutenant, le Parrain au plafond, que chaque recoin a son butin, que chaque objet de terrain est donné dans sa ville après son sceau, qu'il y a `HEART_SCALES` Écailles Cœur, que les Encens du Pacte sont au plus le nombre tiré et seulement dans des recoins ou des dons, un Maître des Capacités avant le 2e sceau, que chaque don est unique et que les dons atteignent `GIFT_SHARE` %, que les objets des tables et les graphismes existent, que `dialogues.txt` se lit (avec le fichier et la ligne de l'erreur sinon), qu'aucune réplique n'est redite avant que sa section soit épuisée, que chaque ville (sauf la première) a ses habitants et chaque maison 1 à 2, que les cases de `HOUSE_SPOTS` sont libres et ne coupent aucun passage, et que la même graine redonne les mêmes événements.
->>>>>>> origin/feature/regroupement-4g
+- CI : `tools/ci/check_world_events.rb` tire les événements de `monde.txt` sur `WORLD_SEEDS` graines (3 par défaut, `WORLD_SEEDS=20` ou `WORLD_SEEDS=6..8` en local). Elle vérifie que chaque plan se lit, qu'aucun événement n'est sur une sortie, une porte, la case devant une porte ou hors de l'inventaire, l'arrivée ou la sortie d'un intérieur, que le professeur est au labo ou dehors (jamais les deux), qu'il y a trois Poké Balls au labo, que chaque sortie de la ville de départ est gardée, que chaque Centre a son infirmière, son PC et sa machine et chaque boutique son vendeur, que `CENTRE_EVENTS` nomme des événements qui existent, que chaque route a ses dresseurs, que chaque dresseur a son équipe (taille selon les sceaux, espèces connues, niveau au plus au plafond, un seul par type et nom), que les plus forts dresseurs d'un tronçon ne sont jamais plus faibles que ceux du tronçon d'avant, que la vue d'un dresseur n'atteint ni sortie ni porte, que chaque arène a son lieutenant (types tous différents, équipe de son type, plus fort au plafond, CT utile de son type et jamais deux fois la même, objet tenu et lot du butin dans le palier de son sceau) et 2 à 4 membres de son type, qu'on ne peut pas atteindre le lieutenant à pied sans passer dans la vue d'un membre, que les types de dresseur existent avec leurs graphismes et leur genre, que les attaques de `TM_STATUS` et `SET_STATUS` et les objets de `SET_ITEMS` existent, que chaque Pokémon des lieutenants et de la Ligue a un set de 1 à 4 attaques qu'il peut connaître (niveau, CT ou reproduction sous le plafond de puissance), une attaque du type du dresseur s'il en apprend une par niveau, un talent caché seulement s'il en a un et un objet qui existe, que la Ligue a ses quatre Anciens (types différents), son Parrain et Arceus dans l'ordre des salles, chaque porte fermée par l'interrupteur de sa salle, des niveaux croissants au-dessus du dernier lieutenant, le Parrain au plafond, que chaque recoin a son butin, que chaque objet de terrain est donné dans sa ville après son sceau, qu'il y a `HEART_SCALES` Écailles Cœur, que les Encens du Pacte sont au plus le nombre tiré et seulement dans des recoins ou des dons, un Maître des Capacités avant le 2e sceau, que chaque don est unique et que les dons atteignent `GIFT_SHARE` %, que les objets des tables et les graphismes existent, que `dialogues.txt` se lit (avec le fichier et la ligne de l'erreur sinon), qu'aucune réplique n'est redite avant que sa section soit épuisée, que chaque ville (sauf la première) a ses habitants et chaque maison 1 à 2, que les cases de `HOUSE_SPOTS` sont libres et ne coupent aucun passage, et que la même graine redonne les mêmes événements.
 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `MapProceduralGenerator.generate_world`, `generate_world_maps`, `remove_world_now` et `delete_exports` (après ProceduralEncounters, d'où le `Requires`) ; `Compiler.compile_trainers` ; `TrainerBattle.start_core` (combat double en simple avec un seul Pokémon en état).
@@ -806,7 +802,17 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
-## F20. Dette envers la Famille (FamilyDebt)
+## F24. Casino de la Famille (FamilyCasino)
+**Statut :** v1.0.0, écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. Les croupiers sont posés par WorldEvents.
+**Dossier :** `Plugins/FamilyCasino/`
+
+### Règles
+- **Où :** 1 ou 2 croupiers par monde (`CASINOS`), chacun (une Cousine) au bord d'une rue d'une ville différente, jamais la première (WorldEvents, `011_Casinos.rb`, posé après tous les autres événements). Lui parler appelle `FamilyCasino.croupier` ; la première fois, il donne la Boîte Jetons.
+- **Jetons :** achetés avec de l'argent, plus cher qu'à Céladopole (`COIN_PACKS` : 50 pour 1 500, 500 pour 14 000).
+- **Jeux :** machines à sous (`pbSlotMachine`, difficulté `SLOT_DIFFICULTY` = 2) et Voltorbataille (`pbVoltorbFlip`) d'Essentials ; **roulette** : une mise (`BETS`), puis rouge ou noir (× 2) ou un des 18 types (× 18) ; chaque type est rouge ou noir, en alternance dans l'ordre de `types.txt`, et la roue tire un type ; **pile ou face** : × 2.
+- **Comptoir des lots :** Super Bonbon, PP Plus, pierres évolutives (`PRIZES`) et des CT fortes (Séisme, Laser Glace, Tonnerre, Lance-Flammes, Psyko, Ball'Ombre, Surf, Éco-Sphère : `PRIZE_MOVES`), contre des jetons.
+## F25. Dette envers la Famille (FamilyDebt)
 **Statut :** v1.0.0, écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de LevelCap (`Requires`) ; les usuriers sont posés par WorldEvents.
 **Dossier :** `Plugins/FamilyDebt/`
@@ -832,6 +838,23 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Prix des jetons, mises, gains, difficulté des machines, lots. |
+| `002_Croupier.rb` | Menu du croupier, Boîte Jetons, achat de jetons, mises. |
+| `003_Games.rb` | Roulette, pile ou face. |
+| `004_Prizes.rb` | Comptoir des lots. |
+
+### Points d'accroche Essentials
+Aucun alias : `pbSlotMachine`, `pbVoltorbFlip`, `$player.coins`, `pbReceiveItem`.
+
+### À vérifier au premier lancement
+- Parler au croupier : Boîte Jetons reçue, achat de 50 jetons contre 1 500.
+- Machines à sous et Voltorbataille s'ouvrent et rendent la main au menu.
+- Roulette : miser 10 sur rouge, le message donne le type et sa couleur ; gain × 2 si la couleur sort.
+- Comptoir : une pierre contre 1 000 jetons.
+
+### Limites connues
+- Pas de salle dédiée : le croupier est dehors, au bord d'une rue (la salle cachée pourra venir avec un intérieur MapProc).
+- Les textes des mini-jeux d'Essentials restent en anglais (#113).
 | `001_Settings.rb` | Montants, intérêts, chance et équipe des recouvreurs. |
 | `002_Data.rb` | `$family_debt` (montant, taux, sceaux à l'emprunt) dans la sauvegarde, retard, remboursement, intérêts. |
 | `003_Usurer.rb` | Dialogue de l'usurier : emprunter ou rembourser. |
@@ -1078,6 +1101,44 @@ Le tileset des grottes se reconstruit à part (il recopie le tileset 7 vers l'ID
 ### Points d'accroche Essentials (aucun script de base modifié)
 - `Module#prepend` sur la classe singleton de chaque module des étapes ; alias de `MapProceduralGenerator.generate_world_maps` (après ceux de ProceduralEncounters et WorldEvents) pour le rapport.
 
+## F23. Défi du jour (DailyChallenge)
+**Statut :** v1.0.0, écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. Dépend de NewGameSetup, Monotype, MapProceduralGenerator et RunHistory (`Requires`).
+**Dossier :** `Plugins/DailyChallenge/`
+
+### Règles
+- **Écran titre :** « New Game » demande « Défi du jour (JJ/MM) », « Graine au hasard » ou « Retour ». Le défi rappelle la version du générateur et le meilleur score du jour, puis demande confirmation. « Rejouer cette graine » (RunHistory) ne pose pas la question.
+- **Même monde pour tous :** la graine vient de la date de l'ordinateur (change à minuit, heure locale) : `Zlib.crc32("TypeLocked AAAA-MM-JJ") % 1 000 000`. Deux joueurs ont la même région seulement avec la même version du générateur (MapProceduralGenerator).
+- **Même type, mêmes starters :** tirés de la graine avant la fenêtre Monotype (pas de choix Normal/Facile). Le Nuzlocke reste au choix : sans lui, le score est × 0,5 (RunHistory).
+- **Essais :** autant qu'on veut ; le meilleur score de chaque jour est gardé (`DAYS_KEPT`, 30 jours) dans `DailyChallenge.rxdata`, à côté de la sauvegarde.
+- **Historique :** la liste de RunHistory a une vue « Défis du jour » : la meilleure partie de chaque jour, la plus récente en premier, avec sa date.
+- **Partie multi :** une partie lancée depuis un salon n'est pas un défi (la graine du salon remplace celle du jour).
+
+### Fichiers
+| Fichier | Rôle |
+|---|---|
+| `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Nom du fichier, jours gardés, sel de la graine et du tirage. |
+| `002_Seed.rb` | Jour, graine du jour, tirage du type et des starters (fonctions pures, contrôlées par la CI). |
+| `003_Data.rb` | `$daily_challenge` (jour du défi, dans la sauvegarde), meilleurs scores du jour, version du générateur. |
+| `004_Title.rb` | Question de « New Game » à l'écran titre. |
+| `005_Setup.rb` | Type et starters du défi au début de la partie (NewGameSetup, ordre 15). |
+| `006_History.rb` | Meilleur score du jour à chaque enregistrement RunHistory, vue « Défis du jour ». |
+
+### Points d'accroche Essentials (alias, aucun script de base modifié)
+`PokemonLoad_Scene#pbChoose` (après l'alias de RunHistory), `RunHistory.record` et `RunHistory.extra_views`, lecture de `MapProceduralGenerator.next_game_seed` (lecteur ajouté depuis ce plugin).
+
+### À vérifier au premier lancement
+- « New Game » → « Défi du jour » : la console affiche la même graine pour deux lancements le même jour, et le professeur annonce le même type avec les mêmes 3 starters.
+- « Graine au hasard » : graine et type différents à chaque fois.
+- Sauvegarder une partie du défi : elle apparaît dans la vue « Défis du jour » de la liste ; une seconde partie du jour avec un meilleur score la remplace.
+- « Retour » dans la question revient à l'écran titre.
+
+### Limites connues
+- Le classement est local ; le partage entre amis par le serveur des salons fera l'objet d'une issue à part.
+- Les rencontres en combat (attaques, captures) restent aléatoires : seuls le monde, le type et les starters sont communs.
+
+
 ## F03. Add-ons du Deluxe Battle Kit
 **Statut :** installés, **non testés**.
 
@@ -1185,9 +1246,11 @@ Le tileset des grottes se reconstruit à part (il recopie le tileset 7 vers l'ID
 | 27/10/2026 | MapProceduralGenerator v0.34.1 (#162) : la brique `cypres` (rangée de cyprès, verdoyante et prairie) écrasée par la passe large est rétablie ; les cyprès d'Alola passent dans `cypres_alola` | `MapProc/Briques/cypres.txt`, `MapProc/Briques/cypres_alola.txt`, `docs/FEATURES.md` |
 | 27/10/2026 | MapProceduralGenerator v0.35.0 (#162) : génération 3 à 5 fois plus rapide, mêmes mondes pour une même graine | `Plugins/MapProceduralGenerator/003_Builder.rb`, `Plugins/MapProceduralGenerator/004_World.rb`, `docs/FEATURES.md` |
 | 01/11/2026 | MapProceduralGenerator v0.35.1 : le constructeur des lieux (`003_Builder.rb`, 2 200 lignes) est découpé en six fichiers par thème (cœur, rues, briques, mer et port, traversées, relief), sans changer le code : mêmes mondes pour une même graine ; outil `tools/ci/world_fingerprint.rb` qui donne l'empreinte des mondes de quelques graines, pour vérifier qu'une refonte ne les change pas | `Plugins/MapProceduralGenerator/003_Builder*.rb`, `Plugins/MapProceduralGenerator/meta.txt`, `tools/ci/world_fingerprint.rb`, `tools/ci/check_mapproc.rb`, `tools/ci/check_encounters.rb`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 02/11/2026 | DailyChallenge v1.0.0 : défi du jour (graine tirée de la date, même type et mêmes starters pour tous, meilleur score du jour, vue « Défis du jour ») ; RunHistory v1.2.0 : vues de la liste extensibles (`RunHistory.extra_views`) ; contrôle CI de la graine du jour | `Plugins/DailyChallenge/*`, `Plugins/RunHistory/005_List.rb`, `Plugins/RunHistory/meta.txt`, `tools/ci/check_daily_challenge.rb`, `.github/workflows/ci.yml`, `GLOSSARY.md`, `docs/FEATURES.md` |
 | 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
 | 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |  
 | 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 03/11/2026 | FamilyCasino v1.0.0 : casino de la Famille (jetons, machines à sous, Voltorbataille, roulette, pile ou face, comptoir des lots) ; WorldEvents v1.18.0 : 1 ou 2 croupiers par monde ; contrôle CI | `Plugins/FamilyCasino/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/011_Casinos.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 05/11/2026 | Liste des 300 Pokémon supprimée ; ProceduralEncounters v1.5.0 : plus de limite de 300 Pokémon par monde (`WORLD_SPECIES`, `TYPE_FAMILIES`, `WORLD_SAMPLE` supprimés) et plus de garantie que chaque famille apparaisse, chaque monde pioche dans tout le Pokédex (`docs/roster/pokedex.csv`) | `docs/roster/liste-300.*`, `Plugins/ProceduralEncounters/*`, `docs/FEATURES.md` |
 | 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |
 | 06/11/2026 | PactIncense v1.0.0 et WorldEvents v1.16.0 (#160) : Encens du Pacte, la prochaine rencontre sauvage est capturable ; 0 à 3 par partie dans les recoins et les dons | `Plugins/PactIncense/*`, `Plugins/WorldEvents/*`, `PBS/items.txt`, `Graphics/Items/PACTINCENSE.png`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
