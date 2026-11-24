@@ -207,6 +207,19 @@ module MapGenerator
     return plan
   end
 
+  # A plan from its palette and its own grids, with no text to read (#345).
+  # palette: a parsed plan whose legend, objects, terrains, ground and tileset
+  # are shared (read once, never changed). Its objects are found on the
+  # grids; check: the whole validation of parse too (CI, debug).
+  def assemble(palette, name:, rows:, map_id: nil, seed: nil, overlays: {}, warps: {}, events: [], check: false)
+    plan = Plan.new(palette.file, name, palette.tileset_id, map_id, palette.parent_id, seed, palette.ground, palette.legend,
+                    palette.objects, rows, [], overlays, palette.terrains, warps, events)
+    return plan.tap { validate(plan) } if check
+    scan_grid(plan, rows, "[Map]", nil)
+    overlays.each { |z, grid| scan_grid(plan, grid, "[Layer#{z + 1}]", z) }
+    return plan
+  end
+
   # Returns an array of tile IDs (random variants) for one layer.
   # Autotiles are stored as their base ID (48 * slot); patterns come later.
   def parse_layer(token, fail_at)

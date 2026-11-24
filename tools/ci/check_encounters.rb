@@ -10,6 +10,7 @@ require_relative "lib/ci"
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
 M = MapProceduralGenerator
+M.check_plans = true   # plans made without text, fully validated (#345)
 E = ProceduralEncounters
 SEEDS = 1..3
 LINE = /\A    (\d+),(\w+),(\d+)(?:,(\d+))?\z/

@@ -16,6 +16,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
 %w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 011_Guilds].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
+M.check_plans = true   # plans made without text, fully validated (#345)
 E = ProceduralEncounters
 W = WorldEvents
 # WORLD_SEEDS=20 or WORLD_SEEDS=6..8 to try others locally

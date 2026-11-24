@@ -10,7 +10,7 @@
 #===============================================================================
 module MapProceduralGenerator
   # name, symbol, x, y, w, h (squares), text: MapGen plan
-  Filler = Struct.new(:name, :symbol, :x, :y, :w, :h, :text)
+  Filler = Struct.new(:name, :symbol, :x, :y, :w, :h, :text, :plan)
   # Neighbours of a square: sides weigh more than corners
   FILLER_REACH = [[0, -1, 2], [0, 1, 2], [-1, 0, 2], [1, 0, 2], [-1, -1, 1], [1, -1, 1], [-1, 1, 1], [1, 1, 1]].freeze
 
@@ -40,8 +40,7 @@ module MapProceduralGenerator
     rects = rects.max_by(FILLER_SYMBOLS.length) { |_key, _x, _y, w, h| w * h } if rects.length > FILLER_SYMBOLS.length
     return rects.each_with_index.map do |(key, x, y, w, h), i|
       name = "#{FILLER_NAME} #{i + 1}"
-      text = filler_text(world, built[sources[key]], key[0], name, w, h, map_ids[name], (seed * 1000) + 950 + i)
-      Filler.new(name, FILLER_SYMBOLS[i], x, y, w, h, text)
+      Filler.new(name, FILLER_SYMBOLS[i], x, y, w, h, *filler_map(world, built[sources[key]], key[0], name, w, h, map_ids[name], (seed * 1000) + 950 + i))
     end
   end
 
@@ -94,16 +93,16 @@ module MapProceduralGenerator
     return rects
   end
 
-  # MapGen plan text of a decor map, in the palette of the place it copies.
-  def filler_text(world, source, kind, name, w, h, map_id, seed)
-    _wp, place, text, layout = source
+  # MapGen plan text and plan of a decor map, in the palette of the place it
+  # copies.
+  def filler_map(world, source, kind, name, w, h, map_id, seed)
+    _wp, place, _text, layout = source
     decor = place.dup
     decor.name = name
     decor.map_id = map_id
     decor.ambiance = layout.ambiance
-    palette = MapGenerator.parse(text, place.file)
-    rows = filler_rows(kind, decor, palette, w * world.cell, h * world.cell, Random.new(seed))
-    return plan_text(decor, seed, rows)
+    rows = filler_rows(kind, decor, palette_plan(decor), w * world.cell, h * world.cell, Random.new(seed))
+    return plan_text(decor, seed, rows), place_plan(decor, seed, rows)
   end
 
   def filler_rows(kind, place, palette, width, height, rng)
