@@ -255,6 +255,11 @@ module WorldEvents
   # Move Relearners (a Heart Scale per move): one in a town reached with at
   # most each number of seals (the first one before the 2nd seal).
   RELEARNERS = [1, 4, 7].freeze
+  # The Family's casinos (FamilyCasino plugin): CASINOS croupiers per world,
+  # each by a street of a town drawn among all but the first (never two in the
+  # same town), placed after everyone else.
+  CASINOS = 1..2
+  CROUPIER_GRAPHIC = "trainer_COUSIN_F"
   # The Family's usurer (FamilyDebt plugin): in each town but the first, by
   # a street, placed after everyone else.
   USURER_GRAPHIC = "trainer_COUSIN_M"

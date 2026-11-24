@@ -43,6 +43,7 @@ module WorldEvents
       items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730))
     end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760))
+    casino_events(result, atlas, plans, Random.new((seed * 1000) + 800))
     usurer_events(result, atlas, plans, Random.new((seed * 1000) + 790))
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
              league: league, items: items || [] }

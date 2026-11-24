@@ -543,7 +543,7 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 - `introOak` est l'image d'Essentials, à remplacer par un portrait de Castellane.
 
 ## F15. Événements des mondes générés (WorldEvents)
-**Statut :** v1.17.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
+**Statut :** v1.18.0, écrit, **non testé en jeu**. Spec #93, tickets #94 (socle et starter), #95 (services), #96 (dresseurs et Cousins), #97 (lieutenants et sceaux), #98 (objets trouvés et donnés), #99 (Ligue) et #100 (habitants et dialogues), puis sets des lieutenants et de la Ligue, et sprites de la Famille (#103).
 **Version cible :** Essentials v21.1.
 **Dossier :** `Plugins/WorldEvents/`
 
@@ -782,6 +782,16 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 ### Points d'accroche Essentials (alias, aucun script de base modifié)
 `Game.start_new` (après l'alias de MapProceduralGenerator, pour donner la graine avant le tirage du monde), `NewGameSetup.add(:online, 5)`, `EventHandlers :on_frame_update`, `MenuHandlers :pause_menu`. Duel : sous-classe de `Battle` (`pbRandom`, `pbCalculatePriority`, `pbCommandPhaseLoop`, `pbSwitchInBetween`, `pbRun`, `pbOwnedByPlayer?`, `pbCanMegaEvolve?`), gestionnaires `Battle::AbilityEffects::OnSwitchIn` d'Anticipation, Prédiction et Fouille enveloppés (après le Deluxe Battle Kit).
 
+## F21. Casino de la Famille (FamilyCasino)
+**Statut :** v1.0.0, écrit, **non testé en jeu**.
+**Version cible :** Essentials v21.1. Les croupiers sont posés par WorldEvents.
+**Dossier :** `Plugins/FamilyCasino/`
+
+### Règles
+- **Où :** 1 ou 2 croupiers par monde (`CASINOS`), chacun (une Cousine) au bord d'une rue d'une ville différente, jamais la première (WorldEvents, `011_Casinos.rb`, posé après tous les autres événements). Lui parler appelle `FamilyCasino.croupier` ; la première fois, il donne la Boîte Jetons.
+- **Jetons :** achetés avec de l'argent, plus cher qu'à Céladopole (`COIN_PACKS` : 50 pour 1 500, 500 pour 14 000).
+- **Jeux :** machines à sous (`pbSlotMachine`, difficulté `SLOT_DIFFICULTY` = 2) et Voltorbataille (`pbVoltorbFlip`) d'Essentials ; **roulette** : une mise (`BETS`), puis rouge ou noir (× 2) ou un des 18 types (× 18) ; chaque type est rouge ou noir, en alternance dans l'ordre de `types.txt`, et la roue tire un type ; **pile ou face** : × 2.
+- **Comptoir des lots :** Super Bonbon, PP Plus, pierres évolutives (`PRIZES`) et des CT fortes (Séisme, Laser Glace, Tonnerre, Lance-Flammes, Psyko, Ball'Ombre, Surf, Éco-Sphère : `PRIZE_MOVES`), contre des jetons.
 ## F20. Dette envers la Famille (FamilyDebt)
 **Statut :** v1.0.0, écrit, **non testé en jeu**.
 **Version cible :** Essentials v21.1. Dépend de LevelCap (`Requires`) ; les usuriers sont posés par WorldEvents.
@@ -808,6 +818,23 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | Fichier | Rôle |
 |---|---|
 | `meta.txt` | Déclaration du plugin. |
+| `001_Settings.rb` | Prix des jetons, mises, gains, difficulté des machines, lots. |
+| `002_Croupier.rb` | Menu du croupier, Boîte Jetons, achat de jetons, mises. |
+| `003_Games.rb` | Roulette, pile ou face. |
+| `004_Prizes.rb` | Comptoir des lots. |
+
+### Points d'accroche Essentials
+Aucun alias : `pbSlotMachine`, `pbVoltorbFlip`, `$player.coins`, `pbReceiveItem`.
+
+### À vérifier au premier lancement
+- Parler au croupier : Boîte Jetons reçue, achat de 50 jetons contre 1 500.
+- Machines à sous et Voltorbataille s'ouvrent et rendent la main au menu.
+- Roulette : miser 10 sur rouge, le message donne le type et sa couleur ; gain × 2 si la couleur sort.
+- Comptoir : une pierre contre 1 000 jetons.
+
+### Limites connues
+- Pas de salle dédiée : le croupier est dehors, au bord d'une rue (la salle cachée pourra venir avec un intérieur MapProc).
+- Les textes des mini-jeux d'Essentials restent en anglais (#113).
 | `001_Settings.rb` | Montants, intérêts, chance et équipe des recouvreurs. |
 | `002_Data.rb` | `$family_debt` (montant, taux, sceaux à l'emprunt) dans la sauvegarde, retard, remboursement, intérêts. |
 | `003_Usurer.rb` | Dialogue de l'usurier : emprunter ou rembourser. |
@@ -997,5 +1024,6 @@ Une partie doit pouvoir se finir vite (issue #30). Tous les réglages sont dans 
 | 02/11/2026 | Monotype v1.8.0 : à l'entrée d'une carte avec des rencontres, fenêtre « Type X : N Pokémon ici » (espèces capturables avec le type) | `Plugins/Monotype/007_ZoneCount.rb`, `Plugins/Monotype/001_Settings.rb`, `Plugins/Monotype/meta.txt`, `docs/FEATURES.md` |
 | 03/11/2026 | FamilyDebt v1.0.0 : dette envers la Famille (usurier, intérêts à chaque dresseur battu, recouvreurs sur les routes en cas de retard) ; WorldEvents v1.17.0 : un usurier dans chaque ville sauf la première ; contrôle CI | `Plugins/FamilyDebt/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/010_Usurers.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `GLOSSARY.md`, `docs/FEATURES.md` |  
 | 03/11/2026 | WorldEvents v1.16.0 : butin au choix après chaque sceau (CT du lieutenant, objet tenu ou lot d'objets, tirés avec la graine selon le palier du sceau) ; MapEvents v1.6.0 : `Script` sur un dresseur, lancé avec ses récompenses ; contrôles CI du butin | `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/005_Gyms.rb`, `Plugins/WorldEvents/008_Runtime.rb`, `Plugins/WorldEvents/meta.txt`, `Plugins/MapEvents/002_Parser.rb`, `Plugins/MapEvents/003_Events.rb`, `Plugins/MapEvents/meta.txt`, `MapProc/Lore/dialogues.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
+| 03/11/2026 | FamilyCasino v1.0.0 : casino de la Famille (jetons, machines à sous, Voltorbataille, roulette, pile ou face, comptoir des lots) ; WorldEvents v1.18.0 : 1 ou 2 croupiers par monde ; contrôle CI | `Plugins/FamilyCasino/*`, `Plugins/WorldEvents/001_Settings.rb`, `Plugins/WorldEvents/003_World.rb`, `Plugins/WorldEvents/011_Casinos.rb`, `Plugins/WorldEvents/meta.txt`, `tools/ci/check_world_events.rb`, `docs/FEATURES.md` |
 | 05/11/2026 | Liste des 300 Pokémon supprimée ; ProceduralEncounters v1.5.0 : plus de limite de 300 Pokémon par monde (`WORLD_SPECIES`, `TYPE_FAMILIES`, `WORLD_SAMPLE` supprimés) et plus de garantie que chaque famille apparaisse, chaque monde pioche dans tout le Pokédex (`docs/roster/pokedex.csv`) | `docs/roster/liste-300.*`, `Plugins/ProceduralEncounters/*`, `docs/FEATURES.md` |
 | 06/11/2026 | FrenchTexts v1.0.0 : jeu en français (données PokeAPI, textes des scripts, message ×4) ; Nuzlocke v1.3.1 (#113) : « C'est hyper efficace ! » pour une attaque ×4, question du surnom sans « (obligatoire) » | `Plugins/FrenchTexts/*`, `Text_french_core/*`, `Data/messages_french_core.dat`, `tools/translate/*`, `tools/ci/check_translations.rb`, `.github/workflows/ci.yml`, `Plugins/Nuzlocke/004_Nicknames.rb`, `Plugins/Nuzlocke/meta.txt`, `docs/FEATURES.md` |

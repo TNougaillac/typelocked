@@ -13,7 +13,7 @@ Essentials.load_scripts("Overworld_RandomDungeons")
 %w[001_Settings 002_Parser 003_Builder 003_Builder_Bricks 003_Builder_Crossings 003_Builder_Relief 003_Builder_Sea 003_Builder_Streets 004_World 006_Caves 008_Names 009_Atlas 010_CavePainter 011_Interiors 013_Fillers].each { |f| require File.join(ROOT, "Plugins", "MapProceduralGenerator", f) }
 %w[001_Settings 002_Parser].each { |f| require File.join(ROOT, "Plugins", "MapEvents", f) }
 %w[001_Settings 002_Species 003_Tables 004_World].each { |f| require File.join(ROOT, "Plugins", "ProceduralEncounters", f) }
-%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 010_Usurers].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
+%w[001_Settings 002_Dialogues 003_World 004_Trainers 005_Gyms 006_Sets 007_Items 010_Usurers 011_Casinos].each { |f| require File.join(ROOT, "Plugins", "WorldEvents", f) }
 M = MapProceduralGenerator
 E = ProceduralEncounters
 W = WorldEvents
@@ -290,6 +290,10 @@ def check_items(atlas, zones, plans, items)
   raise MapEvents::Error, "#{scales} Écailles Cœur au lieu de #{W::HEART_SCALES}" if scales != W::HEART_SCALES
   early = plans.select { |name, plan| plan.events.any? { |e| e.label.start_with?("MaitreCapacites") } && zones[name].seals <= 1 }
   raise MapEvents::Error, "aucun Maître des Capacités avant le 2e sceau" if early.empty?
+  casinos = plans.select { |_name, plan| plan.events.any? { |e| e.label == "Croupier" } }.keys
+  raise MapEvents::Error, "aucun casino de la Famille" if casinos.empty?
+  raise MapEvents::Error, "#{casinos.length} casinos au lieu de #{W::CASINOS}" if !W::CASINOS.cover?(casinos.length)
+  raise MapEvents::Error, "casino dans la ville de départ #{atlas[:start]}" if casinos.include?(atlas[:start])
   usurers = plans.select { |_name, plan| plan.events.any? { |e| e.label == "Usurier" } }.keys
   raise MapEvents::Error, "aucun usurier de la Famille" if usurers.empty?
   raise MapEvents::Error, "usurier dans la ville de départ #{atlas[:start]}" if usurers.include?(atlas[:start])
