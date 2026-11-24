@@ -65,6 +65,9 @@ jobs:
       - name: Événements des mondes générés
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_world_events.rb
+      - name: Défi du jour
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_daily_challenge.rb
       - name: meta.txt et encodage
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_plugins.rb
