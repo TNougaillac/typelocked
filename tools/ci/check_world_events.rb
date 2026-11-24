@@ -503,6 +503,8 @@ def check_items(atlas, zones, plans, items)
   raise MapEvents::Error, "aucun casino de la Famille" if casinos.empty?
   raise MapEvents::Error, "#{casinos.length} casinos au lieu de #{W::CASINOS}" if !W::CASINOS.cover?(casinos.length)
   raise MapEvents::Error, "casino dans la ville de départ #{atlas[:start]}" if casinos.include?(atlas[:start])
+  alone = casinos.reject { |name| plans[name].events.any? { |e| e.label == "ClientCasino" && e.value("Text") } }
+  raise MapEvents::Error, "casino sans client : #{alone.join(', ')}" if !alone.empty?
   usurers = plans.select { |_name, plan| plan.events.any? { |e| e.label == "Usurier" } }.keys
   raise MapEvents::Error, "aucun usurier de la Famille" if usurers.empty?
   raise MapEvents::Error, "usurier dans la ville de départ #{atlas[:start]}" if usurers.include?(atlas[:start])
@@ -1246,6 +1248,12 @@ end
 { "sol" => W.item_table, "recoin" => W.nook_table, "revisite" => W.revisit_table }.each do |key, table|
   CI.error(settings, nil, "objets.txt : pas d'objet « #{key} » à 0 sceau") if table[0].nil? || table[0].empty?
 end
+# The casino's prize counter (#330): pool items with « casino », a price for
+# each rarity
+require File.join(ROOT, "Plugins", "FamilyCasino", "001_Settings")
+CI.error(settings, nil, "objets.txt : aucun lot « casino »") if W.item_pool.none? { |item| item.sources.include?("casino") }
+unpriced = W::RARITIES.values - FamilyCasino::PRIZE_PRICES.keys
+CI.error(settings, nil, "FamilyCasino::PRIZE_PRICES : pas de prix pour le poids #{unpriced.join(', ')}") if !unpriced.empty?
 weather = W.item_pool.select { |item| item.sources.include?("meteo") }.map(&:id)
 missing = W::WEATHER_ITEMS.values.flatten.uniq - weather
 CI.error(settings, nil, "objets.txt : objets de météo sans « meteo » (#{missing.join(', ')})") if !missing.empty?
