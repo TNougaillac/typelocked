@@ -65,6 +65,9 @@ jobs:
       - name: Événements des mondes générés
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_world_events.rb
+      - name: Chronos de la génération du monde
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_world_timing.rb
       - name: meta.txt et encodage
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_plugins.rb
