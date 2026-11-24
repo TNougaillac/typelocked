@@ -1,4 +1,4 @@
 Name       = MapGenerator
-Version    = 1.19.0
+Version    = 1.22.0
 Essentials = 21.1
 Credits    = TypeLocked

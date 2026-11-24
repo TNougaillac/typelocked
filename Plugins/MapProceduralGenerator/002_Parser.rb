@@ -94,6 +94,9 @@
 #                               lamps, benches, signs)
 #   Ambiances = sable, minérale (optional: only drawn in places of one of
 #                               these [Ambiance], comma-separated)
+#   Unique = oui               (optional: laid once per place at most)
+#   Porte = 1,1 est            (a door on a side of the brick, walked into
+#                               from the east or « ouest »)
 #   [Map]
 #   CCCCC                      (palette symbols; " " = not part of the brick)
 #===============================================================================
@@ -105,8 +108,10 @@ module MapProceduralGenerator
                      :water, :rock, :pebble, :crossing, :ambiances, :ambiance,
                      :deep, :dive, :levels, :stairs, :mountain, :cave, :excess, :river, :port, :pier,
                      :lips, :island, :boat, :reef, :bank, :ferry, :high_grass, :nook, :banks, :fixed_counts,
-                     :mask, :joints, :filler, :lock, :plan, :sea_rock, :edged_water, :street_style)
+                     :mask, :joints, :filler, :lock, :plan, :sea_rock, :edged_water, :street_style, :gates)
   # plan: a town's plan forced (a key of TOWN_PLANS), nil = drawn;
+  # gates: a guild's dungeon (#335), the number of gates across it (see
+  # close_gates), nil = none;
   # mask, joints: the squares of its rectangle a place of a world covers and
   # where its streets meet (see WorldPlace), nil = the whole rectangle;
   # filler: « Comble », a symbol of one cell that blocks the way, for the
@@ -128,7 +133,23 @@ module MapProceduralGenerator
   # coastal: « Mer = oui », drawn only by the sea (see coastal?)
   Ambiance = Struct.new(:name, :weight, :ground, :street, :banks, :palette, :counts, :per_case, :streets,
                         :coastal)
-  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances)
+  # door_side: nil = the door is walked into from below; « est », « ouest » =
+  # from that side of it (« Porte = 1,1 est », a cave's mouth in a rock wall)
+  Brick = Struct.new(:file, :name, :kind, :door, :weight, :by_street, :rows, :ambiances, :unique, :door_side) do
+    # The cell in front of the door, from the brick's corner: [x, y]
+    def front
+      ox, oy = DOOR_FRONTS[door_side]
+      return [door[0] + ox, door[1] + oy]
+    end
+
+    # The top left cell of the path that leaves the door (STREET_WIDTH wide)
+    def path_start
+      return (door_side == "ouest") ? [door[0] - STREET_WIDTH, door[1]] : front
+    end
+  end
+  DOOR_FRONTS = { nil => [0, 1], "est" => [1, 0], "ouest" => [-1, 0] }.freeze
+  # The way the player faces when coming out of a door (MapGen's [Warps])
+  DOOR_FACINGS = { nil => "bas", "est" => "droite", "ouest" => "gauche" }.freeze
   PLACE_KINDS = %w[ville route]
   LAKE = "lac"   # brick type drawn by the builder, not read from a file
   HILL = "colline"   # idem
@@ -136,6 +157,12 @@ module MapProceduralGenerator
   SIDES = %w[nord sud est ouest]
 
   module_function
+
+  # The cell in front of a door laid at x, y (the door's own cell): [x, y].
+  def door_front(x, y, brick)
+    fx, fy = brick.front
+    return [x - brick.door[0] + fx, y - brick.door[1] + fy]
+  end
 
   def read(path)
     return File.read(path, encoding: "UTF-8").sub(/\A﻿/, "")
@@ -282,13 +309,17 @@ module MapProceduralGenerator
       when "brique" then brick.name = value
       when "type"   then brick.kind = value
       when "porte"
-        fail_at.call("attendu « colonne,ligne », ex. 2,4") unless value =~ /\A(\d+),(\d+)\z/
+        fail_at.call("attendu « colonne,ligne », ex. 2,4, ou « 1,1 est »") unless value =~ /\A(\d+),(\d+)(?:\s+(est|ouest))?\z/
         brick.door = [$1.to_i, $2.to_i]
+        brick.door_side = $3
       when "poids"  then brick.weight = integer(value, fail_at)
       when "contre"
         fail_at.call("seule valeur possible : « Contre = rue »") unless value == "rue"
         brick.by_street = true
       when "ambiances" then brick.ambiances = value.split(",").map(&:strip)
+      when "unique"
+        fail_at.call("seule valeur possible : « Unique = oui »") unless value == "oui"
+        brick.unique = true
       else fail_at.call("clé inconnue « #{key} »")
       end
     end
@@ -299,7 +330,12 @@ module MapProceduralGenerator
     brick.rows.map! { |row| row.ljust(width) }
     if brick.door
       x, y = brick.door
-      if y != brick.rows.length - 1 || x >= width || brick.rows[y][x] == " "
+      if brick.door_side
+        fx, = brick.front
+        if y >= brick.rows.length || x >= width || brick.rows[y][x] == " " || (fx.between?(0, width - 1) && brick.rows[y][fx] != " ")
+          raise Error, "#{file} : la porte #{x},#{y} doit être une case du bord #{brick.door_side} de [Map]"
+        end
+      elsif y != brick.rows.length - 1 || x >= width || brick.rows[y][x] == " "
         raise Error, "#{file} : la porte #{x},#{y} doit être une case de la dernière ligne de [Map]"
       end
     end
@@ -315,7 +351,7 @@ module MapProceduralGenerator
         raise Error, "#{place.file}, ligne #{lineno} : [Ambiance #{ambiance.name}] redéfinit « #{sym} », absent de la palette"
       end
     end
-    palette = MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+    palette = palette_plan(place)
     # With ambiances, the ground and street are defined by each ambiance only
     if place.ambiances.any?
       [place.ground, place.street].uniq.each do |sym|
@@ -476,6 +512,28 @@ module MapProceduralGenerator
       place.per_case.push(kind) if chosen.per_case.include?(kind)
     end
     return place
+  end
+
+  # Set by the CI: every plan made without text goes through the whole
+  # validation of MapGenerator.parse (#345). Off in game.
+  class << self
+    attr_accessor :check_plans
+  end
+
+  # The palette of a place as a parsed MapGen plan, read once for each
+  # palette text (ambiance, street style) and shared by the plans of every
+  # place that has it (#345).
+  # shortcut: kept for the whole session (a few dozen palettes), cleared by nothing; fine while palettes don't change in game.
+  def palette_plan(place)
+    key = [place.ground, place.tileset_id, palette_text(place)]
+    return (@palettes ||= {})[key] ||= MapGenerator.parse(plan_text(place, 0, [place.ground]), place.file)
+  end
+
+  # MapGen plan of a place, with no text to read again: its palette, then
+  # the assembled rows and levels, as parse would read them from plan_text.
+  def place_plan(place, seed, rows, levels = nil)
+    return MapGenerator.assemble(palette_plan(place), name: place.name, map_id: place.map_id, seed: seed, rows: rows,
+                                 overlays: levels&.any? ? { 2 => levels } : {}, check: check_plans)
   end
 
   # MapGen plan text of a place: header, palette, then the assembled rows.

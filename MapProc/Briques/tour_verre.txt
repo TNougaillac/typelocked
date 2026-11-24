@@ -1,0 +1,10 @@
+# Tour de verre : un immeuble de verre bleu sans porte, posé tôt comme les
+# autres bâtiments uniques, une fois par ville au plus (#299).
+Brique = Tour de verre
+Type   = special
+Unique = oui
+[Map]
+ѮѮѮѮѮѮѮѯ
+ѮѮѮѮѮѮѮѯ
+ѮѮѮѮѮѮѮѯ
+ѮѮѮѮѮѮѮѯ

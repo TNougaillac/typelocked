@@ -1,0 +1,11 @@
+# Dôme futuriste : le grand dôme bleu et or de la Famille, une fois par ville
+# au plus (#299).
+Brique = Dôme futuriste
+Type   = special
+Unique = oui
+Porte  = 7,3
+[Map]
+ѬѬѬѬѬѬѬѭѭѭѭѭѭѭ
+ѬѬѬѬѬѬѬѭѭѭѭѭѭѭ
+ѬѬѬѬѬѬѬѭѭѭѭѭѭѭ
+ѬѬѬѬѬѬѬѭѭѭѭѭѭѭ

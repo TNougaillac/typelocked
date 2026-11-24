@@ -85,15 +85,15 @@ module MapProceduralGenerator
     end
     # Routes first (their caves and islands don't exist yet: their warps are
     # linked after)
-    with_id = ->(name, text) { map_ids[name] ? text.sub(/^Tileset/, "MapID   = #{map_ids[name]}\nTileset") : text }
-    plans = result.places.map { |_wp, _place, text, _layout| text } +
-            result.caves.map { |_wp, name, text, _floor| with_id.call(name, text) } +
-            result.seabeds.map { |_wp, name, text| with_id.call(name, text) } +
-            result.islands.map { |_wp, _port, _place, text, _layout| text } +
-            result.fillers.map(&:text)
+    # The plans as they were made, no text read again (#345)
+    with_id = ->(name, plan) { plan.tap { plan.map_id = map_ids[name] if map_ids[name] } }
+    plans = result.places.map { |*, layout| layout.plan } +
+            result.caves.map { |_wp, name, _text, floor| with_id.call(name, floor.plan) } +
+            result.seabeds.map { |_wp, name, *, plan| with_id.call(name, plan) } +
+            result.islands.map { |*, layout| layout.plan } +
+            result.fillers.map(&:plan)
     unlinked = []
-    plans.each do |text|
-      plan = MapGenerator.parse(text, File.basename(path))
+    plans.each do |plan|
       map_ids[plan.name], _notes, missing = MapGenerator.generate(plan)
       busy_update
       unlinked.push(plan) if !missing.empty?
@@ -145,7 +145,7 @@ module MapProceduralGenerator
   def world_start(result, map_ids)
     wp, place, _text, layout = result.places.select { |p, *| p.kind == "ville" }.min_by { |p, *| p.index }
     door = layout.doors.find { |_x, _y, brick| brick.kind == "centre" } || layout.doors.first
-    x, y = door ? [door[0], door[1] + 1] : [place.width / 2, place.height / 2]
+    x, y = door ? door_front(*door) : [place.width / 2, place.height / 2]
     return map_ids[wp.name], x, y
   end
 
@@ -159,6 +159,11 @@ module MapProceduralGenerator
     lines = MapGenerator.read_pbs(file)
     position = ->(wp) { "MapPosition = #{world.region},#{world.origin[0] + wp.x},#{world.origin[1] + wp.y}" }
     result.caves.each do |wp, name, _text, floor|
+      # A gym (#121): its town's name, the battle backdrop of the demo's gym
+      if floor.guild == GYM
+        replace_section(lines, map_ids[name], name, ["Name = #{wp.title}", position.call(wp), *GYM_METADATA])
+        next
+      end
       body = ["Name = #{floor.dark ? wp.title : wp.cave_title || wp.title}", position.call(wp), "BattleBack = cave1", "Environment = Cave"]
       body.push("DarkMap = true") if floor.dark
       replace_section(lines, map_ids[name], name, body)

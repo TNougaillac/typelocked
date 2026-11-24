@@ -1,0 +1,10 @@
+# Volcan : une plaque de terre rouge et de la boue séchée au milieu.
+Brique    = Terre rouge
+Type      = decor
+Ambiances = volcan
+Poids     = 5
+[Map]
+ʇʇʇʇʇ
+ʇʈʈʈʇ
+ʇʈʈʈʇ
+ʇʇʇʇʇ

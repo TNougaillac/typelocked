@@ -3,9 +3,23 @@
 # One card per game (region, outcome, score, its team's icons), the
 # most recent first, CARDS_SHOWN on screen; Up and Down to choose, Use for the
 # details (and playing its seed again), Back to leave. Left and Right switch
-# to the BEST_SIZE best scores of all time, the best first.
+# to the BEST_SIZE best scores of all time, the best first, then to the views
+# other plugins add (RunHistory.extra_views).
 #===============================================================================
 module RunHistory
+  # A list of games shown in the list: name (in the header's « Next > »),
+  # title (header, given the index and the length), games, ranked (numbered
+  # cards), label (card title of an entry, nil: RunHistory.line).
+  View = Struct.new(:name, :title, :games, :ranked, :label)
+
+  module_function
+
+  # Views added after the last games and the best scores (aliased by other
+  # plugins).
+  def extra_views
+    return []
+  end
+
   class ListScene
     # Returns the seed to play again, nil if none.
     def main
@@ -29,7 +43,7 @@ module RunHistory
           refresh
         elsif Input.trigger?(Input::LEFT) || Input.trigger?(Input::RIGHT)
           pbPlayCursorSE
-          show(!@best)
+          show((@view + (Input.trigger?(Input::RIGHT) ? 1 : -1)) % @views.length)
         elsif Input.trigger?(Input::USE) && @list[@index]
           pbPlayDecisionSE
           seed = RunHistory.details(@list[@index])
@@ -43,10 +57,16 @@ module RunHistory
       return seed
     end
 
-    # The last games, or the best scores.
-    def show(best)
-      @best = best
-      @list = best ? RunHistory.best(@all) : @all.first(SIZE)
+    def views
+      return [View.new(_INTL("Dernières"), ->(i, n) { _INTL("Dernières ({1}/{2})", i + 1, n) }, @all.first(SIZE), false),
+              View.new(_INTL("Meilleurs"), ->(_i, _n) { _INTL("Meilleurs scores") }, RunHistory.best(@all), true)] +
+             RunHistory.extra_views
+    end
+
+    # The view of that index.
+    def show(view)
+      @view = view
+      @list = @views[view].games
       @index = 0
       refresh
     end
@@ -68,7 +88,8 @@ module RunHistory
         pbSetSystemFont(card.bitmap)
         @sprites["card#{k}"] = card
       end
-      show(false)
+      @views = views
+      show(0)
       pbFadeInAndShow(@sprites)
     end
 
@@ -76,18 +97,18 @@ module RunHistory
       header = @sprites["header"].bitmap
       header.clear
       header.blt(0, 0, @panels.bitmap, Rect.new(0, 444, @panels.width, 46))
-      title = @best ? _INTL("Meilleurs scores") : _INTL("Dernières ({1}/{2})", @index + 1, @list.length)
-      pbDrawTextPositions(header, [[title, 32, 14, :left, TEXT_COLOR, TEXT_SHADOW_COLOR],
-                                   [@best ? _INTL("< Dernières") : _INTL("Meilleurs >"), @panels.width - 32, 14, :right,
-                                    TEXT_COLOR, TEXT_SHADOW_COLOR]])
+      view = @views[@view]
+      following = @views[(@view + 1) % @views.length]
+      pbDrawTextPositions(header, [[view.title.call(@index, @list.length), 32, 14, :left, TEXT_COLOR, TEXT_SHADOW_COLOR],
+                                   ["#{following.name} >", @panels.width - 32, 14, :right, TEXT_COLOR, TEXT_SHADOW_COLOR]])
       top = (@index - CARDS_SHOWN + 1).clamp(0, [@list.length - CARDS_SHOWN, 0].max)
       CARDS_SHOWN.times do |k|
         entry = @list[top + k]
         card = @sprites["card#{k}"]
         card.visible = !entry.nil?
         next if !entry
-        title = RunHistory.line(entry, false)
-        title = "#{top + k + 1}. #{title}" if @best
+        title = view.label ? view.label.call(entry) : RunHistory.line(entry, false)
+        title = "#{top + k + 1}. #{title}" if view.ranked
         RunHistory.draw_card(card.bitmap, @panels, top + k == @index, title, RunHistory.score_text(entry), nil,
                              entry.team, 36)
       end

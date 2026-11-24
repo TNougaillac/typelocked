@@ -47,42 +47,6 @@ module ProceduralEncounters
     return list
   end
 
-  # The Pokémon of a world (id => Species, in the roster's order): whole
-  # families, first TYPE_FAMILIES per type, then up to WORLD_SPECIES, each
-  # time the family among WORLD_SAMPLE drawn by chance that keeps types,
-  # tiers and generations the most even.
-  def world_species(species, seed)
-    return species if species.length <= WORLD_SPECIES
-    rng = Random.new(seed)
-    families = species.values.group_by(&:family).values.shuffle(random: rng)
-    buckets = { type: species.values.flat_map(&:monotype_types).uniq.length,
-                tier: species.values.map(&:tier).uniq.length,
-                gen: species.values.map(&:generation).uniq.length }
-    keys = ->(sp) { sp.monotype_types.map { |t| [:type, t] } + [[:tier, sp.tier], [:gen, sp.generation]] }
-    counts = Hash.new(0)
-    chosen = []
-    fits = ->(family) { chosen.sum(&:length) + family.length <= WORLD_SPECIES }
-    take = lambda do |family|
-      next if !fits.call(family)
-      chosen.push(family)
-      family.each { |sp| keys.call(sp).each { |k| counts[k] += 1 } }
-    end
-    cost = lambda do |family|
-      family.sum { |sp| keys.call(sp).sum { |k| counts[k] * buckets[k[0]] } }.fdiv(family.length)
-    end
-    species.values.flat_map(&:monotype_types).uniq.shuffle(random: rng).each do |type|
-      catching = families.select { |f| f.any? { |sp| sp.monotype_types.include?(type) } }
-      (catching - chosen).first([TYPE_FAMILIES - (catching & chosen).length, 0].max).each(&take)
-    end
-    loop do
-      options = (families - chosen).select(&fits)
-      break if options.empty?
-      take.call(options.sample(WORLD_SAMPLE, random: rng).min_by(&cost))
-    end
-    ids = chosen.flatten.to_h { |sp| [sp.id, true] }
-    return species.select { |id, _sp| ids[id] }
-  end
-
   def resolve_stage(species, sp)
     return if !sp.prevo || sp.stage > 1
     prevo = species[sp.prevo[0]]

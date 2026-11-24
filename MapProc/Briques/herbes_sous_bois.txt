@@ -1,0 +1,10 @@
+# Forêt sombre : une tache de sous-bois (hautes herbes).
+Brique    = Herbes du sous-bois
+Type      = herbes
+Ambiances = forêt sombre
+Poids     = 3
+[Map]
+ ʅʅʅʅ
+ʅʅʅʅʅ
+ʅʅʅʅʅ
+ ʅʅʅ

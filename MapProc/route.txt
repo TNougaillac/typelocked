@@ -70,19 +70,23 @@ carriere = 0
 poste = 0
 # Campement des Dundees (#220), dans le marais, posé de même.
 dundees = 0
+# Camp des braconniers (#338), en forêt sombre, posé de même.
+braconniers = 0
 # Décor propre à une ambiance (briques « Ambiances = ... ») : la quantité est
 # donnée par chaque ambiance.
 # Barrières le long des chemins (posées après le reste, là où il reste de la place).
 barriere = 0..2 par case
 # Enclos : un pré fermé de barrières (ambiances d'herbe)
 enclos   = 0..1
+# Arbre remarquable : un grand arbre, une fois par lieu au plus (#297).
+remarquable = 0..1
 decor  = 0
 
 # Ambiances : chaque route en tire une selon son poids (l'herbe le plus souvent).
 # « {sol} » dans la palette = la première tuile du sol tiré.
 [Ambiance verdoyante]
 Poids = 6
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 decor = 0..1 par case
 
@@ -91,7 +95,7 @@ Poids = 1
 Sol   = T50
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 " = T143                # hautes herbes sur la prairie
-: = {sol} T7             # herbes très hautes sur la prairie
+: = {sol} T18063             # herbes très hautes sur la prairie
 ; = T151
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5344 2x2 forest=T5392
@@ -116,8 +120,8 @@ decor = 1..3 par case
 Poids = 1
 Sol   = T162
 Rue   = T162
-" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = {sol} T7             # herbes très hautes sur le sable
+" = T124                # hautes herbes sur le sable (le fond vert de T18062 est opaque)
+: = {sol} T18063             # herbes très hautes sur le sable
 ; = T175
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
@@ -144,7 +148,7 @@ Poids = 1
 Sol   = T218
 Rue   = T218
 " = T133                # hautes herbes sur le gravier
-: = {sol} T7             # herbes très hautes sur le gravier
+: = {sol} T18063             # herbes très hautes sur le gravier
 ; = T189
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
@@ -201,7 +205,7 @@ Poids = 1
 Sol   = T106
 Rue   = T106
 " = T125                # hautes herbes sur la terre
-: = {sol} T7             # herbes très hautes sur la terre
+: = {sol} T18063             # herbes très hautes sur la terre
 ; = T181
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5536 2x2 forest=T5584
@@ -224,15 +228,15 @@ decor = 1..2 par case
 # Automne : des arbres jaunes à la place des bois verts
 [Ambiance automne]
 Poids = 1
-Sol   = T1|T1|T1|T2|T3
-Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
+Sol   = T18057|T18057|T18057|T18058|T18059
+Rue   = T15800 N=T15801 S=T15802 W=T15803 E=T15804 NW=T15805 NE=T15806 SW=T15807 SE=T15808 iNW=T15809 iNE=T15810 iSW=T15811 iSE=T15812   # sentier de terre sombre (#295)
 arbre = 0..1 par case
 decor = 3..5 par case
 
 # Forêt tropicale : grands arbres à canopée et buissons serrés
 [Ambiance forêt tropicale]
 Poids = 1
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 0..1 par case
 decor = 2..4 par case
@@ -245,7 +249,7 @@ Poids = 1
 Sol   = T14632|T14632|T14632|T14633|T14634|T14635
 Rue   = T14632
 " = T14636               # hautes herbes sur la neige
-: = {sol} T7             # herbes très hautes sur la neige
+: = {sol} T18063             # herbes très hautes sur la neige
 ; = T14637
 n = T14636
 ǩ = T14640|T14641|T14642|T14643   # neige profonde
@@ -255,19 +259,19 @@ t = T14712 2x2 forest=T14760
 è = T14661 3x3 halo=4x4@1,1/0,3,12
 ê = T14680 1x3
 ë = T14684 1x2
-¬ = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 iNW=T14843 iNE=T14842 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
-& = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 iNW=T14843 iNE=T14842 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
-k = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 iNW=T14843 iNE=T14842 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=KmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-K = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 iNW=T14843 iNE=T14842 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=mMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-m = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 iNW=T14843 iNE=T14842 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=MEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-M = - N=T6059 S=T14833 W=T14824 E=T14827 NW=T14816 NE=T14819 SW=T14832 SE=T14835 iSW=T14841 iSE=T14840 iNW=T14843 iNE=T14842 oN=T14809 oNW=T14808 oNE=T14811 oiNW=T14845 oiNE=T14846 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-^ = T14865 N=T14857 S=T14873 W=T14864 E=T14867 NW=T14856 NE=T14859 SW=T14872 SE=T14875 iSW=T14881 iSE=T14880 oN=T14849 oNW=T14848 oNE=T14851 oiNW=T14885 oiNE=T14886 with=eɛ L2 @.
-ŕ = T14865 N=T14857 S=T14873 W=T14864 E=T14867 NW=T14856 NE=T14859 SW=T14872 SE=T14875 iSW=T14881 iSE=T14880 oN=T14849 oNW=T14848 oNE=T14851 oiNW=T14885 oiNE=T14886 L3 @~
-z = T14865
-ø = T14865 T895
-ö = T14865 T911
-õ = T14865 T919
-ó = T14865 T927
+¬ = - N=T6059 S=T18473 W=T18464 E=T18467 NW=T18456 NE=T18459 SW=T18472 SE=T18475 iSW=T18481 iSE=T18480 iNW=T18483 iNE=T18482 oN=T18449 oNW=T18448 oNE=T18451 oiNW=T18485 oiNE=T18486 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
+& = - N=T6059 S=T18473 W=T18464 E=T18467 NW=T18456 NE=T18459 SW=T18472 SE=T18475 iSW=T18481 iSE=T18480 iNW=T18483 iNE=T18482 oN=T18449 oNW=T18448 oNE=T18451 oiNW=T18485 oiNE=T18486 with=kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
+k = - N=T6059 S=T18473 W=T18464 E=T18467 NW=T18456 NE=T18459 SW=T18472 SE=T18475 iSW=T18481 iSE=T18480 iNW=T18483 iNE=T18482 oN=T18449 oNW=T18448 oNE=T18451 oiNW=T18485 oiNE=T18486 with=KmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+K = - N=T6059 S=T18473 W=T18464 E=T18467 NW=T18456 NE=T18459 SW=T18472 SE=T18475 iSW=T18481 iSE=T18480 iNW=T18483 iNE=T18482 oN=T18449 oNW=T18448 oNE=T18451 oiNW=T18485 oiNE=T18486 with=mMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+m = - N=T6059 S=T18473 W=T18464 E=T18467 NW=T18456 NE=T18459 SW=T18472 SE=T18475 iSW=T18481 iSE=T18480 iNW=T18483 iNE=T18482 oN=T18449 oNW=T18448 oNE=T18451 oiNW=T18485 oiNE=T18486 with=MEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+M = - N=T6059 S=T18473 W=T18464 E=T18467 NW=T18456 NE=T18459 SW=T18472 SE=T18475 iSW=T18481 iSE=T18480 iNW=T18483 iNE=T18482 oN=T18449 oNW=T18448 oNE=T18451 oiNW=T18485 oiNE=T18486 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+^ = T18505 N=T18497 S=T18513 W=T18504 E=T18507 NW=T18496 NE=T18499 SW=T18512 SE=T18515 iSW=T18521 iSE=T18520 oN=T18489 oNW=T18488 oNE=T18491 oiNW=T18525 oiNE=T18526 with=eɛ L2 @.
+ŕ = T18505 N=T18497 S=T18513 W=T18504 E=T18507 NW=T18496 NE=T18499 SW=T18512 SE=T18515 iSW=T18521 iSE=T18520 oN=T18489 oNW=T18488 oNE=T18491 oiNW=T18525 oiNE=T18526 L3 @~
+z = T18505
+ø = T18505 T895
+ö = T18505 T911
+õ = T18505 T919
+ó = T18505 T927
 1 = {sol} T14888
 2 = {sol} T14889
 3 = {sol} T14890
@@ -291,7 +295,7 @@ decor = 2..3 par case
 # réservées à cette ambiance (« Ambiances = marais »).
 [Ambiance marais]
 Poids = 1
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 0..2 par case
 herbes = 1..2 par case
@@ -335,13 +339,13 @@ k = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203
 K = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 iNW=T15211 iNE=T15210 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=mMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
 m = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 iNW=T15211 iNE=T15210 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=MEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
 M = - N=T6059 S=T15201 W=T15192 E=T15195 NW=T15184 NE=T15187 SW=T15200 SE=T15203 iSW=T15209 iSE=T15208 iNW=T15211 iNE=T15210 oN=T15177 oNW=T15176 oNE=T15179 oiNW=T15213 oiNE=T15214 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-^ = T15233 N=T15225 S=T15241 W=T15232 E=T15235 NW=T15224 NE=T15227 SW=T15240 SE=T15243 iSW=T15249 iSE=T15248 oN=T15217 oNW=T15216 oNE=T15219 oiNW=T15253 oiNE=T15254 with=eɛ L2 @.
-ŕ = T15233 N=T15225 S=T15241 W=T15232 E=T15235 NW=T15224 NE=T15227 SW=T15240 SE=T15243 iSW=T15249 iSE=T15248 oN=T15217 oNW=T15216 oNE=T15219 oiNW=T15253 oiNE=T15254 L3 @~
-z = T15233
-ø = T15233 T895
-ö = T15233 T911
-õ = T15233 T14980
-ó = T15233 T14979
+^ = T15937 N=T15929 S=T15945 W=T15936 E=T15939 NW=T15928 NE=T15931 SW=T15944 SE=T15947 iSW=T15953 iSE=T15952 oN=T15921 oNW=T15920 oNE=T15923 oiNW=T15957 oiNE=T15958 with=eɛ L2 @.
+ŕ = T15937 N=T15929 S=T15945 W=T15936 E=T15939 NW=T15928 NE=T15931 SW=T15944 SE=T15947 iSW=T15953 iSE=T15952 oN=T15921 oNW=T15920 oNE=T15923 oiNW=T15957 oiNE=T15958 L3 @~
+z = T15937
+ø = T15937 T895
+ö = T15937 T911
+õ = T15937 T14980
+ó = T15937 T14979
 1 = {sol} T15256
 2 = {sol} T15257
 3 = {sol} T15258
@@ -365,19 +369,28 @@ decor = 1..3 par case
 Poids = 3
 Mer   = oui
 Sol   = T162
+# Rive de sable animée (#301) : l'eau de la plage est l'autotile A7 (HGSS Shore,
+# tools/art/shore_4g.py), les vagues sur le sable, à la place de la berge de terre de A1
+~ = {sol} A7
+% = {sol} A7 A3
+µ = {sol} A7 A6
+£ = {sol} A7 A4
 Rue   = T162
-" = T124                # hautes herbes sur le sable (le fond vert de T6 est opaque)
-: = {sol} T7             # herbes très hautes sur le sable
+" = T124                # hautes herbes sur le sable (le fond vert de T18062 est opaque)
+: = {sol} T18063             # herbes très hautes sur le sable
 ; = T175
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5440 2x2 forest=T5488
-# Falaises des niveaux sur ce sol (l'herbe de leurs bords en devient transparente)
-¬ = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
-& = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
-k = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=KmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-K = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=mMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-m = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=MEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
-M = - N=T6059 S=T5833 W=T5824 E=T5827 NW=T5816 NE=T5819 SW=T5832 SE=T5835 iSW=T5841 iSE=T5840 iNW=T5843 iNE=T5842 oN=T5809 oNW=T5808 oNE=T5811 oiNW=T5845 oiNE=T5846 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+# Falaises des niveaux : plateaux de sable sur roche brune (#295)
+¬ = - N=T6059 S=T15985 W=T15976 E=T15979 NW=T15968 NE=T15971 SW=T15984 SE=T15987 iSW=T15993 iSE=T15992 iNW=T15995 iNE=T15994 oN=T15961 oNW=T15960 oNE=T15963 oiNW=T15997 oiNE=T15998 with=efgh&kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
+& = - N=T6059 S=T15985 W=T15976 E=T15979 NW=T15968 NE=T15971 SW=T15984 SE=T15987 iSW=T15993 iSE=T15992 iNW=T15995 iNE=T15994 oN=T15961 oNW=T15960 oNE=T15963 oiNW=T15997 oiNE=T15998 with=kKmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @.
+k = - N=T6059 S=T15985 W=T15976 E=T15979 NW=T15968 NE=T15971 SW=T15984 SE=T15987 iSW=T15993 iSE=T15992 iNW=T15995 iNE=T15994 oN=T15961 oNW=T15960 oNE=T15963 oiNW=T15997 oiNE=T15998 with=KmMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+K = - N=T6059 S=T15985 W=T15976 E=T15979 NW=T15968 NE=T15971 SW=T15984 SE=T15987 iSW=T15993 iSE=T15992 iNW=T15995 iNE=T15994 oN=T15961 oNW=T15960 oNE=T15963 oiNW=T15997 oiNE=T15998 with=mMEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+m = - N=T6059 S=T15985 W=T15976 E=T15979 NW=T15968 NE=T15971 SW=T15984 SE=T15987 iSW=T15993 iSE=T15992 iNW=T15995 iNE=T15994 oN=T15961 oNW=T15960 oNE=T15963 oiNW=T15997 oiNE=T15998 with=MEFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+M = - N=T6059 S=T15985 W=T15976 E=T15979 NW=T15968 NE=T15971 SW=T15984 SE=T15987 iSW=T15993 iSE=T15992 iNW=T15995 iNE=T15994 oN=T15961 oNW=T15960 oNE=T15963 oiNW=T15997 oiNE=T15998 with=EFGHquvwnʼʽˀzPʘǁǂǀ L2 @z
+# Massifs : sable sur roche grise (#295)
+^ = T16017 N=T16009 S=T16025 W=T16016 E=T16019 NW=T16008 NE=T16011 SW=T16024 SE=T16027 iSW=T16033 iSE=T16032 oN=T16001 oNW=T16000 oNE=T16003 oiNW=T16037 oiNE=T16038 with=eɛ L2 @.
+ŕ = T16017 N=T16009 S=T16025 W=T16016 E=T16019 NW=T16008 NE=T16011 SW=T16024 SE=T16027 iSW=T16033 iSE=T16032 oN=T16001 oNW=T16000 oNE=T16003 oiNW=T16037 oiNE=T16038 L3 @~
 é = T5037 3x3 halo=4x4@1,1/0,3,12
 è = T5064 3x3 halo=4x4@0,1/0,3,15
 à = {sol} T4085
@@ -394,14 +407,14 @@ decor = 2..3 par case
 # (« Ambiances = forêt sombre »).
 [Ambiance forêt sombre]
 Poids = 1
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T106 N=T98 S=T114 W=T105 E=T107 NW=T97 NE=T99 SW=T113 SE=T115 iNW=T118 iNE=T116 iSW=T102 iSE=T100
 arbre = 1..1 par case
 herbes = 1..2 par case
 parc  = 0
 lac   = 0
 corniche = 0
-decor = 0..1 par case
+decor = 1..2 par case
 
 # Haute montagne (#209) : comme le Mont Couronné et le Mont Argenté, roche
 # grise, gravier, escaliers taillés, plus de massifs et de rochers ; tirée
@@ -413,7 +426,7 @@ Poids = 10
 Sol   = T218
 Rue   = T218
 " = T133                # hautes herbes sur le gravier
-: = {sol} T7             # herbes très hautes sur le gravier
+: = {sol} T18063             # herbes très hautes sur le gravier
 ; = T189
 # Arbres et buissons redessinés sur ce sol (ombres sans vert)
 t = T5632 2x2 forest=T5680
@@ -473,7 +486,7 @@ o = {sol} T895
 # (« Ambiances = ruines »).
 [Ambiance ruines]
 Poids = 2
-Sol   = T1|T1|T1|T2|T3
+Sol   = T18057|T18057|T18057|T18058|T18059
 Rue   = T274 N=T266 S=T282 W=T273 E=T275 NW=T265 NE=T267 SW=T281 SE=T283 iNW=T286 iNE=T284 iSW=T270 iSE=T268
 arbre = 0..1 par case
 parc  = 0
@@ -496,25 +509,26 @@ d = {sol} T839          # cailloux bruns
 j = {sol} T927          # rocher gris (minéral)
 x = {sol} T919          # cailloux gris
 , = {sol} T895          # bloc gris
-! = T1                 # rive sous l'eau (bout gauche, milieu, bout droit) : l'eau 4G dessine la sienne (EauBordee), le sol seul
-' = T1
-? = T1
-" = {sol} T6            # hautes herbes (T7, l'herbe très haute, déborde sur la tuile du dessous)
+! = T18057                 # rive sous l'eau (bout gauche, milieu, bout droit) : l'eau 4G dessine la sienne (EauBordee), le sol seul
+' = T18057
+? = T18057
+" = {sol} T18062            # hautes herbes (T18063, l'herbe très haute, déborde sur la tuile du dessous)
 ˈ = {sol} T14912        # rangée du haut d'une tache de hautes herbes (pointes des brins)
 ˌ = {sol} T14913        # rangée du bas (pied des brins)
 ˑ = {sol} T14914        # tache d'une seule rangée
-: = {sol} T7            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
+: = {sol} T18063            # herbes très hautes (on n'y court pas) : leur rangée du haut, pointes des brins
 ˸ = {sol} T14915        # herbes très hautes sous leur rangée du haut
 ; = T15                 # pied des herbes très hautes, la rangée sous la touffe
-* = {sol} A5            # massif de fleurs
+* = {sol} A5|T3|T4|T5|T6|T7|T18352|T18353|T18354   # massif de fleurs (orange : A5 ; blanches : autotile supplémentaire T3, #301 ; bleues, roses, violettes, jaunes : T4 à T7 et fleurs fixes DPPt, #317)
 ~ = {sol} A1            # eau (lacs, chenaux ; on la traverse avec Surf)
 % = {sol} A1 A3         # eau profonde (on y plonge avec Plongée)
 µ = {sol} A1 A6         # rocher dans l'eau (autotile Water rock)
 # Relief : les cascades des rivières de montagne sur la couche 3, par-dessus
-# leur eau (tools/art/waterfall_4g.py ; jointes à tous les niveaux)
-ǁ = T15304              # crête (le haut de la chute)
-ǂ = T15305              # chute (sur la rangée de la falaise)
-ǀ = T15306              # écume au pied de la chute
+# leur eau (autotiles supplémentaires animés T0 à T2, tools/art/extra_autotiles_4g.py ;
+# jointes à tous les niveaux)
+ǁ = T0              # crête (le haut de la chute)
+ǂ = T1              # chute (sur la rangée de la falaise)
+ǀ = T2              # écume au pied de la chute
 £ = {sol} A1 A4         # banc de sable dans l'eau (autotile Sand shore)
 o = {sol} T815          # caillou (comble les trous du mur de rochers)
 1 = {sol} T6008            # entrée de grotte (SirMalo, 3x3)
@@ -572,6 +586,8 @@ w = {sol} T847
 ű = {sol} T8720        # rocher blanc
 ŵ = {sol} T8728|T8729  # rochers bruns
 
+ʒ = {sol} T16104|T16105|T16106|T16107   # petites plantes de plage (#295)
+
 [Terrains]
 # Les niveaux sont des plateaux, comme sur les routes des jeux (falaises HGSS
 # de SirMalo, tools/art/outside_4g.py) : leur dessus garde le sol de
@@ -597,6 +613,15 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 ɱ = T14984 N=T14985 S=T14986 W=T14987 E=T14988 NW=T14989 NE=T14990 SW=T14991 SE=T14992 iNW=T14993 iNE=T14994 iSW=T14995 iSE=T14996 with=ɯ   # sol noir (basalte, on y marche)
 ɫ = T15000 N=T15001 S=T15002 W=T15003 E=T15004 NW=T15005 NE=T15006 SW=T15007 SE=T15008 iNW=T15009 iNE=T15010 iSW=T15011 iSE=T15012   # coulée de lave (on n'y passe pas)
 
+# Ambiances (#295, tools/art/ambiances_4g.py), seulement dans leurs briques réservées
+ʃ = T15816 N=T15817 S=T15818 W=T15819 E=T15820 NW=T15821 NE=T15822 SW=T15823 SE=T15824 iNW=T15825 iNE=T15826 iSW=T15827 iSE=T15828   # tapis de feuilles mortes (automne)
+ʄ = T15832 N=T15833 S=T15834 W=T15835 E=T15836 NW=T15837 NE=T15838 SW=T15839 SE=T15840 iNW=T15841 iNE=T15842 iSW=T15843 iSE=T15844   # terre ocre (automne)
+ʅ = T15848 N=T15849 S=T15850 W=T15851 E=T15852 NW=T15853 NE=T15854 SW=T15855 SE=T15856 iNW=T15857 iNE=T15858 iSW=T15859 iSE=T15860   # sous-bois (forêt sombre ; hautes herbes)
+ʆ = T15864 N=T15865 S=T15866 W=T15867 E=T15868 NW=T15869 NE=T15870 SW=T15871 SE=T15872 iNW=T15873 iNE=T15874 iSW=T15875 iSE=T15876   # mousse (forêt sombre)
+ʇ = T15880 N=T15881 S=T15882 W=T15883 E=T15884 NW=T15885 NE=T15886 SW=T15887 SE=T15888 iNW=T15889 iNE=T15890 iSW=T15891 iSE=T15892 with=ʈ   # terre rouge (volcan)
+ʈ = T15896 N=T15897 S=T15898 W=T15899 E=T15900 NW=T15901 NE=T15902 SW=T15903 SE=T15904 iNW=T15905 iNE=T15906 iSW=T15907 iSE=T15908   # boue séchée, dans la terre rouge (volcan)
+ʉ = T18057 N=T15912 S=T15913 W=T15914 E=T15915 NW=T15916 NE=T15917 SW=T15918 SE=T15919   # berge moussue autour d'herbe (marais)
+
 [Objects]
 é = T4905 3x3 halo=4x4@1,1/0,3,12         # grand pin
 è = T4908 3x3 halo=4x4@0,1/0,3,15         # arbre rond (sous sa cime ò)
@@ -609,7 +634,7 @@ M = - N=T6059 S=T5753 W=T5744 E=T5747 NW=T5736 NE=T5739 SW=T5752 SE=T5755 iSW=T5
 û = T15688 3x1 halo=3x2@0,1   # haie (SirMalo ; son dessus passe devant le joueur)
 a = T9880 2x2        # gros rocher brun (désert)
 i = T9904 3x2 halo=3x4@0,1/2,11   # flèche rocheuse grise (minéral)
-t = T5248 2x2 forest=T5296         # arbre
+t = T5248 2x2 forest=T5296 mix=T16112/T16160   # arbre (deux essences mêlées, #297)
 R = T15784 3x2         # rocher (SirMalo ; mur que l'on passe par la grotte)
 W = T6529 4x4 halo=6x6@1,1/0,1,4,5,24,30   # maison rouge en bois (refuge)
 V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
@@ -667,3 +692,90 @@ V = T6201 5x4 halo=6x6@1,1           # maison orange (refuge)
 Ĵ = T9849 1x2 halo=3x2@1,0/3,5 # arrêt de bus
 ĵ = T9360 2x3 halo=2x4@0,1/1 # lanterne
 Ņ = T9864 2x2 halo=3x2@0,0 # banc
+ʊ = T16048 3x3 halo=4x4@0,1/0,3,15         # arbre rouge (automne, #295)
+ʋ = T16052 2x2 halo=2x3@0,1   # souche (forêt sombre)
+ʌ = T16054 2x1 halo=2x2@0,1   # souche dans la boue (marais)
+ʍ = T16080 2x1 halo=2x2@0,1   # souche dans les feuilles (automne)
+ʎ = T16074 2x1         # bois flotté (plage)
+ʏ = T16076 2x1         # bois flotté (plage)
+ʐ = T16078 2x2         # plante de plage
+ʑ = T16088 2x2         # fougère (forêt sombre ; DPPt, Forêt Vestigion)
+ʓ = T16208 3x3               # arbre remarquable (Remastered Johto, une fois par lieu, #297)
+# Talus (SirMalo, #296) : deux gradins de terre ou de roche, un bout gauche,
+# deux milieux qui alternent, un bout droit
+ϩ = T17285 1x2 halo=1x3@0,1   # talus de terre, bout gauche
+Ϫ = T17286 1x2 halo=1x3@0,1   # talus de terre, milieu
+ϫ = T17287 1x2 halo=1x3@0,1   # talus de terre, milieu (bis)
+Ϭ = T17312 1x2 halo=1x3@0,1   # talus de terre, bout droit
+ϭ = T17313 1x2 halo=1x3@0,1   # talus rocheux, bout gauche
+Ϯ = T17314 1x2 halo=1x3@0,1   # talus rocheux, milieu
+ϯ = T17315 1x2 halo=1x3@0,1   # talus rocheux, milieu (bis)
+Ѡ = T17316 1x2 halo=1x3@0,1   # talus rocheux, bout droit
+# Bosses : une courte corniche que l'on saute vers le sud (passages de la corniche)
+ѡ = T17329 2x1 halo=4x1@1,0   # bosse de terre
+Ѣ = T17333 2x1 halo=4x1@1,0   # bosse de pierre
+ѣ = T17336 3x2   # entrée de grotte sombre (forêt sombre ; porte au milieu de la rangée du bas)
+# Entrées de grotte latérales (SirMalo, #296) : la bouche s'ouvre vers l'est ou
+# l'ouest (« Porte = 1,1 est »), son seuil en halo devant elle
+Ѥ = T17339 2x3 halo=3x3@0,0   # entrée latérale brune (est)
+ѥ = T17361 2x3 halo=3x3@1,0   # entrée latérale brune (ouest)
+Ѧ = T17363 2x3 halo=3x3@0,0   # entrée latérale grise (est)
+ѧ = T17385 2x3 halo=3x3@1,0   # entrée latérale grise (ouest)
+Ѩ = T17387 2x3 halo=4x3@0,0/3   # entrée latérale enneigée (est)
+ѩ = T17410 2x3 halo=4x3@2,0/0   # entrée latérale enneigée (ouest)
+# Placette ronde (SirMalo Urban A4, #298) : un anneau de briques où l'on marche
+ѫ = T17504 5x5
+# Mare (SirMalo Nature A6, #301, tools/art/ponds_4g.py) : eau dormante bordée de terre, bloquante
+ѳ = T18024 4x4   # mare
+# Plaque de neige (DPPt Snow Patches, #301, tools/art/snow_patches_4g.py) : neige qui fond, où l'on marche
+Ѵ = T18064 4x4   # plaque de neige
+# Végétation 4G (#317, tools/art/vegetation_4g.py) : buissons, arbrisseau, pots, jardinières,
+# haies et rochers de SirMalo (Nature D1 à D5), terre à baies DPPt
+Ѷ = T18368 2x1 halo=2x2@0,1   # buisson sombre
+ѷ = T18370 2x1 halo=2x2@0,1   # buisson enneigé
+Ѹ = T18372 2x1 halo=2x2@0,1   # arbrisseau
+ѹ = T18374 2x1 halo=2x2@0,1   # pot de fleurs
+Ѻ = T18384 1x1 halo=1x2@0,1   # topiaire
+ѻ = T18377 1x1   # petit buisson
+Ѽ = T18378 2x1   # buisson rond
+ѽ = T18380 2x1   # buisson en fleurs
+Ѿ = T18390 2x1 halo=2x2@0,1   # jardinière
+ѿ = T18400 4x1 halo=4x2@0,1   # jardinière longue
+Ҁ = T18404 3x1 halo=3x2@0,1   # haie basse
+ҁ = T18416 2x3 halo=2x4@0,1   # haie haute
+Ҋ = T18410 2x2   # rocher enneigé
+ҋ = T18412 2x2   # rocher
+Ҍ = T18414 1x1   # caillou enneigé
+ҍ = T18440 3x1   # terre à baies
+# Décor de rue et de marché 4G (#320, tools/art/street_decor_4g.py, SirMalo Urban F)
+Ґ = T18568 3x1 halo=3x6@0,5/0,2,5,8,9,11,14   # éolienne
+ґ = T18539 2x1 halo=2x2@0,1   # bûches
+Ҩ = T18880 4x2 halo=4x5@0,3/0,3   # hutte de chaume (camp des braconniers, Remastered Johto, #338)
+Ғ = T18541 2x1 halo=2x2@0,1   # tas de rochers
+Ҕ = T18594 3x1 halo=3x3@0,2   # cloche
+# Terrasses basses (SirMalo, #296) : un massif surélevé de deux cases de haut,
+# son rebord à cheval sur les cases (sa moitié extérieure en halo) ; un bout
+# gauche, un milieu répété, un bout droit
+ʫ = T17217 1x2 halo=2x4@1,1   # terrasse de terre, bout gauche
+ʬ = T17218 1x2 halo=1x4@0,1   # terrasse de terre, milieu
+ʭ = T17219 1x2 halo=2x4@0,1   # terrasse de terre, bout droit
+ʮ = T17222 1x2 halo=2x4@1,1   # terrasse de pierre, bout gauche
+ʯ = T17223 1x2 halo=1x4@0,1   # terrasse de pierre, milieu
+Ϣ = T17248 1x2 halo=2x4@0,1   # terrasse de pierre, bout droit
+ϣ = T17251 1x2 halo=2x4@1,1   # terrasse herbeuse, bout gauche
+Ϥ = T17252 1x2 halo=1x4@0,1   # terrasse herbeuse, milieu
+ϥ = T17253 1x2 halo=2x4@0,1   # terrasse herbeuse, bout droit
+Ϧ = T17281 1x2 halo=2x4@1,1   # terrasse moussue, bout gauche
+ϧ = T17282 1x2 halo=1x4@0,1   # terrasse moussue, milieu
+Ϩ = T17283 1x2 halo=2x4@0,1   # terrasse moussue, bout droit
+ʔ = T16211 1x2               # oranger (verger, Remastered Kanto)
+ʕ = T16212 1x2               # arbre en fleurs (verger)
+ʖ = T16213 1x2               # pommier en fleurs (verger)
+ʗ = T16214 1x2               # jeune arbre (verger)
+ʙ = T16215 1x1         # buisson fruitier (verger)
+ʚ = T16288 3x1 halo=3x2@0,1   # palissade (style chaud, #298)
+ʛ = T16291 2x1 halo=2x2@0,1   # barrière blanche (style froid)
+ʜ = T16309 2x1 halo=2x4@0,3/0   # lanternes en bois (style rustique)
+ʝ = T16328 2x1 halo=2x3@0,2/3   # réverbère rouge (style chaud)
+ʞ = T16330 2x1 halo=2x3@0,2/1,3   # réverbère turquoise (style froid)
+ʟ = T16324 1x1 halo=1x2@0,1   # bouche d'incendie (style froid)

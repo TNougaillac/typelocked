@@ -36,10 +36,18 @@ module MapProceduralGenerator
       # The optional bricks of LAST_KINDS after all the others, so that they
       # never take the room of a park or its grass
       last, optional = optional.partition { |k| LAST_KINDS.include?(k) }
+      # The optional bricks of EARLY_KINDS (the unique buildings, big)
+      # right after the required buildings but the houses, while there is
+      # room; left out when they don't fit
+      early, optional = optional.partition { |k| EARLY_KINDS.include?(k) }
       # A headquarters with no room on the quay among the required buildings,
       # before the houses take its room
       required = required.shuffle(random: @rng).sort_by { |k| [with_door.call(k), (k == "maison") ? 1 : 0, (k == DECOR) ? 1 : 0] }
       required.insert(required.count { |k| with_door.call(k) == 0 && k != "maison" }, *@inland_hqs)
+      houses_at = required.count { |k| with_door.call(k) == 0 && k != "maison" }
+      required.insert(houses_at, *early)
+      early_at = houses_at...(houses_at + early.length)
+      optional_at = ->(i) { i >= required.length || early_at.cover?(i) }
       order = required +
               optional.shuffle(random: @rng).sort_by { |k| [with_door.call(k), boosted.call(k)] } +
               last.shuffle(random: @extra_rng)
@@ -57,8 +65,10 @@ module MapProceduralGenerator
         next if QUAY_HQS.include?(kind) && place_smallest(kind)
         error("impossible de placer le QG « #{kind} » hors du quai") if QUAY_HQS.include?(kind)
         # « pack »: the boosted bricks, the big ones first
-        next place_big(kind) if i >= required.length && excess[:pack] && boosted.call(kind) == 0
-        next if place_brick(kind, kind == MONUMENT ? monument_spot : nil)
+        next place_big(kind) if optional_at.call(i) && excess[:pack] && boosted.call(kind) == 0
+        # A dungeon's headquarters past its gates
+        spot = (kind == MONUMENT) ? monument_spot : (@gates && GUILD_HQS.key?(kind)) ? method(:past_gates?) : nil
+        next if place_brick(kind, spot)
         # The rocks on a route's mesas go where they fit, or not at all
         next if HIGHLAND.include?(kind) && @mesas
         # A patch of grass drawn big shrinks until it fits
@@ -73,7 +83,7 @@ module MapProceduralGenerator
           place_brick(kind)
           next
         end
-        next if i >= required.length || place_smallest(kind)
+        next if optional_at.call(i) || place_smallest(kind)
         # A required brick under the leaves of the border rather than none
         # (the border keeps its ground there, see plant_border)
         @loose_canopy = true
@@ -112,7 +122,7 @@ module MapProceduralGenerator
         @nooks.push([spot[0] + loot[0], spot[1] + loot[1], @nook])
       when "sombre"
         cave = @bricks.select { |b| b.kind == CAVE }.min_by(&:name) || return
-        brick = Brick.new(DARK_CAVE, "Grotte sombre", DARK_CAVE, cave.door, 1, false, cave.rows)
+        brick = Brick.new(DARK_CAVE, "Grotte sombre", DARK_CAVE, cave.door, 1, false, cave.rows, nil, nil, cave.door_side)
         spot = put_brick(brick) || return
         @nooks.push([spot[0] + brick.door[0], spot[1] + brick.door[1], @nook])
       else
@@ -194,7 +204,7 @@ module MapProceduralGenerator
 
     # Free tiles that can be walked to from the exits and doors.
     def reachable_ground
-      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, brick| door_front(x, y, brick) }
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each do |start|
         next if seen[start[1]][start[0]]
@@ -484,7 +494,7 @@ module MapProceduralGenerator
     # A town's house stands on a plot that often (PLOT_CHANCE), where one
     # has room (plot_room?), else as usual.
     def put_brick(brick, allowed = nil)
-      if brick.door && plots? && @rng.rand(100) < PLOT_CHANCE
+      if brick.door && !brick.door_side && plots? && @rng.rand(100) < PLOT_CHANCE
         spot = lay_brick(brick, ->(b, x, y) { (!allowed || allowed.call(b, x, y)) && plot_room?(b, x, y) }, true)
         return spot if spot
       end
@@ -503,7 +513,8 @@ module MapProceduralGenerator
           next if brick.by_street && !touches_street?(brick, x, y)
           next if brick.kind == FENCE && !lines_street?(brick, x, y)
           if brick.door
-            d = distances[y + bh][x + brick.door[0]]
+            ax, ay = brick.path_start
+            d = distances[y + ay][x + ax]
             next if !d || d > MAX_DOOR_DISTANCE
             spots.push([x, y, d])
           else
@@ -539,7 +550,8 @@ module MapProceduralGenerator
         row.each_char.with_index { |c, dx| cells.push([x + dx, y + dy]) if c != " " && !@solid[y + dy][x + dx] }
       end
       cells.each { |cx, cy| @solid[cy][cx] = true }
-      reached = street_distances[y + brick.rows.length][x + brick.door[0]]
+      ax, ay = brick.path_start
+      reached = street_distances[y + ay][x + ax]
       cells.each { |cx, cy| @solid[cy][cx] = false }
       return !reached.nil?
     end
@@ -552,9 +564,10 @@ module MapProceduralGenerator
       return false if !bank_free?(brick, x, y) || !halo_free?(brick, x, y)
       return false if ringed?(brick) && hill_ring(brick).any? { |dx, dy| !inside?(x + dx, y + dy) || @street[y + dy][x + dx] }
       return true if !brick.door
-      # The path under the door must be free or already a street
-      fx, fy = x + brick.door[0], y + brick.rows.length
-      return false if !inside?(fx + STREET_WIDTH - 1, fy + STREET_WIDTH - 1)
+      # The path in front of the door must be free or already a street
+      ax, ay = brick.path_start
+      fx, fy = x + ax, y + ay
+      return false if !inside?(fx, fy) || !inside?(fx + STREET_WIDTH - 1, fy + STREET_WIDTH - 1)
       STREET_WIDTH.times do |oy|
         STREET_WIDTH.times { |ox| return false if @solid[fy + oy][fx + ox] }
       end
@@ -733,6 +746,8 @@ module MapProceduralGenerator
         end
       end
       mark_halo(brick, x, y, 1)
+      # A unique building (« Unique = oui ») is laid once per place at most
+      @bricks.delete(brick) if brick.unique
       @hq_cells.push([x + (brick.rows.map(&:length).max / 2), y + (brick.rows.length / 2), brick.kind]) if GUILD_HQS.key?(brick.kind)
       # Nothing (no path) against a hill or a ridge but below its stair
       hill_ring(brick).each { |dx, dy| @solid[y + dy][x + dx] = true } if ringed?(brick)
@@ -742,7 +757,8 @@ module MapProceduralGenerator
       dx, dy = x + brick.door[0], y + brick.door[1]
       @doors.push([dx, dy, brick])
       street_distances   # again, now that the brick is in the way
-      carve_path(dx, dy + 1)
+      ax, ay = brick.path_start
+      carve_path(x + ax, y + ay)
     end
   end
 end

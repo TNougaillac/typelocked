@@ -1,0 +1,9 @@
+# Automne : un arbre rouge et un arbre jaune.
+Brique    = Arbres rouges
+Type      = decor
+Ambiances = automne
+Poids     = 2
+[Map]
+ʊʊʊ üüü
+ʊʊʊ üüü
+ʊʊʊ üüü

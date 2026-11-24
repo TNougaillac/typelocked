@@ -1,0 +1,6 @@
+# Table de pique-nique, le long d'une rue (style rustique) (#320).
+Brique    = Table de pique-nique
+Type      = lampe
+Contre    = rue
+[Map]
+ҖҖ

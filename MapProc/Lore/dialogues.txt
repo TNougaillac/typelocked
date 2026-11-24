@@ -254,8 +254,8 @@ Bien. Monte. Le Pacte t'attend.
 \me[Badge get]Le lieutenant te remet la chevalière de la Famille. Tu la passes à ton doigt.
 
 [lieutenant_ct]
-Prends aussi cette CT. Elle te servira.
-Et ceci. La Famille récompense ceux qui la servent.
+Et ta part. Une seule, choisis bien.
+La Famille récompense ceux qui la servent. Choisis.
 
 [lieutenant_revanche]
 Le Pacte est brisé. Plus de règles, plus de Parrain. Juste toi et moi.
@@ -280,6 +280,36 @@ Le lieutenant t'attend.
 Va, il est au fond.
 Tu as gagné le droit d'avancer.
 Il ne sera pas aussi gentil que moi.
+
+# Mécanique des arènes générées : barrière autour du lieutenant, statues à
+# toucher ({rang} = le numéro gravé sur une statue des arènes « dans l'ordre »)
+[arene_barriere]
+Une barrière garde le lieutenant. Les statues de la salle doivent la commander.
+Le passage est fermé. Toutes les statues de la salle, et il s'ouvrira.
+
+[arene_barriere_ordre]
+Une barrière garde le lieutenant. Les statues de la salle portent des numéros...
+Fermé. On dit que les statues de {ville} n'obéissent que dans l'ordre.
+
+[arene_barriere_cachee]
+Une barrière garde le lieutenant. Les statues qui l'ouvrent ne se montrent pas : cherche à tâtons.
+Fermé. Les statues de cette salle sont invisibles. Avance la main.
+
+[arene_statue]
+La statue s'illumine.
+Un déclic. La statue brille à présent.
+
+[arene_statue_deja]
+La statue brille déjà.
+
+[arene_statue_rang]
+Un chiffre est gravé sur le socle : {rang}.
+
+[arene_statue_erreur]
+Mauvais ordre ! Toutes les statues s'éteignent.
+
+[arene_ouverte]
+Au fond de la salle, la barrière se lève !
 
 #-------------------------------------------------------------------------------
 # Ligue : Anciens, Parrain, Arceus, portes
@@ -670,6 +700,10 @@ La bande te doit une tournée. | Tiens. Maintenant dégage de notre garage.
 
 # Membres d'une guilde qui barrent la route de leur QG ({ville} : la route)
 # tant que leur chef n'est pas battu.
+[guilde_sortie]
+Impossible de partir maintenant. Le chef t'attend au fond.
+Impossible de partir maintenant. Les membres gardent la sortie.
+
 [guilde_barrage]
 La route est à nous. Personne ne passe sans l'accord du chef. | Va le voir, s'il te reçoit.
 Demi-tour. Le chef n'a pas donné sa permission.

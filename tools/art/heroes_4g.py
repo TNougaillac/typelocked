@@ -1,5 +1,6 @@
-"""Charsets 4G of the playable characters (#195): Ethan (boy) and Lyra (girl)
-of the Ultimate Gen 4 Overworlds Pack (PurpleZaffre and others, see
+"""Charsets 4G of the playable characters (#195, #290): Ethan and Lyra (HGSS),
+Lucas and Dawn (Platinum, « Louka » and « Aurore ») of the Ultimate Gen 4
+Overworlds Pack (PurpleZaffre and others, see
 docs/CREDITS.md), copied to Graphics/Characters under the names used by
 PBS/metadata.txt. The pack's sheets are already RMXP charsets (4x4 frames
 of 64x64, the DS sprites scaled x2), so they are copied as they are.
@@ -25,6 +26,18 @@ SHEETS = {
     "hero_girl_bike": "NPC_206_Lyra_bike",
     "hero_girl_surf": "NPC_206_Lyra_surf",
     "hero_girl_fish": "NPC_206_Lyra_fishing",
+    # Platinum's Lucas and Dawn (199 and 202: the Platinum sheets, 198 and
+    # 201 being Diamond and Pearl's)
+    "hero_lucas": "NPC_199_Lucas",
+    "hero_lucas_run": "NPC_199_Lucas_run",
+    "hero_lucas_bike": "NPC_199_Lucas_bike",
+    "hero_lucas_surf": "NPC_199_Lucas_surf",
+    "hero_lucas_fish": "NPC_199_Lucas_fishing",
+    "hero_dawn": "NPC_202_Dawn",
+    "hero_dawn_run": "NPC_202_Dawn_run",
+    "hero_dawn_bike": "NPC_202_Dawn_bike",
+    "hero_dawn_surf": "NPC_202_Dawn_surf",
+    "hero_dawn_fish": "NPC_202_Dawn_fishing",
 }
 
 

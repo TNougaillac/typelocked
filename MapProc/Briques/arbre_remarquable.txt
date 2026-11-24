@@ -1,0 +1,8 @@
+# Un arbre remarquable : un grand arbre isolé, une fois par lieu au plus.
+Brique    = Arbre remarquable
+Type      = remarquable
+Ambiances = verdoyante, prairie, chemins de terre, automne, forêt tropicale, marais
+[Map]
+ʓʓʓ
+ʓʓʓ
+ʓʓʓ

@@ -33,16 +33,8 @@ module WorldEvents
   # The clerk of each shop template ([x, y]), a member of the Family.
   MART_CLERK = { 25 => [2, 3], 54 => [2, 3] }.freeze
   CLERK_GRAPHIC = "trainer_COUSIN_F"
-  # Stock of a shop by the seals won on the way there: each line adds its
-  # items from that number of seals on.
-  MART_STOCK = {
-    0 => %i[POKEBALL POTION ANTIDOTE PARALYZEHEAL REPEL ESCAPEROPE],
-    1 => %i[AWAKENING BURNHEAL ICEHEAL],
-    2 => %i[GREATBALL SUPERPOTION SUPERREPEL REVIVE],
-    4 => %i[ULTRABALL HYPERPOTION FULLHEAL MAXREPEL],
-    6 => %i[MAXPOTION],
-    7 => %i[FULLRESTORE]
-  }.freeze
+  # Stock of a shop: the items of MapProc/Lore/objets.txt sold from the seals
+  # won on the way there (boutique=N, 012_ItemPool.rb).
   # Economy (#176): the Family takes its margin, shops sell at their PBS
   # price times MART_PRICE_FACTOR (selling back is unchanged). A town freed
   # by a guild (#187) sells at the PBS price again.
@@ -138,6 +130,29 @@ module WorldEvents
     }
   }.freeze
   GYM_MEMBERS = 2..4
+  # A generated gym (#121): sight of its members, and their distance (cells)
+  # from the entry, the lieutenant and each other
+  GYM_MEMBER_SIGHT = 3
+  GYM_MEMBER_ROOM = 3
+  # The mechanic of a generated gym (#121): barriers on the cells around the
+  # lieutenant, lifted once the statues of the room are all touched (game
+  # switch GYM_STATUE_SWITCH + the gym's rank, 111 to 130). Statues by gym
+  # (1st to 8th), never nearer than GYM_STATUE_ROOM cells to the entry, the
+  # lieutenant, a member or each other, never cutting the room.
+  GYM_STATUE_SWITCH = 110
+  GYM_STATUE_LOCKS  = 20
+  GYM_STATUES       = [1, 1, 2, 2, 2, 3, 3, 3].freeze
+  GYM_STATUE_ROOM   = 2
+  GYM_STATUE        = "Gym statue"
+  # Types whose statues bear a number and must be touched in that order (a
+  # mistake puts them all out), types whose statues are invisible (found by
+  # bumping into the action key).
+  GYM_ORDERED = %i[PSYCHIC ELECTRIC STEEL].freeze
+  GYM_HIDDEN  = %i[GHOST DARK].freeze
+  # Barrier charset by type (tools/art/gym_props_4g.py), GYM_BARRIER otherwise.
+  GYM_BARRIERS = { ROCK: "Gym boulder", GROUND: "Gym boulder", FIGHTING: "Gym boulder", ICE: "Gym ice",
+                   WATER: "Gym ice", GRASS: "Gym tree", BUG: "Gym tree", POISON: "Gym tree" }.freeze
+  GYM_BARRIER = "Gym barrier"
   # Trainer type of a lieutenant (gym leader for the Monotype) by the type of
   # its gym: its sprite (tools/art/family_sprites.rb).
   LEADER_TYPES = {
@@ -212,6 +227,22 @@ module WorldEvents
                     GROUND: :SOFTSAND, FLYING: :SHARPBEAK, PSYCHIC: :TWISTEDSPOON, BUG: :SILVERPOWDER,
                     ROCK: :HARDSTONE, GHOST: :SPELLTAG, DRAGON: :DRAGONFANG, DARK: :BLACKGLASSES,
                     STEEL: :METALCOAT, FAIRY: :PIXIEPLATE }.freeze
+  # Loot of a seal: the lieutenant offers three rewards, the player keeps one:
+  # his TM, a held item and a pack of items, drawn with the seed from the
+  # lines of the seal's tier (SEAL_LOOT_TIERS, 1st to 8th seal). BOOSTER: the
+  # item of the player's type (TYPE_BOOSTERS), known only in game.
+  SEAL_LOOT_TIERS = [0, 0, 1, 1, 1, 2, 2, 2].freeze
+  SEAL_HELD_ITEMS = [
+    %i[BOOSTER QUICKCLAW SCOPELENS KINGSROCK BRIGHTPOWDER],
+    %i[BOOSTER LEFTOVERS FOCUSSASH SHELLBELL MUSCLEBAND WISEGLASSES EVIOLITE ROCKYHELMET],
+    %i[LIFEORB CHOICEBAND CHOICESPECS CHOICESCARF ASSAULTVEST EXPERTBELT WEAKNESSPOLICY]
+  ].freeze
+  SEAL_PACKS = [
+    [[[:SUPERPOTION, 4], [:GREATBALL, 5]], [[:REVIVE, 2], [:FULLHEAL, 3]], [[:SUPERPOTION, 3], [:REVIVE, 1], [:GREATBALL, 3]]],
+    [[[:HYPERPOTION, 4], [:ULTRABALL, 5]], [[:REVIVE, 3], [:HYPERPOTION, 2]], [[:RARECANDY, 1], [:ULTRABALL, 5]]],
+    [[[:FULLRESTORE, 3], [:MAXREVIVE, 1]], [[:MAXPOTION, 4], [:REVIVE, 3]], [[:RARECANDY, 2], [:ULTRABALL, 10]]]
+  ].freeze
+
   # Nature by the better attack stat of the species.
   SET_NATURES = { physical: :ADAMANT, special: :MODEST }.freeze
   # IVs (all six) of the lieutenants by gym (1st to 8th), of the League.
@@ -239,39 +270,14 @@ module WorldEvents
   # given by an inhabitant.
   ITEM_SOURCES = { "sol" => 30, "cache" => 25, "don" => 45 }.freeze
   GIFT_SHARE = 40
-  # What they are, by the seals won before the map: the table of the highest
-  # line at most that many seals, item => weight. TM: a TM of the game drawn
-  # at random (never twice, nor a lieutenant's).
-  ITEM_TABLE = {
-    0 => { POTION: 10, POKEBALL: 10, ANTIDOTE: 4, PARALYZEHEAL: 4, ORANBERRY: 6, PECHABERRY: 3,
-           CHERIBERRY: 3, REPEL: 3, ESCAPEROPE: 2, TM: 1 },
-    2 => { SUPERPOTION: 10, GREATBALL: 8, POKEBALL: 3, AWAKENING: 3, BURNHEAL: 3, ICEHEAL: 3,
-           SITRUSBERRY: 5, REVIVE: 3, ETHER: 3, SUPERREPEL: 3, TM: 3, FIRESTONE: 1, WATERSTONE: 1,
-           THUNDERSTONE: 1, LEAFSTONE: 1, MOONSTONE: 1, RARECANDY: 1, NUGGET: 1 },
-    4 => { HYPERPOTION: 8, ULTRABALL: 8, FULLHEAL: 5, REVIVE: 5, LUMBERRY: 4, SITRUSBERRY: 4,
-           ELIXIR: 3, MAXREPEL: 3, TM: 4, RARECANDY: 2, PPUP: 2, NUGGET: 2, PROTEIN: 1, IRON: 1,
-           CALCIUM: 1, ZINC: 1, CARBOS: 1, SUNSTONE: 1, DUSKSTONE: 1, SHINYSTONE: 1, DAWNSTONE: 1, ICESTONE: 1 },
-    6 => { MAXPOTION: 8, FULLRESTORE: 3, ULTRABALL: 8, FULLHEAL: 4, MAXREVIVE: 3, MAXETHER: 3,
-           LUMBERRY: 4, TM: 5, RARECANDY: 3, PPUP: 2, BIGNUGGET: 1, HPUP: 1, PROTEIN: 1, IRON: 1,
-           CALCIUM: 1, ZINC: 1, CARBOS: 1 }
-  }.freeze
-  # The loot of a nook, by the seals won when it opens (its map's, or those
-  # before the field item that opens it, whichever is more): rarer.
-  NOOK_TABLE = {
-    0 => { RARECANDY: 3, NUGGET: 3, TM: 4, PPUP: 1, EVERSTONE: 1, MOONSTONE: 1, FIRESTONE: 1,
-           WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1 },
-    4 => { RARECANDY: 4, BIGNUGGET: 2, TM: 4, PPUP: 2, LEFTOVERS: 1, LIFEORB: 1, CHOICESCARF: 1,
-           FOCUSSASH: 1, EXPSHARE: 1, LUCKYEGG: 1, HPUP: 1 }
-  }.freeze
-  # The loot of a nook to come back to (#269: opened by a field item obtained
-  # after its map), by the same seals: TMs, evolution stones, strong held
-  # items only. Never a Heart Scale nor a Pact Incense there.
-  REVISIT_TABLE = {
-    0 => { TM: 6, FIRESTONE: 1, WATERSTONE: 1, THUNDERSTONE: 1, LEAFSTONE: 1, MOONSTONE: 1, SUNSTONE: 1,
-           EVIOLITE: 1, LEFTOVERS: 1, EXPSHARE: 1, SCOPELENS: 1, KINGSROCK: 1, METALCOAT: 1 },
-    4 => { TM: 6, DUSKSTONE: 1, SHINYSTONE: 1, DAWNSTONE: 1, ICESTONE: 1, LIFEORB: 1, CHOICEBAND: 1,
-           CHOICESPECS: 1, CHOICESCARF: 1, FOCUSSASH: 1, ASSAULTVEST: 1, ROCKYHELMET: 1, WEAKNESSPOLICY: 1 }
-  }.freeze
+  # What they are, by the seals won before the map: drawn by rarity among the
+  # items of MapProc/Lore/objets.txt (012_ItemPool.rb) of the source « sol »;
+  # the loot of a nook (by the seals won when it opens: its map's, or those
+  # before the field item that opens it, whichever is more) among « recoin »,
+  # that of a nook to come back to (#269: opened by a field item obtained
+  # after its map) among « revisite » (TMs, evolution stones, strong held
+  # items only; never a Heart Scale nor a Pact Incense there). TM: a TM of
+  # the game drawn at random (never twice, nor a lieutenant's).
   # Of the nooks to come back to: REVISIT_POKEMON % hold a Pokémon of the
   # imposed type instead (at the level of their Tronçon, under the cap; a
   # capture in Nuzlocke), and REVISIT_LORE % of the others a trace of the
@@ -305,6 +311,14 @@ module WorldEvents
   # Move Relearners (a Heart Scale per move): one in a town reached with at
   # most each number of seals (the first one before the 2nd seal).
   RELEARNERS = [1, 4, 7].freeze
+  # The Family's casinos (FamilyCasino plugin): CASINOS croupiers per world,
+  # each by a street of a town drawn among all but the first (never two in the
+  # same town), placed after everyone else.
+  CASINOS = 1..2
+  CROUPIER_GRAPHIC = "trainer_COUSIN_F"
+  # The Family's usurer (FamilyDebt plugin): in each town but the first, by
+  # a street, placed after everyone else.
+  USURER_GRAPHIC = "trainer_COUSIN_M"
   RELEARNER_GRAPHIC = "NPC 13"
   # Policemen (#122): POLICE_CHANCE % of the inhabitants of the streets wear
   # this uniform and say the lines of [policier]; no one else wears it.
@@ -323,6 +337,11 @@ module WorldEvents
   HOUSE_BUILDINGS = %w[maison immeuble port special].freeze
   HOUSE_SPOTS = {
     6  => [[7, 4, "bas"]],
+    # The rooms of Mew (#322, tools/art/interior_mew.py)
+    21 => [[2, 5, "bas"], [8, 6, "gauche"]],
+    22 => [[3, 5, "bas"], [7, 6, "bas"]],
+    23 => [[5, 6, "bas"], [8, 7, "gauche"]],
+    28 => [[4, 5, "bas"]],
     8  => [[1, 4, "bas"], [5, 4, "bas"], [8, 4, "bas"]],
     11 => [[5, 3, "bas"], [10, 3, "bas"]],
     12 => [[2, 7, "bas"], [6, 7, "bas"], [10, 7, "bas"]],
@@ -351,9 +370,12 @@ module WorldEvents
     "lieutenant_victoire" => PLACE_TOKENS, "lieutenant_ct" => PLACE_TOKENS,
     "lieutenant_revanche" => PLACE_TOKENS, "lieutenant_revanche_fin" => BATTLE_TOKENS,
     "membre_combat" => PLACE_TOKENS, "membre_fin" => BATTLE_TOKENS,
+    "arene_barriere" => PLACE_TOKENS, "arene_barriere_ordre" => PLACE_TOKENS, "arene_barriere_cachee" => PLACE_TOKENS,
+    "arene_statue" => [], "arene_statue_deja" => [], "arene_statue_rang" => %w[rang], "arene_statue_erreur" => [],
+    "arene_ouverte" => [],
     "ancien_combat" => PLACE_TOKENS, "ancien_fin" => BATTLE_TOKENS,
     "parrain_combat" => PLACE_TOKENS, "parrain_fin" => BATTLE_TOKENS,
-    "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS,
+    "guilde_raccourci" => PLACE_TOKENS, "guilde_barrage" => PLACE_TOKENS, "guilde_sortie" => PLACE_TOKENS,
     "guilde_vengeance" => PLACE_TOKENS, "guilde_bonus_attente" => PLACE_TOKENS, "guilde_bonus" => PLACE_TOKENS,
     "guilde_bonus_apres" => PLACE_TOKENS, "guilde_reglement" => PLACE_TOKENS, "guilde_reglement_fin" => %w[joueur],
     "recoin_lore" => PLACE_TOKENS, "recoin_pokemon" => PLACE_TOKENS, "terrain_cache" => PLACE_TOKENS, "terrain_cache_apres" => PLACE_TOKENS,
@@ -390,6 +412,15 @@ module WorldEvents
   # the lines of [habitant_libre], the Cousins of the town and of the routes
   # that touch it are gone.
   GUILD_SWITCH   = 70
+  # A guild's dungeon (#335, a headquarters' place with gates): a member
+  # stands in the corridor of each gate (seeing GUILD_GATE_SIGHT cells
+  # ahead), gone once beaten; the others and the leader past the gates. The
+  # first member beaten turns on GUILD_LOCK_SWITCH + its rank: the exit says
+  # [guilde_sortie] and stops the player until the leader is beaten (a
+  # defeat turns those switches off, the player waking at a Centre).
+  GUILD_LOCK_SWITCH = 90
+  GUILD_LOCKS       = 20   # switches 91 to 110, one guild each at most
+  GUILD_GATE_SIGHT  = 4
   GUILD_ALLY     = "alliée"
   GUILD_FREEING  = "affiliée"
   GUILD_MONEY    = 1000
@@ -402,9 +433,8 @@ module WorldEvents
   # the members of its enemies see GUILD_RAGE_SIGHT cells ahead (never an
   # exit nor a door) and say [guilde_vengeance]; once an enemy's leader is
   # beaten, its members leave the routes and a member of the ally gives one
-  # of GUILD_BONUS_ITEMS by its headquarters.
+  # of the items « guilde » of MapProc/Lore/objets.txt by its headquarters.
   GUILD_RAGE_SIGHT  = 6
-  GUILD_BONUS_ITEMS = %i[LEFTOVERS LIFEORB CHOICESCARF CHOICEBAND CHOICESPECS FOCUSSASH EXPSHARE LUCKYEGG].freeze
   # The settling of scores (#190): for each guild with a rallying enemy (its
   # « rivals »), once the ally rallied, its leader waits by the enemy's
   # headquarters for a double battle, side by side with the player against

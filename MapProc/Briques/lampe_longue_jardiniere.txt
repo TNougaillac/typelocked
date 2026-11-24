@@ -1,0 +1,6 @@
+# Longue jardinière orange, le long d'une rue (style chaud) (#317).
+Brique    = Longue jardinière orange
+Type      = lampe
+Contre    = rue
+[Map]
+ѿѿѿѿ

@@ -1,0 +1,6 @@
+# Bosse de pierre : une courte corniche que l'on saute vers le sud (#296).
+Brique    = Bosse de pierre
+Type      = corniche
+Ambiances = minérale, haute montagne
+[Map]
+ѢѢ

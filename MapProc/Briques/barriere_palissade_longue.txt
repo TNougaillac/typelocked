@@ -1,0 +1,6 @@
+# Longue palissade le long d'une rue ou d'un chemin (style chaud).
+Brique = Longue palissade le long du chemin
+Type   = barriere
+Contre = rue
+[Map]
+ʚʚʚʚʚʚ

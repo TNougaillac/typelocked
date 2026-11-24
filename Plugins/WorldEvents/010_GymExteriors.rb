@@ -18,6 +18,11 @@ module WorldEvents
               PSYCHIC: 8456, ROCK: 8512, STEEL: 8568, WATER: 8624 }
   }.freeze
   GYM_DRAWING_SIZE = [8, 7].freeze
+  # A generated gym's interior (#121) wears its lieutenant's type: tileset
+  # by type (tools/art/gym_interiors_4g.py), drawn on the same grid as the
+  # Normal one (MapProceduralGenerator::GYM_TILESET).
+  GYM_INTERIOR_TILESETS = %i[NORMAL FIRE WATER GRASS ELECTRIC ICE FIGHTING POISON GROUND FLYING PSYCHIC BUG ROCK
+                             GHOST DRAGON DARK STEEL FAIRY].each_with_index.to_h { |type, i| [type, 37 + i] }.freeze
 
   module_function
 
@@ -35,10 +40,11 @@ module WorldEvents
   end
 
   # Paints the gym of each lieutenant's town (leaders: gym_events) in the
-  # lieutenant's type, on the town's map.
+  # lieutenant's type, on the town's map, and its generated interior.
   def paint_gyms(leaders)
     infos = load_data("Data/MapInfos.rxdata")
     leaders.each do |leader|
+      paint_gym_interior(infos, leader)
       map_id = infos.select { |_id, info| info.name == leader[:town] }.keys.min
       next if !map_id
       path = sprintf("Data/Map%03d.rxdata", map_id)
@@ -57,5 +63,17 @@ module WorldEvents
       end
       save_data(map, path) if changed
     end
+  end
+
+  # The tileset of the lieutenant's type on a generated gym's interior.
+  def paint_gym_interior(infos, leader)
+    tileset = GYM_INTERIOR_TILESETS[leader[:type]]
+    map_id = infos.select { |_id, info| info.name == leader[:map] }.keys.min
+    return if !tileset || !map_id
+    path = sprintf("Data/Map%03d.rxdata", map_id)
+    map = load_data(path)
+    return if map.tileset_id != MapProceduralGenerator::GYM_TILESET || map.tileset_id == tileset
+    map.tileset_id = tileset
+    save_data(map, path)
   end
 end

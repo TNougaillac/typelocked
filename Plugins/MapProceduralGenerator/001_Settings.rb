@@ -50,7 +50,8 @@ module MapProceduralGenerator
   # Plans of the towns big enough for a square (see PlaceBuilder#choose_plan),
   # by weight; boost: [Briques] types raised to that many times their
   # highest count. GRID: tiles between two streets of a « grille » (across,
-  # down); CANAL: width of the canal of a « canal ». PLAN_SALT: their own
+  # down); CANAL: width of the canal of a « canal » that runs from north to
+  # south. PLAN_SALT: their own
   # draws.
   TOWN_PLANS = {
     "carrefour" => { weight: 4 },
@@ -60,6 +61,12 @@ module MapProceduralGenerator
   }.freeze
   GRID = { across: 14..16, down: 12..14 }.freeze
   CANAL = { width: 4..5 }.freeze
+  # The stone bridge of a canal that runs from west to east (see
+  # PlaceBuilder#lay_stone_canal): its object in ville.txt (its block: the
+  # parapets and the deck over the water; its halo: the posts on the banks),
+  # that often (%) among the canals; kind: the type of its cells; apart: tiles
+  # between two bridges at least (from deck to deck).
+  STONE_BRIDGE = { symbol: "Ѫ", chance: 50, kind: "pont", apart: 8 }.freeze
   PLAN_SALT = 0x91A45
 
   # The avenue of a town (the streets of its first two exits) is one tile
@@ -189,6 +196,20 @@ module MapProceduralGenerator
   # its floor and rock tiles. Cave 4G (HGSS, tools/art/caves_4g.py) keeps
   # the rock, floor and ladder tiles of the demo's Dungeon cave, with single walls.
   CAVE_TILESET = 25
+  # Extra autotiles of Outside 4G (#301): a tileset has 7 autotiles, Essentials
+  # draws these animated ones in place of its first tiles (T0, T1...), which
+  # tools/art/extra_autotiles_4g.py left free. Single tile autotiles, in the
+  # order of the scripts: the waterfall's crest, fall and foot, white flowers;
+  # the DPPt flowers (tools/art/vegetation_4g.py, #317).
+  EXTRA_AUTOTILES = { 24 => [[], ["Waterfall crest", "Waterfall", "Waterfall bottom", "HGSS Flowers 02",
+                                  "DPPt Flowers Blue", "DPPt Flowers Pink", "DPPt Flowers Purple",
+                                  "DPPt Flowers Yellow"]] }.freeze
+
+  # Caves by biome (#300): the ambiance of the place a cave opens on => its
+  # tileset, laid out like Cave 4G (tools/art/cave_styles_4g.py): ice, lava,
+  # moss, mine. The others keep CAVE_TILESET.
+  CAVE_STYLES = { "neige" => 28, "volcan" => 29, "forêt sombre" => 30, "marais" => 30, "forêt tropicale" => 30,
+                  "minérale" => 31, "haute montagne" => 31 }.freeze
   CAVE_AREA = :cave
   CAVE_FLOOR = "T42"
   CAVE_ROCK = "T40"
@@ -209,7 +230,10 @@ module MapProceduralGenerator
   # drawn among those of its brick type: [map ID, x, y of its exit (the door
   # mat, the player arrives just above it)]. The copy keeps the map's tiles,
   # not its events. A centre's copy is the healing spot of its town.
-  HOUSE_INTERIORS = [[6, 6, 8], [8, 3, 9], [26, 5, 11], [27, 4, 8]].freeze
+  # Houses: the rooms of Mew's Gen 4 Interior Tiles (#322, maps written by
+  # tools/art/interior_mew.py on the Interior Mew tileset); the guilds keep
+  # the demo's houses (6, 8, 26, 27) of their leaders' spots.
+  HOUSE_INTERIORS = [[21, 5, 8], [22, 5, 8], [23, 6, 9], [28, 4, 7]].freeze
   INTERIORS = {
     "centre"   => [[9, 7, 9], [24, 7, 9], [53, 7, 9]],
     "boutique" => [[25, 4, 8], [54, 4, 8]],
@@ -227,6 +251,8 @@ module MapProceduralGenerator
     "pontes"   => [[6, 6, 8]],
     # The Dundees' hunting camp (#220): a hut
     "dundees"  => [[8, 3, 9]],
+    # The Poachers' camp (#338): their thatched hut, a hut
+    "braconniers" => [[8, 3, 9]],
     # The Chromed's den (#221): the garage, a house
     "chromes"  => [[6, 6, 8]],
     "immeuble" => [[12, 6, 10], [11, 7, 10]],
@@ -243,20 +269,24 @@ module MapProceduralGenerator
   # in (none: any). Its quantity is 0 in [Briques]: the guilds' draw sets it
   # (#182).
   # The ruins' temple is always there (« temple = 1 » in the ruins); the
-  # poachers' camp and the cemetery have no brick yet (#216, #211).
+  # cemetery has no brick yet (#211).
   GUILD_HQS = { "ferme" => %w[prairie], "chantier" => ["terre battue"],
                 "carriere" => ["minérale", "haute montagne"], "contrebande" => [],
                 "poste" => ["verdoyante", "automne", "forêt sombre"], "forains" => [],
                 "nageurs" => %w[plage], "pontes" => %w[plage],
                 "dundees" => %w[marais], "chromes" => [], "temple" => %w[ruines],
-                "braconniers" => ["forêt sombre"], "cimetiere" => ["cimetière"] }.freeze
+                "braconniers" => ["verdoyante", "automne", "forêt sombre"], "cimetiere" => ["cimetière"] }.freeze
+  # A headquarters' place drawn in this ambiance whatever its route's (#338):
+  # the Poachers' camp, a dark wood off a route of the woods (the dark
+  # forest is too rare a route to wait for)
+  HQ_AMBIANCES = { "braconniers" => "forêt sombre" }.freeze
   # Headquarters laid along the quay of a port town, like its warehouses
   # (never elsewhere)
   QUAY_HQS = %w[contrebande].freeze
   # Guilds of a world (#183): once the world is built, this many
-  # headquarters are drawn among those whose place exists (an ambiance it
-  # allows, a port for a quay's), each laid on one of those places drawn by
-  # the seed (fewer if fewer fit).
+  # headquarters are drawn among those a route allows (its ambiance), each a
+  # place of its own branched off one of those routes drawn by the seed
+  # (#334; fewer if fewer fit).
   WORLD_GUILDS = 3..5
   # Enemy guilds (#189), by the brick type of their headquarters (the
   # « Ennemis » of MapProc/Lore/guildes.txt, checked by the CI): once one is
@@ -267,6 +297,57 @@ module MapProceduralGenerator
                  "contrebande" => %w[chantier], "pontes" => %w[nageurs dundees braconniers],
                  "nageurs" => %w[pontes], "dundees" => %w[pontes] }.freeze
   HQ_ENEMY_CHANCE = 70
+  # A guild's headquarters is a place of its own (#334), a dead end off a
+  # route of its ambiance: « QG généré N » on the world plan (type=lieu),
+  # one of these symbols, a route off the chain of this kind (WorldPlace
+  # extra), of the first of these sizes in squares that fits.
+  HQ_NAME = "QG généré"
+  HQ_SYMBOLS = %w[♠ ♣ ♥ ♦ ★ ☆ ♪ ♫].freeze
+  HQ_EXTRA = "qg"
+  # Sizes in squares, across its route then away from it
+  HQ_PLACE_SIZES = [[1, 1], [2, 1], [1, 2]].freeze
+  # A guild of the outdoors (#335): its headquarters' place is its dungeon,
+  # deeper (HQ_DUNGEON_SIZES), closed by HQ_GATES gates (close_gates) at
+  # GATE_SPOTS of its depth from its exit, its street running straight in
+  # to GATE_HUB of its depth, its headquarters past the last gate. The
+  # others (HQ_ROOM_KINDS) have their dungeon inside their building (#337).
+  HQ_ROOM_KINDS = %w[contrebande chromes nageurs temple].freeze
+  HQ_DUNGEON_SIZES = [[1, 2], [2, 2]].freeze
+  HQ_GATES = 2
+  # Tall grass of a dungeon, per case: the guild's wild Pokémon (#336)
+  HQ_GRASS = 1..2
+  GATE_SPOTS = [0.22, 0.45].freeze
+  # The dungeon of a guild of rooms (#337): one map behind its building's
+  # door, grown like a cave (006_Caves.rb) in HQ_GATES + 1 halls stacked from
+  # the entrance (south) to the leader (north), each of GUILD_HALL_SHAPE (see
+  # CAVE_SHAPES), apart by GUILD_HALL_GAP rows of rock blocks crossed by one
+  # corridor a block wide (its gate). Its walls are drawn by the painter of
+  # its tileset (GUILD_DUNGEON_TILESETS, double walls: tools/art/
+  # guild_dungeons_4g.py), the exit shown by that tileset's tile 47.
+  GUILD_HALL_SHAPE = { size: [14, 6], rooms: 2..3, radius: 1.2..2.4, loops: 0..1, width: 1..1 }.freeze
+  GUILD_HALL_GAP = 2
+  GUILD_DUNGEON_TILESETS = { "contrebande" => 33, "chromes" => 34, "nageurs" => 35, "temple" => 36 }.freeze
+  # A gym's interior (#121): one room (GYM_ROOM_SHAPE, see CAVE_SHAPES),
+  # the lieutenant at its far end, the members of the Family in it; drawn
+  # on the Normal gym's tileset (tools/art/gym_interiors_4g.py, one per type
+  # from 37: WorldEvents swaps it for its lieutenant's type).
+  GYM = "arene"
+  GYM_ROOM_SHAPE = { size: [14, 11], rooms: 3..4, radius: 1.6..2.8, loops: 1..2, width: 1..2 }.freeze
+  GYM_TILESET = 37
+  # Its map metadata (that of the demo's gym, map 10), after its name
+  GYM_METADATA = ["BattleBack = indoor3", "Environment = Rock", "Flags = DisableBoxLink"].freeze
+  # (deeper from a north exit: the doors face south, the street must pass
+  # below them)
+  GATE_HUB = { "nord" => 0.8 }.tap { |h| h.default = 0.55 }.freeze
+  # The bricks of its file (route or town) a headquarters' place keeps around
+  # its own: the decoration (the ambiance's too)
+  HQ_DECOR = %w[herbes arbre parc lampe barriere enclos remarquable decor].freeze
+  # Name shown in game of each headquarters' place
+  HQ_TITLES = { "ferme" => "Ferme des Éleveurs", "chantier" => "Chantier", "carriere" => "Carrière",
+                "contrebande" => "Entrepôts du Quai", "poste" => "Poste forestier", "forains" => "Champ de foire",
+                "nageurs" => "Club de natation", "pontes" => "Plage de ponte", "dundees" => "Campement des Dundees",
+                "chromes" => "Repaire des Chromés", "temple" => "Temple en ruine", "braconniers" => "Camp des braconniers",
+                "cimetiere" => "Cimetière" }.freeze
   # Tileset of an interior copied from a template on that tileset (#194):
   # Interior general (houses, flats, warehouses, lab) => Interior 4G, its
   # floors redrawn by tools/art/interiors_4g.py.
@@ -282,27 +363,46 @@ module MapProceduralGenerator
   # brick type => [models in a place of one square (20x20 tiles), more models
   # for each other square]. A village has 2 house models, a big town more.
   MODELS = { "maison" => [2, 0.6], "immeuble" => [1, 0.4], "batisse" => [1, 0.4] }.freeze
-  # Styles of houses: a place builds all its houses (« maison ») in one of
-  # them, so that their roofs and walls go together. weight: how often it is
-  # drawn, more in some ambiances; houses: the names of their bricks.
+  # Styles of towns: a place builds all its houses (« maison »), fences
+  # (« barriere ») and street furniture (« lampe ») in one of them, so that
+  # its roofs, walls, fences and lamps go together (#298). weight: how often
+  # it is drawn, more in some ambiances; houses, fences, furniture: the names
+  # of their bricks (a kind left with none of them in an ambiance keeps all
+  # of its bricks).
   HOUSE_STYLES = {
     "rustique" => { weight: 1, ambiances: { "chemins de terre" => 3, "automne" => 3, "marais" => 4, "terre battue" => 2, "neige" => 2 },
                     houses: ["Case en paille", "Chalet rouge", "Chaumière", "Chaumière à cheminée", "Maison aux bardeaux",
-                             "Maison en bois", "Maison ocre", "Maison en rondins"] },
+                             "Maison en bois", "Maison ocre", "Maison en rondins"],
+                    fences: ["Barrière le long du chemin", "Longue barrière le long du chemin", "Très longue barrière le long du chemin"],
+                    furniture: ["Banc de bois", "Lanterne suspendue", "Lanternes en bois", "Jardinière", "Boîte aux lettres", "Pot de fleurs",
+                               "Table de pique-nique"] },
     "chaud"    => { weight: 2, ambiances: { "sable" => 3, "volcan" => 4, "plage" => 3, "terre battue" => 2 },
                     houses: ["Maison bordeaux à cheminée", "Maison orange à balustrade", "Maison crème", "Maison orange",
                              "Maison orange à escalier", "Maison rouge à auvent", "Maison au toit rouge", "Maison verte à cheminée",
-                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge"] },
+                             "Petite maison bleue", "Petite maison orange", "Petite maison rouge", "Maison verte au toit orange"],
+                    fences: ["Palissade le long du chemin", "Longue palissade le long du chemin"],
+                    furniture: ["Réverbère rouge", "Bancs", "Jardinière", "Lampadaire", "Boîte aux lettres", "Jardinière orange",
+                               "Longue jardinière orange", "Panneau d'affichage"] },
     "froid"    => { weight: 2, ambiances: { "neige" => 3, "minérale" => 3, "verdoyante" => 2, "prairie" => 2 },
                     houses: ["Garage", "Maison à auvent vert", "Maison bleue à cheminée", "Maison et jardin", "Maison mauve",
                              "Maison au toit de mousse", "Maison au pignon bleu", "Petite maison à toit plat", "Maison turquoise à annexe",
                              "Haute maison turquoise", "Maison violette", "Grande maison aux tuiles violettes", "Maison au toit vitré",
-                             "Maison au toit vitré bleu", "Petite maison verte"] }
+                             "Maison au toit vitré bleu", "Petite maison verte", "Maison à verrière", "Maison au toit violet"],
+                    fences: ["Barrière blanche le long du chemin", "Longue barrière blanche le long du chemin"],
+                    furniture: ["Réverbère turquoise", "Bouche d'incendie", "Lampadaire d'Émeraude", "Distributeurs", "Bancs", "Topiaires",
+                               "Panneau Pokémon", "Rangée de distributeurs"] }
   }.freeze
   HOUSE_STYLE_SALT = 5381
+  # Brick type => the key of HOUSE_STYLES that lists its bricks
+  STYLE_KINDS = { "maison" => :houses, "barriere" => :fences, "lampe" => :furniture }.freeze
   # Optional bricks placed after all the others (town decor that must not
   # take the room of a park)
-  LAST_KINDS = %w[batisse special barriere].freeze
+  LAST_KINDS = %w[batisse barriere].freeze
+  # Optional bricks tried right after the required buildings but the
+  # houses (the unique buildings, too big to find room once the town is
+  # built, #299; the round square, which needs five tiles along a street,
+  # #298)
+  EARLY_KINDS = %w[special placette].freeze
   # Fences (« barriere » in [Briques]): along a street, all along it.
   FENCE = "barriere"
   EXTRA_SALT = 7951
@@ -333,7 +433,9 @@ module MapProceduralGenerator
     "R" => "Door_Goldenrod01", "Ζ" => "Door_Goldenrod01", "Η" => "Door_Goldenrod01",
     "Κ" => "Door_Goldenrod01", "Φ" => "Door_Goldenrod01", "ι" => "Door_Goldenrod01",
     "Ι" => "Door_Newbark01", "Σ" => "Door_Newbark01", "Τ" => "Door_Newbark01",
-    "L" => "Door_Goldenrod01", "J" => "Door_Newbark01"
+    "L" => "Door_Goldenrod01", "J" => "Door_Newbark01",
+    # Kanto's houses (tools/art/kanto_houses_4g.py): the sheet leaves a hole for the door
+    "Ѱ" => "Door_Olivine01", "ѱ" => "Door_Goldenrod01", "Ѳ" => "Door_Goldenrod01"
   }.freeze
 
   # The end of every world's chain, after its last town: the Victory Road (a
@@ -605,3 +707,5 @@ module MapProceduralGenerator
   FILLER_ROCK_SYMBOLS = %w[ø ö õ ó].freeze
   FILLER_SYMBOLS = ((0x3B1..0x3C9).to_a + (0x391..0x3A9).to_a - [0x3A2] + (0x410..0x44F).to_a).map { |c| c.chr(Encoding::UTF_8) }.freeze
 end
+
+TilemapRenderer::EXTRA_AUTOTILES.merge!(MapProceduralGenerator::EXTRA_AUTOTILES) if defined?(TilemapRenderer)

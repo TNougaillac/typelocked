@@ -1,0 +1,8 @@
+# Talus rocheux : deux gradins de roche (#296).
+Brique    = Talus rocheux
+Type      = decor
+Ambiances = minérale, haute montagne
+Poids     = 3
+[Map]
+ϭϮϯϮѠ
+ϭϮϯϮѠ

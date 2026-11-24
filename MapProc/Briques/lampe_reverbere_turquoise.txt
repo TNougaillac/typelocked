@@ -1,0 +1,6 @@
+# Réverbère turquoise, le long d'une rue (style froid, #298).
+Brique = Réverbère turquoise
+Type   = lampe
+Contre = rue
+[Map]
+ʞʞ

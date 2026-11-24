@@ -7,6 +7,27 @@ module WorldEvents
 
   # The professor: greets the player, then opens the lab's Poké Balls (lab) or
   # offers the three starters in a list.
+  # After a seal: the lieutenant's three rewards, the player keeps one (no
+  # cancel). tm: an item or nil; held: an item, BOOSTER = the item of the
+  # player's type; pack: [[item, quantity]].
+  def seal_loot(tm, held, pack)
+    held = TYPE_BOOSTERS.fetch(Monotype.data.type, :EXPERTBELT) if held == :BOOSTER
+    options = []
+    if tm && GameData::Item.exists?(tm)
+      item = GameData::Item.get(tm)
+      options.push([_INTL("CT : {1}", GameData::Move.get(item.move).name), [[tm, 1]]])
+    end
+    options.push([_INTL("Objet tenu : {1}", GameData::Item.get(held).name), [[held, 1]]])
+    pack_name = pack.map { |id, qty| "#{qty} #{qty > 1 ? GameData::Item.get(id).name_plural : GameData::Item.get(id).name}" }
+    options.push([_INTL("Lot : {1}", pack_name.join(", ")), pack])
+    loop do
+      index = pbMessage(_INTL("Choisis ta récompense."), options.map(&:first), 0)
+      next if !pbConfirmMessage(_INTL("Prendre « {1} » ? Les autres seront perdues.", options[index][0]))
+      options[index][1].each { |id, qty| pbReceiveItem(id, qty) }
+      return
+    end
+  end
+
   def professor(lab)
     return say("professeur_apres") if Monotype.data.starter_given
     say("professeur_intro") if !$game_switches[CHOOSING_STARTER_SWITCH]
@@ -155,6 +176,31 @@ module WorldEvents
     $game_map.need_refresh = true
     say("arceus_fin")
   end
+
+  # A statue of a generated gym (#121, Statue<rank> of count): lit once
+  # touched (its self switch A). Ordered: it says its number, and a statue
+  # touched out of turn puts them all out. The last one lit turns on switch,
+  # which lifts the barriers around the lieutenant.
+  def gym_statue(rank, count, switch, ordered)
+    statues = (1..count).map { |k| $game_map.events.values.find { |e| e.name.end_with?(" Statue#{k}") } }
+    return if statues.include?(nil)
+    key = ->(event) { [$game_map.map_id, event.id, "A"] }
+    return say("arene_statue_deja") if $game_self_switches[key.call(statues[rank - 1])]
+    say("arene_statue_rang", "rang" => rank.to_s) if ordered
+    if ordered && statues.count { |e| $game_self_switches[key.call(e)] } != rank - 1
+      statues.each { |e| $game_self_switches[key.call(e)] = false }
+      pbSEPlay("GUI party switch")
+      return say("arene_statue_erreur")
+    end
+    $game_self_switches[key.call(statues[rank - 1])] = true
+    pbSEPlay("Voltorb Flip tile")
+    say("arene_statue")
+    return if statues.any? { |e| !$game_self_switches[key.call(e)] }
+    $game_switches[switch] = true
+    $game_map.need_refresh = true
+    pbSEPlay("Door slide")
+    say("arene_ouverte")
+  end
 end
 
 # Heals done in each Centre (map ID => count), saved with the game.
@@ -174,4 +220,13 @@ class << TrainerBattle
     setBattleRule("single") if $game_temp.battle_rules["size"] == "double" && !pbCanDoubleBattle?
     return __world_events_start_core(*args)
   end
+end
+
+# A defeat opens the guilds' dungeons again (#335): the player wakes at a
+# Centre, the exits closed by GUILD_LOCK_SWITCH no longer hold them.
+alias __world_events_pbStartOver pbStartOver
+
+def pbStartOver(*args)
+  (1..WorldEvents::GUILD_LOCKS).each { |i| $game_switches[WorldEvents::GUILD_LOCK_SWITCH + i] = false }
+  return __world_events_pbStartOver(*args)
 end

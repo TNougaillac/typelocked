@@ -1,0 +1,6 @@
+# Bouche d'incendie, le long d'une rue (style froid, #298).
+Brique = Bouche d'incendie
+Type   = lampe
+Contre = rue
+[Map]
+ʟ

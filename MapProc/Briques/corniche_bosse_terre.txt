@@ -1,0 +1,6 @@
+# Bosse de terre : une courte corniche que l'on saute vers le sud (#296).
+Brique    = Bosse de terre
+Type      = corniche
+Ambiances = verdoyante, prairie, terre battue, automne
+[Map]
+ѡѡ

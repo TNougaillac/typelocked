@@ -1,0 +1,11 @@
+# Automne : un tapis de feuilles mortes (on y marche), une souche au milieu.
+Brique    = Tapis de feuilles
+Type      = decor
+Ambiances = automne
+Poids     = 3
+[Map]
+ ʃʃʃʃ
+ʃʃʃʃʃʃ
+ʃʃʃʃʃʃ
+ ʃʃʃʃ
+ ʍʍ

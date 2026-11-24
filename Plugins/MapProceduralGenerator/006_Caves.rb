@@ -16,8 +16,10 @@ module MapProceduralGenerator
   # rows: true = floor, map size (margin included); spots: inventory of the
   # floor (exits, ladders, floor, far; loot in a dark cave); warps: [[x, y,
   # target map name, tx, ty]]; seed: of the walls and decorations drawn by
-  # the painter; dark: a dark cave (a nook, see NOOKS)
-  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark)
+  # the painter; dark: a dark cave (a nook, see NOOKS); guild: the
+  # headquarters (GUILD_HQS) of a guild's dungeon (#337), its owner: the
+  # place of its door; plan: its MapGen plan (cave_floor_text).
+  CaveFloor = Struct.new(:name, :level, :rows, :spots, :warps, :seed, :dark, :tileset, :guild, :owner, :plan)
 
   module_function
 
@@ -194,7 +196,7 @@ module MapProceduralGenerator
     ladder_up = farthest_block(grids[1], start)
     far_end = farthest_block(grids[1], ladder_up)
     below = ->(block) { block_cell(block).then { |x, y| [x, y + 1] } }
-    door_a, door_b = doors.map { |x, y, _brick| [x, y + 1] }
+    door_a, door_b = doors.map { |x, y, brick| [*door_front(x, y, brick), DOOR_FACINGS[brick.door_side]] }
     floors = [
       [entrance_a, door_a, ladder_down, ladder_up, names[1]],
       [door_b ? far_end : nil, door_b, ladder_up, ladder_down, names[0]]
@@ -245,16 +247,27 @@ module MapProceduralGenerator
   end
 
   # MapGen plan of a cave floor: floor and rock (the painter draws the walls
-  # when the map is written), and its warps (exit to the route, ladder).
+  # when the map is written), and its warps (exit to the route, ladder). Its
+  # plan is put in floor.plan too, made without the text (#345).
   def cave_floor_text(floor, route)
+    tileset = floor.tileset || CAVE_TILESET
+    palette = (@cave_palettes ||= {})[tileset] ||=
+      MapGenerator.parse("Name = palette\nTileset = #{tileset}\nGround = .\n[Legend]\n. = #{CAVE_FLOOR}\nx = #{CAVE_ROCK}\n[Map]\n.\n", "grotte")
+    events = floor.rows.map { |row| "." * row.length }
+    warps = floor.warps.each_with_index.to_h do |(x, y, target, tx, ty, facing), i|
+      events[y][x] = (i + 1).to_s
+      [(i + 1).to_s, MapGenerator::Warp.new(target, tx, ty, MapGenerator::WARP_DIRECTIONS.fetch(facing || "bas"), nil)]
+    end
+    floor.plan = MapGenerator.assemble(palette, name: floor.name, rows: floor.rows.map { |row| row.map { |f| f ? "." : "x" }.join },
+                                       warps: warps, events: events, check: check_plans)
     text = +"# Grotte de #{route}, générée par MapProceduralGenerator (#{floor.dark ? 'grotte sombre' : (floor.level == 0) ? '1er étage' : 'sous-sol'}).\n"
     text << "# Les murs sont dessinés par le générateur de donjon d'Essentials quand la carte est écrite.\n"
     text << "Name    = #{floor.name}\n"
-    text << "Tileset = #{CAVE_TILESET}\n"
+    text << "Tileset = #{floor.tileset || CAVE_TILESET}\n"
     text << "Ground  = .\n"
     text << "\n[Legend]\n. = #{CAVE_FLOOR}\nx = #{CAVE_ROCK}\n"
     text << "\n[Warps]\n"
-    floor.warps.each_with_index { |(_x, _y, target, tx, ty), i| text << "#{i + 1} = #{target} #{tx},#{ty} bas\n" }
+    floor.warps.each_with_index { |(_x, _y, target, tx, ty, facing), i| text << "#{i + 1} = #{target} #{tx},#{ty} #{facing || 'bas'}\n" }
     text << "\n[Map]\n"
     floor.rows.each { |row| text << row.map { |f| f ? "." : "x" }.join << "\n" }
     text << "\n[Events]\n"
@@ -262,5 +275,109 @@ module MapProceduralGenerator
     floor.warps.each_with_index { |(x, y), i| events[y][x] = (i + 1).to_s }
     events.each { |row| text << row << "\n" }
     return text
+  end
+end
+
+module MapProceduralGenerator
+  module_function
+
+  # The dungeon of a guild of rooms behind that door of its place ([x, y,
+  # brick]): halls stacked from the entrance (south) to the back (north),
+  # each two joined by one corridor a block wide across the rock between
+  # them, its gate. Spots: exits, floor (blocks), facing (floor blocks,
+  # facing south), ground (every floor cell), entry (where the player lands),
+  # gates (the cell of each gate's guard, its corridor in front of it, gate
+  # facing), cuts (the cells of each gate), leader (the back's far end) and
+  # locks (the exit, held once the dungeon is closed).
+  def guild_dungeon_floor(name, owner, door, kind, rng)
+    return halls_floor(name, owner, door, HQ_GATES, GUILD_DUNGEON_TILESETS[kind], kind, rng)
+  end
+
+  # A gym's interior behind that door of its town (#121): one room
+  # (GYM_ROOM_SHAPE, a hall of a guild's dungeon with no gate), the
+  # lieutenant at its far end from the entrance (south), drawn
+  # on the Normal gym's tileset (WorldEvents swaps it for its lieutenant's
+  # type), its exit always open (no locks).
+  def gym_floor(name, owner, door, rng)
+    floor = halls_floor(name, owner, door, 0, GYM_TILESET, GYM, rng, GYM_ROOM_SHAPE)
+    floor.spots.delete(:locks)
+    return floor
+  end
+
+  # Halls of that shape stacked from the entrance (south) to the back
+  # (north), gates + 1 of them (see guild_dungeon_floor), on that tileset,
+  # for that building. One hall (no gate): the entrance on its lowest row,
+  # the back its farthest block.
+  def halls_floor(name, owner, door, gate_count, tileset, building, rng, shape = GUILD_HALL_SHAPE)
+    halls = Array.new(gate_count + 1) { cave_blocks(shape, rng) }
+    cw, ch = shape[:size]
+    step = ch + GUILD_HALL_GAP
+    grid = Array.new((step * halls.length) - GUILD_HALL_GAP) { Array.new(cw, false) }
+    # Hall 0 (the entrance) at the bottom
+    top = ->(i) { (halls.length - 1 - i) * step }
+    halls.each_with_index do |hall, i|
+      hall.each_with_index { |row, y| row.each_with_index { |f, x| grid[top.call(i) + y][x] = f } }
+    end
+    gates = (0...gate_count).map do |i|
+      low, high = halls[i], halls[i + 1]
+      columns = (1...cw - 1).select { |x| low.any? { |row| row[x] } && high.any? { |row| row[x] } }
+      raise Error, "#{name} : salles impossibles à relier" if columns.empty?
+      x = columns.sample(random: rng)
+      from = top.call(i) + low.index { |row| row[x] }
+      to = top.call(i + 1) + high.rindex { |row| row[x] }
+      (to..from).each { |y| grid[y][x] = true }
+      [x, top.call(i) - 1]
+    end
+    widen_gaps(grid, gates, rng)
+    # The entrance the farthest from the first gate in the first hall, the
+    # leader the farthest from the last gate in the last one
+    hall_far = lambda do |i, gate|
+      dist = block_distances(grid, gate)
+      rows = top.call(i)...(top.call(i) + ch)
+      rows.flat_map { |y| (0...cw).select { |x| dist[y][x] }.map { |x| [x, y] } }.max_by { |x, y| [dist[y][x], -y, -x] }
+    end
+    if gates.empty?
+      low = grid.rindex { |row| row.any? }
+      entrance = [grid[low].each_index.select { |x| grid[low][x] }.min_by { |x| [(x - (cw / 2)).abs, x] }, low]
+      leader = hall_far.call(0, entrance)
+    else
+      entrance = hall_far.call(0, gates[0])
+      leader = hall_far.call(gate_count, gates[-1])
+    end
+    entry = block_cell(entrance).then { |x, y| [x, y + 1] }
+    rows = cave_rows(grid)
+    ground = rows.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] }.map { |x| [x, y] } }
+    blocks = grid.each_with_index.flat_map { |row, y| row.each_index.select { |x| row[x] && [x, y] != entrance }.map { |x| [x, y] } }
+    spots = {
+      exits:  [[*block_cell(entrance), owner]],
+      floor:  blocks.map { |b| block_cell(b) },
+      facing: blocks.map { |b| [*block_cell(b), "bas"] },
+      ground: ground, entry: entry,
+      gates:  gates.map { |b| block_cell(b) }, gate_facing: gates.map { "droite" },
+      cuts:   gates.map { |b| block_cell(b).then { |x, y| [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]] } },
+      leader: block_cell(leader), locks: [block_cell(entrance)]
+    }
+    warps = [[*block_cell(entrance), owner, door[0], door[1] + 1]]
+    return CaveFloor.new(name, 0, rows, spots, warps, rng.rand(1_000_000), false, tileset, building, owner)
+  end
+
+  # Rock one block thick between floor (north and south, or west and east)
+  # becomes floor, but on the gates' rows (double walls need two blocks of
+  # rock), then the blocks touching only by a corner are joined.
+  def widen_gaps(grid, gates, rng)
+    cw, ch = grid[0].length, grid.length
+    keep = gates.flat_map { |_x, y| [y, y - (GUILD_HALL_GAP - 1)] }
+    loop do
+      cells = (1...ch - 1).flat_map do |y|
+        next [] if keep.include?(y)
+        (1...cw - 1).select do |x|
+          !grid[y][x] && ((grid[y - 1][x] && grid[y + 1][x] && !keep.include?(y - 1) && !keep.include?(y + 1)) ||
+                          (grid[y][x - 1] && grid[y][x + 1]))
+        end.map { |x| [x, y] }
+      end
+      break if cells.empty?
+      cells.each { |x, y| grid[y][x] = true }
+    end
+    join_diagonals(grid, cw, ch, rng)
   end
 end

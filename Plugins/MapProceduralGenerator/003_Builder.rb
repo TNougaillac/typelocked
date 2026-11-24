@@ -30,7 +30,9 @@ module MapProceduralGenerator
   # the ferry terminal's door (on the quay, entered from the promenade below);
   # spots: the place's inventory (see PlaceBuilder#inventory); levels: the
   # [Layer3] rows of the raised levels (nil without), see level_rows
-  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance, :levels)
+  # plan: the MapGen plan of the place (generate_place), its warps added by
+  # the world
+  Layout = Struct.new(:rows, :doors, :exits, :deep, :terminal, :spots, :ambiance, :levels, :plan)
 
   # Bricks counted "par case" in [Briques] are multiplied by the place's area
   # in squares of CASE_SIZE x CASE_SIZE tiles.
@@ -77,10 +79,10 @@ module MapProceduralGenerator
   # Brick types of the nooks, drawn by the builder: a pocket of ground in the
   # rock behind an obstacle (its door), an islet in a pond, a dark cave
   # (the entrance of a cave brick)
-  # The sea autotile (A1), whose bottom edge is drawn by the bank below it
-  # (« Rive » of the place file) on the ground of the row underneath, unless
-  # it draws its own (« EauBordee »)
-  SEA_TILES = (48...96).freeze
+  # The sea autotiles (A1, and A7: the sandy shore of the beach, #301), whose
+  # bottom edge is drawn by the bank below it (« Rive » of the place file) on
+  # the ground of the row underneath, unless it draws its own (« EauBordee »)
+  SEA_TILES = ((48...96).to_a + (336...384).to_a).freeze
   NOOK = "recoin"
   ISLET = "ilot"
   DARK_CAVE = "grotte sombre"
@@ -119,9 +121,14 @@ module MapProceduralGenerator
       @bricks.select! { |b| !b.ambiances || b.ambiances.include?(place.ambiance) }
       # and some left out by the place's excess
       @bricks.reject! { |b| excess[:without]&.include?(b.name) }
-      # and the houses of another style than the place's (HOUSE_STYLES)
-      houses = HOUSE_STYLES[house_style(place, seed)][:houses]
-      @bricks.reject! { |b| b.kind == "maison" && !houses.include?(b.name) } if @bricks.any? { |b| b.kind == "maison" && houses.include?(b.name) }
+      # and the houses, fences and furniture of another style than the
+      # place's (HOUSE_STYLES, STYLE_KINDS)
+      style = HOUSE_STYLES[house_style(place, seed)]
+      STYLE_KINDS.each do |kind, key|
+        names = style[key]
+        next if !@bricks.any? { |b| b.kind == kind && names.include?(b.name) }
+        @bricks.reject! { |b| b.kind == kind && !names.include?(b.name) }
+      end
       @left_out -= @bricks.map(&:kind)
       @palette = palette
       @seed = seed
@@ -154,6 +161,7 @@ module MapProceduralGenerator
              @rng.rand((@h * 0.35).to_i..(@h * 0.65).to_i - STREET_WIDTH)]
       hub[1] = climbing_hub_row || hub[1] if @place.mountain
       hub = port_hub(hub) if @place.port
+      hub = gate_hub if @place.gates
       if @mask
         # One square near the middle of each joint, the streets go through them
         @hubs = @place.joints.map do |jx, jy, jw, jh|
@@ -171,10 +179,13 @@ module MapProceduralGenerator
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if @place.port
       @rng.rand(@place.spurs).times { carve_spur(hub) }
       choose_plan
+      # A dungeon has no square: its street goes straight in
+      @plan = (@place.kind == "ville") ? "clairière" : nil if @place.gates
       lay_grid if @plan == "grille" || (excess[:grid] && @plan == "canal")
       lay_plaza(hub) if @plan != "clairière"
-      lay_canal(hub) if @plan == "canal"
+      lay_stone_canal(hub) || lay_canal(hub) if @plan == "canal"
       close_lock if @place.lock
+      close_gates if @place.gates
       cross if @place.crossing
       scatter_reefs(SEA_LIFE[:banks], SEA_LIFE[:reefs], Random.new(@seed ^ SEA_LIFE_SALT)) if %w[chenal lac].include?(@place.crossing)
       raise_terraces if terrace?
@@ -216,7 +227,7 @@ module MapProceduralGenerator
     #   hill_tops: the cell on top of each hill, away from its stair (a loot
     #   to climb for).
     def inventory
-      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, _| [x, y + 1] }
+      starts = @exits.map { |_side, x, y| [x, y] } + @doors.map { |x, y, brick| door_front(x, y, brick) }
       seen = Array.new(@h) { Array.new(@w, false) }
       starts.each { |start| walk_foot(start, seen) if !seen[start[1]][start[0]] }
       on_street = ->(x, y) { inside?(x, y) && @street[y][x] && !@stairs_at&.key?([x, y]) }
@@ -232,6 +243,7 @@ module MapProceduralGenerator
         nooks:     @nooks.map(&:dup),
         hill_tops: @hill_tops.map(&:dup),
         lock:      @lock&.dup,
+        gates:     @gates&.map(&:dup),
         ground:    cells_where(seen) { true }
       }
     end
@@ -302,6 +314,10 @@ module MapProceduralGenerator
 
     def error(msg)
       raise Error, "#{@place.file} (graine #{@seed}) : #{msg}"
+    end
+
+    def door_front(x, y, brick)
+      return MapProceduralGenerator.door_front(x, y, brick)
     end
 
     def inside?(x, y)
@@ -494,7 +510,7 @@ module MapProceduralGenerator
       if @place.crossing == "grotte"
         @exits.each do |side, ex, ey|
           seen = walk([ex, ey])
-          next if @doors.any? { |dx, dy, brick| brick.kind == CAVE && seen[dy + 1][dx] }
+          next if @doors.any? { |dx, dy, brick| brick.kind == CAVE && door_front(dx, dy, brick).then { |fx, fy| seen[fy][fx] } }
           error("la sortie #{side} ne mène à aucune entrée de la grotte")
         end
         return
@@ -503,12 +519,13 @@ module MapProceduralGenerator
       start = if !@exits.empty?
                 @exits[0][1, 2]
               else
-                [@doors[0][0], @doors[0][1] + 1]
+                door_front(*@doors[0])
               end
       seen = walk(start)
       @exits.each { |side, ex, ey| error("la sortie #{side} est inaccessible") if !seen[ey][ex] }
       @doors.each do |dx, dy, brick|
-        error("la porte de « #{brick.name} » est inaccessible") if !seen[dy + 1][dx]
+        fx, fy = door_front(dx, dy, brick)
+        error("la porte de « #{brick.name} » est inaccessible") if !seen[fy][fx]
       end
     end
 
@@ -581,7 +598,7 @@ module MapProceduralGenerator
     rescue Error
       raise if attempt == PLACE_RETRIES
     end
-    text = plan_text(place, seed, layout.rows, layout.levels)
-    return MapGenerator.parse(text, place.file), text, layout
+    layout.plan = place_plan(place, seed, layout.rows, layout.levels)
+    return layout.plan, plan_text(place, seed, layout.rows, layout.levels), layout
   end
 end

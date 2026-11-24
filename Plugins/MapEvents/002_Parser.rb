@@ -39,9 +39,12 @@
 #   Gift = TM39                 Win = text after a win, Gift = item given,
 #   Switch = 25                 Switch = game switch turned on, each Reward
 #   Reward = pbAddPokemon(:EEVEE, 5)   = one script line run on a win;
+#   Script = pbFoo              Script = script line run after the Gift,
 #   Rage = 71,6                 Rage = once game switch 71 is on, it sees 6
 #   RageBattle = Traître !      cells ahead and says the RageBattle texts
-#                               instead of Battle;
+#   Hide = A                    instead of Battle; Hide = gone once the
+#                               condition holds, A = once beaten, like an
+#                               NPC's;
 #   Rematch = 65,101            Rematch = once beaten and game switch 65 on,
 #   RematchBattle = Encore !    it fights once more with version 101 of its
 #   RematchEnd = Bravo.         team, saying RematchBattle and RematchEnd,
@@ -93,7 +96,7 @@ module MapEvents
                         EndIfSwitch VanishIfSwitch Outcome RegSpeech]
   KEYS = {
     npc:     %w[Pos Graphic Facing Text Script Gift When Wait Once Trigger Hide Show] + MOVE_KEYS,
-    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Switch Rage RageBattle
+    trainer: %w[Pos Graphic Facing Sight Badge Win Reward Gift Script Switch Rage RageBattle Hide
                 Rematch RematchBattle RematchEnd RematchGift] + MOVE_KEYS + TRAINER_COMMENTS,
     item:    %w[Pos Item Hidden],
     copy:    %w[Pos From Graphic Confirm]

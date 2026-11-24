@@ -1,0 +1,7 @@
+# Étal de marché à auvent orange (#299).
+Brique = Étal de marché
+Type   = foire
+[Map]
+ʪʪʪʪ
+ʪʪʪʪ
+ʪʪʪʪ

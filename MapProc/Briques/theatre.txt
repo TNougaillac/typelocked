@@ -1,0 +1,10 @@
+# Théâtre à toit orange (SirMalo Buildings I6), une fois par ville au plus (#321).
+Brique    = Théâtre
+Type      = special
+Unique    = oui
+Porte     = 2,2
+Ambiances = verdoyante, prairie, sable
+[Map]
+ҟҟҟҟҟҟҟ
+ҟҟҟҟҟҟҟ
+ҟҟҟҟҟҟҟ

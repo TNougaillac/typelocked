@@ -1,0 +1,8 @@
+# Forêt sombre : une souche morte et une fougère (DPPt, Forêt Vestigion).
+Brique    = Souche et fougère
+Type      = decor
+Ambiances = forêt sombre
+Poids     = 4
+[Map]
+ʋʋʑʑ
+ʋʋʑʑ

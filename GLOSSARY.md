@@ -16,6 +16,13 @@ _Avoid_ : monde, carte
 Le nombre qui détermine la région d'une partie ; la même graine redonne la même région.
 _Avoid_ : seed
 
+**Défi du jour** :
+Une partie sur la graine du monde du jour, la même pour tous les joueurs ce jour-là, avec le même type imposé et les mêmes starters. On peut le rejouer autant qu'on veut ; seul le meilleur score du jour compte.
+_Avoid_ : daily, graine du jour
+
+**Graine au hasard** :
+Une partie hors du défi du jour, sur une graine du monde tirée au hasard.
+
 ## La Famille
 
 **La Famille** :
@@ -37,6 +44,12 @@ _Avoid_ : chef d'arène
 **Cousins** :
 Les sbires de la Famille que le joueur croise sur les routes et dans les villes.
 _Avoid_ : sbires, Team, grunts
+
+**Usurier** :
+Un Cousin qui prête l'argent de la Famille, avec des intérêts, à rendre avant le prochain sceau.
+
+**Recouvreur** :
+Un Cousin envoyé sur les routes pour réclamer une dette en retard.
 
 **Infirmière** :
 L'infirmière d'un Centre Pokémon, membre de la Famille comme les vendeurs. Elle soigne gratuitement trois fois par Centre, puis fait payer.
@@ -90,6 +103,15 @@ _Avoid_ : type du run, mode Monotype (pour parler de la règle elle-même)
 Le premier Pokémon du joueur, choisi parmi trois Pokémon de son type imposé.
 _Avoid_ : Pokémon de départ
 
+## Les recrues
+
+**Recrue** :
+Un spécialiste (maître des capacités, éleveur, passeur…) que le joueur bat quelque part dans la région et qui accepte ensuite de le rejoindre pour lui rendre un service. Les recrues ne font partie d'aucune guilde, et chaque partie n'en contient que quelques-unes.
+_Avoid_ : allié, compagnon, membre
+
+**Village d'origine** :
+La première ville de la partie, d'où part le joueur. Les recrues viennent s'y installer.
+_Avoid_ : ville de départ, bourg
 ## L'exploration
 
 **Objet de terrain** :
@@ -103,6 +125,16 @@ _Avoid_ : capacité de type, pouvoir du type
 **Recoin** :
 Un petit lieu facultatif fermé par un obstacle, avec quelque chose qui vaut le détour. Certains s'ouvrent au premier passage, d'autres demandent de revenir plus tard avec le bon objet de terrain.
 _Avoid_ : zone secrète, bonus
+
+## La génération des cartes
+
+**Palette** :
+La légende d'un lieu généré : ce que chaque symbole dessine (sols, objets, terrains), selon son ambiance et son style de rue. Elle est lue une seule fois, puis partagée par toutes les cartes qui l'utilisent.
+_Avoid_ : légende, tileset
+
+**Grille** :
+Le dessin d'une carte générée, un symbole de la palette par case. Une palette et une grille suffisent à écrire la carte.
+_Avoid_ : plan texte, map
 
 ## Multijoueur
 

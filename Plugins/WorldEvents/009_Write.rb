@@ -17,11 +17,13 @@ module WorldEvents
   def write_world(result, seed, export)
     caps = ProceduralEncounters.level_caps
     species = ProceduralEncounters.load_species
-    zones = ProceduralEncounters.world_zones(result, caps)
-    _lines, generated = ProceduralEncounters.world_encounters(result, species, caps, seed)
+    guilds = load_guilds(".", species)
+    pools = guild_pools(guilds)
+    zones = ProceduralEncounters.world_zones(result, caps, pools)
+    _lines, generated = ProceduralEncounters.world_encounters(result, species, caps, seed, pools)
     type = Monotype.active? ? Monotype.data.type : nil
     events = world_events(result, seed, zones: zones, encounters: generated, species: species, tms: game_tms, caps: caps,
-                                        type: type)
+                                        type: type, guilds: guilds)
     write_trainers(events[:trainers])
     paint_gyms(events[:leaders])
     events[:plans].each_value do |text|

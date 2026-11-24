@@ -27,7 +27,7 @@ module WorldEvents
     slots.each_with_index { |slot, i| slot[:source] = sources[i] }
     all = (slots + nooks).sort_by { |slot| [slot[:seals], slot[:index], slot[:map]] }
     all.each do |slot|
-      table = slot[:revisit] ? REVISIT_TABLE : ((slot[:source] == "recoin") ? NOOK_TABLE : ITEM_TABLE)
+      table = slot[:revisit] ? revisit_table : ((slot[:source] == "recoin") ? nook_table : item_table)
       slot[:item] = draw_item(table, slot[:seals], tms, used_tms, rng)
     end
     heart_scales(all.reject { |slot| slot[:revisit] })
@@ -290,6 +290,8 @@ module WorldEvents
     atlas[:items].each_with_index do |(item, town), i|
       spots = atlas[:maps][town]
       next if !spots
+      # Given by a guild's leader (#274): no hidden inhabitant
+      next items.push({ map: town, source: "guilde", item: item }) if hq_place?(atlas, town)
       if extra_field_item?(item)
         items.push({ map: town, source: "cache_terrain", item: item }) if hidden_giver(spots, item, i, town, plans, lines, rng)
         next

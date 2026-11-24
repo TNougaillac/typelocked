@@ -51,8 +51,15 @@ module WorldEvents
     if zones && sets
       blockade = guild_blockade(result, atlas, guilds, zones, Random.new((seed * 1000) + 820))
       definitions = guilds
+      # The field items its guilds give (#274), back to their hidden
+      # inhabitant when a leader is missing
+      hidden = atlas[:items]
+      atlas = guild_field_sources(atlas, guilds)
       guilds = guild_events(result, atlas, guilds, species, zones, caps, plans, trainers, names, lines, sets,
                             Random.new((seed * 1000) + 800), type, Random.new((seed * 1000) + 810), blockade, rivals || {})
+      given = guilds.filter_map { |g| g[:field_item] }
+      lost = atlas[:items].keys.select { |item| hq_place?(atlas, atlas[:items][item]) && !given.include?(item) }
+      atlas = atlas.merge(items: atlas[:items].merge(hidden.slice(*lost))) if !lost.empty?
       rival_bonuses(atlas, definitions, guilds, plans, lines, Random.new((seed * 1000) + 830))
       showdowns(atlas, definitions, guilds, rivals || {}, species, zones, plans, trainers, names, lines,
                 Random.new((seed * 1000) + 840))
@@ -70,13 +77,15 @@ module WorldEvents
       items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730), pact, revisit)
     end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760), freed_towns)
+    casino_events(result, atlas, plans, Random.new((seed * 1000) + 800))
+    usurer_events(result, atlas, plans, Random.new((seed * 1000) + 790))
     if !leaders.empty?
       rematch_events(atlas, species, caps, leaders, plans, trainers,
                      Lines.new(dialogues, region_name(result), Random.new((seed * 1000) + 870)),
                      Sets.new(dex, tms, Random.new((seed * 1000) + 880)), Random.new((seed * 1000) + 890))
     end
     return { plans: plans.to_h { |name, events| [name, plan_text(name, events)] }, trainers: trainers, leaders: leaders,
-             league: league, items: items || [], guilds: guilds || [], merchants: merchants }
+             league: league, items: items || [], guilds: guilds || [], sources: atlas[:items], merchants: merchants }
   end
 
   def plan_text(name, events)
@@ -90,18 +99,14 @@ module WorldEvents
   end
 
   # Seals won on the way to each place, by name: the lieutenants of the
-  # chain before it (an island counts as its port).
+  # chain before it (an island counts as its port, a place off the chain as
+  # the place of its tier).
   def seals_at(result)
     gyms = result.places.filter_map { |wp, *| wp.index if wp.gym } +
            (result.islands || []).filter_map { |wp, *| wp.index if wp.gym }
-    seals = result.places.to_h { |wp, *| [wp.name, gyms.count { |i| i < wp.index }] }
+    seals = result.places.to_h { |wp, *| [wp.name, gyms.count { |i| i < (wp.extra ? wp.tier : wp.index) }] }
     (result.islands || []).each { |wp, port, *| seals[wp.name] = seals[port.name] || gyms.count { |i| i < wp.index } }
     return seals
-  end
-
-  # Stock of a shop with that many seals.
-  def mart_stock(seals)
-    return MART_STOCK.select { |from, _items| from <= seals }.values.flatten
   end
 
   #-----------------------------------------------------------------------------

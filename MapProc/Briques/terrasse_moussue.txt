@@ -1,0 +1,8 @@
+# Terrasse basse moussue : un massif surélevé (#296).
+Brique    = Terrasse moussue
+Type      = decor
+Ambiances = marais
+Poids     = 3
+[Map]
+ϦϧϧϨ
+ϦϧϧϨ
