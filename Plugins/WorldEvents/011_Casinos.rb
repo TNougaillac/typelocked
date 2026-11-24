@@ -2,12 +2,13 @@
 # WorldEvents - The Family's casinos
 # CASINOS croupiers per world (1 or 2), each by a street of a different town
 # (never the first), after every other event so that no one else moves.
-# Talking to him runs FamilyCasino.croupier (FamilyCasino plugin). Plain Ruby.
+# Talking to him runs FamilyCasino.croupier (FamilyCasino plugin). A client
+# stands in the same town, with a line of [casino_client] (#330). Plain Ruby.
 #===============================================================================
 module WorldEvents
   module_function
 
-  def casino_events(result, atlas, plans, rng)
+  def casino_events(result, atlas, plans, rng, lines)
     towns = result.places.select { |wp, *| wp.kind == "ville" }.map(&:first).sort_by(&:index)
     towns = towns.reject { |town| town.name == atlas[:start] || !atlas[:maps][town.name] }
     towns.sample(rng.rand(CASINOS), random: rng).each do |town|
@@ -16,6 +17,11 @@ module WorldEvents
       x, y, facing = cell
       add(plans, town.name, "Npc", "Croupier", x, y, ["Graphic", CROUPIER_GRAPHIC], ["Facing", facing],
           ["Script", "FamilyCasino.croupier"])
+      cell = item_cell(atlas[:maps][town.name], npc_cells(atlas[:maps][town.name], rng), plans[town.name])
+      next if !cell
+      x, y, facing = cell
+      add(plans, town.name, "Npc", "ClientCasino", x, y, ["Graphic", GIFT_GRAPHICS.sample(random: rng)], ["Facing", facing],
+          *lines.boxes("casino_client", town.name).map { |box| ["Text", box] })
     end
   end
 end
