@@ -68,6 +68,9 @@ jobs:
       - name: Chronos de la génération du monde
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_world_timing.rb
+      - name: Jeux de cartes du casino
+        if: ${{ !cancelled() }}
+        run: ruby tools/ci/check_casino.rb
       - name: Défi du jour
         if: ${{ !cancelled() }}
         run: ruby tools/ci/check_daily_challenge.rb

@@ -12,7 +12,8 @@ module FamilyCasino
       pbReceiveItem(:COINCASE)
     end
     commands = [_INTL("Jetons"), _INTL("Machines à sous"), _INTL("Voltorbataille"), _INTL("Roulette"),
-                _INTL("Pile ou face"), _INTL("Comptoir des lots"), _INTL("Partir")]
+                _INTL("Pile ou face"), _INTL("Blackjack"), _INTL("Vidéo-poker"), _INTL("Comptoir des lots"),
+                _INTL("Partir")]
     loop do
       index = pbMessage(_INTL("Jetons : {1}. À quoi tu joues ?", $player.coins.to_s_formatted), commands, commands.length)
       case index
@@ -21,7 +22,9 @@ module FamilyCasino
       when 2 then pbVoltorbFlip
       when 3 then roulette
       when 4 then coin_flip
-      when 5 then prize_counter
+      when 5 then blackjack
+      when 6 then video_poker
+      when 7 then prize_counter
       else
         pbMessage(_INTL("Reviens quand tu veux. La maison gagne toujours."))
         return

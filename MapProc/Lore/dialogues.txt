@@ -173,6 +173,34 @@ Je vends moins cher que la Famille. Et des choses qu'elle ne vend pas.
 Tout se paie comptant. Je ne reprends rien, et je ne t'ai jamais vu.
 
 #-------------------------------------------------------------------------------
+# Casino de la Famille (#330), dit en jeu : le croupier distribue au
+# blackjack, la machine de vidéo-poker, puis la réplique d'une main perdue.
+# Les jeux sont un peu truqués, et ça se devine.
+[casino_blackjack]
+Cartes neuves, paquet battu par mes soins. Tu peux me faire confiance.
+Le blackjack paie six pour cinq, ici. La maison a ses traditions.
+Je tire jusqu'à dix-sept. Toi, tu fais comme tu le sens.
+La table est honnête. Enfin, autant qu'une table de la Famille.
+
+[casino_poker]
+La machine affiche : « Gardez vos cartes, tentez votre chance. La Famille veille. »
+L'écran clignote : « Paire de Valets ou mieux. Bonne chance ! » Le « bonne » a l'air rajouté.
+Un Cousin a réglé cette machine ce matin. Elle ronronne.
+
+[casino_perdu]
+Perdu. La maison remercie.
+Pas de chance. Enfin, la chance, ici, c'est nous qui la distribuons.
+Dommage. Tu y étais presque. C'est ce qu'on dit à tout le monde.
+Perdu. Rejoue, la prochaine main sera la bonne. Ou pas.
+
+# Client du casino, dans la rue près du croupier.
+[casino_client]
+J'ai gagné trois mains de suite. Puis le croupier a changé de paquet.
+Le blackjack paie six pour cinq ici. Ailleurs, c'est trois pour deux. Ailleurs, il n'y a pas de Famille.
+La machine de vidéo-poker ? Une Quinte flush royale, une fois. On m'a dit qu'elle était en panne ce jour-là.
+Je joue juste pour voir. Ça fait trois ans que je regarde mes jetons partir.
+
+#-------------------------------------------------------------------------------
 # Infirmière des Centres Pokémon (dite en jeu) : elle travaille pour la Famille.
 # Une seule boîte par réplique : la dernière pose la question (oui / non).
 #-------------------------------------------------------------------------------

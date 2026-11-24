@@ -77,7 +77,7 @@ module WorldEvents
       items = item_events(result, atlas, zones, tms, leaders, weather, plans, lines, Random.new((seed * 1000) + 730), pact, revisit)
     end
     habitant_events(result, atlas, plans, lines, Random.new((seed * 1000) + 760), freed_towns)
-    casino_events(result, atlas, plans, Random.new((seed * 1000) + 800))
+    casino_events(result, atlas, plans, Random.new((seed * 1000) + 800), lines)
     usurer_events(result, atlas, plans, Random.new((seed * 1000) + 790))
     if !leaders.empty?
       rematch_events(atlas, species, caps, leaders, plans, trainers,

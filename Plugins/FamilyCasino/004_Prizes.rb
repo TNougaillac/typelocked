@@ -1,13 +1,15 @@
 #===============================================================================
 # FamilyCasino - The prize counter
-# PRIZES, then the machines of PRIZE_MOVES found in items.txt, for coins.
+# The pool's « casino » items (WorldEvents.item_pool, #331) priced by their
+# rarity (PRIZE_PRICES), then the machines of PRIZE_MOVES found in items.txt.
 #===============================================================================
 module FamilyCasino
   module_function
 
   # [[item, coins]] on sale.
   def prizes
-    list = PRIZES.select { |item, _coins| GameData::Item.exists?(item) }
+    list = WorldEvents.item_pool.select { |item| item.sources.include?("casino") }
+                      .map { |item| [item.id, PRIZE_PRICES[item.weight]] }
     GameData::Item.each do |item|
       next if !item.is_machine? || !PRIZE_MOVES.key?(item.move)
       list.push([item.id, PRIZE_MOVES[item.move]])

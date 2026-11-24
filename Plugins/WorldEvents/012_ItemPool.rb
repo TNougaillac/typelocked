@@ -8,9 +8,10 @@
 module WorldEvents
   ITEM_POOL_FILE = "Lore/objets.txt"
   RARITIES = { "commun" => 8, "peu_commun" => 4, "rare" => 2, "tres_rare" => 1 }.freeze
-  # sol: on the ground, hidden or given (ITEM_SOURCES); boutique=N: sold from
+  # sol: on the ground, hidden or given (ITEM_SOURCES); casino: at the prize
+  # counter of the Family's casino (FamilyCasino, #330); boutique=N: sold from
   # N seals on
-  POOL_SOURCES = %w[sol recoin revisite guilde meteo].freeze
+  POOL_SOURCES = %w[sol recoin revisite guilde meteo casino].freeze
   # The draw of a random TM, not an item of items.txt
   POOL_TM = :TM
   # seals: a Range (endless = to the end); shop: seals from which it is sold
