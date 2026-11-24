@@ -3,6 +3,8 @@
 MapProc/Export/
 Data/MapProcWorld.rxdata
 Data/MapProcAtlas.rxdata
+# Town Map image drawn for the generated world (Image of MapProc/monde.txt)
+Graphics/UI/Town Map/typelocked_proc.png
 
 # Maps of the generated worlds (the demo maps already in the repo stay tracked)
 Data/Map[0-9]*.rxdata
